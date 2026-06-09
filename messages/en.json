@@ -1,0 +1,437 @@
+{
+  "pos": {
+    "topBar": {
+      "searchPlaceholder": "Search product / code (F3)",
+      "notFound": "Not found \"{query}\"",
+      "aiTooltip": "AI Suggestions",
+      "newTabTooltip": "New invoice (Ctrl+T)",
+      "tabListLabel": "Invoices",
+      "holdTooltip": "Hold (Ctrl+H)",
+      "duplicateTooltip": "Duplicate (Ctrl+D)",
+      "closeTooltip": "Close (Ctrl+W)",
+      "holdingStatus": "On Hold",
+      "payingStatus": "Paying",
+      "adminButton": "Admin",
+      "closeDialog": {
+        "title": "Close invoice?",
+        "body": "{label} has {qty} items. Closing will discard the cart.",
+        "keep": "Keep",
+        "close": "Close invoice"
+      }
+    },
+    "transactionTable": {
+      "status": {
+        "draft": "Draft",
+        "holding": "On Hold",
+        "paying": "Paying"
+      },
+      "counter": "Counter 1",
+      "columns": {
+        "operation": "Operation",
+        "item": "Item",
+        "qty": "Qty",
+        "unit": "Unit",
+        "unitPrice": "Unit Price",
+        "total": "Total"
+      },
+      "unitLabel": "Chi",
+      "deleteTooltip": "Delete",
+      "empty": {
+        "title": "Empty invoice",
+        "hint": "Search for products using the search bar (F3)\nor scan a barcode"
+      },
+      "summary": {
+        "subtotal": "Subtotal ({count} items)",
+        "discount": "Discount",
+        "due": "← Amount due"
+      },
+      "opLabels": {
+        "gold": "Sell Gold",
+        "silver": "Sell Silver",
+        "jewelry": "Jewelry",
+        "watch": "Watch",
+        "default": "Sell Item"
+      }
+    },
+    "payment": {
+      "panel": {
+        "storeName": "Khamphuvong Jewelry",
+        "storeAddress": "Vientiane Main · Chanthabouly",
+        "lookupLabel": "Invoice lookup (F6)",
+        "lookupPlaceholder": "Code TX-xxxx...",
+        "reprint": "Reprint",
+        "customerLabel": "Customer (F4)",
+        "customerSearch": "Search customer...",
+        "subtotalLabel": "Subtotal (A)",
+        "discountLabel": "Discount (B)",
+        "discountInput": "Enter discount ₭...",
+        "applyDiscount": "Apply",
+        "balance": "Balance",
+        "totalDue": "✦ Amount Due",
+        "currency": "₭ (Kip)",
+        "checkout": "Checkout",
+        "processing": "Processing..."
+      },
+      "modal": {
+        "title": "Confirm payment",
+        "subtotal": "Subtotal",
+        "discount": "Discount",
+        "total": "Total",
+        "discountLabel": "Discount (₭)",
+        "clearDiscount": "Clear",
+        "discountPlaceholder": "Amount ₭...",
+        "applyDiscount": "Apply",
+        "paymentMethod": "Payment method",
+        "cancel": "Cancel",
+        "pay": "Pay {amount}",
+        "processing": "Processing..."
+      },
+      "methods": {
+        "cash": "Cash",
+        "bank-transfer": "Bank Transfer",
+        "qr": "QR Code"
+      }
+    },
+    "receipt": {
+      "title": "Payment successful",
+      "storeName": "Khamphuvong Jewelry",
+      "columnProduct": "Product",
+      "columnQty": "Qty",
+      "columnTotal": "Total",
+      "totalLabel": "Total",
+      "printButton": "Print receipt",
+      "closeButton": "Close & New"
+    },
+    "errors": {
+      "emptyCart": "Cart is empty — please add items",
+      "checkoutFailed": "Checkout failed, please try again",
+      "pendingApproval": "Awaiting manager approval",
+      "checkoutSuccess": "Payment successful!"
+    }
+  },
+  "product": {
+    "grid": {
+      "searchPlaceholder": "Search products...",
+      "categoryPlaceholder": "Category",
+      "allCategories": "All",
+      "notFound": "No products found"
+    }
+  },
+  "admin": {
+    "dashboard": {
+      "title": "Overview",
+      "subtitle": "Sales statistics",
+      "stats": {
+        "totalTransactions": "Total transactions",
+        "revenue": "Revenue",
+        "avgTransaction": "Avg transaction",
+        "products": "Products"
+      },
+      "recentTitle": "Recent transactions",
+      "empty": "No transactions yet"
+    },
+    "orders": {
+      "title": "Transaction log",
+      "summary": "{count} transactions · Revenue:",
+      "searchPlaceholder": "Search by invoice code...",
+      "columns": {
+        "invoiceCode": "Invoice code",
+        "time": "Time",
+        "type": "Type",
+        "payment": "Payment",
+        "amount": "Amount",
+        "status": "Status",
+        "openMenu": "Open menu",
+        "viewDetail": "View details"
+      },
+      "transactionTypes": {
+        "SellGold": "Sell Gold",
+        "SellSilver": "Sell Silver",
+        "BuyGold": "Buy Gold",
+        "ExchangeGold": "Exchange Gold",
+        "ExchangeCurrency": "Exchange Currency"
+      },
+      "transactionStatuses": {
+        "DRAFT": {
+          "label": "Draft",
+          "variant": "secondary"
+        },
+        "PENDING": {
+          "label": "Pending",
+          "variant": "outline"
+        },
+        "APPROVED": {
+          "label": "Approved",
+          "variant": "default"
+        },
+        "COMPLETED": {
+          "label": "Completed",
+          "variant": "default"
+        },
+        "REJECTED": {
+          "label": "Rejected",
+          "variant": "destructive"
+        }
+      }
+    },
+    "layout": {
+      "title": "FoxAI Admin",
+      "nav": {
+        "dashboard": "Overview",
+        "products": "Products",
+        "orders": "Transactions",
+        "customers": "Customers",
+        "inventory": "Inventory",
+        "trade": "Trade",
+        "cashLedger": "Cash Ledger",
+        "reports": "Reports",
+        "config": "Configuration",
+        "prices": "Price Config",
+        "exchangeRates": "Exchange Rates",
+        "stonePrices": "Stone Prices",
+        "weightUnits": "Weight Units",
+        "goldPurities": "Gold Purities",
+        "users": "Users",
+        "groupCatalog": "Catalog",
+        "groupFinance": "Finance",
+        "groupConfig": "Configuration",
+        "groupSystem": "System",
+        "backToPOS": "← Back to POS"
+      }
+    },
+    "products": {
+      "title": "Products",
+      "subtitle": "{count} products in the system",
+      "searchPlaceholder": "Search products...",
+      "columns": {
+        "product": "Product",
+        "category": "Category",
+        "unitPrice": "Unit Price",
+        "stock": "Stock",
+        "outOfStock": "Out of stock",
+        "inStock": "{qty} in stock",
+        "openMenu": "Open menu",
+        "edit": "Edit",
+        "delete": "Delete"
+      }
+    },
+    "customers": {
+      "title": "Customers",
+      "subtitle": "{count} customers",
+      "searchPlaceholder": "Search by name or phone...",
+      "columns": {
+        "name": "Full Name",
+        "phone": "Phone",
+        "totalPurchase": "Total Purchase",
+        "lastVisit": "Last Visit",
+        "openMenu": "Open menu",
+        "viewDetail": "View details"
+      }
+    },
+    "inventory": {
+      "title": "Inventory",
+      "subtitle": "{count} SKUs",
+      "searchPlaceholder": "Search product...",
+      "columns": {
+        "product": "Product",
+        "branch": "Branch",
+        "qty": "Qty",
+        "weight": "Weight (chi)",
+        "lastUpdated": "Last Updated"
+      }
+    },
+    "trade": {
+      "title": "Trade",
+      "subtitle": "{total} records",
+      "searchPlaceholder": "Search invoice...",
+      "filterAll": "All",
+      "filterBuyIn": "Buy In",
+      "filterExchange": "Exchange",
+      "columns": {
+        "invoiceCode": "Invoice",
+        "type": "Type",
+        "customer": "Customer",
+        "product": "Product",
+        "weight": "Weight",
+        "total": "Total",
+        "date": "Date"
+      },
+      "types": {
+        "BuyIn": "Buy In",
+        "ExchangeGold": "Exchange Gold"
+      }
+    },
+    "cashLedger": {
+      "title": "Cash Ledger",
+      "subtitle": "Cash flow for {date}",
+      "openingBalance": "Opening Balance",
+      "totalIn": "Total In",
+      "totalOut": "Total Out",
+      "closingBalance": "Closing Balance",
+      "addEntry": "Add entry",
+      "setOpeningBalance": "Set opening balance",
+      "columns": {
+        "description": "Description",
+        "direction": "Direction",
+        "method": "Method",
+        "currency": "Currency",
+        "amount": "Amount",
+        "amountLak": "LAK Amount",
+        "time": "Time"
+      },
+      "direction": {
+        "In": "In",
+        "Out": "Out"
+      },
+      "method": {
+        "Cash": "Cash",
+        "BankTransfer": "Bank Transfer",
+        "QR": "QR"
+      }
+    },
+    "reports": {
+      "title": "Reports",
+      "selectDate": "Select date",
+      "selectBranch": "Select branch",
+      "dashboard": {
+        "title": "Dashboard",
+        "totalRevenue": "Total Revenue",
+        "totalProfit": "Total Profit",
+        "totalTransactions": "Total Transactions",
+        "topProducts": "Top Products",
+        "columns": {
+          "product": "Product",
+          "count": "Transactions"
+        }
+      },
+      "daily": {
+        "title": "Daily Report",
+        "date": "Date",
+        "branch": "Branch",
+        "opening": "Opening Balance",
+        "revenue": "Revenue",
+        "purchase": "Purchase",
+        "closing": "Closing Balance"
+      }
+    },
+    "config": {
+      "prices": {
+        "title": "Price Configuration",
+        "subtitle": "Current gold / silver prices",
+        "goldSell": "Gold Sell Price",
+        "goldBuy": "Gold Buy Price",
+        "silverSell": "Silver Sell Price",
+        "perChi": "/ chi",
+        "perGram": "/ gram",
+        "updatedBy": "Updated by",
+        "updatedAt": "At",
+        "effectiveFrom": "Effective from",
+        "updateButton": "Update prices",
+        "form": {
+          "goldSellLabel": "Gold Sell (₭/chi)",
+          "goldBuyLabel": "Gold Buy (₭/chi)",
+          "silverSellLabel": "Silver (₭/gram)"
+        }
+      },
+      "exchangeRates": {
+        "title": "Exchange Rates",
+        "columns": {
+          "currency": "Currency",
+          "rate": "Rate to LAK",
+          "adjustment": "Adjustment",
+          "updatedAt": "Updated"
+        },
+        "updateButton": "Update"
+      },
+      "stonePrices": {
+        "title": "Stone Price Rules",
+        "columns": {
+          "weightFrom": "Weight From (chi)",
+          "weightTo": "Weight To (chi)",
+          "fee": "Fee (LAK)"
+        },
+        "addButton": "Add rule",
+        "deleteButton": "Delete"
+      },
+      "weightUnits": {
+        "title": "Weight Units",
+        "columns": {
+          "code": "Code",
+          "name": "Name",
+          "gramPerUnit": "Gram / Unit"
+        },
+        "updateButton": "Update"
+      },
+      "goldPurities": {
+        "title": "Gold Purities",
+        "columns": {
+          "code": "Code",
+          "label": "Label",
+          "fineness": "Fineness (‰)"
+        },
+        "addButton": "Add purity"
+      }
+    },
+    "users": {
+      "title": "Users",
+      "subtitle": "{count} accounts",
+      "searchPlaceholder": "Search by name or employee code...",
+      "addButton": "Add user",
+      "columns": {
+        "employeeCode": "Employee Code",
+        "fullName": "Full Name",
+        "phone": "Phone",
+        "branch": "Branch",
+        "role": "Role",
+        "status": "Status",
+        "lastLogin": "Last Login",
+        "openMenu": "Open menu",
+        "viewDetail": "View details",
+        "editRole": "Edit role",
+        "deactivate": "Deactivate"
+      },
+      "roles": {
+        "Cashier": "Cashier",
+        "ThuQuy": "Treasurer",
+        "Manager": "Manager",
+        "SystemAdmin": "System Admin"
+      },
+      "status": {
+        "active": "Active",
+        "inactive": "Inactive"
+      }
+    }
+  },
+  "auth": {
+    "login": {
+      "title": "Sign in",
+      "subtitle": "Khamphuvong Jewelry Management",
+      "usernameLabel": "Employee code",
+      "usernamePlaceholder": "e.g. NV001",
+      "passwordLabel": "Password",
+      "passwordPlaceholder": "Password",
+      "submit": "Sign in",
+      "submitting": "Signing in...",
+      "usernameRequired": "Please enter your employee code",
+      "passwordRequired": "Please enter your password",
+      "logout": "Sign out"
+    }
+  },
+  "common": {
+    "table": {
+      "noData": "No data",
+      "results": "{count} results",
+      "page": "Page {page} / {total}",
+      "searchPlaceholder": "Search..."
+    },
+    "actions": {
+      "add": "Add",
+      "edit": "Edit",
+      "delete": "Delete",
+      "save": "Save",
+      "cancel": "Cancel",
+      "confirm": "Confirm",
+      "update": "Update"
+    }
+  }
+}

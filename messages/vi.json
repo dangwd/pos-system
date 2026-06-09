@@ -1,0 +1,437 @@
+{
+  "pos": {
+    "topBar": {
+      "searchPlaceholder": "Tìm sản phẩm / mã (F3)",
+      "notFound": "Không tìm thấy \"{query}\"",
+      "aiTooltip": "Gợi ý AI",
+      "newTabTooltip": "Hóa đơn mới (Ctrl+T)",
+      "tabListLabel": "Hóa đơn",
+      "holdTooltip": "Tạm giữ (Ctrl+H)",
+      "duplicateTooltip": "Nhân bản (Ctrl+D)",
+      "closeTooltip": "Đóng (Ctrl+W)",
+      "holdingStatus": "Tạm giữ",
+      "payingStatus": "Đang TT",
+      "adminButton": "Quản trị",
+      "closeDialog": {
+        "title": "Đóng hóa đơn?",
+        "body": "{label} đang có {qty} sản phẩm. Đóng sẽ hủy toàn bộ.",
+        "keep": "Giữ lại",
+        "close": "Đóng hóa đơn"
+      }
+    },
+    "transactionTable": {
+      "status": {
+        "draft": "Nháp",
+        "holding": "Tạm giữ",
+        "paying": "Đang TT"
+      },
+      "counter": "Quầy 1",
+      "columns": {
+        "operation": "Nghiệp vụ",
+        "item": "Mặt hàng",
+        "qty": "Số lượng",
+        "unit": "ĐV",
+        "unitPrice": "Đơn giá",
+        "total": "Thành tiền"
+      },
+      "unitLabel": "Chỉ",
+      "deleteTooltip": "Xóa",
+      "empty": {
+        "title": "Hóa đơn trống",
+        "hint": "Tìm sản phẩm qua ô tìm kiếm (F3)\nhoặc quét mã barcode"
+      },
+      "summary": {
+        "subtotal": "Tổng hàng ({count} sản phẩm)",
+        "discount": "Khẩu trừ",
+        "due": "← Khách phải trả"
+      },
+      "opLabels": {
+        "gold": "Bán Vàng",
+        "silver": "Bán Bạc",
+        "jewelry": "Trang Sức",
+        "watch": "Đồng Hồ",
+        "default": "Bán Hàng"
+      }
+    },
+    "payment": {
+      "panel": {
+        "storeName": "Khamphuvong Jewelry",
+        "storeAddress": "Vientiane Main · Chanthabouly",
+        "lookupLabel": "Tra cứu hóa đơn (F6)",
+        "lookupPlaceholder": "Mã TX-xxxx...",
+        "reprint": "In lại",
+        "customerLabel": "Khách hàng (F4)",
+        "customerSearch": "Tìm khách hàng...",
+        "subtotalLabel": "Tổng hàng (A)",
+        "discountLabel": "Giảm giá (B)",
+        "discountInput": "Nhập giảm giá ₭...",
+        "applyDiscount": "Áp dụng",
+        "balance": "Dư nợ",
+        "totalDue": "✦ Tiền thực thu",
+        "currency": "₭ (Kip)",
+        "checkout": "Thanh toán",
+        "processing": "Đang xử lý..."
+      },
+      "modal": {
+        "title": "Xác nhận thanh toán",
+        "subtotal": "Tổng hàng",
+        "discount": "Giảm giá",
+        "total": "Tổng cộng",
+        "discountLabel": "Giảm giá (₭)",
+        "clearDiscount": "Xóa",
+        "discountPlaceholder": "Số tiền ₭...",
+        "applyDiscount": "Áp dụng",
+        "paymentMethod": "Phương thức thanh toán",
+        "cancel": "Hủy",
+        "pay": "Thanh toán {amount}",
+        "processing": "Đang xử lý..."
+      },
+      "methods": {
+        "cash": "Tiền mặt",
+        "bank-transfer": "Chuyển khoản",
+        "qr": "QR Code"
+      }
+    },
+    "receipt": {
+      "title": "Thanh toán thành công",
+      "storeName": "Khamphuvong Jewelry",
+      "columnProduct": "Sản phẩm",
+      "columnQty": "Số lượng",
+      "columnTotal": "Thành tiền",
+      "totalLabel": "Tổng cộng",
+      "printButton": "In hóa đơn",
+      "closeButton": "Đóng & Tạo mới"
+    },
+    "errors": {
+      "emptyCart": "Giỏ hàng trống — vui lòng thêm sản phẩm",
+      "checkoutFailed": "Thanh toán thất bại, vui lòng thử lại",
+      "pendingApproval": "Đang chờ phê duyệt từ quản lý",
+      "checkoutSuccess": "Thanh toán thành công!"
+    }
+  },
+  "product": {
+    "grid": {
+      "searchPlaceholder": "Tìm sản phẩm...",
+      "categoryPlaceholder": "Danh mục",
+      "allCategories": "Tất cả",
+      "notFound": "Không tìm thấy sản phẩm"
+    }
+  },
+  "admin": {
+    "dashboard": {
+      "title": "Tổng quan",
+      "subtitle": "Thống kê hoạt động bán hàng",
+      "stats": {
+        "totalTransactions": "Tổng giao dịch",
+        "revenue": "Doanh thu",
+        "avgTransaction": "GD trung bình",
+        "products": "Sản phẩm"
+      },
+      "recentTitle": "Giao dịch gần đây",
+      "empty": "Chưa có giao dịch nào"
+    },
+    "orders": {
+      "title": "Nhật ký giao dịch",
+      "summary": "{count} giao dịch · Doanh thu:",
+      "searchPlaceholder": "Tìm theo mã hóa đơn...",
+      "columns": {
+        "invoiceCode": "Mã hóa đơn",
+        "time": "Thời gian",
+        "type": "Loại GD",
+        "payment": "Thanh toán",
+        "amount": "Tổng tiền",
+        "status": "Trạng thái",
+        "openMenu": "Mở menu",
+        "viewDetail": "Xem chi tiết"
+      },
+      "transactionTypes": {
+        "SellGold": "Bán Vàng",
+        "SellSilver": "Bán Bạc",
+        "BuyGold": "Mua Vàng",
+        "ExchangeGold": "Đổi Hàng",
+        "ExchangeCurrency": "Đổi Ngoại Tệ"
+      },
+      "transactionStatuses": {
+        "DRAFT": {
+          "label": "Nháp",
+          "variant": "secondary"
+        },
+        "PENDING": {
+          "label": "Chờ duyệt",
+          "variant": "outline"
+        },
+        "APPROVED": {
+          "label": "Đã duyệt",
+          "variant": "default"
+        },
+        "COMPLETED": {
+          "label": "Hoàn tất",
+          "variant": "default"
+        },
+        "REJECTED": {
+          "label": "Từ chối",
+          "variant": "destructive"
+        }
+      }
+    },
+    "layout": {
+      "title": "FoxAI Admin",
+      "nav": {
+        "dashboard": "Tổng quan",
+        "products": "Sản phẩm",
+        "orders": "Giao dịch",
+        "customers": "Khách hàng",
+        "inventory": "Kho hàng",
+        "trade": "Mua-Bán",
+        "cashLedger": "Sổ quỹ",
+        "reports": "Báo cáo",
+        "config": "Cấu hình",
+        "prices": "Bảng giá",
+        "exchangeRates": "Tỷ giá",
+        "stonePrices": "Phí đá",
+        "weightUnits": "Đơn vị",
+        "goldPurities": "Tuổi vàng",
+        "users": "Người dùng",
+        "groupCatalog": "Danh mục",
+        "groupFinance": "Tài chính",
+        "groupConfig": "Cấu hình",
+        "groupSystem": "Hệ thống",
+        "backToPOS": "← Quay về POS"
+      }
+    },
+    "products": {
+      "title": "Sản phẩm",
+      "subtitle": "{count} sản phẩm trong hệ thống",
+      "searchPlaceholder": "Tìm sản phẩm...",
+      "columns": {
+        "product": "Sản phẩm",
+        "category": "Danh mục",
+        "unitPrice": "Đơn giá",
+        "stock": "Tồn kho",
+        "outOfStock": "Hết hàng",
+        "inStock": "Còn {qty}",
+        "openMenu": "Mở menu",
+        "edit": "Chỉnh sửa",
+        "delete": "Xóa"
+      }
+    },
+    "customers": {
+      "title": "Khách hàng",
+      "subtitle": "{count} khách hàng",
+      "searchPlaceholder": "Tìm theo tên hoặc SĐT...",
+      "columns": {
+        "name": "Họ và tên",
+        "phone": "Điện thoại",
+        "totalPurchase": "Tổng mua",
+        "lastVisit": "Lần cuối",
+        "openMenu": "Mở menu",
+        "viewDetail": "Xem chi tiết"
+      }
+    },
+    "inventory": {
+      "title": "Kho hàng",
+      "subtitle": "{count} mã SP",
+      "searchPlaceholder": "Tìm sản phẩm...",
+      "columns": {
+        "product": "Sản phẩm",
+        "branch": "Chi nhánh",
+        "qty": "Số lượng",
+        "weight": "Trọng lượng (chỉ)",
+        "lastUpdated": "Cập nhật"
+      }
+    },
+    "trade": {
+      "title": "Mua-Bán",
+      "subtitle": "{total} giao dịch",
+      "searchPlaceholder": "Tìm mã hóa đơn...",
+      "filterAll": "Tất cả",
+      "filterBuyIn": "Mua vàng",
+      "filterExchange": "Đổi hàng",
+      "columns": {
+        "invoiceCode": "Mã HĐ",
+        "type": "Loại",
+        "customer": "Khách",
+        "product": "Sản phẩm",
+        "weight": "Trọng lượng",
+        "total": "Tổng",
+        "date": "Ngày"
+      },
+      "types": {
+        "BuyIn": "Mua vàng",
+        "ExchangeGold": "Đổi hàng"
+      }
+    },
+    "cashLedger": {
+      "title": "Sổ quỹ",
+      "subtitle": "Dòng tiền ngày {date}",
+      "openingBalance": "Số dư đầu",
+      "totalIn": "Tổng thu",
+      "totalOut": "Tổng chi",
+      "closingBalance": "Số dư cuối",
+      "addEntry": "Thêm mục thu chi",
+      "setOpeningBalance": "Đặt số dư đầu",
+      "columns": {
+        "description": "Mô tả",
+        "direction": "Chiều",
+        "method": "Phương thức",
+        "currency": "Ngoại tệ",
+        "amount": "Số tiền",
+        "amountLak": "Quy đổi LAK",
+        "time": "Thời gian"
+      },
+      "direction": {
+        "In": "Thu",
+        "Out": "Chi"
+      },
+      "method": {
+        "Cash": "Tiền mặt",
+        "BankTransfer": "Chuyển khoản",
+        "QR": "QR"
+      }
+    },
+    "reports": {
+      "title": "Báo cáo",
+      "selectDate": "Chọn ngày",
+      "selectBranch": "Chọn chi nhánh",
+      "dashboard": {
+        "title": "Tổng quan",
+        "totalRevenue": "Tổng doanh thu",
+        "totalProfit": "Lợi nhuận",
+        "totalTransactions": "Tổng giao dịch",
+        "topProducts": "SP bán chạy",
+        "columns": {
+          "product": "Sản phẩm",
+          "count": "Giao dịch"
+        }
+      },
+      "daily": {
+        "title": "Báo cáo ngày",
+        "date": "Ngày",
+        "branch": "Chi nhánh",
+        "opening": "Số dư đầu",
+        "revenue": "Doanh thu",
+        "purchase": "Mua vào",
+        "closing": "Số dư cuối"
+      }
+    },
+    "config": {
+      "prices": {
+        "title": "Cấu hình bảng giá",
+        "subtitle": "Bảng giá vàng-bạc hiện tại",
+        "goldSell": "Giá vàng bán ra",
+        "goldBuy": "Giá vàng mua vào",
+        "silverSell": "Giá bạc bán ra",
+        "perChi": "/ chỉ",
+        "perGram": "/ gram",
+        "updatedBy": "Cập nhật bởi",
+        "updatedAt": "Vào lúc",
+        "effectiveFrom": "Hiệu lực từ",
+        "updateButton": "Cập nhật giá",
+        "form": {
+          "goldSellLabel": "Vàng bán ra (₭/chỉ)",
+          "goldBuyLabel": "Vàng mua vào (₭/chỉ)",
+          "silverSellLabel": "Bạc (₭/gram)"
+        }
+      },
+      "exchangeRates": {
+        "title": "Tỷ giá ngoại tệ",
+        "columns": {
+          "currency": "Ngoại tệ",
+          "rate": "Tỷ giá",
+          "adjustment": "Điều chỉnh",
+          "updatedAt": "Cập nhật"
+        },
+        "updateButton": "Cập nhật"
+      },
+      "stonePrices": {
+        "title": "Bảng phí đá đính kèm",
+        "columns": {
+          "weightFrom": "Từ trọng lượng (chỉ)",
+          "weightTo": "Đến trọng lượng (chỉ)",
+          "fee": "Phí (LAK)"
+        },
+        "addButton": "Thêm quy tắc",
+        "deleteButton": "Xóa"
+      },
+      "weightUnits": {
+        "title": "Đơn vị đo lường",
+        "columns": {
+          "code": "Mã",
+          "name": "Tên",
+          "gramPerUnit": "Gram / Đơn vị"
+        },
+        "updateButton": "Cập nhật"
+      },
+      "goldPurities": {
+        "title": "Tuổi vàng",
+        "columns": {
+          "code": "Mã",
+          "label": "Tên",
+          "fineness": "Độ tinh khiết (‰)"
+        },
+        "addButton": "Thêm tuổi vàng"
+      }
+    },
+    "users": {
+      "title": "Người dùng",
+      "subtitle": "{count} tài khoản",
+      "searchPlaceholder": "Tìm theo tên hoặc mã NV...",
+      "addButton": "Thêm người dùng",
+      "columns": {
+        "employeeCode": "Mã NV",
+        "fullName": "Họ và tên",
+        "phone": "Điện thoại",
+        "branch": "Chi nhánh",
+        "role": "Vai trò",
+        "status": "Trạng thái",
+        "lastLogin": "Đăng nhập cuối",
+        "openMenu": "Mở menu",
+        "viewDetail": "Xem chi tiết",
+        "editRole": "Đổi vai trò",
+        "deactivate": "Vô hiệu hóa"
+      },
+      "roles": {
+        "Cashier": "Thu ngân",
+        "ThuQuy": "Thủ quỹ",
+        "Manager": "Quản lý",
+        "SystemAdmin": "Quản trị hệ thống"
+      },
+      "status": {
+        "active": "Hoạt động",
+        "inactive": "Không hoạt động"
+      }
+    }
+  },
+  "auth": {
+    "login": {
+      "title": "Đăng nhập",
+      "subtitle": "Quản lý cửa hàng Khamphuvong",
+      "usernameLabel": "Mã nhân viên",
+      "usernamePlaceholder": "Ví dụ: NV001",
+      "passwordLabel": "Mật khẩu",
+      "passwordPlaceholder": "Mật khẩu",
+      "submit": "Đăng nhập",
+      "submitting": "Đang xử lý...",
+      "usernameRequired": "Vui lòng nhập mã nhân viên",
+      "passwordRequired": "Vui lòng nhập mật khẩu",
+      "logout": "Đăng xuất"
+    }
+  },
+  "common": {
+    "table": {
+      "noData": "Không có dữ liệu",
+      "results": "{count} kết quả",
+      "page": "Trang {page} / {total}",
+      "searchPlaceholder": "Tìm kiếm..."
+    },
+    "actions": {
+      "add": "Thêm",
+      "edit": "Sửa",
+      "delete": "Xóa",
+      "save": "Lưu",
+      "cancel": "Hủy",
+      "confirm": "Xác nhận",
+      "update": "Cập nhật"
+    }
+  }
+}

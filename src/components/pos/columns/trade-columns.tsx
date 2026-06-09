@@ -1,0 +1,110 @@
+'use client'
+
+import type { ColumnDef } from '@tanstack/react-table'
+import { Badge } from '@/components/ui/badge'
+import { Button } from '@/components/ui/button'
+import {
+  DropdownMenu,
+  DropdownMenuTrigger,
+  DropdownMenuContent,
+  DropdownMenuItem,
+} from '@/components/ui/dropdown-menu'
+import { ArrowUpDown, MoreHorizontal } from 'lucide-react'
+import type { TradeTransaction } from '@/types/trade'
+
+function formatKip(n: number) {
+  return n.toLocaleString('lo-LA') + ' ₭'
+}
+
+export interface TradeColumnLabels {
+  invoiceCode: string
+  type: string
+  product: string
+  weight: string
+  total: string
+  date: string
+  openMenu: string
+  viewDetail: string
+  typeLabels: Record<string, string>
+}
+
+export function createTradeColumns(labels: TradeColumnLabels): ColumnDef<TradeTransaction>[] {
+  return [
+    {
+      accessorKey: 'invoiceCode',
+      header: ({ column }) => (
+        <Button
+          variant="ghost"
+          size="sm"
+          className="-ml-3 h-8"
+          onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}
+        >
+          {labels.invoiceCode}
+          <ArrowUpDown className="ml-1 h-3.5 w-3.5 text-muted-foreground" />
+        </Button>
+      ),
+      cell: ({ row }) => (
+        <span className="font-mono text-sm font-medium">{row.getValue('invoiceCode')}</span>
+      ),
+    },
+    {
+      accessorKey: 'loai',
+      header: labels.type,
+      cell: ({ getValue }) => {
+        const type = getValue() as string
+        return (
+          <Badge variant={type === 'BuyIn' ? 'default' : 'outline'}>
+            {labels.typeLabels[type] ?? type}
+          </Badge>
+        )
+      },
+    },
+    {
+      accessorKey: 'productId',
+      header: labels.product,
+      cell: ({ getValue }) => (
+        <span className="text-sm">{getValue() as string}</span>
+      ),
+    },
+    {
+      accessorKey: 'weightMg',
+      header: labels.weight,
+      cell: ({ getValue }) => (
+        <span className="text-sm">{((getValue() as number) / 1000).toFixed(2)} g</span>
+      ),
+    },
+    {
+      accessorKey: 'totalAmount',
+      header: labels.total,
+      cell: ({ getValue }) => (
+        <span className="font-semibold">{formatKip(getValue() as number)}</span>
+      ),
+    },
+    {
+      accessorKey: 'createdAt',
+      header: labels.date,
+      cell: ({ getValue }) => (
+        <span className="text-sm text-muted-foreground">
+          {new Date(getValue() as string).toLocaleDateString('lo-LA')}
+        </span>
+      ),
+    },
+    {
+      id: 'actions',
+      header: '',
+      cell: ({ row }) => (
+        <DropdownMenu>
+          <DropdownMenuTrigger className="inline-flex h-7 w-7 items-center justify-center rounded-md hover:bg-accent">
+            <MoreHorizontal className="h-4 w-4" />
+            <span className="sr-only">{labels.openMenu}</span>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end">
+            <DropdownMenuItem onClick={() => console.log('view', row.original.id)}>
+              {labels.viewDetail}
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
+      ),
+    },
+  ]
+}

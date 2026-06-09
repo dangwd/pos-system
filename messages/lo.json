@@ -1,0 +1,437 @@
+{
+  "pos": {
+    "topBar": {
+      "searchPlaceholder": "ຄົ້ນຫາສິນຄ້າ / ລະຫັດ (F3)",
+      "notFound": "ບໍ່ພົບ \"{query}\"",
+      "aiTooltip": "ແນະນຳ AI",
+      "newTabTooltip": "ໃບຮຽກໃໝ່ (Ctrl+T)",
+      "tabListLabel": "ໃບຮຽກ",
+      "holdTooltip": "ຍຶດໄວ້ (Ctrl+H)",
+      "duplicateTooltip": "ສຳເນົາ (Ctrl+D)",
+      "closeTooltip": "ປິດ (Ctrl+W)",
+      "holdingStatus": "ຍຶດໄວ້",
+      "payingStatus": "ກຳລັງຊຳລະ",
+      "adminButton": "ຄຸ້ມຄອງ",
+      "closeDialog": {
+        "title": "ປິດໃບຮຽກ?",
+        "body": "{label} ກຳລັງມີ {qty} ສິນຄ້າ. ປິດຈະຍົກເລີກ.",
+        "keep": "ເກັບໄວ້",
+        "close": "ປິດໃບຮຽກ"
+      }
+    },
+    "transactionTable": {
+      "status": {
+        "draft": "ຮ່າງ",
+        "holding": "ຍຶດໄວ້",
+        "paying": "ກຳລັງຊຳລະ"
+      },
+      "counter": "ໂຕ໊ະ 1",
+      "columns": {
+        "operation": "ກິດຈະກຳ",
+        "item": "ສິນຄ້າ",
+        "qty": "ຈຳນວນ",
+        "unit": "ໜ່ວຍ",
+        "unitPrice": "ລາຄາ",
+        "total": "ລວມ"
+      },
+      "unitLabel": "ຈ",
+      "deleteTooltip": "ລຶບ",
+      "empty": {
+        "title": "ໃບຮຽກຫວ່າງ",
+        "hint": "ຄົ້ນຫາສິນຄ້າຜ່ານຊ່ອງຄົ້ນຫາ (F3)\nຫຼືສະແກນບາໂຄດ"
+      },
+      "summary": {
+        "subtotal": "ລວມ ({count} ລາຍການ)",
+        "discount": "ສ່ວນຫຼຸດ",
+        "due": "← ຕ້ອງຊຳລະ"
+      },
+      "opLabels": {
+        "gold": "ຂາຍທອງ",
+        "silver": "ຂາຍເງິນ",
+        "jewelry": "ເຄື່ອງປະດັບ",
+        "watch": "ນາລິກາ",
+        "default": "ຂາຍສິນຄ້າ"
+      }
+    },
+    "payment": {
+      "panel": {
+        "storeName": "Khamphuvong Jewelry",
+        "storeAddress": "Vientiane Main · Chanthabouly",
+        "lookupLabel": "ຄົ້ນຫາໃບຮຽກ (F6)",
+        "lookupPlaceholder": "ລະຫັດ TX-xxxx...",
+        "reprint": "ພິມຄືນ",
+        "customerLabel": "ລູກຄ້າ (F4)",
+        "customerSearch": "ຄົ້ນຫາລູກຄ້າ...",
+        "subtotalLabel": "ລວມສິນຄ້າ (A)",
+        "discountLabel": "ສ່ວນຫຼຸດ (B)",
+        "discountInput": "ໃສ່ສ່ວນຫຼຸດ ₭...",
+        "applyDiscount": "ໃຊ້",
+        "balance": "ຍອດຄ້າງ",
+        "totalDue": "✦ ຍອດຕ້ອງຊຳລະ",
+        "currency": "₭ (Kip)",
+        "checkout": "ຊຳລະ",
+        "processing": "ກຳລັງດຳເນີນການ..."
+      },
+      "modal": {
+        "title": "ຢືນຢັນການຊຳລະ",
+        "subtotal": "ລວມສິນຄ້າ",
+        "discount": "ສ່ວນຫຼຸດ",
+        "total": "ຍອດລວມ",
+        "discountLabel": "ສ່ວນຫຼຸດ (₭)",
+        "clearDiscount": "ລ້າງ",
+        "discountPlaceholder": "ຈຳນວນ ₭...",
+        "applyDiscount": "ໃຊ້",
+        "paymentMethod": "ວິທີການຊຳລະ",
+        "cancel": "ຍົກເລີກ",
+        "pay": "ຊຳລະ {amount}",
+        "processing": "ກຳລັງດຳເນີນການ..."
+      },
+      "methods": {
+        "cash": "ເງິນສົດ",
+        "bank-transfer": "ໂອນເງິນ",
+        "qr": "QR Code"
+      }
+    },
+    "receipt": {
+      "title": "ຊຳລະເງິນສຳເລັດ",
+      "storeName": "Khamphuvong Jewelry",
+      "columnProduct": "ສິນຄ້າ",
+      "columnQty": "ຈຳນວນ",
+      "columnTotal": "ລວມ",
+      "totalLabel": "ຍອດລວມ",
+      "printButton": "ພິມໃບບິນ",
+      "closeButton": "ປິດ & ເປີດໃໝ່"
+    },
+    "errors": {
+      "emptyCart": "ໃບຮຽກຫວ່າງ — ກະລຸນາເພີ່ມສິນຄ້າ",
+      "checkoutFailed": "ຊຳລະເງິນລົ້ມເຫຼວ ກະລຸນາລອງໃໝ່",
+      "pendingApproval": "ລໍຖ້າການອະນຸມັດຈາກຜູ້ຈັດການ",
+      "checkoutSuccess": "ຊຳລະເງິນສຳເລັດ!"
+    }
+  },
+  "product": {
+    "grid": {
+      "searchPlaceholder": "ຄົ້ນຫາສິນຄ້າ...",
+      "categoryPlaceholder": "ໝວດໝູ່",
+      "allCategories": "ທັງໝົດ",
+      "notFound": "ບໍ່ພົບສິນຄ້າ"
+    }
+  },
+  "admin": {
+    "dashboard": {
+      "title": "ພາບລວມ",
+      "subtitle": "ສະຖິຕິການຂາຍ",
+      "stats": {
+        "totalTransactions": "ກິດຈະກຳທັງໝົດ",
+        "revenue": "ລາຍຮັບ",
+        "avgTransaction": "ກິດຈະກຳສະເລ່ຍ",
+        "products": "ສິນຄ້າ"
+      },
+      "recentTitle": "ກິດຈະກຳຫຼ້າສຸດ",
+      "empty": "ຍັງບໍ່ມີກິດຈະກຳ"
+    },
+    "orders": {
+      "title": "ປະຫວັດກິດຈະກຳ",
+      "summary": "{count} ກິດຈະກຳ · ລາຍຮັບ:",
+      "searchPlaceholder": "ຄົ້ນຫາຕາມລະຫັດ...",
+      "columns": {
+        "invoiceCode": "ລະຫັດໃບຮຽກ",
+        "time": "ເວລາ",
+        "type": "ປະເພດ",
+        "payment": "ການຊຳລະ",
+        "amount": "ຈຳນວນເງິນ",
+        "status": "ສະຖານະ",
+        "openMenu": "ເປີດເມນູ",
+        "viewDetail": "ເບິ່ງລາຍລະອຽດ"
+      },
+      "transactionTypes": {
+        "SellGold": "ຂາຍທອງ",
+        "SellSilver": "ຂາຍເງິນ",
+        "BuyGold": "ຊື້ທອງ",
+        "ExchangeGold": "ປ່ຽນສິນຄ້າ",
+        "ExchangeCurrency": "ປ່ຽນເງິນຕ່າງປະເທດ"
+      },
+      "transactionStatuses": {
+        "DRAFT": {
+          "label": "ຮ່າງ",
+          "variant": "secondary"
+        },
+        "PENDING": {
+          "label": "ລໍຖ້າ",
+          "variant": "outline"
+        },
+        "APPROVED": {
+          "label": "ອະນຸມັດ",
+          "variant": "default"
+        },
+        "COMPLETED": {
+          "label": "ສຳເລັດ",
+          "variant": "default"
+        },
+        "REJECTED": {
+          "label": "ປະຕິເສດ",
+          "variant": "destructive"
+        }
+      }
+    },
+    "layout": {
+      "title": "FoxAI Admin",
+      "nav": {
+        "dashboard": "ພາບລວມ",
+        "products": "ສິນຄ້າ",
+        "orders": "ກິດຈະກຳ",
+        "customers": "ລູກຄ້າ",
+        "inventory": "ສາງສິນຄ້າ",
+        "trade": "ການຊື້ຂາຍ",
+        "cashLedger": "ສໍາເລດເງິນ",
+        "reports": "ລາຍງານ",
+        "config": "ການຕັ້ງຄ່າ",
+        "prices": "ລາຄາ",
+        "exchangeRates": "ອັດຕາແລກປ່ຽນ",
+        "stonePrices": "ຄ່າຫີນ",
+        "weightUnits": "ໜ່ວຍ",
+        "goldPurities": "ຄວາມບໍລິສຸດ",
+        "users": "ຜູ້ໃຊ້",
+        "groupCatalog": "ສາງສິນຄ້າ",
+        "groupFinance": "ການເງິນ",
+        "groupConfig": "ການຕັ້ງຄ່າ",
+        "groupSystem": "ລະບົບ",
+        "backToPOS": "← ກັບໄປ POS"
+      }
+    },
+    "products": {
+      "title": "ສິນຄ້າ",
+      "subtitle": "{count} ສິນຄ້າໃນລະບົບ",
+      "searchPlaceholder": "ຄົ້ນຫາສິນຄ້າ...",
+      "columns": {
+        "product": "ສິນຄ້າ",
+        "category": "ໝວດໝູ່",
+        "unitPrice": "ລາຄາ",
+        "stock": "ສ່ວນຮ້ານ",
+        "outOfStock": "ໝົດ",
+        "inStock": "ມີ {qty}",
+        "openMenu": "ເປີດເມນູ",
+        "edit": "ແກ້ໄຂ",
+        "delete": "ລຶບ"
+      }
+    },
+    "customers": {
+      "title": "ລູກຄ້າ",
+      "subtitle": "{count} ລູກຄ້າ",
+      "searchPlaceholder": "ຄົ້ນຫາຕາມຊື່ ຫຼື ໂທ...",
+      "columns": {
+        "name": "ຊື່ເຕັມ",
+        "phone": "ໂທລະສັບ",
+        "totalPurchase": "ລວມຊື້",
+        "lastVisit": "ຄັ້ງສຸດທ້າຍ",
+        "openMenu": "ເປີດເມນູ",
+        "viewDetail": "ເບິ່ງລາຍລະອຽດ"
+      }
+    },
+    "inventory": {
+      "title": "ສາງສິນຄ້າ",
+      "subtitle": "{count} ລາຍການ",
+      "searchPlaceholder": "ຄົ້ນຫາສິນຄ້າ...",
+      "columns": {
+        "product": "ສິນຄ້າ",
+        "branch": "ສາຂາ",
+        "qty": "ຈຳນວນ",
+        "weight": "ນ້ຳໜັກ (ຈ)",
+        "lastUpdated": "ອັບເດດ"
+      }
+    },
+    "trade": {
+      "title": "ການຊື້ຂາຍ",
+      "subtitle": "{total} ລາຍການ",
+      "searchPlaceholder": "ຄົ້ນຫາໃບຮຽກ...",
+      "filterAll": "ທັງໝົດ",
+      "filterBuyIn": "ຊື້ທອງ",
+      "filterExchange": "ປ່ຽນສິນຄ້າ",
+      "columns": {
+        "invoiceCode": "ໃບຮຽກ",
+        "type": "ປະເພດ",
+        "customer": "ລູກຄ້າ",
+        "product": "ສິນຄ້າ",
+        "weight": "ນ້ຳໜັກ",
+        "total": "ລວມ",
+        "date": "ວັນທີ"
+      },
+      "types": {
+        "BuyIn": "ຊື້ທອງ",
+        "ExchangeGold": "ປ່ຽນທອງ"
+      }
+    },
+    "cashLedger": {
+      "title": "ສໍາເລດເງິນ",
+      "subtitle": "ເງິນສົດວັນທີ {date}",
+      "openingBalance": "ຍອດຕົ້ນ",
+      "totalIn": "ລວມຮັບ",
+      "totalOut": "ລວມຈ່າຍ",
+      "closingBalance": "ຍອດປາຍ",
+      "addEntry": "ເພີ່ມລາຍການ",
+      "setOpeningBalance": "ຕັ້ງຍອດຕົ້ນ",
+      "columns": {
+        "description": "ລາຍລະອຽດ",
+        "direction": "ທິດທາງ",
+        "method": "ວິທີ",
+        "currency": "ເງິນຕາ",
+        "amount": "ຈຳນວນ",
+        "amountLak": "LAK",
+        "time": "ເວລາ"
+      },
+      "direction": {
+        "In": "ຮັບ",
+        "Out": "ຈ່າຍ"
+      },
+      "method": {
+        "Cash": "ເງິນສົດ",
+        "BankTransfer": "ໂອນເງິນ",
+        "QR": "QR"
+      }
+    },
+    "reports": {
+      "title": "ລາຍງານ",
+      "selectDate": "ເລືອກວັນທີ",
+      "selectBranch": "ເລືອກສາຂາ",
+      "dashboard": {
+        "title": "ພາບລວມ",
+        "totalRevenue": "ລວມລາຍຮັບ",
+        "totalProfit": "ກຳໄລ",
+        "totalTransactions": "ກິດຈະກຳທັງໝົດ",
+        "topProducts": "ສິນຄ້າຂາຍດີ",
+        "columns": {
+          "product": "ສິນຄ້າ",
+          "count": "ກິດຈະກຳ"
+        }
+      },
+      "daily": {
+        "title": "ລາຍງານລາຍວັນ",
+        "date": "ວັນທີ",
+        "branch": "ສາຂາ",
+        "opening": "ຍອດຕົ້ນ",
+        "revenue": "ລາຍຮັບ",
+        "purchase": "ຊື້ເຂົ້າ",
+        "closing": "ຍອດປາຍ"
+      }
+    },
+    "config": {
+      "prices": {
+        "title": "ການຕັ້ງຄ່າລາຄາ",
+        "subtitle": "ຕາຕະລາງລາຄາທອງ-ເງິນ",
+        "goldSell": "ລາຄາທອງຂາຍ",
+        "goldBuy": "ລາຄາທອງຊື້",
+        "silverSell": "ລາຄາເງິນຂາຍ",
+        "perChi": "/ ຈ",
+        "perGram": "/ gram",
+        "updatedBy": "ອັບເດດໂດຍ",
+        "updatedAt": "ເວລາ",
+        "effectiveFrom": "ມີຜົນຕັ້ງແຕ່",
+        "updateButton": "ອັບເດດລາຄາ",
+        "form": {
+          "goldSellLabel": "ທອງຂາຍ (₭/ຈ)",
+          "goldBuyLabel": "ທອງຊື້ (₭/ຈ)",
+          "silverSellLabel": "ເງິນ (₭/gram)"
+        }
+      },
+      "exchangeRates": {
+        "title": "ອັດຕາແລກປ່ຽນ",
+        "columns": {
+          "currency": "ເງິນຕາ",
+          "rate": "ອັດຕາ",
+          "adjustment": "ການປັບ",
+          "updatedAt": "ອັບເດດ"
+        },
+        "updateButton": "ອັບເດດ"
+      },
+      "stonePrices": {
+        "title": "ຄ່າຫີນດິນ",
+        "columns": {
+          "weightFrom": "ຈາກນ້ຳໜັກ (ຈ)",
+          "weightTo": "ເຖິງນ້ຳໜັກ (ຈ)",
+          "fee": "ຄ່າ (LAK)"
+        },
+        "addButton": "ເພີ່ມ",
+        "deleteButton": "ລຶບ"
+      },
+      "weightUnits": {
+        "title": "ໜ່ວຍວັດແທກ",
+        "columns": {
+          "code": "ລະຫັດ",
+          "name": "ຊື່",
+          "gramPerUnit": "Gram / ໜ່ວຍ"
+        },
+        "updateButton": "ອັບເດດ"
+      },
+      "goldPurities": {
+        "title": "ຄວາມບໍລິສຸດຂອງທອງ",
+        "columns": {
+          "code": "ລະຫັດ",
+          "label": "ຊື່",
+          "fineness": "ຄວາມບໍລິສຸດ (‰)"
+        },
+        "addButton": "ເພີ່ມ"
+      }
+    },
+    "users": {
+      "title": "ຜູ້ໃຊ້",
+      "subtitle": "{count} ບັນຊີ",
+      "searchPlaceholder": "ຄົ້ນຫາຕາມຊື່ ຫຼື ລະຫັດ...",
+      "addButton": "ເພີ່ມຜູ້ໃຊ້",
+      "columns": {
+        "employeeCode": "ລະຫັດພະນັກງານ",
+        "fullName": "ຊື່ເຕັມ",
+        "phone": "ໂທ",
+        "branch": "ສາຂາ",
+        "role": "ບົດບາດ",
+        "status": "ສະຖານະ",
+        "lastLogin": "ເຂົ້າສູ່ລະບົບຄັ້ງສຸດທ້າຍ",
+        "openMenu": "ເປີດເມນູ",
+        "viewDetail": "ເບິ່ງລາຍລະອຽດ",
+        "editRole": "ປ່ຽນບົດບາດ",
+        "deactivate": "ປິດໃຊ້"
+      },
+      "roles": {
+        "Cashier": "ເກັບເງິນ",
+        "ThuQuy": "ທຸລະການ",
+        "Manager": "ຜູ້ຈັດການ",
+        "SystemAdmin": "ຜູ້ດູແລລະບົບ"
+      },
+      "status": {
+        "active": "ດຳເນີນການ",
+        "inactive": "ບໍ່ດຳເນີນການ"
+      }
+    }
+  },
+  "auth": {
+    "login": {
+      "title": "ເຂົ້າສູ່ລະບົບ",
+      "subtitle": "ຄຸ້ມຄອງຮ້ານຄ້າ Khamphuvong",
+      "usernameLabel": "ລະຫັດພະນັກງານ",
+      "usernamePlaceholder": "ຕົວຢ່າງ: NV001",
+      "passwordLabel": "ລະຫັດຜ່ານ",
+      "passwordPlaceholder": "ລະຫັດຜ່ານ",
+      "submit": "ເຂົ້າສູ່ລະບົບ",
+      "submitting": "ກຳລັງດຳເນີນການ...",
+      "usernameRequired": "ກະລຸນາໃສ່ລະຫັດພະນັກງານ",
+      "passwordRequired": "ກະລຸນາໃສ່ລະຫັດຜ່ານ",
+      "logout": "ອອກຈາກລະບົບ"
+    }
+  },
+  "common": {
+    "table": {
+      "noData": "ບໍ່ມີຂໍ້ມູນ",
+      "results": "{count} ຜົນລັບ",
+      "page": "ໜ້າ {page} / {total}",
+      "searchPlaceholder": "ຄົ້ນຫາ..."
+    },
+    "actions": {
+      "add": "ເພີ່ມ",
+      "edit": "ແກ້ໄຂ",
+      "delete": "ລຶບ",
+      "save": "ບັນທຶກ",
+      "cancel": "ຍົກເລີກ",
+      "confirm": "ຢືນຢັນ",
+      "update": "ອັບເດດ"
+    }
+  }
+}
