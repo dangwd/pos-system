@@ -3,9 +3,9 @@
 import { useMemo } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import { customerRepository } from '@/lib/repositories/customer.repository'
-import { DataTable } from '@/components/pos/DataTable'
-import { createCustomerColumns } from '@/components/pos/columns/customer-columns'
-import { Loader2 } from 'lucide-react'
+import { DataTable } from '@/components/shared/DataTable'
+import { createCustomerColumns } from '@/components/admin/columns/customer-columns'
+import { TablePageSkeleton } from '@/components/shared/PageSkeleton'
 import { useTranslations } from 'next-intl'
 
 export default function CustomersPage() {
@@ -39,11 +39,7 @@ export default function CustomersPage() {
         </p>
       </div>
 
-      {isLoading ? (
-        <div className="flex justify-center py-12">
-          <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
-        </div>
-      ) : (
+      {isLoading ? <TablePageSkeleton /> : (
         <DataTable
           columns={columns}
           data={customers}

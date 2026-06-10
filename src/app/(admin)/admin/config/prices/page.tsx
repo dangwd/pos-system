@@ -1,125 +1,194 @@
 'use client'
 
-import { useState, useEffect } from 'react'
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import { configRepository } from '@/lib/repositories/config.repository'
-import { Loader2 } from 'lucide-react'
+import { useMemo, useState } from 'react'
 import { useTranslations } from 'next-intl'
+import { Pencil } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
-import { toast } from 'sonner'
+import { Spinner } from '@/components/ui/spinner'
+import { Badge } from '@/components/ui/badge'
+import { TablePageSkeleton } from '@/components/shared/PageSkeleton'
+import { useConfigPrices, useUpdatePrices, useGoldPurities } from '@/hooks/useConfig'
+import type { PriceItemDto, GoldPurity, PriceItem } from '@/types/config'
 
 function formatKip(n: number) {
   return n.toLocaleString('lo-LA') + ' ₭'
 }
 
+type FormRow = {
+  goldPurityId: string
+  purityCode: string
+  category: 'Gold' | 'Silver'
+  buyPerChi: string
+  sellPerChi: string
+  buyPerGram: string
+  sellPerGram: string
+}
+
+function buildFormRows(purities: GoldPurity[], items: PriceItem[]): FormRow[] {
+  const priceMap = new Map(items.map((i) => [i.goldPurityId, i]))
+  return purities.map((p) => {
+    const existing = priceMap.get(p.id)
+    return {
+      goldPurityId: p.id,
+      purityCode: p.ma,
+      category: p.category,
+      buyPerChi: existing ? String(existing.buyPricePerChi) : '0',
+      sellPerChi: existing ? String(existing.sellPricePerChi) : '0',
+      buyPerGram: existing ? String(existing.buyPricePerGram) : '0',
+      sellPerGram: existing ? String(existing.sellPricePerGram) : '0',
+    }
+  })
+}
+
 export default function PricesPage() {
   const t = useTranslations('admin.config.prices')
-  const queryClient = useQueryClient()
+  const [editing, setEditing] = useState(false)
+  const [rows, setRows] = useState<FormRow[]>([])
 
-  const { data: prices, isLoading } = useQuery({
-    queryKey: ['config', 'prices'],
-    queryFn: () => configRepository.getPrices(),
-    staleTime: 60_000,
-  })
+  const { data: prices, isLoading: pricesLoading } = useConfigPrices()
+  const { data: purities = [], isLoading: puritiesLoading } = useGoldPurities()
+  const { mutate: update, isPending } = useUpdatePrices()
 
-  const [form, setForm] = useState({
-    goldSellPricePerChi: '',
-    goldBuyPricePerChi: '',
-    silverPricePerGram: '',
-  })
+  const isLoading = pricesLoading || puritiesLoading
 
-  useEffect(() => {
-    if (prices) {
-      setForm({
-        goldSellPricePerChi: String(prices.goldSellPricePerChi),
-        goldBuyPricePerChi:  String(prices.goldBuyPricePerChi),
-        silverPricePerGram:  String(prices.silverPricePerGram),
-      })
-    }
-  }, [prices])
+  const currentRows = useMemo(
+    () => buildFormRows(purities, prices?.items ?? []),
+    [purities, prices],
+  )
 
-  const { mutate: update, isPending } = useMutation({
-    mutationFn: () => configRepository.updatePriceConfig({
-      goldSellPricePerChi: Number(form.goldSellPricePerChi),
-      goldBuyPricePerChi:  Number(form.goldBuyPricePerChi),
-      silverPricePerGram:  Number(form.silverPricePerGram),
-    }),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['config', 'prices'] })
-      toast.success('Prices updated')
-    },
-    onError: () => toast.error('Failed to update prices'),
-  })
+  function startEdit() {
+    setRows(buildFormRows(purities, prices?.items ?? []))
+    setEditing(true)
+  }
+
+  function setCell(idx: number, field: keyof FormRow, value: string) {
+    setRows((r) => r.map((row, i) => i === idx ? { ...row, [field]: value } : row))
+  }
+
+  function handleSubmit() {
+    const items: PriceItemDto[] = rows.map((r) => ({
+      goldPurityId: r.goldPurityId,
+      buyPricePerChi: Number(r.buyPerChi) || 0,
+      sellPricePerChi: Number(r.sellPerChi) || 0,
+      buyPricePerGram: Number(r.buyPerGram) || 0,
+      sellPricePerGram: Number(r.sellPerGram) || 0,
+    }))
+    update({ items }, { onSuccess: () => setEditing(false) })
+  }
 
   return (
-    <div className="p-6 space-y-6 max-w-xl">
-      <div>
-        <h1 className="text-2xl font-bold">{t('title')}</h1>
-        <p className="text-muted-foreground text-sm">{t('subtitle')}</p>
+    <div className="p-6 space-y-5">
+      <div className="flex items-start justify-between">
+        <div>
+          <h1 className="text-2xl font-bold">{t('title')}</h1>
+          <p className="text-muted-foreground text-sm">{t('subtitle')}</p>
+        </div>
+        {!editing && (
+          <Button size="sm" variant="outline" onClick={startEdit} disabled={isLoading || purities.length === 0}>
+            <Pencil className="h-3.5 w-3.5 mr-1.5" />
+            {t('updateButton')}
+          </Button>
+        )}
       </div>
 
-      {isLoading ? (
-        <div className="flex justify-center py-12">
-          <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
-        </div>
-      ) : (
+      {isLoading ? <TablePageSkeleton cols={4} rows={4} /> : (
         <>
           {prices && (
-            <div className="rounded-lg border bg-muted/20 p-4 space-y-2 text-sm">
-              <div className="flex justify-between">
-                <span className="text-muted-foreground">{t('goldSell')} ({t('perChi')})</span>
-                <span className="font-bold text-base">{formatKip(prices.goldSellPricePerChi)}</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-muted-foreground">{t('goldBuy')} ({t('perChi')})</span>
-                <span className="font-bold text-base">{formatKip(prices.goldBuyPricePerChi)}</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-muted-foreground">{t('silverSell')} ({t('perGram')})</span>
-                <span className="font-bold text-base">{formatKip(prices.silverPricePerGram)}</span>
-              </div>
-              <div className="pt-2 border-t text-xs text-muted-foreground">
-                {t('updatedBy')}: {prices.updatedBy} · {t('effectiveFrom')}: {new Date(prices.effectiveFrom).toLocaleString('lo-LA')}
-              </div>
-            </div>
+            <p className="text-xs text-muted-foreground">
+              {t('effectiveFrom')}: {new Date(prices.effectiveFrom).toLocaleString('lo-LA')}
+              {' · '}{t('updatedBy')}: {prices.updatedBy}
+            </p>
           )}
 
-          <div className="space-y-4">
-            <div className="space-y-1.5">
-              <Label>{t('form.goldSellLabel')}</Label>
-              <Input
-                type="number"
-                min="0"
-                value={form.goldSellPricePerChi}
-                onChange={(e) => setForm(p => ({ ...p, goldSellPricePerChi: e.target.value }))}
-              />
-            </div>
-            <div className="space-y-1.5">
-              <Label>{t('form.goldBuyLabel')}</Label>
-              <Input
-                type="number"
-                min="0"
-                value={form.goldBuyPricePerChi}
-                onChange={(e) => setForm(p => ({ ...p, goldBuyPricePerChi: e.target.value }))}
-              />
-            </div>
-            <div className="space-y-1.5">
-              <Label>{t('form.silverSellLabel')}</Label>
-              <Input
-                type="number"
-                min="0"
-                value={form.silverPricePerGram}
-                onChange={(e) => setForm(p => ({ ...p, silverPricePerGram: e.target.value }))}
-              />
-            </div>
-
-            <Button onClick={() => update()} disabled={isPending} className="w-full">
-              {isPending ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : null}
-              {t('updateButton')}
-            </Button>
+          <div className="rounded-md border overflow-hidden">
+            <table className="w-full text-sm">
+              <thead className="border-b bg-muted/40">
+                <tr>
+                  <th className="px-4 py-3 text-left font-medium text-muted-foreground">{t('columns.purityCode')}</th>
+                  <th className="px-4 py-3 text-left font-medium text-muted-foreground">{t('columns.category')}</th>
+                  <th className="px-4 py-3 text-right font-medium text-muted-foreground">{t('columns.buy')}</th>
+                  <th className="px-4 py-3 text-right font-medium text-muted-foreground">{t('columns.sell')}</th>
+                </tr>
+              </thead>
+              <tbody>
+                {(editing ? rows : currentRows).map((row, idx) => (
+                  <tr key={row.goldPurityId} className="border-b last:border-0 hover:bg-muted/10">
+                    <td className="px-4 py-3 font-mono font-bold">{row.purityCode}</td>
+                    <td className="px-4 py-3">
+                      <Badge variant={row.category === 'Gold' ? 'default' : 'secondary'}>
+                        {row.category === 'Gold' ? t('categoryGold') : t('categorySilver')}
+                      </Badge>
+                    </td>
+                    {editing ? (
+                      <>
+                        <td className="px-4 py-2">
+                          <Input
+                            type="number"
+                            min="0"
+                            value={row.category === 'Gold' ? row.buyPerChi : row.buyPerGram}
+                            onChange={(e) => setCell(idx, row.category === 'Gold' ? 'buyPerChi' : 'buyPerGram', e.target.value)}
+                            className="h-7 text-right text-xs w-44 ml-auto"
+                          />
+                        </td>
+                        <td className="px-4 py-2">
+                          <Input
+                            type="number"
+                            min="0"
+                            value={row.category === 'Gold' ? row.sellPerChi : row.sellPerGram}
+                            onChange={(e) => setCell(idx, row.category === 'Gold' ? 'sellPerChi' : 'sellPerGram', e.target.value)}
+                            className="h-7 text-right text-xs w-44 ml-auto"
+                          />
+                        </td>
+                      </>
+                    ) : (
+                      <>
+                        <td className="px-4 py-3 text-right">
+                          <span className="font-semibold">
+                            {row.category === 'Gold'
+                              ? formatKip(Number(row.buyPerChi))
+                              : formatKip(Number(row.buyPerGram))}
+                          </span>
+                          <span className="text-xs text-muted-foreground ml-1">
+                            /{row.category === 'Gold' ? t('unitChi') : t('unitGram')}
+                          </span>
+                        </td>
+                        <td className="px-4 py-3 text-right">
+                          <span className="font-semibold">
+                            {row.category === 'Gold'
+                              ? formatKip(Number(row.sellPerChi))
+                              : formatKip(Number(row.sellPerGram))}
+                          </span>
+                          <span className="text-xs text-muted-foreground ml-1">
+                            /{row.category === 'Gold' ? t('unitChi') : t('unitGram')}
+                          </span>
+                        </td>
+                      </>
+                    )}
+                  </tr>
+                ))}
+                {currentRows.length === 0 && (
+                  <tr>
+                    <td colSpan={4} className="px-4 py-8 text-center text-muted-foreground text-xs">
+                      {t('noPurities')}
+                    </td>
+                  </tr>
+                )}
+              </tbody>
+            </table>
           </div>
+
+          {editing && (
+            <div className="flex justify-end gap-2">
+              <Button variant="outline" onClick={() => setEditing(false)} disabled={isPending}>
+                {t('cancel')}
+              </Button>
+              <Button onClick={handleSubmit} disabled={isPending}>
+                {isPending && <Spinner className="mr-2" />}
+                {t('saveButton')}
+              </Button>
+            </div>
+          )}
         </>
       )}
     </div>

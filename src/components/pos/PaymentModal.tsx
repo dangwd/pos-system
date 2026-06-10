@@ -8,7 +8,7 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Separator } from '@/components/ui/separator'
 import { PAYMENT_METHOD_KEYS, type PaymentMethodKey } from '@/lib/strategies/payment.strategy'
-import { Loader2 } from 'lucide-react'
+import { Spinner } from '@/components/ui/spinner'
 import { useTranslations } from 'next-intl'
 
 function formatKip(amount: number) {
@@ -49,7 +49,7 @@ export function PaymentModal({
 
   return (
     <Dialog open={open} onOpenChange={onClose}>
-      <DialogContent className="max-w-md">
+      <DialogContent className="sm:max-w-md">
         <DialogHeader>
           <DialogTitle>{t('title')}</DialogTitle>
         </DialogHeader>
@@ -118,7 +118,7 @@ export function PaymentModal({
           <Button variant="outline" onClick={onClose} disabled={isCheckingOut}>{t('cancel')}</Button>
           <Button onClick={onCheckout} disabled={isCheckingOut} className="min-w-32">
             {isCheckingOut
-              ? <><Loader2 className="h-4 w-4 animate-spin mr-2" />{t('processing')}</>
+              ? <><Spinner className="mr-2" />{t('processing')}</>
               : t('pay', { amount: formatKip(total) })
             }
           </Button>

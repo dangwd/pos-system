@@ -3,9 +3,9 @@
 import { useMemo, useState } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import { tradeRepository } from '@/lib/repositories/trade.repository'
-import { DataTable } from '@/components/pos/DataTable'
-import { createTradeColumns } from '@/components/pos/columns/trade-columns'
-import { Loader2 } from 'lucide-react'
+import { DataTable } from '@/components/shared/DataTable'
+import { createTradeColumns } from '@/components/admin/columns/trade-columns'
+import { TablePageSkeleton } from '@/components/shared/PageSkeleton'
 import { Button } from '@/components/ui/button'
 import { useTranslations } from 'next-intl'
 import type { TradeType } from '@/types/trade'
@@ -65,11 +65,7 @@ export default function TradePage() {
         </div>
       </div>
 
-      {isLoading ? (
-        <div className="flex justify-center py-12">
-          <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
-        </div>
-      ) : (
+      {isLoading ? <TablePageSkeleton /> : (
         <DataTable
           columns={columns}
           data={rows}

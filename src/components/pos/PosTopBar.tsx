@@ -15,12 +15,10 @@
 'use client'
 
 import { useState, useRef, useEffect } from 'react'
-import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { cn } from '@/lib/utils'
 import { useInvoiceTabStore } from '@/stores/invoice-tab.store'
 import { useAuthStore } from '@/stores/auth.store'
-import { AuthRepository } from '@/lib/repositories/auth.repository'
 import {
   Dialog,
   DialogContent,
@@ -41,8 +39,8 @@ import { Plus, X, PauseCircle, Copy, Search, LayoutDashboard, Sparkles, LogOut, 
 import type { InvoiceTab } from '@/types/invoice-tab'
 import type { Product } from '@/types/product'
 import { useTranslations } from 'next-intl'
-import { LocaleSwitcher } from '@/components/pos/LocaleSwitcher'
-import { useMutation } from '@tanstack/react-query'
+import { LocaleSwitcher } from '@/components/shared/LocaleSwitcher'
+import { useLogout } from '@/hooks/useAuth'
 
 // ─── ProductSearch ────────────────────────────────────────────────────────────
 
@@ -217,7 +215,7 @@ function CloseConfirmDialog({ tab, onConfirm, onCancel }: CloseConfirmProps) {
   const qty = tab?.items.reduce((s, i) => s + i.qty, 0) ?? 0
   return (
     <Dialog open={!!tab} onOpenChange={o => !o && onCancel()}>
-      <DialogContent className="max-w-sm">
+      <DialogContent className="sm:max-w-sm">
         <DialogHeader>
           <DialogTitle>{t('title')}</DialogTitle>
         </DialogHeader>
@@ -253,24 +251,12 @@ export function PosTopBar({ products, onAddProduct }: PosTopBarProps) {
   const t = useTranslations('pos.topBar')
   const tAuth = useTranslations('auth.login')
   const router = useRouter()
-  const { user, clearAuth } = useAuthStore()
+  const { user } = useAuthStore()
   const { tabs, activeTabId, openTab, closeTab, switchTab, holdTab, duplicateTab } =
     useInvoiceTabStore()
+  const { mutate: logout, isPending: isLoggingOut } = useLogout()
 
   const [pendingClose, setPendingClose] = useState<InvoiceTab | null>(null)
-
-  const { mutate: logout, isPending: isLoggingOut } = useMutation({
-    mutationFn: async () => {
-      const refreshToken = typeof window !== 'undefined'
-        ? localStorage.getItem('refreshToken') ?? ''
-        : ''
-      await AuthRepository.logout(refreshToken)
-    },
-    onSettled: () => {
-      clearAuth()
-      router.push('/login')
-    },
-  })
 
   const handleCloseRequest = (tab: InvoiceTab) => {
     if (tab.status === 'paying') return
@@ -341,16 +327,23 @@ export function PosTopBar({ products, onAddProduct }: PosTopBarProps) {
                 </div>
                 <ChevronDown className="h-3 w-3 text-muted-foreground shrink-0" />
               </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" className="min-w-40">
-                <div className="px-3 py-2 border-b">
+              <DropdownMenuContent align="end" className="min-w-48">
+                <div className="px-3 py-2.5 border-b">
                   <p className="text-xs font-semibold truncate">{user.fullName}</p>
                   <p className="text-[10px] text-muted-foreground">{user.role}</p>
                 </div>
+                <DropdownMenuItem
+                  onClick={() => router.push('/admin/dashboard')}
+                  className="cursor-pointer gap-2 mt-1"
+                >
+                  <LayoutDashboard className="h-3.5 w-3.5" />
+                  {t('adminButton')}
+                </DropdownMenuItem>
                 <DropdownMenuSeparator />
                 <DropdownMenuItem
                   onClick={() => logout()}
                   disabled={isLoggingOut}
-                  className="text-destructive focus:text-destructive cursor-pointer gap-2"
+                  className="text-destructive focus:text-destructive cursor-pointer gap-2 mb-1"
                 >
                   <LogOut className="h-3.5 w-3.5" />
                   {tAuth('logout')}
@@ -358,13 +351,6 @@ export function PosTopBar({ products, onAddProduct }: PosTopBarProps) {
               </DropdownMenuContent>
             </DropdownMenu>
           )}
-
-          <Link href="/admin/dashboard">
-            <Button size="sm" variant="outline" className="h-7 text-xs gap-1.5">
-              <LayoutDashboard className="h-3.5 w-3.5" />
-              <span className="hidden sm:inline">{t('adminButton')}</span>
-            </Button>
-          </Link>
         </div>
       </header>
 

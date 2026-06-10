@@ -1,9 +1,3 @@
-/**
- * product-columns — Column definitions cho bảng sản phẩm (TanStack Table)
- *
- * Dùng factory function createProductColumns(labels) để nhận text đã dịch từ page.
- */
-
 'use client'
 
 import type { ColumnDef } from '@tanstack/react-table'
@@ -19,23 +13,24 @@ import {
 import { ArrowUpDown, MoreHorizontal } from 'lucide-react'
 import type { Product } from '@/types/product'
 
-function formatKip(n: number) {
-  return n.toLocaleString('lo-LA') + ' ₭'
-}
-
 export interface ProductColumnLabels {
   product: string
+  productCode: string
   category: string
-  unitPrice: string
-  stock: string
-  outOfStock: string
-  inStock: (qty: number) => string
+  purity: string
+  status: string
+  active: string
+  inactive: string
   openMenu: string
   edit: string
-  delete: string
+  deactivate: string
 }
 
-export function createProductColumns(labels: ProductColumnLabels): ColumnDef<Product>[] {
+export function createProductColumns(
+  labels: ProductColumnLabels,
+  onEdit: (product: Product) => void,
+  onDeactivate: (product: Product) => void,
+): ColumnDef<Product>[] {
   return [
     {
       accessorKey: 'productName',
@@ -56,6 +51,14 @@ export function createProductColumns(labels: ProductColumnLabels): ColumnDef<Pro
     },
 
     {
+      accessorKey: 'productCode',
+      header: labels.productCode,
+      cell: ({ getValue }) => (
+        <span className="font-mono text-xs text-muted-foreground">{getValue() as string}</span>
+      ),
+    },
+
+    {
       accessorKey: 'category',
       header: labels.category,
       cell: ({ getValue }) => {
@@ -63,6 +66,24 @@ export function createProductColumns(labels: ProductColumnLabels): ColumnDef<Pro
         const name = typeof cat === 'object' ? cat.name : cat
         return <Badge variant="secondary">{name}</Badge>
       },
+    },
+
+    {
+      accessorKey: 'purity',
+      header: labels.purity,
+      cell: ({ getValue }) => (
+        <span className="text-xs font-medium">{getValue() as string}</span>
+      ),
+    },
+
+    {
+      accessorKey: 'isActive',
+      header: labels.status,
+      cell: ({ getValue }) => (
+        <Badge variant={getValue() ? 'default' : 'outline'}>
+          {getValue() ? labels.active : labels.inactive}
+        </Badge>
+      ),
     },
 
     {
@@ -75,32 +96,23 @@ export function createProductColumns(labels: ProductColumnLabels): ColumnDef<Pro
             <span className="sr-only">{labels.openMenu}</span>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end">
-            <DropdownMenuItem onClick={() => console.log('edit', row.original.id)}>
+            <DropdownMenuItem onClick={() => onEdit(row.original)}>
               {labels.edit}
             </DropdownMenuItem>
-            <DropdownMenuSeparator />
-            <DropdownMenuItem
-              className="text-destructive focus:text-destructive"
-              onClick={() => console.log('delete', row.original.id)}
-            >
-              {labels.delete}
-            </DropdownMenuItem>
+            {row.original.isActive && (
+              <>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem
+                  className="text-destructive focus:text-destructive"
+                  onClick={() => onDeactivate(row.original)}
+                >
+                  {labels.deactivate}
+                </DropdownMenuItem>
+              </>
+            )}
           </DropdownMenuContent>
         </DropdownMenu>
       ),
     },
   ]
 }
-
-// Legacy export kept for backwards-compat with any unused references
-export const productColumns = createProductColumns({
-  product: 'Product',
-  category: 'Category',
-  unitPrice: 'Unit Price',
-  stock: 'Stock',
-  outOfStock: 'Out of stock',
-  inStock: (qty) => `${qty} in stock`,
-  openMenu: 'Open menu',
-  edit: 'Edit',
-  delete: 'Delete',
-})

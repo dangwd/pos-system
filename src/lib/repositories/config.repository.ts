@@ -1,95 +1,172 @@
-/**
- * repositories/config.repository.ts
- *
- * Khớp với endpoints:
- *   GET  /api/config/prices           → bảng giá hiện tại
- *   POST /api/config/prices           → cập nhật bảng giá (tạo version mới)
- *   GET  /api/config/exchange-rates   → tỷ giá tất cả ngoại tệ
- *   GET  /api/config/stone-prices     → bảng phí đá đính kèm
- *   GET  /api/config/weight-units     → đơn vị đo lường
- *   GET  /api/config/gold-purities    → danh mục tuổi vàng
- */
-
 import api from '@/lib/axios'
+import { handleAxiosError } from '@/lib/api-error'
 import type {
   PriceConfig,
+  UpdatePriceConfigDto,
   ExchangeRate,
   UpdateExchangeRateDto,
   StonePriceRule,
   CreateStonePriceRuleDto,
+  UpdateStonePriceRuleDto,
   WeightUnit,
+  CreateWeightUnitDto,
+  UpdateWeightUnitDto,
   GoldPurity,
   CreateGoldPurityDto,
-  UpdatePriceConfigDto,
+  UpdateGoldPurityDto,
+  AppRole,
+  Permission,
+  UpdateRolePermissionsDto,
 } from '@/types/config'
 
 export class ConfigRepository {
-  /** Bảng giá vàng/bạc hiện tại — cache 1 phút (giá cập nhật theo giờ) */
+
+  // ─── Bảng giá ──────────────────────────────────────────────────────────────
+
   async getPrices(): Promise<PriceConfig> {
-    const { data } = await api.get<PriceConfig>('/api/config/prices')
-    return data
+    try {
+      const { data } = await api.get<PriceConfig>('/api/config/prices')
+      return data
+    } catch (err) { throw handleAxiosError(err) }
   }
 
-  /**
-   * Cập nhật bảng giá — tạo version mới với effectiveFrom = now
-   * Role: HQ_ADMIN hoặc SYSTEM_ADMIN
-   */
-  async updatePrices(payload: Omit<PriceConfig, 'id' | 'updatedBy' | 'updatedAt' | 'effectiveFrom'>): Promise<PriceConfig> {
-    const { data } = await api.post<PriceConfig>('/api/config/prices', payload)
-    return data
+  async getPriceHistory(limit = 20): Promise<PriceConfig[]> {
+    try {
+      const { data } = await api.get<PriceConfig[]>('/api/config/prices/history', { params: { limit } })
+      return data
+    } catch (err) { throw handleAxiosError(err) }
   }
 
-  /** Tỷ giá tất cả ngoại tệ */
+  async updatePrices(dto: UpdatePriceConfigDto): Promise<PriceConfig> {
+    try {
+      const { data } = await api.post<PriceConfig>('/api/config/prices', dto)
+      return data
+    } catch (err) { throw handleAxiosError(err) }
+  }
+
+  // ─── Tỷ giá ngoại tệ ───────────────────────────────────────────────────────
+
   async getExchangeRates(): Promise<ExchangeRate[]> {
-    const { data } = await api.get<ExchangeRate[]>('/api/config/exchange-rates')
-    return data
-  }
-
-  /** Bảng phí đá đính kèm theo bậc trọng lượng */
-  async getStonePriceRules(): Promise<StonePriceRule[]> {
-    const { data } = await api.get<StonePriceRule[]>('/api/config/stone-prices')
-    return data
-  }
-
-  /** Danh sách đơn vị đo lường (Chỉ, Gram, Baht...) */
-  async getWeightUnits(): Promise<WeightUnit[]> {
-    const { data } = await api.get<WeightUnit[]>('/api/config/weight-units')
-    return data
-  }
-
-  /** Danh sách tuổi vàng (9999, 750, 585...) */
-  async getGoldPurities(): Promise<GoldPurity[]> {
-    const { data } = await api.get<GoldPurity[]>('/api/config/gold-purities')
-    return data
-  }
-
-  async updatePriceConfig(dto: UpdatePriceConfigDto): Promise<PriceConfig> {
-    const { data } = await api.post<PriceConfig>('/api/config/prices', dto)
-    return data
+    try {
+      const { data } = await api.get<ExchangeRate[]>('/api/config/exchange-rates')
+      return data
+    } catch (err) { throw handleAxiosError(err) }
   }
 
   async updateExchangeRate(dto: UpdateExchangeRateDto): Promise<ExchangeRate> {
-    const { data } = await api.post<ExchangeRate>('/api/config/exchange-rates', dto)
-    return data
+    try {
+      const { data } = await api.post<ExchangeRate>('/api/config/exchange-rates', dto)
+      return data
+    } catch (err) { throw handleAxiosError(err) }
+  }
+
+  // ─── Bảng phí đá ───────────────────────────────────────────────────────────
+
+  async getStonePriceRules(): Promise<StonePriceRule[]> {
+    try {
+      const { data } = await api.get<StonePriceRule[]>('/api/config/stone-price-rules')
+      return data
+    } catch (err) { throw handleAxiosError(err) }
   }
 
   async createStonePriceRule(dto: CreateStonePriceRuleDto): Promise<StonePriceRule> {
-    const { data } = await api.post<StonePriceRule>('/api/config/stone-price-rules', dto)
-    return data
+    try {
+      const { data } = await api.post<StonePriceRule>('/api/config/stone-price-rules', dto)
+      return data
+    } catch (err) { throw handleAxiosError(err) }
+  }
+
+  async updateStonePriceRule(id: string, dto: UpdateStonePriceRuleDto): Promise<StonePriceRule> {
+    try {
+      const { data } = await api.put<StonePriceRule>(`/api/config/stone-price-rules/${id}`, dto)
+      return data
+    } catch (err) { throw handleAxiosError(err) }
   }
 
   async deleteStonePriceRule(id: string): Promise<void> {
-    await api.delete(`/api/config/stone-price-rules/${id}`)
+    try {
+      await api.delete(`/api/config/stone-price-rules/${id}`)
+    } catch (err) { throw handleAxiosError(err) }
   }
 
-  async updateWeightUnit(maTocDoc: string, gramPerUnit: number): Promise<WeightUnit> {
-    const { data } = await api.put<WeightUnit>(`/api/config/weight-units/${maTocDoc}`, { gramPerUnit })
-    return data
+  // ─── Đơn vị trọng lượng ────────────────────────────────────────────────────
+
+  async getWeightUnits(): Promise<WeightUnit[]> {
+    try {
+      const { data } = await api.get<WeightUnit[]>('/api/config/weight-units')
+      return data
+    } catch (err) { throw handleAxiosError(err) }
+  }
+
+  async createWeightUnit(dto: CreateWeightUnitDto): Promise<WeightUnit> {
+    try {
+      const { data } = await api.post<WeightUnit>('/api/config/weight-units', dto)
+      return data
+    } catch (err) { throw handleAxiosError(err) }
+  }
+
+  async updateWeightUnit(id: string, dto: UpdateWeightUnitDto): Promise<WeightUnit> {
+    try {
+      const { data } = await api.put<WeightUnit>(`/api/config/weight-units/${id}`, dto)
+      return data
+    } catch (err) { throw handleAxiosError(err) }
+  }
+
+  async deleteWeightUnit(id: string): Promise<void> {
+    try {
+      await api.delete(`/api/config/weight-units/${id}`)
+    } catch (err) { throw handleAxiosError(err) }
+  }
+
+  // ─── Hàm lượng vàng / bạc ──────────────────────────────────────────────────
+
+  async getGoldPurities(): Promise<GoldPurity[]> {
+    try {
+      const { data } = await api.get<GoldPurity[]>('/api/config/gold-purities')
+      return data
+    } catch (err) { throw handleAxiosError(err) }
   }
 
   async createGoldPurity(dto: CreateGoldPurityDto): Promise<GoldPurity> {
-    const { data } = await api.post<GoldPurity>('/api/config/gold-purities', dto)
-    return data
+    try {
+      const { data } = await api.post<GoldPurity>('/api/config/gold-purities', dto)
+      return data
+    } catch (err) { throw handleAxiosError(err) }
+  }
+
+  async updateGoldPurity(id: string, dto: UpdateGoldPurityDto): Promise<GoldPurity> {
+    try {
+      const { data } = await api.put<GoldPurity>(`/api/config/gold-purities/${id}`, dto)
+      return data
+    } catch (err) { throw handleAxiosError(err) }
+  }
+
+  async deleteGoldPurity(id: string): Promise<void> {
+    try {
+      await api.delete(`/api/config/gold-purities/${id}`)
+    } catch (err) { throw handleAxiosError(err) }
+  }
+
+  // ─── Roles & Permissions ──────────────────────────────────────────────────
+
+  async getRoles(): Promise<AppRole[]> {
+    try {
+      const { data } = await api.get<AppRole[]>('/api/config/roles')
+      return data
+    } catch (err) { throw handleAxiosError(err) }
+  }
+
+  async getPermissions(): Promise<Permission[]> {
+    try {
+      const { data } = await api.get<Permission[]>('/api/config/permissions')
+      return data
+    } catch (err) { throw handleAxiosError(err) }
+  }
+
+  async updateRolePermissions(roleId: string, dto: UpdateRolePermissionsDto): Promise<void> {
+    try {
+      await api.put(`/api/config/roles/${roleId}/permissions`, dto)
+    } catch (err) { throw handleAxiosError(err) }
   }
 }
 

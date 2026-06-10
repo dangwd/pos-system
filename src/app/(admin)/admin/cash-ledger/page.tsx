@@ -4,7 +4,9 @@ import { useState } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { cashLedgerRepository } from '@/lib/repositories/cash-ledger.repository'
 import { useAuthStore } from '@/stores/auth.store'
-import { Loader2, Plus } from 'lucide-react'
+import { Plus } from 'lucide-react'
+import { TablePageSkeleton } from '@/components/shared/PageSkeleton'
+import { Spinner } from '@/components/ui/spinner'
 import { useTranslations } from 'next-intl'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
@@ -110,11 +112,7 @@ export default function CashLedgerPage() {
         ))}
       </div>
 
-      {isLoading ? (
-        <div className="flex justify-center py-12">
-          <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
-        </div>
-      ) : (
+      {isLoading ? <TablePageSkeleton /> : (
         <div className="rounded-md border">
           <table className="w-full text-sm">
             <thead className="border-b bg-muted/40">
@@ -158,7 +156,7 @@ export default function CashLedgerPage() {
       )}
 
       <Dialog open={addOpen} onOpenChange={setAddOpen}>
-        <DialogContent>
+        <DialogContent className="sm:max-w-xl">
           <DialogHeader>
             <DialogTitle>{t('addEntry')}</DialogTitle>
           </DialogHeader>
@@ -224,7 +222,7 @@ export default function CashLedgerPage() {
               Cancel
             </Button>
             <Button onClick={() => addEntry()} disabled={isPending || !entryForm.description || !entryForm.originalAmount}>
-              {isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : t('addEntry')}
+              {isPending ? <Spinner /> : t('addEntry')}
             </Button>
           </DialogFooter>
         </DialogContent>

@@ -1,55 +1,63 @@
-/**
- * Admin — Products page
- *
- * Dùng <DataTable> reusable + createProductColumns(labels) tách riêng.
- */
-
 'use client'
 
-import { useMemo } from 'react'
-import { useQuery } from '@tanstack/react-query'
-import { ProductRepository } from '@/lib/repositories/product.repository'
-import { DataTable } from '@/components/pos/DataTable'
-import { createProductColumns } from '@/components/pos/columns/product-columns'
-import { Loader2 } from 'lucide-react'
+import { useMemo, useState } from 'react'
 import { useTranslations } from 'next-intl'
-
-const repo = new ProductRepository()
+import { Plus } from 'lucide-react'
+import { Button } from '@/components/ui/button'
+import { DataTable } from '@/components/shared/DataTable'
+import { TablePageSkeleton } from '@/components/shared/PageSkeleton'
+import { createProductColumns } from '@/components/admin/columns/product-columns'
+import { ProductCreateDialog } from '@/components/admin/products/ProductCreateDialog'
+import { ProductEditDialog } from '@/components/admin/products/ProductEditDialog'
+import { useProducts, useDeactivateProduct } from '@/hooks/useProducts'
+import type { Product } from '@/types/product'
 
 export default function ProductsPage() {
   const t = useTranslations('admin.products')
+  const [createOpen, setCreateOpen] = useState(false)
+  const [editProduct, setEditProduct] = useState<Product | null>(null)
 
-  const { data: products = [], isLoading } = useQuery({
-    queryKey: ['products'],
-    queryFn: () => repo.getAll(),
-    staleTime: 1000 * 60,
-  })
+  const { data: products = [], isLoading } = useProducts()
+  const { mutate: deactivate } = useDeactivateProduct()
 
-  const columns = useMemo(() => createProductColumns({
-    product:    t('columns.product'),
-    category:   t('columns.category'),
-    unitPrice:  t('columns.unitPrice'),
-    stock:      t('columns.stock'),
-    outOfStock: t('columns.outOfStock'),
-    inStock:    (qty: number) => t('columns.inStock', { qty }),
-    openMenu:   t('columns.openMenu'),
-    edit:       t('columns.edit'),
-    delete:     t('columns.delete'),
-  }), [t])
+  const columns = useMemo(
+    () =>
+      createProductColumns(
+        {
+          product: t('columns.product'),
+          productCode: t('columns.productCode'),
+          category: t('columns.category'),
+          purity: t('columns.purity'),
+          status: t('columns.status'),
+          active: t('columns.active'),
+          inactive: t('columns.inactive'),
+          openMenu: t('columns.openMenu'),
+          edit: t('columns.edit'),
+          deactivate: t('columns.deactivate'),
+        },
+        (product) => setEditProduct(product),
+        (product) => deactivate(product.id),
+      ),
+    [t, deactivate],
+  )
 
   return (
     <div className="p-6 space-y-4">
-      <div>
-        <h1 className="text-2xl font-bold">{t('title')}</h1>
-        <p className="text-muted-foreground text-sm">
-          {t('subtitle', { count: products.length })}
-        </p>
+      <div className="flex items-start justify-between">
+        <div>
+          <h1 className="text-2xl font-bold">{t('title')}</h1>
+          <p className="text-muted-foreground text-sm">
+            {t('subtitle', { count: products.length })}
+          </p>
+        </div>
+        <Button size="sm" className="gap-1.5" onClick={() => setCreateOpen(true)}>
+          <Plus className="h-4 w-4" />
+          {t('addButton')}
+        </Button>
       </div>
 
       {isLoading ? (
-        <div className="flex justify-center py-12">
-          <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
-        </div>
+        <TablePageSkeleton />
       ) : (
         <DataTable
           columns={columns}
@@ -58,6 +66,9 @@ export default function ProductsPage() {
           searchPlaceholder={t('searchPlaceholder')}
         />
       )}
+
+      <ProductCreateDialog open={createOpen} onClose={() => setCreateOpen(false)} />
+      <ProductEditDialog product={editProduct} onClose={() => setEditProduct(null)} />
     </div>
   )
 }

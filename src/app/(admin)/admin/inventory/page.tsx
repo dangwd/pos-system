@@ -3,9 +3,9 @@
 import { useMemo } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import { inventoryRepository } from '@/lib/repositories/inventory.repository'
-import { DataTable } from '@/components/pos/DataTable'
-import { createInventoryColumns } from '@/components/pos/columns/inventory-columns'
-import { Loader2 } from 'lucide-react'
+import { DataTable } from '@/components/shared/DataTable'
+import { createInventoryColumns } from '@/components/admin/columns/inventory-columns'
+import { TablePageSkeleton } from '@/components/shared/PageSkeleton'
 import { useTranslations } from 'next-intl'
 
 export default function InventoryPage() {
@@ -38,11 +38,7 @@ export default function InventoryPage() {
         </p>
       </div>
 
-      {isLoading ? (
-        <div className="flex justify-center py-12">
-          <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
-        </div>
-      ) : (
+      {isLoading ? <TablePageSkeleton /> : (
         <DataTable
           columns={columns}
           data={items}

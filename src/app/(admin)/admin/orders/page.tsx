@@ -10,9 +10,9 @@
 import { useMemo } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import { transactionRepository } from '@/lib/repositories/transaction.repository'
-import { DataTable } from '@/components/pos/DataTable'
-import { createOrderColumns } from '@/components/pos/columns/order-columns'
-import { Loader2 } from 'lucide-react'
+import { DataTable } from '@/components/shared/DataTable'
+import { createOrderColumns } from '@/components/admin/columns/order-columns'
+import { TablePageSkeleton } from '@/components/shared/PageSkeleton'
 import { useTranslations } from 'next-intl'
 
 function formatKip(n: number) {
@@ -67,11 +67,7 @@ export default function OrdersPage() {
         </p>
       </div>
 
-      {isLoading ? (
-        <div className="flex justify-center py-12">
-          <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
-        </div>
-      ) : (
+      {isLoading ? <TablePageSkeleton /> : (
         <DataTable
           columns={columns}
           data={transactions}

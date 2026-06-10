@@ -12,7 +12,7 @@ export interface LoginResponse {
   fullName: string
   role: UserRole
   permissions: string[]
-  branchId: string
+  branchId: string | null
 }
 
 export interface AuthUser {
@@ -20,10 +20,21 @@ export interface AuthUser {
   fullName: string
   role: UserRole
   permissions: string[]
-  branchId: string
+  branchId: string | null
 }
 
 export interface RefreshResponse {
   accessToken: string
   refreshToken: string
+}
+
+export interface MeResponse {
+  id: string
+  employeeCode: string
+  fullName: string
+  phone: string | null
+  role: UserRole
+  permissions: string[]
+  branchId: string | null
+  lastLoginAt: string | null
 }

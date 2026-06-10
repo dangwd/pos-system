@@ -192,27 +192,56 @@
         "weightUnits": "Weight Units",
         "goldPurities": "Gold Purities",
         "users": "Users",
+        "roles": "Roles",
         "groupCatalog": "Catalog",
         "groupFinance": "Finance",
         "groupConfig": "Configuration",
         "groupSystem": "System",
-        "backToPOS": "← Back to POS"
-      }
+        "backToPOS": "Back to POS"
+      },
+      "collapse": "Collapse sidebar",
+      "expand": "Expand sidebar",
+      "searchPlaceholder": "Search menu...",
+      "noResults": "No results"
     },
     "products": {
       "title": "Products",
       "subtitle": "{count} products in the system",
-      "searchPlaceholder": "Search products...",
+      "searchPlaceholder": "Search by name / code...",
+      "addButton": "Add product",
       "columns": {
         "product": "Product",
+        "productCode": "Code",
         "category": "Category",
-        "unitPrice": "Unit Price",
-        "stock": "Stock",
-        "outOfStock": "Out of stock",
-        "inStock": "{qty} in stock",
+        "purity": "Purity",
+        "status": "Status",
+        "active": "Active",
+        "inactive": "Inactive",
         "openMenu": "Open menu",
         "edit": "Edit",
-        "delete": "Delete"
+        "deactivate": "Deactivate"
+      },
+      "toasts": {
+        "createSuccess": "Product added successfully",
+        "updateSuccess": "Product updated successfully",
+        "deactivateSuccess": "Product deactivated successfully"
+      },
+      "createDialog": {
+        "title": "Add new product",
+        "submit": "Add product"
+      },
+      "editDialog": {
+        "title": "Edit product",
+        "submit": "Save changes"
+      },
+      "form": {
+        "productCode": "Product code",
+        "productName": "Product name",
+        "category": "Category",
+        "purity": "Gold purity",
+        "weight": "Weight (mg)",
+        "categoryPlaceholder": "Select category",
+        "purityPlaceholder": "Select / enter value"
       }
     },
     "customers": {
@@ -317,59 +346,130 @@
     "config": {
       "prices": {
         "title": "Price Configuration",
-        "subtitle": "Current gold / silver prices",
-        "goldSell": "Gold Sell Price",
-        "goldBuy": "Gold Buy Price",
-        "silverSell": "Silver Sell Price",
-        "perChi": "/ chi",
-        "perGram": "/ gram",
-        "updatedBy": "Updated by",
-        "updatedAt": "At",
+        "subtitle": "Gold / silver prices by purity",
         "effectiveFrom": "Effective from",
+        "updatedBy": "Updated by",
         "updateButton": "Update prices",
-        "form": {
-          "goldSellLabel": "Gold Sell (₭/chi)",
-          "goldBuyLabel": "Gold Buy (₭/chi)",
-          "silverSellLabel": "Silver (₭/gram)"
+        "saveButton": "Save",
+        "cancel": "Cancel",
+        "categoryGold": "Gold",
+        "categorySilver": "Silver",
+        "unitChi": "chi",
+        "unitGram": "gram",
+        "noPurities": "No purities configured. Add them from the Gold Purities page.",
+        "columns": {
+          "purityCode": "Purity",
+          "category": "Type",
+          "buy": "Buy price",
+          "sell": "Sell price"
         }
       },
       "exchangeRates": {
         "title": "Exchange Rates",
+        "updateButton": "Update",
+        "cancel": "Cancel",
         "columns": {
           "currency": "Currency",
           "rate": "Rate to LAK",
           "adjustment": "Adjustment",
           "updatedAt": "Updated"
-        },
-        "updateButton": "Update"
+        }
       },
       "stonePrices": {
         "title": "Stone Price Rules",
-        "columns": {
-          "weightFrom": "Weight From (chi)",
-          "weightTo": "Weight To (chi)",
-          "fee": "Fee (LAK)"
-        },
         "addButton": "Add rule",
-        "deleteButton": "Delete"
+        "editDialogTitle": "Edit rule",
+        "saveButton": "Save",
+        "cancel": "Cancel",
+        "columns": {
+          "weightFrom": "From (chi)",
+          "weightTo": "To (chi)",
+          "fee": "Fee (₭)"
+        }
       },
       "weightUnits": {
         "title": "Weight Units",
+        "addButton": "Add unit",
+        "createDialogTitle": "Add new unit",
+        "saveButton": "Save",
+        "cancel": "Cancel",
+        "systemBadge": "System",
         "columns": {
           "code": "Code",
           "name": "Name",
-          "gramPerUnit": "Gram / Unit"
+          "gramPerUnit": "Gram / unit"
         },
-        "updateButton": "Update"
+        "form": {
+          "tenDonVi": "Unit name",
+          "maTocDoc": "Code (lowercase, unique)",
+          "gramPerUnit": "Gram equivalent"
+        }
       },
       "goldPurities": {
-        "title": "Gold Purities",
+        "title": "Gold / Silver Purities",
+        "addButton": "Add purity",
+        "editDialogTitle": "Edit purity",
+        "saveButton": "Save",
+        "cancel": "Cancel",
+        "categoryGold": "Gold",
+        "categorySilver": "Silver",
         "columns": {
           "code": "Code",
-          "label": "Label",
-          "fineness": "Fineness (‰)"
+          "category": "Type",
+          "fineness": "Fineness (%)"
         },
-        "addButton": "Add purity"
+        "form": {
+          "ma": "Purity code",
+          "hamLuong": "Fineness (%)",
+          "category": "Type"
+        }
+      }
+    },
+    "roles": {
+      "title": "Roles & Permissions",
+      "subtitle": "{count} roles",
+      "systemBadge": "System",
+      "permissionsCount": "{count} permissions",
+      "editButton": "Edit Permissions",
+      "editDialogTitle": "Permissions for {name}",
+      "saveButton": "Save",
+      "cancel": "Cancel",
+      "saveSuccess": "Permissions updated",
+      "columns": {
+        "code": "Code",
+        "name": "Role Name",
+        "description": "Description",
+        "permissions": "Permissions"
+      },
+      "groupNames": {
+        "TRANSACTION": "Sales Transactions",
+        "TRADE": "Buy-In / Exchange",
+        "INVENTORY": "Inventory",
+        "CASH_LEDGER": "Cash & Cash Flow",
+        "REPORT": "Reports",
+        "CONFIG": "Configuration",
+        "PRODUCT": "Product Catalog",
+        "BRANCH": "Branches",
+        "USER": "Users"
+      },
+      "permNames": {
+        "TRANSACTION_CREATE": "Create Transactions",
+        "TRANSACTION_APPROVE": "Approve Transactions",
+        "TRANSACTION_VIEW_ALL": "View All Transactions",
+        "TRADE_CREATE": "Create Buy-In / Exchange Orders",
+        "TRADE_APPROVE": "Approve Buy-In / Exchange Orders",
+        "INVENTORY_VIEW": "View Inventory",
+        "INVENTORY_MANAGE": "Manage Inventory (In/Out/Adjust)",
+        "CASH_LEDGER_MANAGE": "Manage Cash Ledger",
+        "REPORT_DASHBOARD": "View Report Dashboard",
+        "REPORT_DAILY": "View Daily Report",
+        "CONFIG_PRICE": "Configure Gold Prices & Exchange Rates",
+        "CONFIG_WEIGHT_UNIT": "Configure Weight Units",
+        "CONFIG_STONE_PRICE": "Configure Stone Price Tiers",
+        "CONFIG_GOLD_PURITY": "Configure Gold Purity",
+        "PRODUCT_MANAGE": "Manage Products & Categories",
+        "BRANCH_MANAGE": "Manage Branches",
+        "USER_MANAGE": "Manage Users & Permissions"
       }
     },
     "users": {
@@ -388,7 +488,9 @@
         "openMenu": "Open menu",
         "viewDetail": "View details",
         "editRole": "Edit role",
-        "deactivate": "Deactivate"
+        "deactivate": "Deactivate",
+        "activate": "Activate",
+        "resetPassword": "Reset password"
       },
       "roles": {
         "Cashier": "Cashier",
@@ -399,6 +501,40 @@
       "status": {
         "active": "Active",
         "inactive": "Inactive"
+      },
+      "createDialog": {
+        "title": "Create new user",
+        "employeeCode": "Employee code",
+        "fullName": "Full name",
+        "phone": "Phone",
+        "password": "Password",
+        "role": "Role",
+        "rolePlaceholder": "Select a role...",
+        "cancel": "Cancel",
+        "submit": "Create",
+        "success": "User created successfully"
+      },
+      "editRoleDialog": {
+        "title": "Change role — {name}",
+        "role": "New role",
+        "cancel": "Cancel",
+        "submit": "Save",
+        "success": "Role updated successfully"
+      },
+      "resetPasswordDialog": {
+        "title": "Reset password — {name}",
+        "newPassword": "New password",
+        "cancel": "Cancel",
+        "submit": "Reset",
+        "success": "Password reset successfully"
+      },
+      "toasts": {
+        "activateSuccess": "Account activated",
+        "deactivateSuccess": "Account deactivated",
+        "createSuccess": "User created successfully",
+        "updateSuccess": "User updated successfully",
+        "updateRoleSuccess": "Role updated successfully",
+        "resetPasswordSuccess": "Password reset successfully"
       }
     }
   },

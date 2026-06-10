@@ -58,8 +58,9 @@ api.interceptors.response.use(
         return api(original)
       } catch {
         // Refresh thất bại → xóa session và chuyển đến trang đăng nhập
-        localStorage.removeItem('accessToken')
-        localStorage.removeItem('refreshToken')
+        // Dynamic import tránh circular dependency (auth.store → axios → auth.store)
+        const { useAuthStore } = await import('@/stores/auth.store')
+        useAuthStore.getState().clearAuth()
         if (typeof window !== 'undefined') {
           window.location.href = '/login'
         }

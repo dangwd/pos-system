@@ -23,7 +23,9 @@ export interface UserColumnLabels {
   openMenu: string
   viewDetail: string
   editRole: string
+  activate: string
   deactivate: string
+  resetPassword: string
   roleLabels: Record<string, string>
   active: string
   inactive: string
@@ -32,7 +34,9 @@ export interface UserColumnLabels {
 export function createUserColumns(
   labels: UserColumnLabels,
   onEditRole: (user: AdminUser) => void,
+  onActivate: (user: AdminUser) => void,
   onDeactivate: (user: AdminUser) => void,
+  onResetPassword: (user: AdminUser) => void,
 ): ColumnDef<AdminUser>[] {
   return [
     {
@@ -68,11 +72,11 @@ export function createUserColumns(
       accessorKey: 'role',
       header: labels.role,
       cell: ({ getValue }) => {
-        const val = getValue()
-        const role = typeof val === 'object' && val !== null
-          ? ((val as { name?: string; code?: string }).name ?? (val as { code?: string }).code ?? '')
+        const val = getValue() as { code?: string; name?: string } | string
+        const code = typeof val === 'object' && val !== null
+          ? (val.code ?? '')
           : (val as string)
-        return <Badge variant="outline">{labels.roleLabels[role] ?? role}</Badge>
+        return <Badge variant="outline">{labels.roleLabels[code] ?? code}</Badge>
       },
     },
     {
@@ -100,27 +104,38 @@ export function createUserColumns(
     {
       id: 'actions',
       header: '',
-      cell: ({ row }) => (
-        <DropdownMenu>
-          <DropdownMenuTrigger className="inline-flex h-7 w-7 items-center justify-center rounded-md hover:bg-accent">
-            <MoreHorizontal className="h-4 w-4" />
-            <span className="sr-only">{labels.openMenu}</span>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="end">
-            <DropdownMenuItem onClick={() => onEditRole(row.original)}>
-              {labels.editRole}
-            </DropdownMenuItem>
-            <DropdownMenuSeparator />
-            <DropdownMenuItem
-              className="text-destructive focus:text-destructive"
-              onClick={() => onDeactivate(row.original)}
-              disabled={!row.original.isActive}
-            >
-              {labels.deactivate}
-            </DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
-      ),
+      cell: ({ row }) => {
+        const user = row.original
+        return (
+          <DropdownMenu>
+            <DropdownMenuTrigger className="inline-flex h-7 w-7 items-center justify-center rounded-md hover:bg-accent">
+              <MoreHorizontal className="h-4 w-4" />
+              <span className="sr-only">{labels.openMenu}</span>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              <DropdownMenuItem onClick={() => onEditRole(user)}>
+                {labels.editRole}
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => onResetPassword(user)}>
+                {labels.resetPassword}
+              </DropdownMenuItem>
+              <DropdownMenuSeparator />
+              {user.isActive ? (
+                <DropdownMenuItem
+                  className="text-destructive focus:text-destructive"
+                  onClick={() => onDeactivate(user)}
+                >
+                  {labels.deactivate}
+                </DropdownMenuItem>
+              ) : (
+                <DropdownMenuItem onClick={() => onActivate(user)}>
+                  {labels.activate}
+                </DropdownMenuItem>
+              )}
+            </DropdownMenuContent>
+          </DropdownMenu>
+        )
+      },
     },
   ]
 }

@@ -192,27 +192,56 @@
         "weightUnits": "Đơn vị",
         "goldPurities": "Tuổi vàng",
         "users": "Người dùng",
+        "roles": "Vai trò",
         "groupCatalog": "Danh mục",
         "groupFinance": "Tài chính",
         "groupConfig": "Cấu hình",
         "groupSystem": "Hệ thống",
-        "backToPOS": "← Quay về POS"
-      }
+        "backToPOS": "Quay về POS"
+      },
+      "collapse": "Thu gọn sidebar",
+      "expand": "Mở rộng sidebar",
+      "searchPlaceholder": "Tìm menu...",
+      "noResults": "Không tìm thấy"
     },
     "products": {
       "title": "Sản phẩm",
       "subtitle": "{count} sản phẩm trong hệ thống",
-      "searchPlaceholder": "Tìm sản phẩm...",
+      "searchPlaceholder": "Tìm theo tên / mã...",
+      "addButton": "Thêm sản phẩm",
       "columns": {
         "product": "Sản phẩm",
+        "productCode": "Mã SP",
         "category": "Danh mục",
-        "unitPrice": "Đơn giá",
-        "stock": "Tồn kho",
-        "outOfStock": "Hết hàng",
-        "inStock": "Còn {qty}",
+        "purity": "Hàm lượng",
+        "status": "Trạng thái",
+        "active": "Hoạt động",
+        "inactive": "Vô hiệu",
         "openMenu": "Mở menu",
         "edit": "Chỉnh sửa",
-        "delete": "Xóa"
+        "deactivate": "Vô hiệu hóa"
+      },
+      "toasts": {
+        "createSuccess": "Thêm sản phẩm thành công",
+        "updateSuccess": "Cập nhật sản phẩm thành công",
+        "deactivateSuccess": "Vô hiệu hóa sản phẩm thành công"
+      },
+      "createDialog": {
+        "title": "Thêm sản phẩm mới",
+        "submit": "Thêm sản phẩm"
+      },
+      "editDialog": {
+        "title": "Chỉnh sửa sản phẩm",
+        "submit": "Lưu thay đổi"
+      },
+      "form": {
+        "productCode": "Mã sản phẩm",
+        "productName": "Tên sản phẩm",
+        "category": "Danh mục",
+        "purity": "Hàm lượng vàng",
+        "weight": "Trọng lượng (mg)",
+        "categoryPlaceholder": "Chọn danh mục",
+        "purityPlaceholder": "Chọn / nhập giá trị"
       }
     },
     "customers": {
@@ -317,59 +346,130 @@
     "config": {
       "prices": {
         "title": "Cấu hình bảng giá",
-        "subtitle": "Bảng giá vàng-bạc hiện tại",
-        "goldSell": "Giá vàng bán ra",
-        "goldBuy": "Giá vàng mua vào",
-        "silverSell": "Giá bạc bán ra",
-        "perChi": "/ chỉ",
-        "perGram": "/ gram",
-        "updatedBy": "Cập nhật bởi",
-        "updatedAt": "Vào lúc",
+        "subtitle": "Bảng giá vàng/bạc theo từng hàm lượng",
         "effectiveFrom": "Hiệu lực từ",
+        "updatedBy": "Cập nhật bởi",
         "updateButton": "Cập nhật giá",
-        "form": {
-          "goldSellLabel": "Vàng bán ra (₭/chỉ)",
-          "goldBuyLabel": "Vàng mua vào (₭/chỉ)",
-          "silverSellLabel": "Bạc (₭/gram)"
+        "saveButton": "Lưu",
+        "cancel": "Hủy",
+        "categoryGold": "Vàng",
+        "categorySilver": "Bạc",
+        "unitChi": "chỉ",
+        "unitGram": "gram",
+        "noPurities": "Chưa có hàm lượng. Hãy thêm từ trang Hàm lượng vàng.",
+        "columns": {
+          "purityCode": "Hàm lượng",
+          "category": "Loại",
+          "buy": "Mua vào",
+          "sell": "Bán ra"
         }
       },
       "exchangeRates": {
         "title": "Tỷ giá ngoại tệ",
+        "updateButton": "Cập nhật",
+        "cancel": "Hủy",
         "columns": {
           "currency": "Ngoại tệ",
           "rate": "Tỷ giá",
           "adjustment": "Điều chỉnh",
           "updatedAt": "Cập nhật"
-        },
-        "updateButton": "Cập nhật"
+        }
       },
       "stonePrices": {
         "title": "Bảng phí đá đính kèm",
-        "columns": {
-          "weightFrom": "Từ trọng lượng (chỉ)",
-          "weightTo": "Đến trọng lượng (chỉ)",
-          "fee": "Phí (LAK)"
-        },
         "addButton": "Thêm quy tắc",
-        "deleteButton": "Xóa"
+        "editDialogTitle": "Sửa quy tắc",
+        "saveButton": "Lưu",
+        "cancel": "Hủy",
+        "columns": {
+          "weightFrom": "Từ (chỉ)",
+          "weightTo": "Đến (chỉ)",
+          "fee": "Phí đá (₭)"
+        }
       },
       "weightUnits": {
-        "title": "Đơn vị đo lường",
+        "title": "Đơn vị trọng lượng",
+        "addButton": "Thêm đơn vị",
+        "createDialogTitle": "Thêm đơn vị mới",
+        "saveButton": "Lưu",
+        "cancel": "Hủy",
+        "systemBadge": "Hệ thống",
         "columns": {
           "code": "Mã",
           "name": "Tên",
-          "gramPerUnit": "Gram / Đơn vị"
+          "gramPerUnit": "Gram / đơn vị"
         },
-        "updateButton": "Cập nhật"
+        "form": {
+          "tenDonVi": "Tên đơn vị",
+          "maTocDoc": "Mã (viết thường, duy nhất)",
+          "gramPerUnit": "Gram tương đương"
+        }
       },
       "goldPurities": {
-        "title": "Tuổi vàng",
+        "title": "Hàm lượng vàng / bạc",
+        "addButton": "Thêm hàm lượng",
+        "editDialogTitle": "Sửa hàm lượng",
+        "saveButton": "Lưu",
+        "cancel": "Hủy",
+        "categoryGold": "Vàng",
+        "categorySilver": "Bạc",
         "columns": {
           "code": "Mã",
-          "label": "Tên",
-          "fineness": "Độ tinh khiết (‰)"
+          "category": "Loại",
+          "fineness": "Độ tinh khiết (%)"
         },
-        "addButton": "Thêm tuổi vàng"
+        "form": {
+          "ma": "Mã hàm lượng",
+          "hamLuong": "Độ tinh khiết (%)",
+          "category": "Loại"
+        }
+      }
+    },
+    "roles": {
+      "title": "Vai trò & Quyền hạn",
+      "subtitle": "{count} vai trò",
+      "systemBadge": "Hệ thống",
+      "permissionsCount": "{count} quyền",
+      "editButton": "Sửa quyền",
+      "editDialogTitle": "Quyền của vai trò — {name}",
+      "saveButton": "Lưu",
+      "cancel": "Hủy",
+      "saveSuccess": "Cập nhật quyền thành công",
+      "columns": {
+        "code": "Mã",
+        "name": "Tên vai trò",
+        "description": "Mô tả",
+        "permissions": "Quyền hạn"
+      },
+      "groupNames": {
+        "TRANSACTION": "Giao dịch bán hàng",
+        "TRADE": "Mua vào / Đổi hàng",
+        "INVENTORY": "Kho hàng",
+        "CASH_LEDGER": "Quỹ & Dòng tiền",
+        "REPORT": "Báo cáo",
+        "CONFIG": "Cấu hình",
+        "PRODUCT": "Danh mục sản phẩm",
+        "BRANCH": "Chi nhánh",
+        "USER": "Người dùng"
+      },
+      "permNames": {
+        "TRANSACTION_CREATE": "Lập đơn giao dịch",
+        "TRANSACTION_APPROVE": "Duyệt giao dịch",
+        "TRANSACTION_VIEW_ALL": "Xem tất cả giao dịch",
+        "TRADE_CREATE": "Lập đơn mua vào / đổi hàng",
+        "TRADE_APPROVE": "Duyệt mua vào / đổi hàng",
+        "INVENTORY_VIEW": "Xem kho hàng",
+        "INVENTORY_MANAGE": "Quản lý kho (nhập/xuất/điều chỉnh)",
+        "CASH_LEDGER_MANAGE": "Quản lý sổ quỹ",
+        "REPORT_DASHBOARD": "Xem dashboard báo cáo",
+        "REPORT_DAILY": "Xem báo cáo ngày",
+        "CONFIG_PRICE": "Cấu hình giá vàng / tỷ giá",
+        "CONFIG_WEIGHT_UNIT": "Cấu hình đơn vị trọng lượng",
+        "CONFIG_STONE_PRICE": "Cấu hình thang giá đá",
+        "CONFIG_GOLD_PURITY": "Cấu hình tuổi vàng",
+        "PRODUCT_MANAGE": "Quản lý sản phẩm & danh mục",
+        "BRANCH_MANAGE": "Quản lý chi nhánh",
+        "USER_MANAGE": "Quản lý người dùng & phân quyền"
       }
     },
     "users": {
@@ -388,7 +488,9 @@
         "openMenu": "Mở menu",
         "viewDetail": "Xem chi tiết",
         "editRole": "Đổi vai trò",
-        "deactivate": "Vô hiệu hóa"
+        "deactivate": "Vô hiệu hóa",
+        "activate": "Kích hoạt",
+        "resetPassword": "Đặt lại mật khẩu"
       },
       "roles": {
         "Cashier": "Thu ngân",
@@ -399,6 +501,40 @@
       "status": {
         "active": "Hoạt động",
         "inactive": "Không hoạt động"
+      },
+      "createDialog": {
+        "title": "Thêm người dùng mới",
+        "employeeCode": "Mã nhân viên",
+        "fullName": "Họ và tên",
+        "phone": "Số điện thoại",
+        "password": "Mật khẩu",
+        "role": "Vai trò",
+        "rolePlaceholder": "Chọn vai trò...",
+        "cancel": "Hủy",
+        "submit": "Tạo",
+        "success": "Tạo người dùng thành công"
+      },
+      "editRoleDialog": {
+        "title": "Đổi vai trò — {name}",
+        "role": "Vai trò mới",
+        "cancel": "Hủy",
+        "submit": "Lưu",
+        "success": "Đổi vai trò thành công"
+      },
+      "resetPasswordDialog": {
+        "title": "Đặt lại mật khẩu — {name}",
+        "newPassword": "Mật khẩu mới",
+        "cancel": "Hủy",
+        "submit": "Đặt",
+        "success": "Đặt lại mật khẩu thành công"
+      },
+      "toasts": {
+        "activateSuccess": "Kích hoạt tài khoản thành công",
+        "deactivateSuccess": "Vô hiệu hóa tài khoản thành công",
+        "createSuccess": "Tạo người dùng thành công",
+        "updateSuccess": "Cập nhật thông tin thành công",
+        "updateRoleSuccess": "Đổi vai trò thành công",
+        "resetPasswordSuccess": "Đặt lại mật khẩu thành công"
       }
     }
   },

@@ -3,29 +3,24 @@
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
-import { useMutation } from '@tanstack/react-query'
-import { useRouter } from 'next/navigation'
-import { useLocale, useTranslations } from 'next-intl'
-import { toast } from 'sonner'
-import { Loader2, Eye, EyeOff, Monitor } from 'lucide-react'
+import { useTranslations } from 'next-intl'
+import { Monitor } from 'lucide-react'
+import { Eye, EyeOff } from 'lucide-react'
 import { useState } from 'react'
 
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
-import { LocaleSwitcher } from '@/components/pos/LocaleSwitcher'
-import { AuthRepository } from '@/lib/repositories/auth.repository'
-import { useAuthStore } from '@/stores/auth.store'
-import { extractErrorMessage } from '@/lib/errors'
-import type { AppLocale } from '@/lib/errors'
+import { Field, FieldError, FieldLabel } from '@/components/ui/field'
+import { InputGroup, InputGroupAddon, InputGroupButton, InputGroupInput } from '@/components/ui/input-group'
+import { Spinner } from '@/components/ui/spinner'
+import { LocaleSwitcher } from '@/components/shared/LocaleSwitcher'
+import { useLogin } from '@/hooks/useAuth'
 
 type LoginForm = { username: string; password: string }
 
 export default function LoginPage() {
   const t = useTranslations('auth.login')
-  const locale = useLocale() as AppLocale
-  const router = useRouter()
-  const setAuth = useAuthStore(s => s.setAuth)
+  const { mutate: login, isPending } = useLogin()
   const [showPassword, setShowPassword] = useState(false)
 
   const schema = z.object({
@@ -35,27 +30,6 @@ export default function LoginPage() {
 
   const { register, handleSubmit, formState: { errors } } = useForm<LoginForm>({
     resolver: zodResolver(schema),
-  })
-
-  const { mutate: login, isPending } = useMutation({
-    mutationFn: (dto: LoginForm) => AuthRepository.login(dto),
-    onSuccess: (data) => {
-      setAuth(
-        {
-          userId: data.userId,
-          fullName: data.fullName,
-          role: data.role,
-          permissions: data.permissions,
-          branchId: data.branchId,
-        },
-        data.accessToken,
-        data.refreshToken,
-      )
-      router.replace('/pos')
-    },
-    onError: (err) => {
-      toast.error(extractErrorMessage(err, locale))
-    },
   })
 
   return (
@@ -113,65 +87,53 @@ export default function LoginPage() {
             </div>
 
             {/* Form */}
-            <form onSubmit={handleSubmit(data => login(data))} className="space-y-5">
+            <form onSubmit={handleSubmit(data => login(data))}>
+              <div className="space-y-5">
 
-              <div className="space-y-1.5">
-                <Label htmlFor="username" className="text-sm font-medium">
-                  {t('usernameLabel')}
-                </Label>
-                <Input
-                  id="username"
-                  placeholder={t('usernamePlaceholder')}
-                  autoComplete="username"
-                  autoFocus
-                  className="h-10"
-                  {...register('username')}
-                />
-                {errors.username && (
-                  <p className="text-xs text-destructive">{errors.username.message}</p>
-                )}
-              </div>
-
-              <div className="space-y-1.5">
-                <Label htmlFor="password" className="text-sm font-medium">
-                  {t('passwordLabel')}
-                </Label>
-                <div className="relative">
+                <Field>
+                  <FieldLabel htmlFor="username">{t('usernameLabel')}</FieldLabel>
                   <Input
-                    id="password"
-                    type={showPassword ? 'text' : 'password'}
-                    placeholder={t('passwordPlaceholder')}
-                    autoComplete="current-password"
-                    className="h-10 pr-10"
-                    {...register('password')}
+                    id="username"
+                    placeholder={t('usernamePlaceholder')}
+                    autoComplete="username"
+                    autoFocus
+                    className="h-10"
+                    {...register('username')}
                   />
-                  <button
-                    type="button"
-                    onClick={() => setShowPassword(v => !v)}
-                    className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
-                    tabIndex={-1}
-                  >
-                    {showPassword
-                      ? <EyeOff className="h-4 w-4" />
-                      : <Eye className="h-4 w-4" />
-                    }
-                  </button>
-                </div>
-                {errors.password && (
-                  <p className="text-xs text-destructive">{errors.password.message}</p>
-                )}
-              </div>
+                  {errors.username && <FieldError>{errors.username.message}</FieldError>}
+                </Field>
 
-              <Button
-                type="submit"
-                disabled={isPending}
-                className="w-full h-10 font-semibold"
-              >
-                {isPending
-                  ? <><Loader2 className="h-4 w-4 mr-2 animate-spin" />{t('submitting')}</>
-                  : t('submit')
-                }
-              </Button>
+                <Field>
+                  <FieldLabel htmlFor="password">{t('passwordLabel')}</FieldLabel>
+                  <InputGroup>
+                    <InputGroupInput
+                      id="password"
+                      type={showPassword ? 'text' : 'password'}
+                      placeholder={t('passwordPlaceholder')}
+                      autoComplete="current-password"
+                      className="h-10"
+                      {...register('password')}
+                    />
+                    <InputGroupAddon align="inline-end">
+                      <InputGroupButton onClick={() => setShowPassword(v => !v)} tabIndex={-1}>
+                        {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                      </InputGroupButton>
+                    </InputGroupAddon>
+                  </InputGroup>
+                  {errors.password && <FieldError>{errors.password.message}</FieldError>}
+                </Field>
+
+                <Button
+                  type="submit"
+                  disabled={isPending}
+                  className="w-full h-10 font-semibold"
+                >
+                  {isPending
+                    ? <><Spinner className="mr-2" />{t('submitting')}</>
+                    : t('submit')
+                  }
+                </Button>
+              </div>
             </form>
           </div>
         </div>

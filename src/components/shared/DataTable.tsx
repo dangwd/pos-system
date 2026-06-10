@@ -29,6 +29,7 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { ChevronLeft, ChevronRight } from 'lucide-react'
 import { useTranslations } from 'next-intl'
+import { Empty, EmptyTitle } from '@/components/ui/empty'
 
 // ─── Props ────────────────────────────────────────────────────────────────────
 
@@ -126,8 +127,10 @@ export function DataTable<TData>({
               ))
             ) : (
               <tr>
-                <td colSpan={columns.length} className="py-10 text-center text-muted-foreground">
-                  {t('noData')}
+                <td colSpan={columns.length}>
+                  <Empty className="border-0 rounded-none py-10">
+                    <EmptyTitle>{t('noData')}</EmptyTitle>
+                  </Empty>
                 </td>
               </tr>
             )}

@@ -32,7 +32,7 @@ yarn-error.log*
 # Claude AI
 CLAUDE.md
 .claude/
-
+/docs
 # env files (can opt-in for committing if needed)
 .env*
 

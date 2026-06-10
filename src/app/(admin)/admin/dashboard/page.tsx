@@ -5,9 +5,41 @@ import { transactionRepository } from '@/lib/repositories/transaction.repository
 import { productRepository } from '@/lib/repositories/product.repository'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
-import { ClipboardList, Package, TrendingUp, Banknote, Loader2 } from 'lucide-react'
+import { ClipboardList, Package, TrendingUp, Banknote } from 'lucide-react'
+import { Skeleton } from '@/components/ui/skeleton'
 import type { Transaction } from '@/types/transaction'
 import { useTranslations } from 'next-intl'
+
+function DashboardSkeleton() {
+  return (
+    <div className="space-y-6">
+      <div className="grid grid-cols-2 xl:grid-cols-4 gap-4">
+        {[0, 1, 2, 3].map((i) => (
+          <div key={i} className="rounded-lg border p-4 space-y-3">
+            <div className="flex items-center justify-between">
+              <Skeleton className="h-4 w-28" />
+              <Skeleton className="h-4 w-4" />
+            </div>
+            <Skeleton className="h-8 w-24" />
+          </div>
+        ))}
+      </div>
+      <div className="rounded-lg border">
+        <div className="p-4 border-b">
+          <Skeleton className="h-5 w-36" />
+        </div>
+        <div className="p-4 space-y-1">
+          {[0, 1, 2, 3, 4].map((i) => (
+            <div key={i} className="flex items-center justify-between py-2.5 border-b last:border-0">
+              <Skeleton className="h-4 w-40" />
+              <Skeleton className="h-5 w-24" />
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  )
+}
 
 function formatKip(amount: number) {
   return amount.toLocaleString('lo-LA') + ' ₭'
@@ -48,9 +80,7 @@ export default function DashboardPage() {
       </div>
 
       {isLoading ? (
-        <div className="flex justify-center py-12">
-          <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
-        </div>
+        <DashboardSkeleton />
       ) : (
         <>
           <div className="grid grid-cols-2 xl:grid-cols-4 gap-4">

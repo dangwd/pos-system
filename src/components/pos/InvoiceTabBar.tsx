@@ -45,7 +45,7 @@ function CloseConfirmDialog({ tab, onConfirm, onCancel }: CloseConfirmProps) {
 
   return (
     <Dialog open={!!tab} onOpenChange={open => !open && onCancel()}>
-      <DialogContent className="max-w-sm">
+      <DialogContent className="sm:max-w-sm">
         <DialogHeader>
           <DialogTitle>Đóng hóa đơn?</DialogTitle>
         </DialogHeader>
@@ -87,7 +87,7 @@ function TabChip({ tab, isActive, onSwitch, onClose, onHold, onDuplicate, showCl
         // Base styles
         'group relative flex items-center gap-1.5 px-3 py-1.5 rounded-t-md',
         'border border-b-0 text-xs cursor-pointer select-none transition-colors',
-        'min-w-[110px] max-w-[168px]',
+        'min-w-27.5 max-w-42',
         // Active / inactive
         isActive
           ? 'bg-background border-border text-foreground shadow-sm'

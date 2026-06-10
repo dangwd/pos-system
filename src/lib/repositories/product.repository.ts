@@ -1,15 +1,13 @@
-/**
- * repositories/product.repository.ts
- *
- * Khớp với endpoints:
- *   GET  /api/products             → danh sách sản phẩm (filter by categoryCode)
- *   GET  /api/products/{id}        → chi tiết sản phẩm
- *   POST /api/products             → tạo sản phẩm mới
- *   GET  /api/product-categories   → danh sách danh mục
- */
-
 import api from '@/lib/axios'
-import type { Product, ProductCategory, CreateProductDto } from '@/types/product'
+import { handleAxiosError } from '@/lib/api-error'
+import type {
+  Product,
+  ProductCategory,
+  CreateProductDto,
+  UpdateProductDto,
+  CreateProductCategoryDto,
+  UpdateProductCategoryDto,
+} from '@/types/product'
 
 export interface ProductListParams {
   categoryCode?: string
@@ -19,26 +17,70 @@ export interface ProductListParams {
 
 export class ProductRepository {
   private readonly base = '/api/products'
-  private readonly catBase = '/api/product-categories'
+
+  // ─── Products ───────────────────────────────────────────────────────────────
 
   async getAll(params?: ProductListParams): Promise<Product[]> {
-    const { data } = await api.get<Product[]>(this.base, { params })
-    return data
+    try {
+      const { data } = await api.get<Product[]>(this.base, { params })
+      return data
+    } catch (err) { handleAxiosError(err) }
   }
 
   async getById(id: string): Promise<Product> {
-    const { data } = await api.get<Product>(`${this.base}/${id}`)
-    return data
+    try {
+      const { data } = await api.get<Product>(`${this.base}/${id}`)
+      return data
+    } catch (err) { handleAxiosError(err) }
   }
 
   async create(payload: CreateProductDto): Promise<Product> {
-    const { data } = await api.post<Product>(this.base, payload)
-    return data
+    try {
+      const { data } = await api.post<Product>(this.base, payload)
+      return data
+    } catch (err) { handleAxiosError(err) }
   }
 
+  async update(id: string, payload: UpdateProductDto): Promise<Product> {
+    try {
+      const { data } = await api.put<Product>(`${this.base}/${id}`, payload)
+      return data
+    } catch (err) { handleAxiosError(err) }
+  }
+
+  async deactivate(id: string): Promise<void> {
+    try {
+      await api.delete(`${this.base}/${id}`)
+    } catch (err) { handleAxiosError(err) }
+  }
+
+  // ─── Categories ─────────────────────────────────────────────────────────────
+
   async getCategories(): Promise<ProductCategory[]> {
-    const { data } = await api.get<ProductCategory[]>(this.catBase)
-    return data
+    try {
+      const { data } = await api.get<ProductCategory[]>(`${this.base}/categories`)
+      return data
+    } catch (err) { handleAxiosError(err) }
+  }
+
+  async createCategory(payload: CreateProductCategoryDto): Promise<ProductCategory> {
+    try {
+      const { data } = await api.post<ProductCategory>(`${this.base}/categories`, payload)
+      return data
+    } catch (err) { handleAxiosError(err) }
+  }
+
+  async updateCategory(id: string, payload: UpdateProductCategoryDto): Promise<ProductCategory> {
+    try {
+      const { data } = await api.put<ProductCategory>(`${this.base}/categories/${id}`, payload)
+      return data
+    } catch (err) { handleAxiosError(err) }
+  }
+
+  async deleteCategory(id: string): Promise<void> {
+    try {
+      await api.delete(`${this.base}/categories/${id}`)
+    } catch (err) { handleAxiosError(err) }
   }
 }
 

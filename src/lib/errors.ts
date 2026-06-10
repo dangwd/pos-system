@@ -12,6 +12,8 @@
  * Sử dụng: getErrorMessage('AUTH_INVALID_CREDENTIALS', 'vi')
  */
 
+import { ApiError } from './api-error'
+
 export type AppLocale = 'lo' | 'vi' | 'en'
 
 type ErrorMap = Record<AppLocale, string>
@@ -82,10 +84,40 @@ const ERROR_MESSAGES: Record<string, ErrorMap> = {
     vi: 'Không có tỷ giá cho loại ngoại tệ này',
     en: 'Exchange rate not found for this currency',
   },
+  CONFIG_PRICE_ITEMS_EMPTY: {
+    lo: 'ລາຍການລາຄາບໍ່ສາມາດຫວ່າງໄດ້',
+    vi: 'Danh sách giá không được rỗng',
+    en: 'Price items cannot be empty',
+  },
+  CONFIG_GOLD_PURITY_NOT_FOUND: {
+    lo: 'ບໍ່ພົບຄວາມບໍລິສຸດຂອງທອງ',
+    vi: 'Không tìm thấy hàm lượng vàng',
+    en: 'Gold purity not found',
+  },
   CONFIG_GOLD_PURITY_CODE_DUPLICATE: {
     lo: 'ລະຫັດຄວາມບໍລິສຸດຂອງທອງທີ່ຊ້ຳກັນ',
-    vi: 'Mã độ tinh khiết vàng đã tồn tại',
+    vi: 'Mã hàm lượng vàng đã tồn tại',
     en: 'Gold purity code already exists',
+  },
+  CONFIG_WEIGHT_UNIT_NOT_FOUND: {
+    lo: 'ບໍ່ພົບໜ່ວຍນ້ຳໜັກ',
+    vi: 'Không tìm thấy đơn vị trọng lượng',
+    en: 'Weight unit not found',
+  },
+  CONFIG_WEIGHT_UNIT_CODE_DUPLICATE: {
+    lo: 'ລະຫັດໜ່ວຍວັດແທກຊ້ຳກັນ',
+    vi: 'Mã đơn vị trọng lượng đã tồn tại',
+    en: 'Weight unit code already exists',
+  },
+  CONFIG_WEIGHT_UNIT_SYSTEM_PROTECTED: {
+    lo: 'ໜ່ວຍລະບົບບໍ່ສາມາດລຶບໄດ້',
+    vi: 'Đơn vị hệ thống không thể xóa',
+    en: 'System weight unit cannot be deleted',
+  },
+  CONFIG_STONE_RULE_NOT_FOUND: {
+    lo: 'ບໍ່ພົບກົດລາຄາຫີນ',
+    vi: 'Không tìm thấy quy tắc giá đá',
+    en: 'Stone price rule not found',
   },
 
   // ── INVENTORY ─────────────────────────────────────────────────────────────
@@ -121,6 +153,11 @@ const ERROR_MESSAGES: Record<string, ErrorMap> = {
     vi: 'Không tìm thấy danh mục sản phẩm',
     en: 'Product category not found',
   },
+  PRODUCT_CATEGORY_HAS_PRODUCTS: {
+    lo: 'ໝວດໝູ່ຍັງມີສິນຄ້າ, ບໍ່ສາມາດລຶບໄດ້',
+    vi: 'Danh mục còn sản phẩm, không thể xóa',
+    en: 'Category still has products, cannot delete',
+  },
 
   // ── USER ──────────────────────────────────────────────────────────────────
   USER_NOT_FOUND: {
@@ -132,6 +169,16 @@ const ERROR_MESSAGES: Record<string, ErrorMap> = {
     lo: 'ລະຫັດພະນັກງານຊ້ຳກັນ',
     vi: 'Mã nhân viên đã tồn tại',
     en: 'Employee code already exists',
+  },
+  BRANCH_NOT_FOUND: {
+    lo: 'ບໍ່ພົບສາຂາ ຫຼື ສາຂາບໍ່ດຳເນີນການ',
+    vi: 'Không tìm thấy chi nhánh hoặc chi nhánh không hoạt động',
+    en: 'Branch not found or inactive',
+  },
+  ROLE_NOT_FOUND: {
+    lo: 'ບໍ່ພົບບົດບາດ',
+    vi: 'Không tìm thấy vai trò',
+    en: 'Role not found',
   },
 
   // ── CUSTOMER ──────────────────────────────────────────────────────────────
@@ -194,13 +241,16 @@ export function getValidationMessages(
 }
 
 /**
- * Helper: extract errorCode từ axios error và convert sang message.
+ * Helper: extract errorCode từ ApiError (hoặc axios error thô) và convert sang message.
  * Dùng trong onError của useMutation.
  */
 export function extractErrorMessage(
   err: unknown,
   locale: AppLocale = 'lo'
 ): string {
+  if (err instanceof ApiError) {
+    return getErrorMessage(err.code, locale)
+  }
   if (err && typeof err === 'object' && 'response' in err) {
     const response = (err as { response?: { data?: { errorCode?: string } } }).response
     const code = response?.data?.errorCode

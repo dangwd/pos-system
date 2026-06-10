@@ -2,10 +2,15 @@
  * types/product.ts
  *
  * Khớp với response của:
- *   GET  /api/products/categories
- *   GET  /api/products
- *   GET  /api/products/{id}
- *   POST /api/products
+ *   GET    /api/products/categories
+ *   GET    /api/products
+ *   GET    /api/products/{id}
+ *   POST   /api/products
+ *   PUT    /api/products/{id}
+ *   DELETE /api/products/{id}
+ *   POST   /api/products/categories
+ *   PUT    /api/products/categories/{id}
+ *   DELETE /api/products/categories/{id}
  */
 
 // ─── Danh mục sản phẩm ───────────────────────────────────────────────────────
@@ -43,6 +48,20 @@ export interface CreateProductDto {
 /** POST /api/products/categories — Tạo danh mục */
 export interface CreateProductCategoryDto {
   code: string
+  name: string
+  sortOrder?: number
+}
+
+/** PUT /api/products/{id} — Cập nhật sản phẩm (productCode bất biến) */
+export interface UpdateProductDto {
+  productName: string
+  productCategoryId: string
+  purity: string
+  weightPerUnitMg: number
+}
+
+/** PUT /api/products/categories/{id} — Cập nhật danh mục (code bất biến) */
+export interface UpdateProductCategoryDto {
   name: string
   sortOrder?: number
 }

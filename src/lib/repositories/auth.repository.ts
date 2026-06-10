@@ -1,18 +1,40 @@
 import api from '@/lib/axios'
-import type { LoginRequest, LoginResponse, RefreshResponse } from '@/types/auth'
+import { handleAxiosError } from '@/lib/api-error'
+import type { LoginRequest, LoginResponse, RefreshResponse, MeResponse } from '@/types/auth'
 
 export class AuthRepository {
   static async login(dto: LoginRequest): Promise<LoginResponse> {
-    const { data } = await api.post<LoginResponse>('/api/auth/login', dto)
-    return data
+    try {
+      const { data } = await api.post<LoginResponse>('/api/auth/login', dto)
+      return data
+    } catch (err) {
+      handleAxiosError(err)
+    }
   }
 
   static async refresh(refreshToken: string): Promise<RefreshResponse> {
-    const { data } = await api.post<RefreshResponse>('/api/auth/refresh', { refreshToken })
-    return data
+    try {
+      const { data } = await api.post<RefreshResponse>('/api/auth/refresh', { refreshToken })
+      return data
+    } catch (err) {
+      handleAxiosError(err)
+    }
   }
 
   static async logout(refreshToken: string): Promise<void> {
-    await api.post('/api/auth/logout', { refreshToken })
+    try {
+      await api.post('/api/auth/logout', { refreshToken })
+    } catch (err) {
+      handleAxiosError(err)
+    }
+  }
+
+  static async getMe(): Promise<MeResponse> {
+    try {
+      const { data } = await api.get<MeResponse>('/api/auth/me')
+      return data
+    } catch (err) {
+      handleAxiosError(err)
+    }
   }
 }

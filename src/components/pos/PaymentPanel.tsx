@@ -15,7 +15,8 @@ import { useState } from 'react'
 import { useActiveTab } from '@/hooks/useActiveTab'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
-import { CreditCard, Search, Plus, ScanLine, X, User, Receipt, Loader2 } from 'lucide-react'
+import { CreditCard, Search, Plus, ScanLine, X, User, Receipt } from 'lucide-react'
+import { Spinner } from '@/components/ui/spinner'
 import { useTranslations } from 'next-intl'
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
@@ -278,7 +279,7 @@ export function PaymentPanel({
           onClick={onOpenPayment}
         >
           {isCheckingOut ? (
-            <><Loader2 className="h-4 w-4 animate-spin" />{t('processing')}</>
+            <><Spinner className="mr-1" />{t('processing')}</>
           ) : (
             <><CreditCard className="h-4 w-4" />{t('checkout')}</>
           )}

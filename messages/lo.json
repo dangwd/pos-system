@@ -192,27 +192,56 @@
         "weightUnits": "ໜ່ວຍ",
         "goldPurities": "ຄວາມບໍລິສຸດ",
         "users": "ຜູ້ໃຊ້",
+        "roles": "ບົດບາດ",
         "groupCatalog": "ສາງສິນຄ້າ",
         "groupFinance": "ການເງິນ",
         "groupConfig": "ການຕັ້ງຄ່າ",
         "groupSystem": "ລະບົບ",
-        "backToPOS": "← ກັບໄປ POS"
-      }
+        "backToPOS": "ກັບໄປ POS"
+      },
+      "collapse": "ທຸບ sidebar",
+      "expand": "ຂະຫຍາຍ sidebar",
+      "searchPlaceholder": "ຄົ້ນຫາເມນູ...",
+      "noResults": "ບໍ່ພົບລາຍການ"
     },
     "products": {
       "title": "ສິນຄ້າ",
       "subtitle": "{count} ສິນຄ້າໃນລະບົບ",
-      "searchPlaceholder": "ຄົ້ນຫາສິນຄ້າ...",
+      "searchPlaceholder": "ຄົ້ນຫາຊື່ / ລະຫັດ...",
+      "addButton": "ເພີ່ມສິນຄ້າ",
       "columns": {
         "product": "ສິນຄ້າ",
+        "productCode": "ລະຫັດ",
         "category": "ໝວດໝູ່",
-        "unitPrice": "ລາຄາ",
-        "stock": "ສ່ວນຮ້ານ",
-        "outOfStock": "ໝົດ",
-        "inStock": "ມີ {qty}",
+        "purity": "ຄວາມບໍລິສຸດ",
+        "status": "ສະຖານະ",
+        "active": "ໃຊ້ງານ",
+        "inactive": "ຍົກເລີກ",
         "openMenu": "ເປີດເມນູ",
         "edit": "ແກ້ໄຂ",
-        "delete": "ລຶບ"
+        "deactivate": "ຍົກເລີກ"
+      },
+      "toasts": {
+        "createSuccess": "ເພີ່ມສິນຄ້າສຳເລັດ",
+        "updateSuccess": "ອັບເດດສິນຄ້າສຳເລັດ",
+        "deactivateSuccess": "ຍົກເລີກສິນຄ້າສຳເລັດ"
+      },
+      "createDialog": {
+        "title": "ເພີ່ມສິນຄ້າໃໝ່",
+        "submit": "ເພີ່ມສິນຄ້າ"
+      },
+      "editDialog": {
+        "title": "ແກ້ໄຂສິນຄ້າ",
+        "submit": "ບັນທຶກ"
+      },
+      "form": {
+        "productCode": "ລະຫັດສິນຄ້າ",
+        "productName": "ຊື່ສິນຄ້າ",
+        "category": "ໝວດໝູ່",
+        "purity": "ຄວາມບໍລິສຸດ",
+        "weight": "ນ້ຳໜັກ (mg)",
+        "categoryPlaceholder": "ເລືອກໝວດໝູ່",
+        "purityPlaceholder": "ເລືອກ / ໃສ່ຄ່າ"
       }
     },
     "customers": {
@@ -316,60 +345,131 @@
     },
     "config": {
       "prices": {
-        "title": "ການຕັ້ງຄ່າລາຄາ",
-        "subtitle": "ຕາຕະລາງລາຄາທອງ-ເງິນ",
-        "goldSell": "ລາຄາທອງຂາຍ",
-        "goldBuy": "ລາຄາທອງຊື້",
-        "silverSell": "ລາຄາເງິນຂາຍ",
-        "perChi": "/ ຈ",
-        "perGram": "/ gram",
-        "updatedBy": "ອັບເດດໂດຍ",
-        "updatedAt": "ເວລາ",
+        "title": "ຕັ້ງຄ່າລາຄາ",
+        "subtitle": "ຕາຕະລາງລາຄາທອງ/ເງິນຕາມແຕ່ລະຄວາມບໍລິສຸດ",
         "effectiveFrom": "ມີຜົນຕັ້ງແຕ່",
+        "updatedBy": "ອັບເດດໂດຍ",
         "updateButton": "ອັບເດດລາຄາ",
-        "form": {
-          "goldSellLabel": "ທອງຂາຍ (₭/ຈ)",
-          "goldBuyLabel": "ທອງຊື້ (₭/ຈ)",
-          "silverSellLabel": "ເງິນ (₭/gram)"
+        "saveButton": "ບັນທຶກ",
+        "cancel": "ຍົກເລີກ",
+        "categoryGold": "ທອງ",
+        "categorySilver": "ເງິນ",
+        "unitChi": "ຈ",
+        "unitGram": "gram",
+        "noPurities": "ຍັງບໍ່ມີຄວາມບໍລິສຸດ. ກະລຸນາເພີ່ມຈາກໜ້າຄວາມບໍລິສຸດທອງ.",
+        "columns": {
+          "purityCode": "ຄວາມບໍລິສຸດ",
+          "category": "ປະເພດ",
+          "buy": "ຊື້ເຂົ້າ",
+          "sell": "ຂາຍອອກ"
         }
       },
       "exchangeRates": {
         "title": "ອັດຕາແລກປ່ຽນ",
+        "updateButton": "ອັບເດດ",
+        "cancel": "ຍົກເລີກ",
         "columns": {
           "currency": "ເງິນຕາ",
           "rate": "ອັດຕາ",
           "adjustment": "ການປັບ",
           "updatedAt": "ອັບເດດ"
-        },
-        "updateButton": "ອັບເດດ"
+        }
       },
       "stonePrices": {
         "title": "ຄ່າຫີນດິນ",
-        "columns": {
-          "weightFrom": "ຈາກນ້ຳໜັກ (ຈ)",
-          "weightTo": "ເຖິງນ້ຳໜັກ (ຈ)",
-          "fee": "ຄ່າ (LAK)"
-        },
         "addButton": "ເພີ່ມ",
-        "deleteButton": "ລຶບ"
+        "editDialogTitle": "ແກ້ໄຂ",
+        "saveButton": "ບັນທຶກ",
+        "cancel": "ຍົກເລີກ",
+        "columns": {
+          "weightFrom": "ຈາກ (ຈ)",
+          "weightTo": "ເຖິງ (ຈ)",
+          "fee": "ຄ່າ (₭)"
+        }
       },
       "weightUnits": {
         "title": "ໜ່ວຍວັດແທກ",
+        "addButton": "ເພີ່ມໜ່ວຍ",
+        "createDialogTitle": "ເພີ່ມໜ່ວຍໃໝ່",
+        "saveButton": "ບັນທຶກ",
+        "cancel": "ຍົກເລີກ",
+        "systemBadge": "ລະບົບ",
         "columns": {
           "code": "ລະຫັດ",
           "name": "ຊື່",
           "gramPerUnit": "Gram / ໜ່ວຍ"
         },
-        "updateButton": "ອັບເດດ"
+        "form": {
+          "tenDonVi": "ຊື່ໜ່ວຍ",
+          "maTocDoc": "ລະຫັດ (ຕົວພິມນ້ອຍ)",
+          "gramPerUnit": "Gram ທຽບເທົ່າ"
+        }
       },
       "goldPurities": {
-        "title": "ຄວາມບໍລິສຸດຂອງທອງ",
+        "title": "ຄວາມບໍລິສຸດທອງ/ເງິນ",
+        "addButton": "ເພີ່ມ",
+        "editDialogTitle": "ແກ້ໄຂ",
+        "saveButton": "ບັນທຶກ",
+        "cancel": "ຍົກເລີກ",
+        "categoryGold": "ທອງ",
+        "categorySilver": "ເງິນ",
         "columns": {
           "code": "ລະຫັດ",
-          "label": "ຊື່",
-          "fineness": "ຄວາມບໍລິສຸດ (‰)"
+          "category": "ປະເພດ",
+          "fineness": "ຄວາມບໍລິສຸດ (%)"
         },
-        "addButton": "ເພີ່ມ"
+        "form": {
+          "ma": "ລະຫັດ",
+          "hamLuong": "ຄວາມບໍລິສຸດ (%)",
+          "category": "ປະເພດ"
+        }
+      }
+    },
+    "roles": {
+      "title": "ບົດບາດ & ສິດທິ",
+      "subtitle": "{count} ບົດບາດ",
+      "systemBadge": "ລະບົບ",
+      "permissionsCount": "{count} ສິດ",
+      "editButton": "ແກ້ໄຂສິດ",
+      "editDialogTitle": "ສິດຂອງບົດບາດ — {name}",
+      "saveButton": "ບັນທຶກ",
+      "cancel": "ຍົກເລີກ",
+      "saveSuccess": "ອັບເດດສິດສຳເລັດ",
+      "columns": {
+        "code": "ລະຫັດ",
+        "name": "ຊື່ບົດບາດ",
+        "description": "ຄຳອະທິບາຍ",
+        "permissions": "ສິດທິ"
+      },
+      "groupNames": {
+        "TRANSACTION": "ທຸລະກຳຂາຍ",
+        "TRADE": "ຊື້ເຂົ້າ / ແລກປ່ຽນ",
+        "INVENTORY": "ສາງ",
+        "CASH_LEDGER": "ກ່ອງເງິນ & ກະແສເງິນສົດ",
+        "REPORT": "ລາຍງານ",
+        "CONFIG": "ຕັ້ງຄ່າ",
+        "PRODUCT": "ໝວດໝູ່ສິນຄ້າ",
+        "BRANCH": "ສາຂາ",
+        "USER": "ຜູ້ໃຊ້"
+      },
+      "permNames": {
+        "TRANSACTION_CREATE": "ສ້າງໃບທຸລະກຳ",
+        "TRANSACTION_APPROVE": "ອະນຸມັດທຸລະກຳ",
+        "TRANSACTION_VIEW_ALL": "ເບິ່ງທຸລະກຳທັງໝົດ",
+        "TRADE_CREATE": "ສ້າງໃບຊື້ເຂົ້າ / ແລກ",
+        "TRADE_APPROVE": "ອະນຸມັດຊື້ເຂົ້າ / ແລກ",
+        "INVENTORY_VIEW": "ເບິ່ງສາງ",
+        "INVENTORY_MANAGE": "ຈັດການສາງ (ນຳເຂົ້າ/ສົ່ງອອກ/ປັບ)",
+        "CASH_LEDGER_MANAGE": "ຈັດການສະມຸດກ່ອງເງິນ",
+        "REPORT_DASHBOARD": "ເບິ່ງໜ້າຈໍຫຼັກລາຍງານ",
+        "REPORT_DAILY": "ເບິ່ງລາຍງານປະຈຳວັນ",
+        "CONFIG_PRICE": "ຕັ້ງຄ່າລາຄາຄຳ / ອັດຕາ",
+        "CONFIG_WEIGHT_UNIT": "ຕັ້ງຄ່າໜ່ວຍນ້ຳໜັກ",
+        "CONFIG_STONE_PRICE": "ຕັ້ງຄ່າຄ່າທຳນຽມຫີນ",
+        "CONFIG_GOLD_PURITY": "ຕັ້ງຄ່າຄວາມບໍລິສຸດຄຳ",
+        "PRODUCT_MANAGE": "ຈັດການສິນຄ້າ & ໝວດໝູ່",
+        "BRANCH_MANAGE": "ຈັດການສາຂາ",
+        "USER_MANAGE": "ຈັດການຜູ້ໃຊ້ & ສິດທິ"
       }
     },
     "users": {
@@ -388,7 +488,9 @@
         "openMenu": "ເປີດເມນູ",
         "viewDetail": "ເບິ່ງລາຍລະອຽດ",
         "editRole": "ປ່ຽນບົດບາດ",
-        "deactivate": "ປິດໃຊ້"
+        "deactivate": "ປິດໃຊ້",
+        "activate": "ເປີດໃຊ້",
+        "resetPassword": "ຕັ້ງລະຫັດຜ່ານໃໝ່"
       },
       "roles": {
         "Cashier": "ເກັບເງິນ",
@@ -399,6 +501,40 @@
       "status": {
         "active": "ດຳເນີນການ",
         "inactive": "ບໍ່ດຳເນີນການ"
+      },
+      "createDialog": {
+        "title": "ເພີ່ມຜູ້ໃຊ້ໃໝ່",
+        "employeeCode": "ລະຫັດພະນັກງານ",
+        "fullName": "ຊື່ເຕັມ",
+        "phone": "ເບີໂທ",
+        "password": "ລະຫັດຜ່ານ",
+        "role": "ບົດບາດ",
+        "rolePlaceholder": "ເລືອກບົດບາດ...",
+        "cancel": "ຍົກເລີກ",
+        "submit": "ສ້າງ",
+        "success": "ສ້າງຜູ້ໃຊ້ສຳເລັດ"
+      },
+      "editRoleDialog": {
+        "title": "ປ່ຽນບົດບາດ — {name}",
+        "role": "ບົດບາດໃໝ່",
+        "cancel": "ຍົກເລີກ",
+        "submit": "ບັນທຶກ",
+        "success": "ປ່ຽນບົດບາດສຳເລັດ"
+      },
+      "resetPasswordDialog": {
+        "title": "ຕັ້ງລະຫັດຜ່ານໃໝ່ — {name}",
+        "newPassword": "ລະຫັດຜ່ານໃໝ່",
+        "cancel": "ຍົກເລີກ",
+        "submit": "ຕັ້ງ",
+        "success": "ຕັ້ງລະຫັດຜ່ານໃໝ່ສຳເລັດ"
+      },
+      "toasts": {
+        "activateSuccess": "ເປີດໃຊ້ບັນຊີສຳເລັດ",
+        "deactivateSuccess": "ປິດໃຊ້ບັນຊີສຳເລັດ",
+        "createSuccess": "ສ້າງຜູ້ໃຊ້ສຳເລັດ",
+        "updateSuccess": "ອັບເດດຂໍ້ມູນສຳເລັດ",
+        "updateRoleSuccess": "ປ່ຽນບົດບາດສຳເລັດ",
+        "resetPasswordSuccess": "ຕັ້ງລະຫັດຜ່ານໃໝ່ສຳເລັດ"
       }
     }
   },

@@ -1,83 +1,107 @@
 'use client'
 
 import { useState } from 'react'
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import { configRepository } from '@/lib/repositories/config.repository'
-import { Loader2, Plus } from 'lucide-react'
 import { useTranslations } from 'next-intl'
+import { Plus, Pencil, Trash2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+import { Badge } from '@/components/ui/badge'
+import { Spinner } from '@/components/ui/spinner'
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog'
+import { Field, FieldLabel } from '@/components/ui/field'
+import { TablePageSkeleton } from '@/components/shared/PageSkeleton'
 import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogFooter,
-} from '@/components/ui/dialog'
-import { toast } from 'sonner'
+  useGoldPurities,
+  useCreateGoldPurity,
+  useUpdateGoldPurity,
+  useDeleteGoldPurity,
+} from '@/hooks/useConfig'
+import type { GoldPurity } from '@/types/config'
+
+type DialogState = { mode: 'create' } | { mode: 'edit'; purity: GoldPurity } | null
+
+const EMPTY_FORM = { ma: '', hamLuong: '', category: 'Gold' as 'Gold' | 'Silver' }
 
 export default function GoldPuritiesPage() {
   const t = useTranslations('admin.config.goldPurities')
-  const queryClient = useQueryClient()
+  const [dialog, setDialog] = useState<DialogState>(null)
+  const [form, setForm] = useState(EMPTY_FORM)
 
-  const [addOpen, setAddOpen] = useState(false)
-  const [form, setForm] = useState({ ma: '', hamLuong: '' })
+  const { data: purities = [], isLoading } = useGoldPurities()
+  const { mutate: create, isPending: isCreating } = useCreateGoldPurity()
+  const { mutate: update, isPending: isUpdating } = useUpdateGoldPurity()
+  const { mutate: remove } = useDeleteGoldPurity()
 
-  const { data: purities = [], isLoading } = useQuery({
-    queryKey: ['config', 'gold-purities'],
-    queryFn: () => configRepository.getGoldPurities(),
-    staleTime: 300_000,
-  })
+  const isPending = isCreating || isUpdating
 
-  const { mutate: addPurity, isPending } = useMutation({
-    mutationFn: () => configRepository.createGoldPurity({
-      ma:       form.ma,
-      hamLuong: Number(form.hamLuong),
-    }),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['config', 'gold-purities'] })
-      setAddOpen(false)
-      setForm({ ma: '', hamLuong: '' })
-    },
-    onError: () => toast.error('Failed to add purity'),
-  })
+  function openCreate() {
+    setForm(EMPTY_FORM)
+    setDialog({ mode: 'create' })
+  }
+
+  function openEdit(p: GoldPurity) {
+    setForm({ ma: p.ma, hamLuong: String(p.hamLuong), category: p.category })
+    setDialog({ mode: 'edit', purity: p })
+  }
+
+  function handleSubmit() {
+    const hamLuong = parseFloat(form.hamLuong)
+    if (!form.ma || isNaN(hamLuong)) return
+    if (dialog?.mode === 'create') {
+      create({ ma: form.ma.trim(), hamLuong, category: form.category }, { onSuccess: () => setDialog(null) })
+    } else if (dialog?.mode === 'edit') {
+      update(
+        { id: dialog.purity.id, dto: { ma: form.ma.trim(), hamLuong, category: form.category } },
+        { onSuccess: () => setDialog(null) },
+      )
+    }
+  }
 
   return (
     <div className="p-6 space-y-4">
       <div className="flex items-start justify-between">
         <h1 className="text-2xl font-bold">{t('title')}</h1>
-        <Button size="sm" onClick={() => setAddOpen(true)}>
+        <Button size="sm" onClick={openCreate}>
           <Plus className="h-4 w-4 mr-1" />
           {t('addButton')}
         </Button>
       </div>
 
-      {isLoading ? (
-        <div className="flex justify-center py-12">
-          <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
-        </div>
-      ) : (
-        <div className="rounded-md border max-w-md">
+      {isLoading ? <TablePageSkeleton cols={4} rows={5} /> : (
+        <div className="rounded-md border">
           <table className="w-full text-sm">
             <thead className="border-b bg-muted/40">
               <tr>
                 <th className="px-4 py-3 text-left font-medium text-muted-foreground">{t('columns.code')}</th>
-                <th className="px-4 py-3 text-left font-medium text-muted-foreground">{t('columns.label')}</th>
+                <th className="px-4 py-3 text-left font-medium text-muted-foreground">{t('columns.category')}</th>
                 <th className="px-4 py-3 text-right font-medium text-muted-foreground">{t('columns.fineness')}</th>
+                <th className="px-4 py-3" />
               </tr>
             </thead>
             <tbody>
               {purities.length === 0 ? (
-                <tr>
-                  <td colSpan={3} className="px-4 py-8 text-center text-muted-foreground">—</td>
-                </tr>
+                <tr><td colSpan={4} className="px-4 py-8 text-center text-muted-foreground">—</td></tr>
               ) : (
                 purities.map((p) => (
                   <tr key={p.id} className="border-b last:border-0 hover:bg-muted/20">
                     <td className="px-4 py-3 font-mono font-bold">{p.ma}</td>
-                    <td className="px-4 py-3">{p.ma}</td>
-                    <td className="px-4 py-3 text-right">{p.hamLuong}‰</td>
+                    <td className="px-4 py-3">
+                      <Badge variant={p.category === 'Gold' ? 'default' : 'secondary'}>
+                        {p.category === 'Gold' ? t('categoryGold') : t('categorySilver')}
+                      </Badge>
+                    </td>
+                    <td className="px-4 py-3 text-right">{p.hamLuong}%</td>
+                    <td className="px-4 py-3 text-right">
+                      <div className="flex justify-end gap-1">
+                        <Button size="icon" variant="ghost" className="h-7 w-7" onClick={() => openEdit(p)}>
+                          <Pencil className="h-3.5 w-3.5" />
+                        </Button>
+                        <Button size="icon" variant="ghost" className="h-7 w-7 text-destructive hover:text-destructive" onClick={() => remove(p.id)}>
+                          <Trash2 className="h-3.5 w-3.5" />
+                        </Button>
+                      </div>
+                    </td>
                   </tr>
                 ))
               )}
@@ -86,36 +110,38 @@ export default function GoldPuritiesPage() {
         </div>
       )}
 
-      <Dialog open={addOpen} onOpenChange={setAddOpen}>
-        <DialogContent>
+      <Dialog open={!!dialog} onOpenChange={(o) => !o && setDialog(null)}>
+        <DialogContent className="sm:max-w-lg">
           <DialogHeader>
-            <DialogTitle>{t('addButton')}</DialogTitle>
+            <DialogTitle>{dialog?.mode === 'create' ? t('addButton') : t('editDialogTitle')}</DialogTitle>
           </DialogHeader>
           <div className="space-y-4 py-2">
-            <div className="space-y-1.5">
-              <Label>{t('columns.code')}</Label>
-              <Input
-                value={form.ma}
-                onChange={(e) => setForm(p => ({ ...p, ma: e.target.value }))}
-                placeholder="9999, 750, 585..."
-              />
-            </div>
-            <div className="space-y-1.5">
-              <Label>{t('columns.fineness')}</Label>
-              <Input
-                type="number"
-                min="0"
-                max="1000"
-                value={form.hamLuong}
-                onChange={(e) => setForm(p => ({ ...p, hamLuong: e.target.value }))}
-              />
+            <Field>
+              <FieldLabel>{t('form.ma')}</FieldLabel>
+              <Input value={form.ma} onChange={(e) => setForm((f) => ({ ...f, ma: e.target.value }))} placeholder="9999, 24K, 925..." className="font-mono" />
+            </Field>
+            <div className="grid grid-cols-2 gap-3">
+              <Field>
+                <FieldLabel>{t('form.hamLuong')}</FieldLabel>
+                <Input type="number" min="0" max="100" step="0.01" value={form.hamLuong} onChange={(e) => setForm((f) => ({ ...f, hamLuong: e.target.value }))} placeholder="99.99" />
+              </Field>
+              <Field>
+                <FieldLabel>{t('form.category')}</FieldLabel>
+                <Select value={form.category} onValueChange={(v) => setForm((f) => ({ ...f, category: v as 'Gold' | 'Silver' }))}>
+                  <SelectTrigger><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="Gold">{t('categoryGold')}</SelectItem>
+                    <SelectItem value="Silver">{t('categorySilver')}</SelectItem>
+                  </SelectContent>
+                </Select>
+              </Field>
             </div>
           </div>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setAddOpen(false)}>Cancel</Button>
-            <Button onClick={() => addPurity()} disabled={isPending || !form.ma || !form.hamLuong}>
-              {isPending ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : null}
-              {t('addButton')}
+            <Button variant="outline" onClick={() => setDialog(null)} disabled={isPending}>{t('cancel')}</Button>
+            <Button onClick={handleSubmit} disabled={isPending || !form.ma || !form.hamLuong}>
+              {isPending && <Spinner className="mr-2" />}
+              {dialog?.mode === 'create' ? t('addButton') : t('saveButton')}
             </Button>
           </DialogFooter>
         </DialogContent>

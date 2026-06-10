@@ -118,7 +118,7 @@ interface TransactionRowProps {
 
 function TransactionRow({ item, index, onQtyChange, onDelete }: TransactionRowProps) {
   const t = useTranslations('pos.transactionTable')
-  const lineTotal = item.unitPrice * item.qty + item.laborFee + item.stoneFee
+  const lineTotal = (item.unitPrice ?? 0) * item.qty + (item.laborFee ?? 0) + (item.stoneFee ?? 0)
 
   // Map category name → operation label key
   const opKey = item.categoryName.toLowerCase().includes('vàng') || item.categoryName.toLowerCase().includes('gold')
@@ -173,7 +173,7 @@ function TransactionRow({ item, index, onQtyChange, onDelete }: TransactionRowPr
 
       {/* ĐƠN GIÁ */}
       <td className="px-3 py-3 text-xs tabular-nums text-muted-foreground whitespace-nowrap">
-        {item.unitPrice.toLocaleString('lo-LA')} ₭
+        {(item.unitPrice ?? 0).toLocaleString('lo-LA')} ₭
       </td>
 
       {/* THÀNH TIỀN */}

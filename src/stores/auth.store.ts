@@ -3,6 +3,7 @@ import { persist } from 'zustand/middleware'
 import type { AuthUser } from '@/types/auth'
 
 const AUTH_COOKIE = 'is_authenticated'
+const ROLE_COOKIE = 'user_role'
 const COOKIE_MAX_AGE = 60 * 60 * 8 // 8 hours — matches JWT session
 
 interface AuthState {
@@ -22,6 +23,7 @@ export const useAuthStore = create<AuthState>()(
         localStorage.setItem('accessToken', accessToken)
         localStorage.setItem('refreshToken', refreshToken)
         document.cookie = `${AUTH_COOKIE}=1; path=/; max-age=${COOKIE_MAX_AGE}; SameSite=Lax`
+        document.cookie = `${ROLE_COOKIE}=${user.role}; path=/; max-age=${COOKIE_MAX_AGE}; SameSite=Lax`
         set({ user, isAuthenticated: true })
       },
 
@@ -29,6 +31,7 @@ export const useAuthStore = create<AuthState>()(
         localStorage.removeItem('accessToken')
         localStorage.removeItem('refreshToken')
         document.cookie = `${AUTH_COOKIE}=; path=/; max-age=0`
+        document.cookie = `${ROLE_COOKIE}=; path=/; max-age=0`
         set({ user: null, isAuthenticated: false })
       },
     }),

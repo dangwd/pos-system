@@ -4,10 +4,50 @@ import { useState } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import { reportsRepository } from '@/lib/repositories/reports.repository'
 import { useAuthStore } from '@/stores/auth.store'
-import { Loader2 } from 'lucide-react'
 import { useTranslations } from 'next-intl'
+import { Skeleton } from '@/components/ui/skeleton'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
+
+function DashboardTabSkeleton() {
+  return (
+    <div className="space-y-6">
+      <div className="grid grid-cols-3 gap-4">
+        {[0, 1, 2].map((i) => (
+          <div key={i} className="rounded-lg border p-4 space-y-2">
+            <Skeleton className="h-3 w-24" />
+            <Skeleton className="h-8 w-32" />
+          </div>
+        ))}
+      </div>
+      <div className="rounded-md border">
+        <div className="px-4 py-3 border-b">
+          <Skeleton className="h-4 w-28" />
+        </div>
+        {[0, 1, 2, 3, 4].map((i) => (
+          <div key={i} className="flex items-center gap-6 px-4 py-3 border-b last:border-0">
+            <Skeleton className="h-4 flex-1" />
+            <Skeleton className="h-4 w-12 shrink-0" />
+            <Skeleton className="h-4 w-24 shrink-0" />
+          </div>
+        ))}
+      </div>
+    </div>
+  )
+}
+
+function DailyTabSkeleton() {
+  return (
+    <div className="grid grid-cols-2 gap-4">
+      {[0, 1, 2, 3, 4, 5].map((i) => (
+        <div key={i} className="rounded-lg border p-4 space-y-2">
+          <Skeleton className="h-3 w-20" />
+          <Skeleton className="h-7 w-32" />
+        </div>
+      ))}
+    </div>
+  )
+}
 
 function formatKip(n: number | null | undefined) {
   return (n ?? 0).toLocaleString('lo-LA') + ' ₭'
@@ -63,9 +103,7 @@ export default function ReportsPage() {
 
       {tab === 'dashboard' && (
         loadingDash ? (
-          <div className="flex justify-center py-12">
-            <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
-          </div>
+          <DashboardTabSkeleton />
         ) : (
           <div className="space-y-6">
             <div className="grid grid-cols-3 gap-4">
@@ -122,9 +160,7 @@ export default function ReportsPage() {
           </div>
 
           {loadingDaily ? (
-            <div className="flex justify-center py-12">
-              <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
-            </div>
+            <DailyTabSkeleton />
           ) : daily ? (
             <div className="grid grid-cols-2 gap-4">
               {[
