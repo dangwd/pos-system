@@ -2,6 +2,7 @@ import api from '@/lib/axios'
 import { handleAxiosError } from '@/lib/api-error'
 import type {
   AdminUser,
+  AssignCounterDto,
   CreateAdminUserDto,
   CreateUserResponse,
   UpdateAdminUserDto,
@@ -17,7 +18,7 @@ export class UserRepository {
       })
       return data
     } catch (err) {
-      handleAxiosError(err)
+      throw handleAxiosError(err)
     }
   }
 
@@ -26,7 +27,7 @@ export class UserRepository {
       const { data } = await api.get<AdminUser>(`/api/users/${id}`)
       return data
     } catch (err) {
-      handleAxiosError(err)
+      throw handleAxiosError(err)
     }
   }
 
@@ -35,7 +36,7 @@ export class UserRepository {
       const { data } = await api.post<CreateUserResponse>('/api/users', dto)
       return data
     } catch (err) {
-      handleAxiosError(err)
+      throw handleAxiosError(err)
     }
   }
 
@@ -43,7 +44,7 @@ export class UserRepository {
     try {
       await api.put(`/api/users/${id}`, dto)
     } catch (err) {
-      handleAxiosError(err)
+      throw handleAxiosError(err)
     }
   }
 
@@ -51,7 +52,7 @@ export class UserRepository {
     try {
       await api.patch(`/api/users/${id}/role`, dto)
     } catch (err) {
-      handleAxiosError(err)
+      throw handleAxiosError(err)
     }
   }
 
@@ -59,7 +60,7 @@ export class UserRepository {
     try {
       await api.patch(`/api/users/${id}/activate`)
     } catch (err) {
-      handleAxiosError(err)
+      throw handleAxiosError(err)
     }
   }
 
@@ -67,7 +68,15 @@ export class UserRepository {
     try {
       await api.patch(`/api/users/${id}/deactivate`)
     } catch (err) {
-      handleAxiosError(err)
+      throw handleAxiosError(err)
+    }
+  }
+
+  async assignCounter(id: string, dto: AssignCounterDto): Promise<void> {
+    try {
+      await api.patch(`/api/users/${id}/counter`, dto)
+    } catch (err) {
+      throw handleAxiosError(err)
     }
   }
 
@@ -75,7 +84,7 @@ export class UserRepository {
     try {
       await api.post(`/api/users/${id}/reset-password`, dto)
     } catch (err) {
-      handleAxiosError(err)
+      throw handleAxiosError(err)
     }
   }
 }

@@ -18,6 +18,7 @@ import {
   ArrowLeftRight,
   BarChart3,
   Boxes,
+  Building2,
   ChevronDown,
   ClipboardList,
   Gem,
@@ -37,9 +38,11 @@ import {
   Users,
   Wallet,
 } from "lucide-react";
+import { motion } from "motion/react";
 import { useTranslations } from "next-intl";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
+import { PageTransition } from "@/components/shared/PageTransition";
 
 function getInitials(name: string) {
   return name
@@ -79,6 +82,7 @@ export default function AdminLayout({
         items: [
           { href: "/admin/users", label: t("nav.users"), icon: UserCog },
           { href: "/admin/roles", label: t("nav.roles"), icon: ShieldCheck },
+          { href: "/admin/branches", label: t("nav.branches"), icon: Building2 },
         ],
       },
       {
@@ -190,23 +194,33 @@ export default function AdminLayout({
                 </p>
               )}
               <div className="space-y-0.5">
-                {group.items.map(({ href, label, icon: Icon }) => (
-                  <Link
-                    key={href}
-                    href={href}
-                    title={collapsed ? label : undefined}
-                    className={cn(
-                      "flex items-center gap-3 px-3 py-2 rounded-md text-sm font-medium transition-colors",
-                      collapsed && "justify-center px-2",
-                      pathname === href || pathname.startsWith(href + "/")
-                        ? "bg-primary text-primary-foreground"
-                        : "text-muted-foreground hover:bg-muted hover:text-foreground",
-                    )}
-                  >
-                    <Icon className="h-4 w-4 shrink-0" />
-                    {!collapsed && label}
-                  </Link>
-                ))}
+                {group.items.map(({ href, label, icon: Icon }) => {
+                  const isActive = pathname === href || pathname.startsWith(href + "/")
+                  return (
+                    <Link
+                      key={href}
+                      href={href}
+                      title={collapsed ? label : undefined}
+                      className={cn(
+                        "relative flex items-center gap-3 px-3 py-2 rounded-md text-sm font-medium transition-colors",
+                        collapsed && "justify-center px-2",
+                        isActive
+                          ? "text-primary-foreground"
+                          : "text-muted-foreground hover:bg-muted hover:text-foreground",
+                      )}
+                    >
+                      {isActive && (
+                        <motion.div
+                          layoutId="nav-highlight"
+                          className="absolute inset-0 rounded-md bg-primary pointer-events-none"
+                          transition={{ type: "spring", stiffness: 380, damping: 32 }}
+                        />
+                      )}
+                      <Icon className="relative h-4 w-4 shrink-0" />
+                      {!collapsed && <span className="relative">{label}</span>}
+                    </Link>
+                  )
+                })}
               </div>
             </div>
           ))}
@@ -276,7 +290,9 @@ export default function AdminLayout({
           </div>
         </header>
 
-        <main className="flex-1 overflow-y-auto">{children}</main>
+        <main className="flex-1 overflow-y-auto">
+          <PageTransition>{children}</PageTransition>
+        </main>
       </div>
     </div>
   );

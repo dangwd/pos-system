@@ -9,9 +9,10 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Field, FieldLabel } from '@/components/ui/field'
 import { Spinner } from '@/components/ui/spinner'
 import { useUpdateProduct, useCategories } from '@/hooks/useProducts'
-import type { Product } from '@/types/product'
+import type { Product, ProductType } from '@/types/product'
 
 const PURITY_OPTIONS = ['9999', '24K', '18K', '14K', '10K', '925', 'Bạc ròng']
+const PRODUCT_TYPE_OPTIONS: ProductType[] = ['NguyenKhoi', 'CanThucTe']
 
 interface Props {
   product: Product | null
@@ -23,34 +24,45 @@ export function ProductEditDialog({ product, onClose }: Props) {
   const { mutate: update, isPending } = useUpdateProduct()
   const { data: categories = [] } = useCategories()
 
-  // Đảm bảo category hiện tại luôn có trong danh sách dù API chưa load xong
   const categoryOptions = useMemo(() => {
     if (!product) return categories
-    const alreadyIncluded = categories.some((c) => c.id === product.category.id)
-    return alreadyIncluded ? categories : [product.category, ...categories]
+    const included = categories.some((c) => c.id === product.category.id)
+    return included ? categories : [product.category, ...categories]
   }, [categories, product])
 
   const [productName, setProductName] = useState('')
   const [categoryId, setCategoryId] = useState('')
   const [purity, setPurity] = useState('')
-  const [weightPerUnitMg, setWeightPerUnitMg] = useState('')
+  const [weightGram, setWeightGram] = useState('')
+  const [productType, setProductType] = useState<ProductType>('NguyenKhoi')
 
   useEffect(() => {
     if (product) {
       setProductName(product.productName)
       setCategoryId(product.category.id)
       setPurity(product.purity)
-      setWeightPerUnitMg(String(product.weightPerUnitMg))
+      setWeightGram(String(product.weightGram))
+      setProductType(product.productType)
     }
   }, [product])
 
   if (!product) return null
 
+  const disabled = !productName || !categoryId || !purity || !weightGram || isNaN(parseFloat(weightGram))
+
   const handleSubmit = () => {
-    const weight = parseFloat(weightPerUnitMg)
-    if (!productName || !categoryId || !purity || isNaN(weight)) return
+    if (disabled) return
     update(
-      { id: product.id, dto: { productName: productName.trim(), productCategoryId: categoryId, purity, weightPerUnitMg: weight } },
+      {
+        id: product.id,
+        dto: {
+          productName: productName.trim(),
+          productCategoryId: categoryId,
+          purity,
+          weightGram: parseFloat(weightGram),
+          productType,
+        },
+      },
       { onSuccess: onClose },
     )
   }
@@ -62,7 +74,7 @@ export function ProductEditDialog({ product, onClose }: Props) {
           <DialogTitle>{t('editDialog.title')}</DialogTitle>
         </DialogHeader>
 
-        <div className="space-y-4 py-1">
+        <div className="space-y-3 py-1">
           <Field>
             <FieldLabel>{t('form.productCode')}</FieldLabel>
             <Input value={product.productCode} disabled className="font-mono bg-muted/50" />
@@ -70,10 +82,7 @@ export function ProductEditDialog({ product, onClose }: Props) {
 
           <Field>
             <FieldLabel>{t('form.productName')}</FieldLabel>
-            <Input
-              value={productName}
-              onChange={(e) => setProductName(e.target.value)}
-            />
+            <Input value={productName} onChange={(e) => setProductName(e.target.value)} />
           </Field>
 
           <div className="grid grid-cols-2 gap-3">
@@ -81,7 +90,9 @@ export function ProductEditDialog({ product, onClose }: Props) {
               <FieldLabel>{t('form.category')}</FieldLabel>
               <Select value={categoryId} onValueChange={(v) => setCategoryId(v ?? '')}>
                 <SelectTrigger>
-                  <SelectValue placeholder={t('form.categoryPlaceholder')} />
+                  <SelectValue placeholder={t('form.categoryPlaceholder')}>
+                    {(id: string | null) => id ? (categoryOptions.find(c => c.id === id)?.name ?? id) : null}
+                  </SelectValue>
                 </SelectTrigger>
                 <SelectContent>
                   {categoryOptions.map((c) => (
@@ -98,33 +109,48 @@ export function ProductEditDialog({ product, onClose }: Props) {
                 </SelectTrigger>
                 <SelectContent>
                   {PURITY_OPTIONS.map((p) => (
-                    <SelectItem key={p} value={p}>{p}</SelectItem>
+                    <SelectItem key={p} value={p} label={p}>{p}</SelectItem>
                   ))}
                 </SelectContent>
               </Select>
             </Field>
           </div>
 
-          <Field>
-            <FieldLabel>{t('form.weight')}</FieldLabel>
-            <Input
-              type="number"
-              min={0}
-              step="0.1"
-              value={weightPerUnitMg}
-              onChange={(e) => setWeightPerUnitMg(e.target.value)}
-            />
-          </Field>
+          <div className="grid grid-cols-2 gap-3">
+            <Field>
+              <FieldLabel>{t('form.weight')}</FieldLabel>
+              <Input
+                type="number"
+                min={0}
+                step="0.01"
+                value={weightGram}
+                onChange={(e) => setWeightGram(e.target.value)}
+                placeholder="3.75"
+              />
+            </Field>
+            <Field>
+              <FieldLabel>{t('form.productType')}</FieldLabel>
+              <Select value={productType} onValueChange={(v) => setProductType((v ?? 'NguyenKhoi') as ProductType)}>
+                <SelectTrigger>
+                  <SelectValue>
+                    {(pt: string | null) => pt ? t(`productTypes.${pt}`) : null}
+                  </SelectValue>
+                </SelectTrigger>
+                <SelectContent>
+                  {PRODUCT_TYPE_OPTIONS.map((pt) => (
+                    <SelectItem key={pt} value={pt}>{t(`productTypes.${pt}`)}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </Field>
+          </div>
         </div>
 
         <DialogFooter>
           <Button variant="outline" onClick={onClose} disabled={isPending}>
-            Hủy
+            {t('editDialog.cancel')}
           </Button>
-          <Button
-            onClick={handleSubmit}
-            disabled={isPending || !productName || !categoryId || !purity || !weightPerUnitMg}
-          >
+          <Button onClick={handleSubmit} disabled={isPending || disabled}>
             {isPending && <Spinner className="mr-2" />}
             {t('editDialog.submit')}
           </Button>

@@ -16,6 +16,8 @@ export interface AdminUser {
   address: string | null
   dateOfBirth: string | null
   branchId: string
+  counterId: string | null
+  counterName: string | null
   role: UserRoleObject
   isActive: boolean
   createdAt: string
@@ -56,4 +58,8 @@ export interface CreateUserResponse {
   employeeCode: string
   username: string
   fullName: string
+}
+
+export interface AssignCounterDto {
+  counterId: string | null
 }

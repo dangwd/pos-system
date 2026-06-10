@@ -29,6 +29,7 @@ export interface InventoryItem {
   productName: string        // Tên sản phẩm (snapshot)
   branchId: string
   quantity: number           // Số lượng hiện tại
+  weightGram: number         // Tổng trọng lượng (gram)
   trangThai: InventoryStatus
   nguonGoc: InventorySource
   trayId: string             // Mã khay trưng bày (ví dụ: "KHAY-A1")

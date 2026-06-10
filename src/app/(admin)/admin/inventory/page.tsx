@@ -21,6 +21,7 @@ export default function InventoryPage() {
     product:    t('columns.product'),
     branch:     t('columns.branch'),
     qty:        t('columns.qty'),
+    weight:     t('columns.weight'),
     status:     'Status',
     source:     'Source',
     tray:       'Tray',

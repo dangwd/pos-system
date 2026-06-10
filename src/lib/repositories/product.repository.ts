@@ -11,8 +11,6 @@ import type {
 
 export interface ProductListParams {
   categoryCode?: string
-  search?: string
-  isActive?: boolean
 }
 
 export class ProductRepository {
@@ -24,34 +22,44 @@ export class ProductRepository {
     try {
       const { data } = await api.get<Product[]>(this.base, { params })
       return data
-    } catch (err) { handleAxiosError(err) }
+    } catch (err) {
+      throw handleAxiosError(err)
+    }
   }
 
   async getById(id: string): Promise<Product> {
     try {
       const { data } = await api.get<Product>(`${this.base}/${id}`)
       return data
-    } catch (err) { handleAxiosError(err) }
+    } catch (err) {
+      throw handleAxiosError(err)
+    }
   }
 
-  async create(payload: CreateProductDto): Promise<Product> {
+  async create(payload: CreateProductDto): Promise<{ id: string; productCode: string }> {
     try {
-      const { data } = await api.post<Product>(this.base, payload)
+      const { data } = await api.post<{ id: string; productCode: string }>(this.base, payload)
       return data
-    } catch (err) { handleAxiosError(err) }
+    } catch (err) {
+      throw handleAxiosError(err)
+    }
   }
 
   async update(id: string, payload: UpdateProductDto): Promise<Product> {
     try {
       const { data } = await api.put<Product>(`${this.base}/${id}`, payload)
       return data
-    } catch (err) { handleAxiosError(err) }
+    } catch (err) {
+      throw handleAxiosError(err)
+    }
   }
 
   async deactivate(id: string): Promise<void> {
     try {
       await api.delete(`${this.base}/${id}`)
-    } catch (err) { handleAxiosError(err) }
+    } catch (err) {
+      throw handleAxiosError(err)
+    }
   }
 
   // ─── Categories ─────────────────────────────────────────────────────────────
@@ -60,27 +68,35 @@ export class ProductRepository {
     try {
       const { data } = await api.get<ProductCategory[]>(`${this.base}/categories`)
       return data
-    } catch (err) { handleAxiosError(err) }
+    } catch (err) {
+      throw handleAxiosError(err)
+    }
   }
 
   async createCategory(payload: CreateProductCategoryDto): Promise<ProductCategory> {
     try {
       const { data } = await api.post<ProductCategory>(`${this.base}/categories`, payload)
       return data
-    } catch (err) { handleAxiosError(err) }
+    } catch (err) {
+      throw handleAxiosError(err)
+    }
   }
 
   async updateCategory(id: string, payload: UpdateProductCategoryDto): Promise<ProductCategory> {
     try {
       const { data } = await api.put<ProductCategory>(`${this.base}/categories/${id}`, payload)
       return data
-    } catch (err) { handleAxiosError(err) }
+    } catch (err) {
+      throw handleAxiosError(err)
+    }
   }
 
   async deleteCategory(id: string): Promise<void> {
     try {
       await api.delete(`${this.base}/categories/${id}`)
-    } catch (err) { handleAxiosError(err) }
+    } catch (err) {
+      throw handleAxiosError(err)
+    }
   }
 }
 

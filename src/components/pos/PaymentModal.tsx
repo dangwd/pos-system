@@ -107,7 +107,7 @@ export function PaymentModal({
               </SelectTrigger>
               <SelectContent>
                 {PAYMENT_METHOD_KEYS.map(key => (
-                  <SelectItem key={key} value={key}>{tMethods(key)}</SelectItem>
+                  <SelectItem key={key} value={key} label={tMethods(key)}>{tMethods(key)}</SelectItem>
                 ))}
               </SelectContent>
             </Select>

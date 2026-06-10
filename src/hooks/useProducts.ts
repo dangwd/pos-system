@@ -6,6 +6,7 @@ import { getErrorMessage } from '@/lib/errors'
 import type { ApiError } from '@/lib/api-error'
 import type { AppLocale } from '@/lib/errors'
 import type {
+  Product,
   CreateProductDto,
   UpdateProductDto,
   CreateProductCategoryDto,
@@ -58,7 +59,7 @@ export function useCategories() {
 
 export function useCreateProduct() {
   const { locale, t, invalidate } = useProductMutationBase()
-  return useMutation<{ id: string }, ApiError, CreateProductDto>({
+  return useMutation<{ id: string; productCode: string }, ApiError, CreateProductDto>({
     mutationFn: (dto) => productRepository.create(dto),
     onSuccess: () => {
       invalidate()
@@ -70,7 +71,7 @@ export function useCreateProduct() {
 
 export function useUpdateProduct() {
   const { locale, t, invalidate } = useProductMutationBase()
-  return useMutation<{ id: string }, ApiError, { id: string; dto: UpdateProductDto }>({
+  return useMutation<Product, ApiError, { id: string; dto: UpdateProductDto }>({
     mutationFn: ({ id, dto }) => productRepository.update(id, dto),
     onSuccess: () => {
       invalidate()

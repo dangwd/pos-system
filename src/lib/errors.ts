@@ -166,8 +166,8 @@ const ERROR_MESSAGES: Record<string, ErrorMap> = {
     en: 'User not found',
   },
   USER_EMPLOYEE_CODE_DUPLICATE: {
-    lo: 'ລະຫັດພະນັກງານຊ້ຳກັນ',
-    vi: 'Mã nhân viên đã tồn tại',
+    lo: 'ລະຫັດພະນັກງານນີ້ມີຢູ່ແລ້ວ',
+    vi: 'Mã nhân viên đã tồn tại trong hệ thống',
     en: 'Employee code already exists',
   },
   BRANCH_NOT_FOUND: {

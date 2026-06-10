@@ -18,12 +18,14 @@ export interface ProductColumnLabels {
   productCode: string
   category: string
   purity: string
+  productType: string
   status: string
   active: string
   inactive: string
   openMenu: string
   edit: string
   deactivate: string
+  productTypes: Record<string, string>
 }
 
 export function createProductColumns(
@@ -74,6 +76,15 @@ export function createProductColumns(
       cell: ({ getValue }) => (
         <span className="text-xs font-medium">{getValue() as string}</span>
       ),
+    },
+
+    {
+      accessorKey: 'productType',
+      header: labels.productType,
+      cell: ({ getValue }) => {
+        const pt = getValue() as string
+        return <span className="text-xs">{labels.productTypes[pt] ?? pt}</span>
+      },
     },
 
     {

@@ -193,6 +193,7 @@
         "goldPurities": "Gold Purities",
         "users": "Users",
         "roles": "Roles",
+        "branches": "Branches",
         "groupCatalog": "Catalog",
         "groupFinance": "Finance",
         "groupConfig": "Configuration",
@@ -219,7 +220,12 @@
         "inactive": "Inactive",
         "openMenu": "Open menu",
         "edit": "Edit",
-        "deactivate": "Deactivate"
+        "deactivate": "Deactivate",
+        "productType": "Product type"
+      },
+      "productTypes": {
+        "NguyenKhoi": "Fixed weight",
+        "CanThucTe": "Actual weight"
       },
       "toasts": {
         "createSuccess": "Product added successfully",
@@ -228,18 +234,22 @@
       },
       "createDialog": {
         "title": "Add new product",
-        "submit": "Add product"
+        "submit": "Add product",
+        "cancel": "Cancel"
       },
       "editDialog": {
         "title": "Edit product",
-        "submit": "Save changes"
+        "submit": "Save changes",
+        "cancel": "Cancel"
       },
       "form": {
         "productCode": "Product code",
         "productName": "Product name",
         "category": "Category",
         "purity": "Gold purity",
-        "weight": "Weight (mg)",
+        "weight": "Weight (gram)",
+        "productType": "Product type",
+        "productTypePlaceholder": "Select type",
         "categoryPlaceholder": "Select category",
         "purityPlaceholder": "Select / enter value"
       }
@@ -265,7 +275,7 @@
         "product": "Product",
         "branch": "Branch",
         "qty": "Qty",
-        "weight": "Weight (chi)",
+        "weight": "Weight (gram)",
         "lastUpdated": "Last Updated"
       }
     },
@@ -477,6 +487,7 @@
       "subtitle": "{count} accounts",
       "searchPlaceholder": "Search by name or employee code...",
       "addButton": "Add user",
+      "filterAll": "All branches",
       "columns": {
         "employeeCode": "Employee Code",
         "fullName": "Full Name",
@@ -487,6 +498,8 @@
         "lastLogin": "Last Login",
         "openMenu": "Open menu",
         "viewDetail": "View details",
+        "counter": "Counter",
+        "editInfo": "Edit info",
         "editRole": "Edit role",
         "deactivate": "Deactivate",
         "activate": "Activate",
@@ -508,11 +521,29 @@
         "fullName": "Full name",
         "phone": "Phone",
         "password": "Password",
+        "branch": "Branch",
+        "branchPlaceholder": "Select a branch...",
         "role": "Role",
         "rolePlaceholder": "Select a role...",
+        "optionalSection": "Additional info",
+        "email": "Email",
+        "address": "Address",
+        "dateOfBirth": "Date of birth",
         "cancel": "Cancel",
         "submit": "Create",
         "success": "User created successfully"
+      },
+      "editInfoDialog": {
+        "title": "Edit info — {name}",
+        "fullName": "Full name",
+        "phone": "Phone",
+        "branch": "Branch",
+        "branchPlaceholder": "Select a branch...",
+        "email": "Email",
+        "address": "Address",
+        "dateOfBirth": "Date of birth",
+        "cancel": "Cancel",
+        "submit": "Save"
       },
       "editRoleDialog": {
         "title": "Change role — {name}",
@@ -534,7 +565,68 @@
         "createSuccess": "User created successfully",
         "updateSuccess": "User updated successfully",
         "updateRoleSuccess": "Role updated successfully",
-        "resetPasswordSuccess": "Password reset successfully"
+        "resetPasswordSuccess": "Password reset successfully",
+        "assignCounterSuccess": "Counter assigned successfully"
+      }
+    },
+    "branches": {
+      "title": "Branches & Counters",
+      "subtitle": "{count} branches",
+      "addButton": "Add branch",
+      "hqBadge": "HQ",
+      "active": "Active",
+      "inactive": "Inactive",
+      "columns": {
+        "name": "Branch name",
+        "address": "Address",
+        "phone": "Phone",
+        "status": "Status"
+      },
+      "createDialog": {
+        "title": "Add new branch",
+        "name": "Branch name",
+        "address": "Address",
+        "phone": "Phone",
+        "isHeadquarters": "Is headquarters",
+        "cancel": "Cancel",
+        "submit": "Create"
+      },
+      "editDialog": {
+        "title": "Edit branch",
+        "name": "Branch name",
+        "address": "Address",
+        "phone": "Phone",
+        "cancel": "Cancel",
+        "submit": "Save"
+      },
+      "counters": {
+        "title": "Counters — {branchName}",
+        "selectPrompt": "Select a branch to view its counters",
+        "empty": "No counters yet",
+        "addButton": "Add counter",
+        "edit": "Rename",
+        "deactivate": "Deactivate",
+        "active": "Active",
+        "inactive": "Inactive"
+      },
+      "counterCreateDialog": {
+        "title": "Add counter — {branchName}",
+        "counterName": "Counter name",
+        "cancel": "Cancel",
+        "submit": "Create"
+      },
+      "counterEditDialog": {
+        "title": "Rename counter",
+        "counterName": "Counter name",
+        "cancel": "Cancel",
+        "submit": "Save"
+      },
+      "toasts": {
+        "createBranchSuccess": "Branch created",
+        "updateBranchSuccess": "Branch updated",
+        "createCounterSuccess": "Counter created",
+        "updateCounterSuccess": "Counter updated",
+        "deactivateCounterSuccess": "Counter deactivated"
       }
     }
   },

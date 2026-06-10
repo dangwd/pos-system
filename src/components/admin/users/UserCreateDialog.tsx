@@ -3,9 +3,11 @@
 import { useState } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import { useTranslations } from 'next-intl'
+import { ChevronDown, ChevronUp } from 'lucide-react'
 import { rolesRepository } from '@/lib/repositories/roles.repository'
 import { useAuthStore } from '@/stores/auth.store'
 import { useCreateUser } from '@/hooks/useUsers'
+import { useBranches } from '@/hooks/useBranches'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import {
@@ -22,14 +24,28 @@ interface Props {
   onClose: () => void
 }
 
-const EMPTY_FORM = { employeeCode: '', fullName: '', phone: '', password: '', roleId: '' }
+const EMPTY_FORM = {
+  employeeCode: '',
+  fullName: '',
+  phone: '',
+  password: '',
+  roleId: '',
+  branchId: '',
+  email: '',
+  address: '',
+  dateOfBirth: '',
+}
 
 export function UserCreateDialog({ open, onClose }: Props) {
   const t = useTranslations('admin.users.createDialog')
-  const branchId = useAuthStore(s => s.user?.branchId) ?? ''
-  const [form, setForm] = useState(EMPTY_FORM)
+  const defaultBranchId = useAuthStore(s => s.user?.branchId) ?? ''
+  const [form, setForm] = useState({ ...EMPTY_FORM, branchId: defaultBranchId })
+  const [showOptional, setShowOptional] = useState(false)
+
   const set = (k: keyof typeof form) => (e: React.ChangeEvent<HTMLInputElement>) =>
     setForm(f => ({ ...f, [k]: e.target.value }))
+
+  const { data: branches = [] } = useBranches()
 
   const { data: roles = [] } = useQuery({
     queryKey: ['roles'],
@@ -40,12 +56,24 @@ export function UserCreateDialog({ open, onClose }: Props) {
 
   const { mutate: create, isPending } = useCreateUser()
 
-  const disabled = !form.employeeCode || !form.fullName || !form.phone || !form.password || !form.roleId
+  const disabled = !form.employeeCode || !form.fullName || !form.phone || !form.password || !form.roleId || !form.branchId
 
   function handleSubmit() {
-    create({ ...form, branchId }, {
+    const dto = {
+      employeeCode: form.employeeCode,
+      fullName: form.fullName,
+      phone: form.phone,
+      password: form.password,
+      roleId: form.roleId,
+      branchId: form.branchId,
+      ...(form.email && { email: form.email }),
+      ...(form.address && { address: form.address }),
+      ...(form.dateOfBirth && { dateOfBirth: form.dateOfBirth }),
+    }
+    create(dto, {
       onSuccess: () => {
-        setForm(EMPTY_FORM)
+        setForm({ ...EMPTY_FORM, branchId: defaultBranchId })
+        setShowOptional(false)
         onClose()
       },
     })
@@ -73,10 +101,28 @@ export function UserCreateDialog({ open, onClose }: Props) {
           ))}
 
           <Field>
+            <FieldLabel>{t('branch')}</FieldLabel>
+            <Select value={form.branchId} onValueChange={v => setForm(f => ({ ...f, branchId: v ?? '' }))}>
+              <SelectTrigger className="w-full h-9">
+                <SelectValue placeholder={t('branchPlaceholder')}>
+                  {(id: string | null) => id ? (branches.find(b => b.id === id)?.name ?? id) : null}
+                </SelectValue>
+              </SelectTrigger>
+              <SelectContent>
+                {branches.map(b => (
+                  <SelectItem key={b.id} value={b.id}>{b.name}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </Field>
+
+          <Field>
             <FieldLabel>{t('role')}</FieldLabel>
             <Select value={form.roleId} onValueChange={v => setForm(f => ({ ...f, roleId: v ?? '' }))}>
               <SelectTrigger className="w-full h-9">
-                <SelectValue placeholder={t('rolePlaceholder')} />
+                <SelectValue placeholder={t('rolePlaceholder')}>
+                  {(id: string | null) => id ? (roles.find(r => r.id === id)?.name ?? id) : null}
+                </SelectValue>
               </SelectTrigger>
               <SelectContent>
                 {roles.map(r => (
@@ -85,6 +131,36 @@ export function UserCreateDialog({ open, onClose }: Props) {
               </SelectContent>
             </Select>
           </Field>
+
+          <button
+            type="button"
+            onClick={() => setShowOptional(v => !v)}
+            className="flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground transition-colors -mb-1"
+          >
+            {showOptional ? <ChevronUp className="h-3.5 w-3.5" /> : <ChevronDown className="h-3.5 w-3.5" />}
+            {t('optionalSection')}
+          </button>
+
+          {showOptional && (
+            <>
+              {(['email', 'address'] as const).map(field => (
+                <Field key={field}>
+                  <FieldLabel htmlFor={field}>{t(field)}</FieldLabel>
+                  <Input id={field} className="h-9" value={form[field]} onChange={set(field)} />
+                </Field>
+              ))}
+              <Field>
+                <FieldLabel htmlFor="dateOfBirth">{t('dateOfBirth')}</FieldLabel>
+                <Input
+                  id="dateOfBirth"
+                  type="date"
+                  className="h-9"
+                  value={form.dateOfBirth}
+                  onChange={set('dateOfBirth')}
+                />
+              </Field>
+            </>
+          )}
         </FieldGroup>
 
         <DialogFooter>

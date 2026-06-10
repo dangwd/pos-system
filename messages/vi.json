@@ -193,6 +193,7 @@
         "goldPurities": "Tuổi vàng",
         "users": "Người dùng",
         "roles": "Vai trò",
+        "branches": "Chi nhánh",
         "groupCatalog": "Danh mục",
         "groupFinance": "Tài chính",
         "groupConfig": "Cấu hình",
@@ -219,7 +220,12 @@
         "inactive": "Vô hiệu",
         "openMenu": "Mở menu",
         "edit": "Chỉnh sửa",
-        "deactivate": "Vô hiệu hóa"
+        "deactivate": "Vô hiệu hóa",
+        "productType": "Loại sản phẩm"
+      },
+      "productTypes": {
+        "NguyenKhoi": "Nguyên khối",
+        "CanThucTe": "Cân thực tế"
       },
       "toasts": {
         "createSuccess": "Thêm sản phẩm thành công",
@@ -228,18 +234,22 @@
       },
       "createDialog": {
         "title": "Thêm sản phẩm mới",
-        "submit": "Thêm sản phẩm"
+        "submit": "Thêm sản phẩm",
+        "cancel": "Hủy"
       },
       "editDialog": {
         "title": "Chỉnh sửa sản phẩm",
-        "submit": "Lưu thay đổi"
+        "submit": "Lưu thay đổi",
+        "cancel": "Hủy"
       },
       "form": {
         "productCode": "Mã sản phẩm",
         "productName": "Tên sản phẩm",
         "category": "Danh mục",
         "purity": "Hàm lượng vàng",
-        "weight": "Trọng lượng (mg)",
+        "weight": "Trọng lượng (gram)",
+        "productType": "Loại sản phẩm",
+        "productTypePlaceholder": "Chọn loại",
         "categoryPlaceholder": "Chọn danh mục",
         "purityPlaceholder": "Chọn / nhập giá trị"
       }
@@ -265,7 +275,7 @@
         "product": "Sản phẩm",
         "branch": "Chi nhánh",
         "qty": "Số lượng",
-        "weight": "Trọng lượng (chỉ)",
+        "weight": "Trọng lượng (gram)",
         "lastUpdated": "Cập nhật"
       }
     },
@@ -477,16 +487,19 @@
       "subtitle": "{count} tài khoản",
       "searchPlaceholder": "Tìm theo tên hoặc mã NV...",
       "addButton": "Thêm người dùng",
+      "filterAll": "Tất cả chi nhánh",
       "columns": {
         "employeeCode": "Mã NV",
         "fullName": "Họ và tên",
         "phone": "Điện thoại",
         "branch": "Chi nhánh",
+        "counter": "Quầy",
         "role": "Vai trò",
         "status": "Trạng thái",
         "lastLogin": "Đăng nhập cuối",
         "openMenu": "Mở menu",
         "viewDetail": "Xem chi tiết",
+        "editInfo": "Sửa thông tin",
         "editRole": "Đổi vai trò",
         "deactivate": "Vô hiệu hóa",
         "activate": "Kích hoạt",
@@ -508,11 +521,29 @@
         "fullName": "Họ và tên",
         "phone": "Số điện thoại",
         "password": "Mật khẩu",
+        "branch": "Chi nhánh",
+        "branchPlaceholder": "Chọn chi nhánh...",
         "role": "Vai trò",
         "rolePlaceholder": "Chọn vai trò...",
+        "optionalSection": "Thông tin bổ sung",
+        "email": "Email",
+        "address": "Địa chỉ",
+        "dateOfBirth": "Ngày sinh",
         "cancel": "Hủy",
         "submit": "Tạo",
         "success": "Tạo người dùng thành công"
+      },
+      "editInfoDialog": {
+        "title": "Sửa thông tin — {name}",
+        "fullName": "Họ và tên",
+        "phone": "Số điện thoại",
+        "branch": "Chi nhánh",
+        "branchPlaceholder": "Chọn chi nhánh...",
+        "email": "Email",
+        "address": "Địa chỉ",
+        "dateOfBirth": "Ngày sinh",
+        "cancel": "Hủy",
+        "submit": "Lưu"
       },
       "editRoleDialog": {
         "title": "Đổi vai trò — {name}",
@@ -534,7 +565,68 @@
         "createSuccess": "Tạo người dùng thành công",
         "updateSuccess": "Cập nhật thông tin thành công",
         "updateRoleSuccess": "Đổi vai trò thành công",
-        "resetPasswordSuccess": "Đặt lại mật khẩu thành công"
+        "resetPasswordSuccess": "Đặt lại mật khẩu thành công",
+        "assignCounterSuccess": "Phân công quầy thành công"
+      }
+    },
+    "branches": {
+      "title": "Chi nhánh & Quầy",
+      "subtitle": "{count} chi nhánh",
+      "addButton": "Thêm chi nhánh",
+      "hqBadge": "Hội sở",
+      "active": "Đang hoạt động",
+      "inactive": "Không hoạt động",
+      "columns": {
+        "name": "Tên chi nhánh",
+        "address": "Địa chỉ",
+        "phone": "Điện thoại",
+        "status": "Trạng thái"
+      },
+      "createDialog": {
+        "title": "Thêm chi nhánh mới",
+        "name": "Tên chi nhánh",
+        "address": "Địa chỉ",
+        "phone": "Điện thoại",
+        "isHeadquarters": "Là hội sở",
+        "cancel": "Hủy",
+        "submit": "Tạo"
+      },
+      "editDialog": {
+        "title": "Cập nhật chi nhánh",
+        "name": "Tên chi nhánh",
+        "address": "Địa chỉ",
+        "phone": "Điện thoại",
+        "cancel": "Hủy",
+        "submit": "Lưu"
+      },
+      "counters": {
+        "title": "Quầy — {branchName}",
+        "selectPrompt": "Chọn một chi nhánh để xem quầy",
+        "empty": "Chưa có quầy nào",
+        "addButton": "Thêm quầy",
+        "edit": "Đổi tên",
+        "deactivate": "Vô hiệu hóa",
+        "active": "Hoạt động",
+        "inactive": "Vô hiệu"
+      },
+      "counterCreateDialog": {
+        "title": "Thêm quầy — {branchName}",
+        "counterName": "Tên quầy",
+        "cancel": "Hủy",
+        "submit": "Tạo"
+      },
+      "counterEditDialog": {
+        "title": "Đổi tên quầy",
+        "counterName": "Tên quầy",
+        "cancel": "Hủy",
+        "submit": "Lưu"
+      },
+      "toasts": {
+        "createBranchSuccess": "Đã tạo chi nhánh",
+        "updateBranchSuccess": "Đã cập nhật chi nhánh",
+        "createCounterSuccess": "Đã tạo quầy",
+        "updateCounterSuccess": "Đã cập nhật quầy",
+        "deactivateCounterSuccess": "Đã vô hiệu hóa quầy"
       }
     }
   },

@@ -6,6 +6,7 @@ import { getErrorMessage } from '@/lib/errors'
 import type { AppLocale } from '@/lib/errors'
 import type { ApiError } from '@/lib/api-error'
 import type {
+  AssignCounterDto,
   CreateAdminUserDto,
   CreateUserResponse,
   UpdateAdminUserDto,
@@ -115,6 +116,19 @@ export function useResetPassword() {
   return useMutation<void, ApiError, { id: string; dto: ResetPasswordDto }>({
     mutationFn: ({ id, dto }) => userRepository.resetPassword(id, dto),
     onSuccess: () => toast.success(t('toasts.resetPasswordSuccess')),
+    onError: (err) => toast.error(getErrorMessage(err.code, locale)),
+  })
+}
+
+export function useAssignCounter() {
+  const { locale, t, invalidate } = useUserMutationBase()
+
+  return useMutation<void, ApiError, { id: string; dto: AssignCounterDto }>({
+    mutationFn: ({ id, dto }) => userRepository.assignCounter(id, dto),
+    onSuccess: () => {
+      invalidate()
+      toast.success(t('toasts.assignCounterSuccess'))
+    },
     onError: (err) => toast.error(getErrorMessage(err.code, locale)),
   })
 }

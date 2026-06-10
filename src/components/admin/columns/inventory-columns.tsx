@@ -16,6 +16,7 @@ export interface InventoryColumnLabels {
   product: string
   branch: string
   qty: string
+  weight: string
   status: string
   source: string
   tray: string
@@ -53,6 +54,13 @@ export function createInventoryColumns(labels: InventoryColumnLabels): ColumnDef
       header: labels.qty,
       cell: ({ getValue }) => (
         <span className="font-semibold">{getValue() as number}</span>
+      ),
+    },
+    {
+      accessorKey: 'weightGram',
+      header: labels.weight,
+      cell: ({ getValue }) => (
+        <span className="text-sm">{(getValue() as number).toLocaleString('lo-LA')} g</span>
       ),
     },
     {

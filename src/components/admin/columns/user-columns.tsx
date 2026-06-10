@@ -17,22 +17,27 @@ export interface UserColumnLabels {
   employeeCode: string
   fullName: string
   phone: string
+  branch: string
+  counter: string
   role: string
   status: string
   lastLogin: string
   openMenu: string
   viewDetail: string
+  editInfo: string
   editRole: string
   activate: string
   deactivate: string
   resetPassword: string
   roleLabels: Record<string, string>
+  branchMap: Record<string, string>
   active: string
   inactive: string
 }
 
 export function createUserColumns(
   labels: UserColumnLabels,
+  onEditInfo: (user: AdminUser) => void,
   onEditRole: (user: AdminUser) => void,
   onActivate: (user: AdminUser) => void,
   onDeactivate: (user: AdminUser) => void,
@@ -67,6 +72,27 @@ export function createUserColumns(
       cell: ({ getValue }) => (
         <span className="font-mono text-sm">{getValue() as string}</span>
       ),
+    },
+    {
+      accessorKey: 'branchId',
+      header: labels.branch,
+      cell: ({ getValue }) => {
+        const branchId = getValue() as string
+        const name = labels.branchMap[branchId]
+        return name
+          ? <span className="text-sm">{name}</span>
+          : <span className="font-mono text-xs text-muted-foreground">{branchId.slice(0, 8)}…</span>
+      },
+    },
+    {
+      accessorKey: 'counterName',
+      header: labels.counter,
+      cell: ({ getValue }) => {
+        const val = getValue() as string | null
+        return val
+          ? <span className="text-sm">{val}</span>
+          : <span className="text-muted-foreground">—</span>
+      },
     },
     {
       accessorKey: 'role',
@@ -113,6 +139,9 @@ export function createUserColumns(
               <span className="sr-only">{labels.openMenu}</span>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
+              <DropdownMenuItem onClick={() => onEditInfo(user)}>
+                {labels.editInfo}
+              </DropdownMenuItem>
               <DropdownMenuItem onClick={() => onEditRole(user)}>
                 {labels.editRole}
               </DropdownMenuItem>

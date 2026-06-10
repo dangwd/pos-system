@@ -130,8 +130,8 @@ export default function GoldPuritiesPage() {
                 <Select value={form.category} onValueChange={(v) => setForm((f) => ({ ...f, category: v as 'Gold' | 'Silver' }))}>
                   <SelectTrigger><SelectValue /></SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="Gold">{t('categoryGold')}</SelectItem>
-                    <SelectItem value="Silver">{t('categorySilver')}</SelectItem>
+                    <SelectItem value="Gold" label={t('categoryGold')}>{t('categoryGold')}</SelectItem>
+                    <SelectItem value="Silver" label={t('categorySilver')}>{t('categorySilver')}</SelectItem>
                   </SelectContent>
                 </Select>
               </Field>

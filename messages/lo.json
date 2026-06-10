@@ -193,6 +193,7 @@
         "goldPurities": "ຄວາມບໍລິສຸດ",
         "users": "ຜູ້ໃຊ້",
         "roles": "ບົດບາດ",
+        "branches": "ສາຂາ",
         "groupCatalog": "ສາງສິນຄ້າ",
         "groupFinance": "ການເງິນ",
         "groupConfig": "ການຕັ້ງຄ່າ",
@@ -219,7 +220,12 @@
         "inactive": "ຍົກເລີກ",
         "openMenu": "ເປີດເມນູ",
         "edit": "ແກ້ໄຂ",
-        "deactivate": "ຍົກເລີກ"
+        "deactivate": "ຍົກເລີກ",
+        "productType": "ປະເພດສິນຄ້າ"
+      },
+      "productTypes": {
+        "NguyenKhoi": "ທອງຄຳຊີ້ນ",
+        "CanThucTe": "ຊັ່ງຕາມຈິງ"
       },
       "toasts": {
         "createSuccess": "ເພີ່ມສິນຄ້າສຳເລັດ",
@@ -228,18 +234,22 @@
       },
       "createDialog": {
         "title": "ເພີ່ມສິນຄ້າໃໝ່",
-        "submit": "ເພີ່ມສິນຄ້າ"
+        "submit": "ເພີ່ມສິນຄ້າ",
+        "cancel": "ຍົກເລີກ"
       },
       "editDialog": {
         "title": "ແກ້ໄຂສິນຄ້າ",
-        "submit": "ບັນທຶກ"
+        "submit": "ບັນທຶກ",
+        "cancel": "ຍົກເລີກ"
       },
       "form": {
         "productCode": "ລະຫັດສິນຄ້າ",
         "productName": "ຊື່ສິນຄ້າ",
         "category": "ໝວດໝູ່",
         "purity": "ຄວາມບໍລິສຸດ",
-        "weight": "ນ້ຳໜັກ (mg)",
+        "weight": "ນ້ຳໜັກ (gram)",
+        "productType": "ປະເພດສິນຄ້າ",
+        "productTypePlaceholder": "ເລືອກປະເພດ",
         "categoryPlaceholder": "ເລືອກໝວດໝູ່",
         "purityPlaceholder": "ເລືອກ / ໃສ່ຄ່າ"
       }
@@ -265,7 +275,7 @@
         "product": "ສິນຄ້າ",
         "branch": "ສາຂາ",
         "qty": "ຈຳນວນ",
-        "weight": "ນ້ຳໜັກ (ຈ)",
+        "weight": "ນ້ຳໜັກ (gram)",
         "lastUpdated": "ອັບເດດ"
       }
     },
@@ -477,6 +487,7 @@
       "subtitle": "{count} ບັນຊີ",
       "searchPlaceholder": "ຄົ້ນຫາຕາມຊື່ ຫຼື ລະຫັດ...",
       "addButton": "ເພີ່ມຜູ້ໃຊ້",
+      "filterAll": "ທຸກສາຂາ",
       "columns": {
         "employeeCode": "ລະຫັດພະນັກງານ",
         "fullName": "ຊື່ເຕັມ",
@@ -487,6 +498,8 @@
         "lastLogin": "ເຂົ້າສູ່ລະບົບຄັ້ງສຸດທ້າຍ",
         "openMenu": "ເປີດເມນູ",
         "viewDetail": "ເບິ່ງລາຍລະອຽດ",
+        "counter": "ຂາຍ",
+        "editInfo": "ແກ້ໄຂຂໍ້ມູນ",
         "editRole": "ປ່ຽນບົດບາດ",
         "deactivate": "ປິດໃຊ້",
         "activate": "ເປີດໃຊ້",
@@ -508,11 +521,29 @@
         "fullName": "ຊື່ເຕັມ",
         "phone": "ເບີໂທ",
         "password": "ລະຫັດຜ່ານ",
+        "branch": "ສາຂາ",
+        "branchPlaceholder": "ເລືອກສາຂາ...",
         "role": "ບົດບາດ",
         "rolePlaceholder": "ເລືອກບົດບາດ...",
+        "optionalSection": "ຂໍ້ມູນເພີ່ມເຕີມ",
+        "email": "ອີເມລ",
+        "address": "ທີ່ຢູ່",
+        "dateOfBirth": "ວັນເດືອນປີເກີດ",
         "cancel": "ຍົກເລີກ",
         "submit": "ສ້າງ",
         "success": "ສ້າງຜູ້ໃຊ້ສຳເລັດ"
+      },
+      "editInfoDialog": {
+        "title": "ແກ້ໄຂຂໍ້ມູນ — {name}",
+        "fullName": "ຊື່ເຕັມ",
+        "phone": "ເບີໂທ",
+        "branch": "ສາຂາ",
+        "branchPlaceholder": "ເລືອກສາຂາ...",
+        "email": "ອີເມລ",
+        "address": "ທີ່ຢູ່",
+        "dateOfBirth": "ວັນເດືອນປີເກີດ",
+        "cancel": "ຍົກເລີກ",
+        "submit": "ບັນທຶກ"
       },
       "editRoleDialog": {
         "title": "ປ່ຽນບົດບາດ — {name}",
@@ -534,7 +565,68 @@
         "createSuccess": "ສ້າງຜູ້ໃຊ້ສຳເລັດ",
         "updateSuccess": "ອັບເດດຂໍ້ມູນສຳເລັດ",
         "updateRoleSuccess": "ປ່ຽນບົດບາດສຳເລັດ",
-        "resetPasswordSuccess": "ຕັ້ງລະຫັດຜ່ານໃໝ່ສຳເລັດ"
+        "resetPasswordSuccess": "ຕັ້ງລະຫັດຜ່ານໃໝ່ສຳເລັດ",
+        "assignCounterSuccess": "ມອບໝາຍເຄົ້າເຕີ້ສຳເລັດ"
+      }
+    },
+    "branches": {
+      "title": "ສາຂາ & ຫ້ອງຂາຍ",
+      "subtitle": "{count} ສາຂາ",
+      "addButton": "ເພີ່ມສາຂາ",
+      "hqBadge": "ສຳນັກງານໃຫຍ່",
+      "active": "ເປີດໃຊ້",
+      "inactive": "ປິດໃຊ້",
+      "columns": {
+        "name": "ຊື່ສາຂາ",
+        "address": "ທີ່ຢູ່",
+        "phone": "ເບີໂທ",
+        "status": "ສະຖານະ"
+      },
+      "createDialog": {
+        "title": "ເພີ່ມສາຂາໃໝ່",
+        "name": "ຊື່ສາຂາ",
+        "address": "ທີ່ຢູ່",
+        "phone": "ເບີໂທ",
+        "isHeadquarters": "ເປັນສຳນັກງານໃຫຍ່",
+        "cancel": "ຍົກເລີກ",
+        "submit": "ສ້າງ"
+      },
+      "editDialog": {
+        "title": "ແກ້ໄຂສາຂາ",
+        "name": "ຊື່ສາຂາ",
+        "address": "ທີ່ຢູ່",
+        "phone": "ເບີໂທ",
+        "cancel": "ຍົກເລີກ",
+        "submit": "ບັນທຶກ"
+      },
+      "counters": {
+        "title": "ຫ້ອງຂາຍ — {branchName}",
+        "selectPrompt": "ເລືອກສາຂາເພື່ອເບິ່ງຫ້ອງຂາຍ",
+        "empty": "ຍັງບໍ່ມີຫ້ອງຂາຍ",
+        "addButton": "ເພີ່ມຫ້ອງຂາຍ",
+        "edit": "ປ່ຽນຊື່",
+        "deactivate": "ປິດໃຊ້",
+        "active": "ເປີດໃຊ້",
+        "inactive": "ປິດໃຊ້"
+      },
+      "counterCreateDialog": {
+        "title": "ເພີ່ມຫ້ອງຂາຍ — {branchName}",
+        "counterName": "ຊື່ຫ້ອງຂາຍ",
+        "cancel": "ຍົກເລີກ",
+        "submit": "ສ້າງ"
+      },
+      "counterEditDialog": {
+        "title": "ປ່ຽນຊື່ຫ້ອງຂາຍ",
+        "counterName": "ຊື່ຫ້ອງຂາຍ",
+        "cancel": "ຍົກເລີກ",
+        "submit": "ບັນທຶກ"
+      },
+      "toasts": {
+        "createBranchSuccess": "ສ້າງສາຂາສຳເລັດ",
+        "updateBranchSuccess": "ອັບເດດສາຂາສຳເລັດ",
+        "createCounterSuccess": "ສ້າງຫ້ອງຂາຍສຳເລັດ",
+        "updateCounterSuccess": "ອັບເດດຫ້ອງຂາຍສຳເລັດ",
+        "deactivateCounterSuccess": "ປິດຫ້ອງຂາຍສຳເລັດ"
       }
     }
   },

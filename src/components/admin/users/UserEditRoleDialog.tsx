@@ -57,7 +57,7 @@ export function UserEditRoleDialog({ user, onClose }: Props) {
             </SelectTrigger>
             <SelectContent>
               {roles.map(r => (
-                <SelectItem key={r.id} value={r.id}>{r.name}</SelectItem>
+                <SelectItem key={r.id} value={r.id} label={r.name}>{r.name}</SelectItem>
               ))}
             </SelectContent>
           </Select>
