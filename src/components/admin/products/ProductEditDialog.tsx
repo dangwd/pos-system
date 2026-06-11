@@ -5,7 +5,14 @@ import { useTranslations } from 'next-intl'
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+import {
+  Combobox,
+  ComboboxContent,
+  ComboboxEmpty,
+  ComboboxInput,
+  ComboboxItem,
+  ComboboxList,
+} from '@/components/ui/combobox'
 import { Field, FieldLabel } from '@/components/ui/field'
 import { Spinner } from '@/components/ui/spinner'
 import { useUpdateProduct, useCategories } from '@/hooks/useProducts'
@@ -88,31 +95,43 @@ export function ProductEditDialog({ product, onClose }: Props) {
           <div className="grid grid-cols-2 gap-3">
             <Field>
               <FieldLabel>{t('form.category')}</FieldLabel>
-              <Select value={categoryId} onValueChange={(v) => setCategoryId(v ?? '')}>
-                <SelectTrigger>
-                  <SelectValue placeholder={t('form.categoryPlaceholder')}>
-                    {(id: string | null) => id ? (categoryOptions.find(c => c.id === id)?.name ?? id) : null}
-                  </SelectValue>
-                </SelectTrigger>
-                <SelectContent>
-                  {categoryOptions.map((c) => (
-                    <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              <Combobox
+                value={categoryId || null}
+                onValueChange={v => v && setCategoryId(v)}
+              >
+                <ComboboxInput
+                  placeholder={t('form.categoryPlaceholder')}
+                  className="h-9"
+                />
+                <ComboboxContent>
+                  <ComboboxList>
+                    {categoryOptions.map((c) => (
+                      <ComboboxItem key={c.id} value={c.id}>{c.name}</ComboboxItem>
+                    ))}
+                  </ComboboxList>
+                  <ComboboxEmpty>—</ComboboxEmpty>
+                </ComboboxContent>
+              </Combobox>
             </Field>
             <Field>
               <FieldLabel>{t('form.purity')}</FieldLabel>
-              <Select value={purity} onValueChange={(v) => setPurity(v ?? '')}>
-                <SelectTrigger>
-                  <SelectValue placeholder={t('form.purityPlaceholder')} />
-                </SelectTrigger>
-                <SelectContent>
-                  {PURITY_OPTIONS.map((p) => (
-                    <SelectItem key={p} value={p} label={p}>{p}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              <Combobox
+                value={purity || null}
+                onValueChange={v => v && setPurity(v)}
+              >
+                <ComboboxInput
+                  placeholder={t('form.purityPlaceholder')}
+                  className="h-9"
+                />
+                <ComboboxContent>
+                  <ComboboxList>
+                    {PURITY_OPTIONS.map((p) => (
+                      <ComboboxItem key={p} value={p}>{p}</ComboboxItem>
+                    ))}
+                  </ComboboxList>
+                  <ComboboxEmpty>—</ComboboxEmpty>
+                </ComboboxContent>
+              </Combobox>
             </Field>
           </div>
 
@@ -130,18 +149,19 @@ export function ProductEditDialog({ product, onClose }: Props) {
             </Field>
             <Field>
               <FieldLabel>{t('form.productType')}</FieldLabel>
-              <Select value={productType} onValueChange={(v) => setProductType((v ?? 'NguyenKhoi') as ProductType)}>
-                <SelectTrigger>
-                  <SelectValue>
-                    {(pt: string | null) => pt ? t(`productTypes.${pt}`) : null}
-                  </SelectValue>
-                </SelectTrigger>
-                <SelectContent>
-                  {PRODUCT_TYPE_OPTIONS.map((pt) => (
-                    <SelectItem key={pt} value={pt}>{t(`productTypes.${pt}`)}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              <Combobox
+                value={productType}
+                onValueChange={v => v && setProductType(v as ProductType)}
+              >
+                <ComboboxInput className="h-9" />
+                <ComboboxContent>
+                  <ComboboxList>
+                    {PRODUCT_TYPE_OPTIONS.map((pt) => (
+                      <ComboboxItem key={pt} value={pt}>{t(`productTypes.${pt}`)}</ComboboxItem>
+                    ))}
+                  </ComboboxList>
+                </ComboboxContent>
+              </Combobox>
             </Field>
           </div>
         </div>

@@ -1,13 +1,19 @@
 'use client'
 
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { useTranslations } from 'next-intl'
 import { Plus } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import {
-  Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
-} from '@/components/ui/select'
+  Combobox,
+  ComboboxContent,
+  ComboboxEmpty,
+  ComboboxInput,
+  ComboboxItem,
+  ComboboxList,
+  ComboboxTrigger,
+} from '@/components/ui/combobox'
 import { DataTable } from '@/components/shared/DataTable'
 import { TablePageSkeleton } from '@/components/shared/PageSkeleton'
 import { createProductColumns } from '@/components/admin/columns/product-columns'
@@ -16,17 +22,19 @@ import { ProductEditDialog } from '@/components/admin/products/ProductEditDialog
 import { useProducts, useCategories, useDeactivateProduct } from '@/hooks/useProducts'
 import type { Product } from '@/types/product'
 
-const ALL = '__all__'
+const TRIGGER = "inline-flex h-8 items-center justify-between gap-2 rounded-md border border-input bg-background px-3 text-sm font-normal hover:bg-accent hover:text-accent-foreground transition-colors w-full"
 
 export default function ProductsPage() {
   const t = useTranslations('admin.products')
+
+  const categoryAnchor = useRef<HTMLDivElement>(null)
+
   const [createOpen, setCreateOpen] = useState(false)
   const [editProduct, setEditProduct] = useState<Product | null>(null)
-  const [filterCategory, setFilterCategory] = useState(ALL)
+  const [filterCategory, setFilterCategory] = useState<string | null>(null)
   const [searchInput, setSearchInput] = useState('')
   const [filterSearch, setFilterSearch] = useState('')
 
-  // Debounce search
   useEffect(() => {
     const timer = setTimeout(() => setFilterSearch(searchInput), 400)
     return () => clearTimeout(timer)
@@ -35,33 +43,34 @@ export default function ProductsPage() {
   const { data: categories = [] } = useCategories()
   const { data: products = [], isLoading } = useProducts({
     search: filterSearch || undefined,
-    categoryCode: filterCategory !== ALL ? filterCategory : undefined,
+    categoryCode: filterCategory ?? undefined,
   })
   const { mutate: deactivate } = useDeactivateProduct()
 
+  const selectedCategory = categories.find(c => c.code === filterCategory)
+
   const columns = useMemo(
-    () =>
-      createProductColumns(
-        {
-          product: t('columns.product'),
-          productCode: t('columns.productCode'),
-          category: t('columns.category'),
-          purity: t('columns.purity'),
-          productType: t('columns.productType'),
-          status: t('columns.status'),
-          active: t('columns.active'),
-          inactive: t('columns.inactive'),
-          openMenu: t('columns.openMenu'),
-          edit: t('columns.edit'),
-          deactivate: t('columns.deactivate'),
-          productTypes: {
-            NguyenKhoi: t('productTypes.NguyenKhoi'),
-            CanThucTe: t('productTypes.CanThucTe'),
-          },
+    () => createProductColumns(
+      {
+        product:     t('columns.product'),
+        productCode: t('columns.productCode'),
+        category:    t('columns.category'),
+        purity:      t('columns.purity'),
+        productType: t('columns.productType'),
+        status:      t('columns.status'),
+        active:      t('columns.active'),
+        inactive:    t('columns.inactive'),
+        openMenu:    t('columns.openMenu'),
+        edit:        t('columns.edit'),
+        deactivate:  t('columns.deactivate'),
+        productTypes: {
+          NguyenKhoi: t('productTypes.NguyenKhoi'),
+          CanThucTe:  t('productTypes.CanThucTe'),
         },
-        (product) => setEditProduct(product),
-        (product) => deactivate(product.id),
-      ),
+      },
+      (product) => setEditProduct(product),
+      (product) => deactivate(product.id),
+    ),
     [t, deactivate],
   )
 
@@ -88,17 +97,31 @@ export default function ProductsPage() {
           onChange={e => setSearchInput(e.target.value)}
           className="h-8 w-56 text-sm"
         />
-        <Select value={filterCategory} onValueChange={v => setFilterCategory(v ?? ALL)}>
-          <SelectTrigger className="h-8 w-48 text-sm">
-            <SelectValue placeholder={t('filterAll')} />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value={ALL}>{t('filterAll')}</SelectItem>
-            {categories.map(c => (
-              <SelectItem key={c.code} value={c.code}>{c.name}</SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
+
+        {/* Category */}
+        <div ref={categoryAnchor} className="inline-flex min-w-44">
+          <Combobox
+            value={filterCategory ?? ""}
+            onValueChange={setFilterCategory}
+          >
+            <ComboboxTrigger className={TRIGGER}>
+              {selectedCategory
+                ? selectedCategory.name
+                : <span className="text-muted-foreground">{t('filterAll')}</span>
+              }
+            </ComboboxTrigger>
+            <ComboboxContent anchor={categoryAnchor}>
+              <ComboboxInput placeholder={t('filterAll')} />
+              <ComboboxList>
+                <ComboboxItem value="">{t('filterAll')}</ComboboxItem>
+                {categories.map(c => (
+                  <ComboboxItem key={c.code} value={c.code}>{c.name}</ComboboxItem>
+                ))}
+              </ComboboxList>
+              <ComboboxEmpty>Không tìm thấy</ComboboxEmpty>
+            </ComboboxContent>
+          </Combobox>
+        </div>
       </div>
 
       {isLoading ? (

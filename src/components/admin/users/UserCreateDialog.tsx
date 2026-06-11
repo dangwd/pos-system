@@ -14,8 +14,13 @@ import {
   Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter,
 } from '@/components/ui/dialog'
 import {
-  Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
-} from '@/components/ui/select'
+  Combobox,
+  ComboboxContent,
+  ComboboxEmpty,
+  ComboboxInput,
+  ComboboxItem,
+  ComboboxList,
+} from '@/components/ui/combobox'
 import { Field, FieldGroup, FieldLabel } from '@/components/ui/field'
 import { Spinner } from '@/components/ui/spinner'
 
@@ -102,34 +107,44 @@ export function UserCreateDialog({ open, onClose }: Props) {
 
           <Field>
             <FieldLabel>{t('branch')}</FieldLabel>
-            <Select value={form.branchId} onValueChange={v => setForm(f => ({ ...f, branchId: v ?? '' }))}>
-              <SelectTrigger className="w-full h-9">
-                <SelectValue placeholder={t('branchPlaceholder')}>
-                  {(id: string | null) => id ? (branches.find(b => b.id === id)?.name ?? id) : null}
-                </SelectValue>
-              </SelectTrigger>
-              <SelectContent>
-                {branches.map(b => (
-                  <SelectItem key={b.id} value={b.id}>{b.name}</SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+            <Combobox
+              value={form.branchId || null}
+              onValueChange={v => v && setForm(f => ({ ...f, branchId: v }))}
+            >
+              <ComboboxInput
+                placeholder={t('branchPlaceholder')}
+                className="h-9 w-full"
+              />
+              <ComboboxContent>
+                <ComboboxList>
+                  {branches.map(b => (
+                    <ComboboxItem key={b.id} value={b.id}>{b.name}</ComboboxItem>
+                  ))}
+                </ComboboxList>
+                <ComboboxEmpty>—</ComboboxEmpty>
+              </ComboboxContent>
+            </Combobox>
           </Field>
 
           <Field>
             <FieldLabel>{t('role')}</FieldLabel>
-            <Select value={form.roleId} onValueChange={v => setForm(f => ({ ...f, roleId: v ?? '' }))}>
-              <SelectTrigger className="w-full h-9">
-                <SelectValue placeholder={t('rolePlaceholder')}>
-                  {(id: string | null) => id ? (roles.find(r => r.id === id)?.name ?? id) : null}
-                </SelectValue>
-              </SelectTrigger>
-              <SelectContent>
-                {roles.map(r => (
-                  <SelectItem key={r.id} value={r.id}>{r.name}</SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+            <Combobox
+              value={form.roleId || null}
+              onValueChange={v => v && setForm(f => ({ ...f, roleId: v }))}
+            >
+              <ComboboxInput
+                placeholder={t('rolePlaceholder')}
+                className="h-9 w-full"
+              />
+              <ComboboxContent>
+                <ComboboxList>
+                  {roles.map(r => (
+                    <ComboboxItem key={r.id} value={r.id}>{r.name}</ComboboxItem>
+                  ))}
+                </ComboboxList>
+                <ComboboxEmpty>—</ComboboxEmpty>
+              </ComboboxContent>
+            </Combobox>
           </Field>
 
           <button
