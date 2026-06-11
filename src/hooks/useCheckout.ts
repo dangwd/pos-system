@@ -38,24 +38,51 @@ export function useCheckout(strategy: PaymentStrategy) {
 
   return useMutation({
     mutationFn: async (params: CheckoutParams) => {
-      if (!tab || tab.items.length === 0) {
+      const isFx = params.type === 'ExchangeCurrency'
+
+      if (!tab || (!isFx && tab.items.length === 0)) {
         throw new Error('Giỏ hàng trống')
+      }
+
+      if (isFx && (!tab.fxFromAmount || tab.fxFromAmount <= 0)) {
+        throw new Error('Vui lòng nhập số tiền cần đổi')
       }
 
       await strategy.prepare(total)
 
-      const paymentMethod = params.paymentMethod ?? strategy.paymentMethod
+      const paymentMethod = isFx ? 'CASH' : (params.paymentMethod ?? strategy.paymentMethod)
+
+      // FX: build 1 synthetic item — items thực tế không dùng
+      const fxItems = isFx ? [{
+        productId: process.env.NEXT_PUBLIC_FX_PRODUCT_ID ?? '00000000-0000-0000-0000-000000000001',
+        productName: `Ngoại tệ ${tab.fxFromAmount.toLocaleString()} ${tab.fxFromCurrency} → ${tab.fxToCurrency}`,
+        quantity: 1,
+        weightUnitId: null as string | null,
+        weightGramOverride: tab.fxFromAmount,
+        unitPriceLak: tab.fxLakAmount,
+        itemRole: 'Normal' as const,
+        laborFee: 0,
+        stoneFee: 0,
+        haoHutGram: 0,
+        phiHuHai: 0,
+      }] : null
+
+      const fxNote = isFx
+        ? `FX: ${tab.fxFromAmount.toLocaleString()} ${tab.fxFromCurrency} → ${tab.fxToAmount.toLocaleString('en', { maximumFractionDigits: 4 })} ${tab.fxToCurrency}`
+        : params.note
 
       // create() → Completed ngay, trả về GUID
       const transactionId = await transactionRepository.create({
         type: params.type,
         customerId: params.customerId,
         paymentMethod,
-        cashAmount: params.cashAmount ?? null,
-        bankAmount: params.bankAmount ?? null,
-        note: params.note,
+        cashAmount: isFx ? null : (params.cashAmount ?? null),
+        bankAmount: isFx ? null : (params.bankAmount ?? null),
+        note: fxNote,
+        currency: isFx && tab.fxFromCurrency !== 'LAK' ? tab.fxFromCurrency : undefined,
+        exchangeRate: isFx && tab.fxFromAmount > 0 ? Math.round(tab.fxLakAmount / tab.fxFromAmount) : undefined,
         referenceInvoiceCode: params.referenceInvoiceCode ?? tab.linkedInvoiceCode ?? undefined,
-        items: tab.items.map(item => {
+        items: fxItems ?? tab.items.map(item => {
           const isExchangeIn = item.itemRole === 'ExchangeIn'
           const hasPhiKho = isExchangeIn && item.perItemDamage > 0
           const hasLaoSut = isExchangeIn && item.perItemWearChi > 0

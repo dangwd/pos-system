@@ -30,13 +30,13 @@ export interface PaymentStrategy {
   prepare(amount: number): Promise<void>
 }
 
-export type PaymentMethodKey = 'cash' | 'bank-transfer' | 'qr'
+export type PaymentMethodKey = 'cash' | 'bank-transfer' | 'combined'
 
 // Danh sách tất cả payment keys — labels được lấy từ messages (pos.payment.methods.*)
-export const PAYMENT_METHOD_KEYS: PaymentMethodKey[] = ['cash', 'bank-transfer', 'qr']
+export const PAYMENT_METHOD_KEYS: PaymentMethodKey[] = ['cash', 'bank-transfer', 'combined']
 
 export const PAYMENT_METHOD_MAP: Record<PaymentMethodKey, PaymentMethod> = {
   'cash': 'CASH',
   'bank-transfer': 'BANK',
-  'qr': 'BANK',
+  'combined': 'COMBINED',
 }

@@ -22,6 +22,7 @@ export function useActiveTab() {
     updateCartItemInActive,
     setLinkedInvoice,
     clearLinkedInvoice,
+    setFxDataInActive,
   } = useInvoiceTabStore()
 
   const activeTab = useMemo(
@@ -56,10 +57,11 @@ export function useActiveTab() {
   )
 
   /** Số tiền thanh toán thực tế (luôn dương) */
-  const total = useMemo(
-    () => calcTotal(items, discount, txnType),
-    [items, discount, txnType]
-  )
+  const total = useMemo(() => {
+    // FX: bỏ qua items, lấy thẳng fxLakAmount
+    if (txnType === 'ExchangeCurrency') return activeTab?.fxLakAmount ?? 0
+    return calcTotal(items, discount, txnType)
+  }, [items, discount, txnType, activeTab?.fxLakAmount])
 
   const totalQty = items.reduce((s, i) => s + i.qty, 0)
 
@@ -85,6 +87,10 @@ export function useActiveTab() {
     if (activeTab) updateTab(activeTab.id, { couponCode: null, discountAmount: 0 })
   }
 
+  const setFxData = (fromCurrency: string, toCurrency: string, fromAmount: number, toAmount: number, lakAmount: number) => {
+    setFxDataInActive(fromCurrency, toCurrency, fromAmount, toAmount, lakAmount)
+  }
+
   return {
     tab: activeTab,
     subtotal,
@@ -108,5 +114,6 @@ export function useActiveTab() {
     setNote,
     applyDiscount,
     clearDiscount,
+    setFxData,
   }
 }

@@ -91,7 +91,7 @@
       "methods": {
         "cash": "ເງິນສົດ",
         "bank-transfer": "ໂອນເງິນ",
-        "qr": "QR Code"
+        "combined": "ເງິນສົດ + ໂອນ"
       }
     },
     "receipt": {

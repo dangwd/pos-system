@@ -14,6 +14,7 @@ import { useActiveTab } from '@/hooks/useActiveTab'
 import { Badge } from '@/components/ui/badge'
 import { Input } from '@/components/ui/input'
 import { ExchangeInvoiceLookup } from './ExchangeInvoiceLookup'
+import { CurrencyExchangeForm } from './CurrencyExchangeForm'
 import {
   ArrowDownToLine, ArrowUpFromLine, Minus, Plus, Trash2,
   ShoppingCart, Package, AlertTriangle,
@@ -410,6 +411,7 @@ export function TransactionTable() {
   const txnType = tab?.txnType ?? 'SellGold'
   const discount = tab?.discountAmount ?? 0
   const isExchange = txnType === 'ExchangeGold'
+  const isFx = txnType === 'ExchangeCurrency'
   const isBuy = txnType === 'BuyGold'
 
   return (
@@ -422,7 +424,9 @@ export function TransactionTable() {
       />
 
       <div className="flex-1 overflow-auto min-h-0">
-        {isExchange ? (
+        {isFx ? (
+          <CurrencyExchangeForm />
+        ) : isExchange ? (
           <ExchangeGoldTable
             items={items}
             totalA={totalA} totalB={totalB} netTotal={netTotal}
@@ -448,7 +452,7 @@ export function TransactionTable() {
         )}
       </div>
 
-      {!isExchange && (
+      {!isExchange && !isFx && (
         <SummaryBar
           txnType={txnType}
           subtotal={subtotal}

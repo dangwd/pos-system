@@ -91,7 +91,7 @@
       "methods": {
         "cash": "Cash",
         "bank-transfer": "Bank Transfer",
-        "qr": "QR Code"
+        "combined": "Cash + Transfer"
       }
     },
     "receipt": {

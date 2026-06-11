@@ -238,6 +238,59 @@ function CustomerSection() {
   );
 }
 
+// ─── 4a. FxBreakdown — dùng khi txnType === ExchangeCurrency ─────────────────
+
+function FxBreakdown() {
+  const { tab, total } = useActiveTab()
+  const from = tab?.fxFromAmount ?? 0
+  const fromCurr = tab?.fxFromCurrency ?? 'USD'
+  const to = tab?.fxToAmount ?? 0
+  const toCurr = tab?.fxToCurrency ?? 'LAK'
+  const lak = tab?.fxLakAmount ?? 0
+  const rate = from > 0 ? Math.round(lak / from) : 0
+
+  return (
+    <div className="px-4 py-3 flex-1 flex flex-col gap-3">
+      <div className="space-y-2.5">
+        <div className="flex justify-between items-center">
+          <span className="text-xs text-muted-foreground">Khách nộp quầy</span>
+          <span className="text-xs font-semibold tabular-nums">
+            {from > 0 ? from.toLocaleString('en', { maximumFractionDigits: 2 }) : '—'} {fromCurr}
+          </span>
+        </div>
+        <div className="flex justify-between items-center">
+          <span className="text-xs text-muted-foreground">Tỷ suất quy đổi</span>
+          <span className="text-xs font-semibold tabular-nums text-primary">
+            {rate > 0 ? `1 ${fromCurr} = ${rate.toLocaleString('lo-LA')} ₭` : '—'}
+          </span>
+        </div>
+        <div className="flex justify-between items-center">
+          <span className="text-xs text-muted-foreground">Khách hàng thực nhận</span>
+          <span className="text-xs font-semibold tabular-nums">
+            {to > 0 ? to.toLocaleString('en', { maximumFractionDigits: 4 }) : '—'} {toCurr}
+          </span>
+        </div>
+      </div>
+
+      <div className="border-t border-border" />
+
+      <div className="rounded-lg border border-primary/20 bg-primary/5 px-4 py-4 text-center">
+        <p className="text-[10px] text-muted-foreground uppercase tracking-widest font-medium mb-1">
+          Giá trị quy LAK
+        </p>
+        <p className="text-3xl font-black tabular-nums tracking-tight leading-none text-foreground">
+          {total.toLocaleString('lo-LA')}
+        </p>
+        <p className="text-xs text-muted-foreground mt-1">₭ (Kip Lào)</p>
+      </div>
+
+      <p className="text-[10px] text-muted-foreground text-center leading-relaxed">
+        Bút toán hoán đổi ngoại tệ sẽ được ghi tự động vào Sổ Quỹ Kết.
+      </p>
+    </div>
+  )
+}
+
 // ─── 4. PaymentBreakdown ──────────────────────────────────────────────────────
 
 interface PaymentBreakdownProps {
@@ -364,6 +417,7 @@ export interface PaymentPanelProps {
   isCheckingOut: boolean;
   cartEmpty: boolean;
   onOpenPayment: () => void;
+  onDirectCheckout: () => void;
   onApplyDiscount: (discountAmount: number) => void;
   onClearDiscount: () => void;
 }
@@ -375,10 +429,14 @@ export function PaymentPanel({
   isCheckingOut,
   cartEmpty,
   onOpenPayment,
+  onDirectCheckout,
   onApplyDiscount,
   onClearDiscount,
 }: PaymentPanelProps) {
   const t = useTranslations("pos.payment.panel");
+  const { tab } = useActiveTab();
+  const isFx = tab?.txnType === 'ExchangeCurrency';
+  const fxDisabled = isFx && (!tab?.fxFromAmount || tab.fxFromAmount <= 0);
 
   return (
     <aside className="flex flex-col w-72 lg:w-80 shrink-0 border-l bg-card overflow-y-auto">
@@ -391,32 +449,45 @@ export function PaymentPanel({
 
       <div className="mx-4 border-t border-border/50" />
 
-      <PaymentBreakdown
-        subtotal={subtotal}
-        discount={discount}
-        total={total}
-        onApplyDiscount={onApplyDiscount}
-        onClearDiscount={onClearDiscount}
-      />
+      {isFx ? (
+        <FxBreakdown />
+      ) : (
+        <PaymentBreakdown
+          subtotal={subtotal}
+          discount={discount}
+          total={total}
+          onApplyDiscount={onApplyDiscount}
+          onClearDiscount={onClearDiscount}
+        />
+      )}
 
       <div className="px-4 pb-4 pt-2 shrink-0">
-        <Button
-          className="w-full h-11 font-bold text-sm gap-2"
-          disabled={cartEmpty || isCheckingOut}
-          onClick={onOpenPayment}
-        >
-          {isCheckingOut ? (
-            <>
-              <Spinner className="mr-1" />
-              {t("processing")}
-            </>
-          ) : (
-            <>
-              <CreditCard className="h-4 w-4" />
-              {t("checkout")}
-            </>
-          )}
-        </Button>
+        {isFx ? (
+          <Button
+            className="w-full h-11 font-bold text-sm gap-2"
+            disabled={fxDisabled || isCheckingOut}
+            onClick={onDirectCheckout}
+          >
+            {isCheckingOut ? (
+              <><Spinner className="mr-1" />{t("processing")}</>
+            ) : (
+              <><CreditCard className="h-4 w-4" />LẬP KHAI &amp; PHÁT HÀNH PHIẾU FX</>
+            )}
+          </Button>
+        ) : (
+          <Button
+            className="w-full h-11 font-bold text-sm gap-2"
+            disabled={cartEmpty || isCheckingOut}
+            onClick={onOpenPayment}
+          >
+            {isCheckingOut ? (
+              <><Spinner className="mr-1" />{t("processing")}</>
+            ) : (
+              <><CreditCard className="h-4 w-4" />{t("checkout")}</>
+            )}
+          </Button>
+        )}
+
       </div>
     </aside>
   );

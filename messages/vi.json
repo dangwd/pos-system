@@ -91,7 +91,7 @@
       "methods": {
         "cash": "Tiền mặt",
         "bank-transfer": "Chuyển khoản",
-        "qr": "QR Code"
+        "combined": "Tiền mặt + CK"
       }
     },
     "receipt": {
