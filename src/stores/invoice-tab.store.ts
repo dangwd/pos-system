@@ -31,6 +31,7 @@ function makeNewTab(): InvoiceTab {
     items: [],
     customerId: null,
     customerName: null,
+    customerPhone: null,
     couponCode: null,
     discountAmount: 0,
     note: "",
@@ -96,6 +97,7 @@ export const useInvoiceTabStore = create<InvoiceTabStore>()(
           items: src.items.map((i) => ({ ...i })),
           customerId: src.customerId,
           customerName: src.customerName,
+          customerPhone: src.customerPhone,
         };
         set((s) => ({ tabs: [...s.tabs, tab], activeTabId: tab.id }));
       },

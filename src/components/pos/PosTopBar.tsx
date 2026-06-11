@@ -31,7 +31,9 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Input } from "@/components/ui/input";
+import { useProducts } from "@/hooks/useProducts";
 import { useLogout } from "@/hooks/useAuth";
+import { Spinner } from "@/components/ui/spinner";
 import { cn } from "@/lib/utils";
 import { useAuthStore } from "@/stores/auth.store";
 import { useInvoiceTabStore } from "@/stores/invoice-tab.store";
@@ -56,15 +58,25 @@ import { useEffect, useRef, useState } from "react";
 // ─── ProductSearch ────────────────────────────────────────────────────────────
 
 interface ProductSearchProps {
-  products: Product[];
   onSelect: (product: Product) => void;
 }
 
-function ProductSearch({ products, onSelect }: ProductSearchProps) {
+function ProductSearch({ onSelect }: ProductSearchProps) {
   const t = useTranslations("pos.topBar");
   const [search, setSearch] = useState("");
+  const [debouncedSearch, setDebouncedSearch] = useState("");
   const [open, setOpen] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const timer = setTimeout(() => setDebouncedSearch(search.trim()), 400);
+    return () => clearTimeout(timer);
+  }, [search]);
+
+  const { data: searchResults = [], isFetching } = useProducts(
+    debouncedSearch ? { search: debouncedSearch } : undefined
+  );
+  const results = debouncedSearch ? searchResults.slice(0, 8) : [];
 
   useEffect(() => {
     const handler = (e: MouseEvent) => {
@@ -74,19 +86,10 @@ function ProductSearch({ products, onSelect }: ProductSearchProps) {
     return () => document.removeEventListener("mousedown", handler);
   }, []);
 
-  const filtered = products
-    .filter((p) => {
-      const q = search.toLowerCase();
-      return (
-        p.productName.toLowerCase().includes(q) ||
-        p.productCode.toLowerCase().includes(q)
-      );
-    })
-    .slice(0, 8);
-
   const handleSelect = (product: Product) => {
     onSelect(product);
     setSearch("");
+    setDebouncedSearch("");
     setOpen(false);
   };
 
@@ -95,12 +98,13 @@ function ProductSearch({ products, onSelect }: ProductSearchProps) {
       <div className="relative">
         <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground pointer-events-none" />
         <Input
+          id="pos-product-search"
           placeholder={t("searchPlaceholder")}
-          className="pl-8 h-8 text-xs"
+          className="pl-8 pr-8 h-8 text-xs"
           value={search}
           onChange={(e) => {
             setSearch(e.target.value);
-            setOpen(e.target.value.length > 0);
+            setOpen(!!e.target.value);
           }}
           onFocus={() => search && setOpen(true)}
           onKeyDown={(e) => {
@@ -108,15 +112,20 @@ function ProductSearch({ products, onSelect }: ProductSearchProps) {
               setOpen(false);
               setSearch("");
             }
-            if (e.key === "Enter" && filtered[0]) handleSelect(filtered[0]);
+            if (e.key === "Enter" && results[0]) handleSelect(results[0]);
           }}
-        />{" "}
+        />
+        {isFetching && (
+          <div className="absolute right-2.5 top-1/2 -translate-y-1/2 pointer-events-none">
+            <Spinner className="h-3 w-3" />
+          </div>
+        )}
       </div>
 
-      {open && (
+      {open && (results.length > 0 || (debouncedSearch && !isFetching)) && (
         <div className="absolute top-full left-0 z-50 mt-1 w-full rounded-lg border bg-popover shadow-xl overflow-hidden">
-          {filtered.length > 0 ? (
-            filtered.map((p) => (
+          {results.length > 0 ? (
+            results.map((p) => (
               <button
                 key={p.id}
                 type="button"
@@ -124,9 +133,7 @@ function ProductSearch({ products, onSelect }: ProductSearchProps) {
                 className="w-full flex items-center justify-between px-3 py-2.5 text-left hover:bg-accent hover:text-accent-foreground transition-colors border-b last:border-0"
               >
                 <div className="min-w-0 flex-1">
-                  <p className="text-xs font-medium truncate">
-                    {p.productName}
-                  </p>
+                  <p className="text-xs font-medium truncate">{p.productName}</p>
                   <p className="text-[10px] text-muted-foreground font-mono mt-0.5">
                     {p.category.name} · {p.purity} · {p.productCode}
                   </p>
@@ -285,7 +292,6 @@ function CloseConfirmDialog({ tab, onConfirm, onCancel }: CloseConfirmProps) {
 // ─── PosTopBar Root ───────────────────────────────────────────────────────────
 
 export interface PosTopBarProps {
-  products: Product[];
   onAddProduct: (product: Product) => void;
 }
 
@@ -298,7 +304,7 @@ function getInitials(name: string) {
     .slice(0, 2);
 }
 
-export function PosTopBar({ products, onAddProduct }: PosTopBarProps) {
+export function PosTopBar({ onAddProduct }: PosTopBarProps) {
   const t = useTranslations("pos.topBar");
   const tAuth = useTranslations("auth.login");
   const router = useRouter();
@@ -327,7 +333,7 @@ export function PosTopBar({ products, onAddProduct }: PosTopBarProps) {
       <header className="flex items-stretch h-11 border-b bg-card shrink-0">
         {/* ── Left: Search + AI ──────────────────────────────────────────── */}
         <div className="flex items-center gap-2 px-3 border-r">
-          <ProductSearch products={products} onSelect={onAddProduct} />
+          <ProductSearch onSelect={onAddProduct} />
           <button
             className="shrink-0 h-7 w-7 flex items-center justify-center rounded-md border bg-muted/50 text-muted-foreground hover:text-primary hover:border-primary hover:bg-background transition-colors"
             title={t("aiTooltip")}

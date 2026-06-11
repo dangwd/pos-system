@@ -62,6 +62,7 @@
         "reprint": "ພິມຄືນ",
         "customerLabel": "ລູກຄ້າ (F4)",
         "customerSearch": "ຄົ້ນຫາລູກຄ້າ...",
+        "customerNotFound": "ບໍ່ພົບລູກຄ້າ",
         "subtotalLabel": "ລວມສິນຄ້າ (A)",
         "discountLabel": "ສ່ວນຫຼຸດ (B)",
         "discountInput": "ໃສ່ສ່ວນຫຼຸດ ₭...",
@@ -266,13 +267,42 @@
       "title": "ລູກຄ້າ",
       "subtitle": "{count} ລູກຄ້າ",
       "searchPlaceholder": "ຄົ້ນຫາຕາມຊື່ ຫຼື ໂທ...",
+      "addButton": "ເພີ່ມລູກຄ້າ",
       "columns": {
         "name": "ຊື່ເຕັມ",
         "phone": "ໂທລະສັບ",
-        "totalPurchase": "ລວມຊື້",
-        "lastVisit": "ຄັ້ງສຸດທ້າຍ",
+        "email": "ອີເມວ",
+        "loyalty": "ລະດັບ",
+        "points": "ຄະແນນ",
+        "status": "ສະຖານະ",
         "openMenu": "ເປີດເມນູ",
-        "viewDetail": "ເບິ່ງລາຍລະອຽດ"
+        "viewDetail": "ເບິ່ງລາຍລະອຽດ",
+        "edit": "ແກ້ໄຂ"
+      },
+      "toasts": {
+        "createSuccess": "ເພີ່ມລູກຄ້າໃໝ່ສຳເລັດ",
+        "updateSuccess": "ອັບເດດລູກຄ້າສຳເລັດ"
+      },
+      "createDialog": {
+        "title": "ເພີ່ມລູກຄ້າ",
+        "name": "ຊື່ເຕັມ",
+        "namePlaceholder": "ໃສ່ຊື່ເຕັມ...",
+        "phone": "ໂທລະສັບ",
+        "phonePlaceholder": "0201112222",
+        "email": "ອີເມວ",
+        "emailPlaceholder": "example@email.com",
+        "address": "ທີ່ຢູ່",
+        "dateOfBirth": "ວັນເດືອນປີເກີດ",
+        "loyaltyTier": "ລະດັບສະມາຊິກ",
+        "loyaltyPlaceholder": "ເລືອກລະດັບ...",
+        "optionalSection": "ຂໍ້ມູນເພີ່ມເຕີມ",
+        "cancel": "ຍົກເລີກ",
+        "submit": "ເພີ່ມ"
+      },
+      "editDialog": {
+        "title": "ອັບເດດ: {name}",
+        "cancel": "ຍົກເລີກ",
+        "submit": "ບັນທຶກ"
       }
     },
     "inventory": {
@@ -525,7 +555,8 @@
         "editRole": "ປ່ຽນບົດບາດ",
         "deactivate": "ປິດໃຊ້",
         "activate": "ເປີດໃຊ້",
-        "resetPassword": "ຕັ້ງລະຫັດຜ່ານໃໝ່"
+        "resetPassword": "ຕັ້ງລະຫັດຜ່ານໃໝ່",
+        "assignCounter": "ມອບໝາຍຂາຍ"
       },
       "roles": {
         "Cashier": "ເກັບເງິນ",
@@ -553,7 +584,9 @@
         "dateOfBirth": "ວັນເດືອນປີເກີດ",
         "cancel": "ຍົກເລີກ",
         "submit": "ສ້າງ",
-        "success": "ສ້າງຜູ້ໃຊ້ສຳເລັດ"
+        "success": "ສ້າງຜູ້ໃຊ້ສຳເລັດ",
+        "counter": "ຂາຍ",
+        "counterPlaceholder": "ເລືອກຂາຍ (ທາງເລືອກ)..."
       },
       "editInfoDialog": {
         "title": "ແກ້ໄຂຂໍ້ມູນ — {name}",
@@ -589,6 +622,14 @@
         "updateRoleSuccess": "ປ່ຽນບົດບາດສຳເລັດ",
         "resetPasswordSuccess": "ຕັ້ງລະຫັດຜ່ານໃໝ່ສຳເລັດ",
         "assignCounterSuccess": "ມອບໝາຍເຄົ້າເຕີ້ສຳເລັດ"
+      },
+      "assignCounterDialog": {
+        "title": "ມອບໝາຍຂາຍ — {name}",
+        "counter": "ຂາຍ",
+        "counterPlaceholder": "ເລືອກຂາຍ...",
+        "unassign": "ຍົກເລີກການມອບໝາຍ",
+        "cancel": "ຍົກເລີກ",
+        "submit": "ບັນທຶກ"
       }
     },
     "branches": {

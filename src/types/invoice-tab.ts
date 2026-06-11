@@ -27,6 +27,7 @@ export interface InvoiceTab {
   items: CartItem[]
   customerId: string | null
   customerName: string | null
+  customerPhone: string | null
   couponCode: string | null
   /** Số tiền giảm giá tuyệt đối (đã tính từ %) — compute khi apply coupon */
   discountAmount: number

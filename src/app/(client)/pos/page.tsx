@@ -72,10 +72,7 @@ export default function PosPage() {
   return (
     <div className="flex flex-col h-full overflow-hidden">
 
-      <PosTopBar
-        products={pos.allProducts}
-        onAddProduct={pos.addToCart}
-      />
+      <PosTopBar onAddProduct={pos.addToCart} />
 
       <div className="flex flex-1 min-h-0 overflow-hidden">
 

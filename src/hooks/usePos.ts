@@ -146,7 +146,6 @@ export function usePos() {
   return {
     // Products
     products: filteredProducts,
-    allProducts: products,
     productsLoading,
     categories,
     search, setSearch,
