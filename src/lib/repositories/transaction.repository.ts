@@ -25,9 +25,9 @@ import type {
 export class TransactionRepository {
   private readonly base = '/api/transactions'
 
-  /** Tạo giao dịch mới ở trạng thái DRAFT */
-  async create(dto: CreateTransactionDto): Promise<Transaction> {
-    const { data } = await api.post<Transaction>(this.base, dto)
+  /** Tạo giao dịch mới — API trả về GUID (string) */
+  async create(dto: CreateTransactionDto): Promise<string> {
+    const { data } = await api.post<string>(this.base, dto)
     return data
   }
 

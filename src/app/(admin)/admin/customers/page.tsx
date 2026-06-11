@@ -1,60 +1,75 @@
 'use client'
 
 import { useEffect, useMemo, useState } from 'react'
-import { useQuery } from '@tanstack/react-query'
-import { customerRepository } from '@/lib/repositories/customer.repository'
+import { useTranslations } from 'next-intl'
+import { Plus } from 'lucide-react'
+import { TablePageSkeleton } from '@/components/shared/PageSkeleton'
 import { DataTable } from '@/components/shared/DataTable'
 import { createCustomerColumns } from '@/components/admin/columns/customer-columns'
-import { TablePageSkeleton } from '@/components/shared/PageSkeleton'
+import { CustomerCreateDialog } from '@/components/admin/customers/CustomerCreateDialog'
+import { CustomerEditDialog } from '@/components/admin/customers/CustomerEditDialog'
+import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
-import { useTranslations } from 'next-intl'
-
-const PAGE_SIZE = 20
+import { useCustomerList } from '@/hooks/useCustomers'
+import type { Customer } from '@/types/customer'
 
 export default function CustomersPage() {
   const t = useTranslations('admin.customers')
-  const tStatus = useTranslations('admin.users.status')
+  const tStatus = useTranslations('admin.users')
 
-  const [page, setPage] = useState(1)
+  const [createOpen, setCreateOpen] = useState(false)
+  const [editCustomer, setEditCustomer] = useState<Customer | null>(null)
   const [searchInput, setSearchInput] = useState('')
   const [filterSearch, setFilterSearch] = useState('')
 
   useEffect(() => {
-    const timer = setTimeout(() => { setFilterSearch(searchInput); setPage(1) }, 400)
+    const timer = setTimeout(() => setFilterSearch(searchInput), 400)
     return () => clearTimeout(timer)
   }, [searchInput])
 
-  const { data, isLoading } = useQuery({
-    queryKey: ['customers', { search: filterSearch, page, pageSize: PAGE_SIZE }],
-    queryFn: () => customerRepository.getListPaged({
-      search: filterSearch || undefined,
-      page,
-      pageSize: PAGE_SIZE,
-    }),
-    staleTime: 60_000,
-  })
+  const { data: customers = [], isLoading } = useCustomerList(
+    filterSearch ? { q: filterSearch } : undefined
+  )
 
-  const customers = data?.data ?? []
-
-  const columns = useMemo(() => createCustomerColumns({
-    name:       t('columns.name'),
-    phone:      t('columns.phone'),
-    loyalty:    'Loyalty',
-    points:     'Points',
-    status:     t('columns.lastVisit'),
-    openMenu:   t('columns.openMenu'),
-    viewDetail: t('columns.viewDetail'),
-    active:     tStatus('active'),
-    inactive:   tStatus('inactive'),
-  }), [t, tStatus])
+  const columns = useMemo(() => createCustomerColumns(
+    {
+      name:       t('columns.name'),
+      phone:      t('columns.phone'),
+      email:      t('columns.email'),
+      loyalty:    t('columns.loyalty'),
+      points:     t('columns.points'),
+      status:     t('columns.status'),
+      openMenu:   t('columns.openMenu'),
+      viewDetail: t('columns.viewDetail'),
+      edit:       t('columns.edit'),
+      active:     tStatus('status.active'),
+      inactive:   tStatus('status.inactive'),
+    },
+    (customer) => setEditCustomer(customer),
+  ), [t, tStatus])
 
   return (
     <div className="p-6 space-y-4">
-      <div>
-        <h1 className="text-2xl font-bold">{t('title')}</h1>
-        <p className="text-muted-foreground text-sm">
-          {t('subtitle', { count: data?.total ?? 0 })}
-        </p>
+      <div className="flex items-start justify-between">
+        <div>
+          <h1 className="text-2xl font-bold">{t('title')}</h1>
+          <p className="text-muted-foreground text-sm">
+            {t('subtitle', { count: customers.length })}
+          </p>
+        </div>
+        <Button size="sm" className="gap-1.5" onClick={() => setCreateOpen(true)}>
+          <Plus className="h-4 w-4" />
+          {t('addButton')}
+        </Button>
+      </div>
+
+      <div className="flex items-center gap-2">
+        <Input
+          placeholder={t('searchPlaceholder')}
+          value={searchInput}
+          onChange={e => setSearchInput(e.target.value)}
+          className="h-8 w-64 text-sm"
+        />
       </div>
 
       {/* Filter bar */}
@@ -72,14 +87,11 @@ export default function CustomersPage() {
           columns={columns}
           data={customers}
           hideSearch
-          serverPagination={data ? {
-            total: data.total,
-            page: data.page,
-            pageSize: data.pageSize,
-            onPageChange: setPage,
-          } : undefined}
         />
       )}
+
+      <CustomerCreateDialog open={createOpen} onClose={() => setCreateOpen(false)} />
+      <CustomerEditDialog customer={editCustomer} onClose={() => setEditCustomer(null)} />
     </div>
   )
 }

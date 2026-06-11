@@ -62,6 +62,7 @@
         "reprint": "Reprint",
         "customerLabel": "Customer (F4)",
         "customerSearch": "Search customer...",
+        "customerNotFound": "No customer found",
         "subtotalLabel": "Subtotal (A)",
         "discountLabel": "Discount (B)",
         "discountInput": "Enter discount ₭...",
@@ -70,7 +71,8 @@
         "totalDue": "✦ Amount Due",
         "currency": "₭ (Kip)",
         "checkout": "Checkout",
-        "processing": "Processing..."
+        "processing": "Processing...",
+        "createCustomer": "Create new customer"
       },
       "modal": {
         "title": "Confirm payment",
@@ -107,6 +109,39 @@
       "checkoutFailed": "Checkout failed, please try again",
       "pendingApproval": "Awaiting manager approval",
       "checkoutSuccess": "Payment successful!"
+    },
+    "txnTypes": {
+      "selectTitle": "Select transaction type",
+      "SellGold": {
+        "label": "Sell Gold",
+        "short": "Sell Gold",
+        "abbr": "SG",
+        "desc": "Customer buys gold, receive Kip"
+      },
+      "SellSilver": {
+        "label": "Sell Silver",
+        "short": "Sell Silver",
+        "abbr": "SS",
+        "desc": "Customer buys silver, receive Kip"
+      },
+      "BuyGold": {
+        "label": "Buy Gold",
+        "short": "Buy Gold",
+        "abbr": "BG",
+        "desc": "Purchase gold from customer, pay Kip"
+      },
+      "ExchangeGold": {
+        "label": "Exchange Old Gold",
+        "short": "Exchange",
+        "abbr": "XG",
+        "desc": "Exchange Khamphuvong gold for new items"
+      },
+      "ExchangeCurrency": {
+        "label": "Currency Exchange",
+        "short": "Forex",
+        "abbr": "FX",
+        "desc": "Exchange THB · USD → Kip"
+      }
     }
   },
   "product": {
@@ -266,13 +301,44 @@
       "title": "Customers",
       "subtitle": "{count} customers",
       "searchPlaceholder": "Search by name or phone...",
+      "addButton": "Add customer",
       "columns": {
         "name": "Full Name",
         "phone": "Phone",
-        "totalPurchase": "Total Purchase",
-        "lastVisit": "Last Visit",
+        "email": "Email",
+        "loyalty": "Tier",
+        "points": "Points",
+        "status": "Status",
         "openMenu": "Open menu",
-        "viewDetail": "View details"
+        "viewDetail": "View details",
+        "edit": "Edit",
+        "totalPurchase": "Total Purchase",
+        "lastVisit": "Last Visit"
+      },
+      "toasts": {
+        "createSuccess": "Customer added successfully",
+        "updateSuccess": "Customer updated successfully"
+      },
+      "createDialog": {
+        "title": "Add Customer",
+        "name": "Full Name",
+        "namePlaceholder": "Enter full name...",
+        "phone": "Phone Number",
+        "phonePlaceholder": "0201112222",
+        "email": "Email",
+        "emailPlaceholder": "example@email.com",
+        "address": "Address",
+        "dateOfBirth": "Date of Birth",
+        "loyaltyTier": "Loyalty Tier",
+        "loyaltyPlaceholder": "Select tier...",
+        "optionalSection": "Optional info",
+        "cancel": "Cancel",
+        "submit": "Add"
+      },
+      "editDialog": {
+        "title": "Update: {name}",
+        "cancel": "Cancel",
+        "submit": "Save changes"
       }
     },
     "inventory": {
@@ -288,6 +354,22 @@
       "statusTrenQuay": "On display",
       "statusDaBan": "Sold",
       "statusChuyenXuong": "At workshop",
+      "sourceQuan": "Store goods",
+      "sourceNgoai": "External",
+      "columns": {
+        "product": "Product",
+        "branch": "Branch",
+        "qty": "Qty",
+        "weight": "Weight (gram)",
+        "lastUpdated": "Last Updated"
+      },
+      "noResults": "No results",
+      "totalAsset": "Total inventory value",
+      "tabs": {
+        "catalog": "Product catalog ({count})",
+        "declare": "Declare new product"
+      },
+      "statusDaDinhGia": "Priced",
       "summary": {
         "goldStock": "Total gold stock (Chi)",
         "silverStock": "Total silver stock",
@@ -603,7 +685,8 @@
         "editRole": "Edit role",
         "deactivate": "Deactivate",
         "activate": "Activate",
-        "resetPassword": "Reset password"
+        "resetPassword": "Reset password",
+        "assignCounter": "Assign counter"
       },
       "roles": {
         "Cashier": "Cashier",
@@ -631,7 +714,9 @@
         "dateOfBirth": "Date of birth",
         "cancel": "Cancel",
         "submit": "Create",
-        "success": "User created successfully"
+        "success": "User created successfully",
+        "counter": "Counter",
+        "counterPlaceholder": "Select counter (optional)..."
       },
       "editInfoDialog": {
         "title": "Edit info — {name}",
@@ -667,6 +752,14 @@
         "updateRoleSuccess": "Role updated successfully",
         "resetPasswordSuccess": "Password reset successfully",
         "assignCounterSuccess": "Counter assigned successfully"
+      },
+      "assignCounterDialog": {
+        "title": "Assign counter — {name}",
+        "counter": "Counter",
+        "counterPlaceholder": "Select counter...",
+        "unassign": "Unassign",
+        "cancel": "Cancel",
+        "submit": "Save"
       }
     },
     "branches": {

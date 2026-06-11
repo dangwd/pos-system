@@ -31,6 +31,7 @@ export interface CreateAdminUserDto {
   password: string
   branchId: string
   roleId: string
+  counterId?: string
   email?: string
   address?: string
   dateOfBirth?: string

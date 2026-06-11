@@ -15,16 +15,21 @@ import type { Customer } from '@/types/customer'
 export interface CustomerColumnLabels {
   name: string
   phone: string
+  email: string
   loyalty: string
   points: string
   status: string
   openMenu: string
   viewDetail: string
+  edit: string
   active: string
   inactive: string
 }
 
-export function createCustomerColumns(labels: CustomerColumnLabels): ColumnDef<Customer>[] {
+export function createCustomerColumns(
+  labels: CustomerColumnLabels,
+  onEdit: (customer: Customer) => void,
+): ColumnDef<Customer>[] {
   return [
     {
       accessorKey: 'name',
@@ -39,14 +44,24 @@ export function createCustomerColumns(labels: CustomerColumnLabels): ColumnDef<C
           <ArrowUpDown className="ml-1 h-3.5 w-3.5 text-muted-foreground" />
         </Button>
       ),
-      cell: ({ row }) => <div className="font-medium">{row.getValue('name')}</div>,
+      cell: ({ row }) => (
+        <div>
+          <p className="font-medium">{row.original.name}</p>
+          {row.original.email && (
+            <p className="text-[11px] text-muted-foreground">{row.original.email}</p>
+          )}
+        </div>
+      ),
     },
     {
       accessorKey: 'phoneNumber',
       header: labels.phone,
-      cell: ({ getValue }) => (
-        <span className="font-mono text-sm">{getValue() as string}</span>
-      ),
+      cell: ({ getValue }) => {
+        const v = getValue() as string | null
+        return v
+          ? <span className="font-mono text-sm">{v}</span>
+          : <span className="text-muted-foreground">—</span>
+      },
     },
     {
       accessorKey: 'loyaltyTier',
@@ -54,7 +69,7 @@ export function createCustomerColumns(labels: CustomerColumnLabels): ColumnDef<C
       cell: ({ getValue }) => {
         const tier = getValue() as string | null
         if (!tier) return <span className="text-muted-foreground">—</span>
-        const variantMap: Record<string, 'secondary' | 'outline' | 'default' | 'destructive'> = {
+        const variantMap: Record<string, 'secondary' | 'outline' | 'default'> = {
           Bronze: 'secondary',
           Silver: 'outline',
           Gold: 'default',
@@ -67,7 +82,7 @@ export function createCustomerColumns(labels: CustomerColumnLabels): ColumnDef<C
       accessorKey: 'accumulatedPoints',
       header: labels.points,
       cell: ({ getValue }) => (
-        <span>{(getValue() as number).toLocaleString('lo-LA')}</span>
+        <span className="tabular-nums">{(getValue() as number).toLocaleString('lo-LA')}</span>
       ),
     },
     {
@@ -89,8 +104,8 @@ export function createCustomerColumns(labels: CustomerColumnLabels): ColumnDef<C
             <span className="sr-only">{labels.openMenu}</span>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end">
-            <DropdownMenuItem onClick={() => console.log('view', row.original.id)}>
-              {labels.viewDetail}
+            <DropdownMenuItem onClick={() => onEdit(row.original)}>
+              {labels.edit}
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>

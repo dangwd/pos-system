@@ -72,6 +72,21 @@ const ERROR_MESSAGES: Record<string, ErrorMap> = {
     vi: 'Không tìm thấy giao dịch mua vào / đổi hàng',
     en: 'Trade transaction not found',
   },
+  TRADE_ITEM_NOT_QUAN: {
+    lo: 'ສິນຄ້ານີ້ບໍ່ແມ່ນສິນຄ້າຂອງຮ້ານ',
+    vi: 'Sản phẩm không phải của cửa hàng',
+    en: 'Product does not belong to this store',
+  },
+  TRADE_FREE_EXCHANGE_EXPIRED: {
+    lo: 'ໝົດກຳນົດປ່ຽນຟຣີ (ເກີນ 31 ວັນ)',
+    vi: 'Hết thời hạn đổi miễn phí (quá 31 ngày)',
+    en: 'Free exchange period has expired (over 31 days)',
+  },
+  TRADE_FREE_EXCHANGE_INVALID_VALUE: {
+    lo: 'ສ່ວນຕ່າງລາຄາເກີນ 1% ບໍ່ສາມາດດ່ຽນຟຣີ',
+    vi: 'Chênh lệch giá trị vượt 1%, không áp dụng đổi miễn phí',
+    en: 'Value difference exceeds 1%, free exchange not applicable',
+  },
 
   // ── CONFIG ────────────────────────────────────────────────────────────────
   CONFIG_PRICE_NOT_FOUND: {
@@ -119,6 +134,16 @@ const ERROR_MESSAGES: Record<string, ErrorMap> = {
     vi: 'Không tìm thấy quy tắc giá đá',
     en: 'Stone price rule not found',
   },
+  CONFIG_GOLD_PURITY_IN_USE: {
+    lo: 'ຄວາມບໍລິສຸດຖືກໃຊ້ງານຢູ່ ບໍ່ສາມາດລຶບໄດ້',
+    vi: 'Hàm lượng đang được dùng trong sản phẩm hoặc bảng giá, không thể xóa',
+    en: 'Gold purity is in use by products or price config, cannot delete',
+  },
+  CONFIG_WEIGHT_UNIT_IN_USE: {
+    lo: 'ໜ່ວຍນ້ຳໜັກຖືກໃຊ້ງານຢູ່ ບໍ່ສາມາດລຶບໄດ້',
+    vi: 'Đơn vị đang được dùng trong sản phẩm hoặc bảng giá, không thể xóa',
+    en: 'Weight unit is in use by products or price config, cannot delete',
+  },
 
   // ── INVENTORY ─────────────────────────────────────────────────────────────
   INVENTORY_NOT_FOUND: {
@@ -132,29 +157,14 @@ const ERROR_MESSAGES: Record<string, ErrorMap> = {
     en: 'Insufficient stock quantity',
   },
   INVENTORY_ITEM_NOT_AVAILABLE: {
-    lo: 'ສິນຄ້າບໍ່ໄດ້ຢູ່ໃນສະຖານະວາງຂາຍ',
+    lo: 'ສິນຄ້າບໍ່ໄດ້ຢູ່ໃນສະຖານະ "ເທິງເຄົ້າ"',
     vi: 'Sản phẩm không ở trạng thái trên quầy',
-    en: 'Item is not on display',
+    en: 'Inventory item is not in "on display" status',
   },
   INVENTORY_INVALID_DIRECTION: {
     lo: 'ທິດທາງຕ້ອງເປັນ IN ຫຼື OUT',
-    vi: 'Hướng điều chỉnh phải là Nhập (IN) hoặc Xuất (OUT)',
+    vi: 'Direction phải là IN hoặc OUT',
     en: 'Direction must be IN or OUT',
-  },
-  INVENTORY_INVALID_QUANTITY: {
-    lo: 'ຈຳນວນຕ້ອງຫຼາຍກວ່າ 0',
-    vi: 'Số lượng phải lớn hơn 0',
-    en: 'Quantity must be greater than 0',
-  },
-  INVENTORY_REASON_REQUIRED: {
-    lo: 'ກະລຸນາລະບຸເຫດຜົນຂອງການປັບປ່ຽນ',
-    vi: 'Vui lòng nhập lý do điều chỉnh',
-    en: 'Adjustment reason is required',
-  },
-  INVENTORY_INVALID_STATUS: {
-    lo: 'ສະຖານະສິນຄ້າບໍ່ຖືກຕ້ອງ',
-    vi: 'Trạng thái mục kho không hợp lệ',
-    en: 'Invalid inventory item status',
   },
 
   // ── PRODUCT ───────────────────────────────────────────────────────────────
@@ -183,6 +193,16 @@ const ERROR_MESSAGES: Record<string, ErrorMap> = {
     vi: 'Danh mục còn sản phẩm, không thể xóa',
     en: 'Category still has products, cannot delete',
   },
+  PRODUCT_PRICE_NOT_CONFIGURED: {
+    lo: 'ສິນຄ້ານີ້ຍັງບໍ່ມີລາຄາ ກະລຸນາຕັ້ງລາຄາໃນຕາຕະລາງລາຄາ',
+    vi: 'Sản phẩm chưa có giá trong bảng giá, không thể bán',
+    en: 'Product price not configured for this purity and unit, cannot sell',
+  },
+  PRODUCT_WEIGHT_UNIT_REQUIRED: {
+    lo: 'ສິນຄ້ານີ້ຕ້ອງການໜ່ວຍນ້ຳໜັກ ກະລຸນາລະບຸໜ່ວຍ',
+    vi: 'Sản phẩm vàng/bạc phải chọn đơn vị tính giá',
+    en: 'Gold/silver product must have a weight unit configured',
+  },
 
   // ── USER ──────────────────────────────────────────────────────────────────
   USER_NOT_FOUND: {
@@ -200,10 +220,45 @@ const ERROR_MESSAGES: Record<string, ErrorMap> = {
     vi: 'Không tìm thấy chi nhánh hoặc chi nhánh không hoạt động',
     en: 'Branch not found or inactive',
   },
+  COUNTER_NOT_FOUND: {
+    lo: 'ບໍ່ພົບເຄົ້າເຕີ ຫຼື ເຄົ້າເຕີຖືກປິດໃຊ້ງານ',
+    vi: 'Không tìm thấy quầy hoặc quầy đã ngừng hoạt động',
+    en: 'Counter not found or inactive',
+  },
+  COUNTER_BRANCH_MISMATCH: {
+    lo: 'ເຄົ້າເຕີບໍ່ສັງກັດສາຂາຂອງພະນັກງານ',
+    vi: 'Quầy không thuộc chi nhánh của nhân viên',
+    en: 'Counter does not belong to the employee\'s branch',
+  },
   ROLE_NOT_FOUND: {
     lo: 'ບໍ່ພົບບົດບາດ',
     vi: 'Không tìm thấy vai trò',
     en: 'Role not found',
+  },
+  ROLE_CODE_DUPLICATE: {
+    lo: 'ລະຫັດບົດບາດຊ້ຳກັນ',
+    vi: 'Mã vai trò đã tồn tại',
+    en: 'Role code already exists',
+  },
+  ROLE_CODE_REQUIRED: {
+    lo: 'ກະລຸນາລະບຸລະຫັດບົດບາດ',
+    vi: 'Mã vai trò không được để trống',
+    en: 'Role code is required',
+  },
+  ROLE_NAME_REQUIRED: {
+    lo: 'ກະລຸນາລະບຸຊື່ບົດບາດ',
+    vi: 'Tên vai trò không được để trống',
+    en: 'Role name is required',
+  },
+  ROLE_SYSTEM_PROTECTED: {
+    lo: 'ບໍ່ສາມາດແກ້ໄຂ/ລຶບບົດບາດລະບົບໄດ້',
+    vi: 'Không thể sửa hoặc xóa vai trò hệ thống',
+    en: 'System role cannot be modified or deleted',
+  },
+  ROLE_IN_USE: {
+    lo: 'ບົດບາດກຳລັງຖືກໃຊ້ງານ ບໍ່ສາມາດລຶບໄດ້',
+    vi: 'Vai trò đang được gán cho người dùng, không thể xóa',
+    en: 'Role is assigned to users and cannot be deleted',
   },
 
   // ── CUSTOMER ──────────────────────────────────────────────────────────────

@@ -13,6 +13,7 @@
 
 import type { CartItem } from "@/types/cart";
 import type { InvoiceTab, InvoiceTabStore } from "@/types/invoice-tab";
+import type { TransactionType } from "@/types/transaction";
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
 
@@ -22,15 +23,17 @@ import { persist } from "zustand/middleware";
 let _tabCounter = 1;
 
 /** Tạo tab mới với label tự tăng */
-function makeNewTab(): InvoiceTab {
+function makeNewTab(type: TransactionType = "SellGold"): InvoiceTab {
   return {
     id: crypto.randomUUID(),
     label: `INV-${String(_tabCounter++).padStart(3, "0")}`,
     status: "draft",
     createdAt: new Date().toISOString(),
+    txnType: type,
     items: [],
     customerId: null,
     customerName: null,
+    customerPhone: null,
     couponCode: null,
     discountAmount: 0,
     note: "",
@@ -59,7 +62,12 @@ export const useInvoiceTabStore = create<InvoiceTabStore>()(
       // ── Tab lifecycle ──────────────────────────────────────────────────────
 
       openTab() {
-        const tab = makeNewTab();
+        const tab = makeNewTab("SellGold");
+        set((s) => ({ tabs: [...s.tabs, tab], activeTabId: tab.id }));
+      },
+
+      openTabWithType(type: TransactionType) {
+        const tab = makeNewTab(type);
         set((s) => ({ tabs: [...s.tabs, tab], activeTabId: tab.id }));
       },
 
@@ -96,6 +104,7 @@ export const useInvoiceTabStore = create<InvoiceTabStore>()(
           items: src.items.map((i) => ({ ...i })),
           customerId: src.customerId,
           customerName: src.customerName,
+          customerPhone: src.customerPhone,
         };
         set((s) => ({ tabs: [...s.tabs, tab], activeTabId: tab.id }));
       },
@@ -241,8 +250,10 @@ export const useInvoiceTabStore = create<InvoiceTabStore>()(
         if (!state || state.tabs.length === 0) return;
 
         // Loại bỏ CartItem không có productId (schema cũ trước khi migrate)
+        // Backfill txnType cho tab cũ chưa có field này
         state.tabs = state.tabs.map((t) => ({
           ...t,
+          txnType: t.txnType ?? "SellGold",
           items: t.items.filter(
             (i) => "productId" in i && !!i.productId,
           ),

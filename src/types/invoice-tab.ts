@@ -6,6 +6,7 @@
  */
 
 import type { CartItem } from './cart'
+import type { TransactionType } from './transaction'
 
 // ─── Trạng thái hóa đơn ──────────────────────────────────────────────────────
 
@@ -22,11 +23,14 @@ export interface InvoiceTab {
   status: InvoiceStatus
   /** ISO string để persist tốt qua JSON (Date không serialize đúng) */
   createdAt: string
+  /** Loại nghiệp vụ — điều khiển API type khi thanh toán */
+  txnType: TransactionType
 
   // ── Cart state — MỖI tab có cart riêng, không share với tab khác ──────────
   items: CartItem[]
   customerId: string | null
   customerName: string | null
+  customerPhone: string | null
   couponCode: string | null
   /** Số tiền giảm giá tuyệt đối (đã tính từ %) — compute khi apply coupon */
   discountAmount: number
@@ -41,6 +45,7 @@ export interface InvoiceTabStore {
 
   // Tab lifecycle
   openTab: () => void
+  openTabWithType: (type: TransactionType) => void
   closeTab: (id: string) => void                   // giữ ít nhất 1 tab; block nếu 'paying'
   switchTab: (id: string) => void
   duplicateTab: (id: string) => void
