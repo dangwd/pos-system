@@ -12,8 +12,13 @@ import {
   Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter,
 } from '@/components/ui/dialog'
 import {
-  Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
-} from '@/components/ui/select'
+  Combobox,
+  ComboboxContent,
+  ComboboxEmpty,
+  ComboboxInput,
+  ComboboxItem,
+  ComboboxList,
+} from '@/components/ui/combobox'
 import type { AdminUser } from '@/types/admin-user'
 
 interface Props {
@@ -51,16 +56,20 @@ export function UserEditRoleDialog({ user, onClose }: Props) {
 
         <Field className="py-1">
           <FieldLabel>{t('role')}</FieldLabel>
-          <Select value={roleId} onValueChange={v => setRoleId(v ?? '')}>
-            <SelectTrigger className="w-full h-9">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              {roles.map(r => (
-                <SelectItem key={r.id} value={r.id} label={r.name}>{r.name}</SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+          <Combobox
+            value={roleId || null}
+            onValueChange={v => v && setRoleId(v)}
+          >
+            <ComboboxInput className="h-9 w-full" />
+            <ComboboxContent>
+              <ComboboxList>
+                {roles.map(r => (
+                  <ComboboxItem key={r.id} value={r.id}>{r.name}</ComboboxItem>
+                ))}
+              </ComboboxList>
+              <ComboboxEmpty>—</ComboboxEmpty>
+            </ComboboxContent>
+          </Combobox>
         </Field>
 
         <DialogFooter>
