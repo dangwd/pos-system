@@ -1,7 +1,93 @@
+# CLAUDE.md
+
+This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
+
 # POS System — Rules cho AI
 
 Project: **FoxAI POS · Khamphuvong Jewelry**  
 Stack: Next.js 16 (frontend) · ASP.NET Core 9 (backend) · shadcn/ui · TanStack Query · Zustand · TypeScript strict
+
+---
+
+## Commands
+
+```bash
+# Development
+npm run dev          # Next.js dev server → http://localhost:3000
+
+# Build & type check
+npm run build        # Production build (also validates types)
+npx tsc --noEmit     # Type check only, no emit
+
+# Lint
+npm run lint         # ESLint (eslint.config.mjs)
+
+# Install shadcn/ui component
+npx shadcn@latest add <name>
+
+# Install shadcnblocks component
+npx shadcn@latest add @shadcnblocks/<name>
+```
+
+**Backend**: ASP.NET Core chạy riêng. Set env var `NEXT_PUBLIC_API_BASE_URL=http://localhost:5000` (hoặc để mặc định). `next.config.ts` rewrite `/api/*` → backend, nên mọi `axios.get('/api/...')` trong code tự đến đúng chỗ.
+
+> **Next.js 16**: Có breaking changes so với Next.js 13-15. Đọc `node_modules/next/dist/docs/` trước khi dùng API không quen.
+
+---
+
+## Kiến trúc tổng quan
+
+```
+src/
+├── app/
+│   ├── (client)/pos/        ← POS terminal full-screen (Cashier/ThuQuy)
+│   └── (admin)/admin/       ← Admin panel với sidebar (Manager/SystemAdmin)
+│       ├── orders, inventory, cash-ledger, dashboard
+│       ├── config, products, users, branches, reports, trade
+│
+├── components/pos/          ← POS UI: TransactionTable, PaymentPanel, PaymentModal...
+├── components/ui/           ← shadcn/ui components (KHÔNG edit trực tiếp trừ khi customize)
+│
+├── hooks/                   ← Boundary layer: component → hooks → lib
+│   ├── usePos.ts            ← Facade duy nhất của POS page (entry point)
+│   ├── useActiveTab.ts      ← Đọc state tab đang active (computed values)
+│   ├── useCheckout.ts       ← useMutation thanh toán, nhận PaymentStrategy
+│   └── useCart.ts / useCartInvoker.ts ← Command pattern cho giỏ hàng
+│
+├── lib/
+│   ├── repositories/        ← Mọi HTTP call đi qua đây (R-ARCH-1)
+│   ├── strategies/          ← PaymentStrategy interface + 4 impl (cash/bank/combined/qr)
+│   ├── commands/cart.command.ts ← AddItem/Remove/UpdateQty/ClearCart với undo()
+│   ├── pricing.ts           ← Pure functions tính giá (lineTotal, calcTotal...)
+│   └── axios.ts             ← Axios singleton với JWT interceptor + auto-refresh
+│
+├── stores/
+│   ├── invoice-tab.store.ts ← Multi-tab POS state (Zustand persist)
+│   ├── auth.store.ts        ← AuthUser + token (Zustand)
+│   └── cart.store.ts        ← CartStore primitives (dùng qua CartCommand)
+│
+└── types/
+    ├── auth.ts              ← UserRole = 'Cashier'|'ThuQuy'|'Manager'|'SystemAdmin'
+    ├── cart.ts              ← CartItem + lineTotal()
+    ├── config.ts            ← PriceConfig, PriceItem (gramPerUnit), ExchangeRate
+    └── transaction.ts       ← TransactionType, PaymentMethod enums
+```
+
+**Luồng dữ liệu POS:**
+```
+PosPage (orchestrate only)
+  → usePos() facade
+      → useActiveTab()   ← đọc invoice-tab.store (active tab)
+      → useCart()        ← CartCommandInvoker wrapping CartStore
+      → useCheckout()    ← useMutation → transactionRepository.create()
+      → useProducts()    ← useQuery → productRepository.getAll()
+      → usePriceConfig() ← useQuery, staleTime 60s → dùng snapshot giá
+```
+
+**Luồng ExchangeCurrency (khác các nghiệp vụ khác):**
+- Không thêm item vào cart thực, không mở PaymentModal
+- `CurrencyExchangeForm` → `setFxData()` → store (fxFromAmount, fxToAmount, fxLakAmount)
+- `handleDirectCheckout` → `useCheckout` tự build 1 synthetic item khi submit
 
 ---
 
@@ -128,30 +214,42 @@ src/
 
 ## Vai trò & Phân quyền
 
-### Các vai trò (`UserRole`)
+`UserRole` trong code (`src/types/auth.ts`): `'Cashier' | 'ThuQuy' | 'Manager' | 'SystemAdmin'`
 
-| Role | Enum | Phạm vi |
+### Các vai trò
+
+| Role code | Tên | Phạm vi |
 |---|---|---|
-| Thu ngân | `CASHIER` | Tạo GD, in chứng từ, xem nhật ký nhánh mình |
-| Trưởng chi nhánh | `BRANCH_MANAGER` | Duyệt GD nhánh, xem sổ quỹ, báo cáo nhánh |
-| Quản trị hội sở | `HQ_ADMIN` | Duyệt GD liên nhánh, cấu hình giá/tỷ giá, báo cáo toàn chuỗi |
-| Quản trị hệ thống | `SYSTEM_ADMIN` | Toàn quyền: quản lý user, cấu hình hệ thống |
+| `Cashier` | Nhân viên bán hàng | Tạo GD, in chứng từ, xem kho |
+| `ThuQuy` | Thủ quỹ | Mở/chốt quỹ, kiểm đếm tiền, ghi thu–chi, báo cáo ngày |
+| `Manager` | Quản lý / Chủ cửa hàng | Duyệt GD, cấu hình giá/tỷ giá, quản lý kho & sản phẩm, báo cáo |
+| `SystemAdmin` | Quản trị hệ thống | Toàn quyền: quản lý user, chi nhánh, cấu hình hệ thống |
 
-### Phân quyền theo chức năng
+### Ma trận permission (17 permissions)
 
-| Hành động | CASHIER | BRANCH_MANAGER | HQ_ADMIN | SYSTEM_ADMIN |
-|---|---|---|---|---|
-| Tạo giao dịch | ✓ | ✓ | ✓ | ✓ |
-| Xem nhật ký HĐ nhánh mình | ✓ | ✓ | ✓ | ✓ |
-| Xem sổ quỹ nhánh | ✗ | ✓ | ✓ | ✓ |
-| Duyệt GD nhánh | ✗ | ✓ | ✓ | ✓ |
-| Duyệt GD liên nhánh | ✗ | ✗ | ✓ | ✓ |
-| Xem báo cáo toàn chuỗi | ✗ | ✗ | ✓ | ✓ |
-| Cập nhật bảng giá / tỷ giá | ✗ | ✗ | ✓ | ✓ |
-| Quản lý người dùng | ✗ | ✗ | ✗ | ✓ |
-| Điều chỉnh tồn kho thủ công | ✗ | ✓ (cần duyệt) | ✓ | ✓ |
+Permission được trả về trong JWT claim và `user.permissions[]`. Dùng `user.permissions.includes('...')` để kiểm tra.
 
-> Frontend phải ẩn/disable UI theo role. Backend xác thực lại bằng `[Authorize(Roles = "...")]`.
+| Permission | Cashier | ThuQuy | Manager | SystemAdmin |
+|---|:---:|:---:|:---:|:---:|
+| `TRANSACTION_CREATE` | ✓ | ✓ | ✓ | ✓ |
+| `TRANSACTION_APPROVE` | | | ✓ | ✓ |
+| `TRANSACTION_VIEW_ALL` | | | ✓ | ✓ |
+| `TRADE_CREATE` | ✓ | | ✓ | ✓ |
+| `TRADE_APPROVE` | | | ✓ | ✓ |
+| `INVENTORY_VIEW` | ✓ | ✓ | ✓ | ✓ |
+| `INVENTORY_MANAGE` | | | ✓ | ✓ |
+| `CASH_LEDGER_MANAGE` | | ✓ | ✓ | ✓ |
+| `REPORT_DAILY` | | ✓ | ✓ | ✓ |
+| `REPORT_DASHBOARD` | | | ✓ | ✓ |
+| `CONFIG_PRICE` | | | ✓ | ✓ |
+| `CONFIG_WEIGHT_UNIT` | | | ✓ | ✓ |
+| `CONFIG_STONE_PRICE` | | | ✓ | ✓ |
+| `CONFIG_GOLD_PURITY` | | | ✓ | ✓ |
+| `PRODUCT_MANAGE` | | | ✓ | ✓ |
+| `BRANCH_MANAGE` | | | | ✓ |
+| `USER_MANAGE` | | | | ✓ |
+
+> Frontend phải ẩn/disable UI theo permission. Backend xác thực lại bằng Policy per endpoint.
 
 ---
 
