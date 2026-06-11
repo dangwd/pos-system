@@ -3,15 +3,9 @@
 import { useState } from 'react'
 import { useTranslations } from 'next-intl'
 import { Plus, Pencil, Trash2 } from 'lucide-react'
+import { Select } from 'antd'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
-import {
-  Combobox,
-  ComboboxContent,
-  ComboboxItem,
-  ComboboxInput,
-  ComboboxList,
-} from '@/components/ui/combobox'
 import { Badge } from '@/components/ui/badge'
 import { Spinner } from '@/components/ui/spinner'
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog'
@@ -133,18 +127,16 @@ export default function GoldPuritiesPage() {
               </Field>
               <Field>
                 <FieldLabel>{t('form.category')}</FieldLabel>
-                <Combobox
+                <Select
                   value={form.category}
-                  onValueChange={(v) => v && setForm((f) => ({ ...f, category: v as 'Gold' | 'Silver' }))}
-                >
-                  <ComboboxInput className="w-full" />
-                  <ComboboxContent>
-                    <ComboboxList>
-                      <ComboboxItem value="Gold">{t('categoryGold')}</ComboboxItem>
-                      <ComboboxItem value="Silver">{t('categorySilver')}</ComboboxItem>
-                    </ComboboxList>
-                  </ComboboxContent>
-                </Combobox>
+                  onChange={(v) => v && setForm((f) => ({ ...f, category: v as 'Gold' | 'Silver' }))}
+                  options={[
+                    { value: 'Gold',   label: t('categoryGold') },
+                    { value: 'Silver', label: t('categorySilver') },
+                  ]}
+                  className="w-full"
+                  popupMatchSelectWidth={false}
+                />
               </Field>
             </div>
           </div>

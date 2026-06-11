@@ -76,6 +76,19 @@ function StoreHeader() {
 function OrderLookup() {
   const t = useTranslations("pos.payment.panel");
   const [code, setCode] = useState("");
+  const scanRef = useRef<HTMLButtonElement>(null);
+
+  // F6 → focus order lookup input
+  useEffect(() => {
+    const handler = (e: KeyboardEvent) => {
+      if (e.key === "F6") {
+        e.preventDefault();
+        document.getElementById("pos-order-lookup")?.focus();
+      }
+    };
+    document.addEventListener("keydown", handler);
+    return () => document.removeEventListener("keydown", handler);
+  }, []);
 
   return (
     <div className="px-4 py-3 shrink-0">
@@ -91,12 +104,22 @@ function OrderLookup() {
       </SectionLabel>
       <div className="flex gap-1.5">
         <Input
+          id="pos-order-lookup"
           placeholder={t("lookupPlaceholder")}
           value={code}
           onChange={(e) => setCode(e.target.value)}
+          onKeyDown={(e) => {
+            if (e.key === "Enter" && code.trim()) {
+              e.preventDefault();
+              scanRef.current?.click();
+            }
+          }}
           className="h-8 text-xs flex-1"
         />
-        <button className="h-8 w-8 shrink-0 flex items-center justify-center rounded-md border bg-muted hover:bg-accent transition-colors">
+        <button
+          ref={scanRef}
+          className="h-8 w-8 shrink-0 flex items-center justify-center rounded-md border bg-muted hover:bg-accent transition-colors"
+        >
           <ScanLine className="h-3.5 w-3.5 text-muted-foreground" />
         </button>
       </div>
@@ -113,6 +136,7 @@ function CustomerSection() {
   const [debouncedQuery, setDebouncedQuery] = useState("");
   const [open, setOpen] = useState(false);
   const [createOpen, setCreateOpen] = useState(false);
+  const [focusedIndex, setFocusedIndex] = useState(-1);
   const containerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -130,10 +154,23 @@ function CustomerSection() {
     return () => document.removeEventListener("mousedown", handler);
   }, []);
 
+  // F4 → focus customer search input
+  useEffect(() => {
+    const handler = (e: KeyboardEvent) => {
+      if (e.key === "F4") {
+        e.preventDefault();
+        document.getElementById("pos-customer-search")?.focus();
+      }
+    };
+    document.addEventListener("keydown", handler);
+    return () => document.removeEventListener("keydown", handler);
+  }, []);
+
   const handleSelect = (customer: Customer) => {
     setCustomer(customer.id, customer.name, customer.phoneNumber);
     setQuery("");
     setDebouncedQuery("");
+    setFocusedIndex(-1);
     setOpen(false);
   };
 
@@ -172,16 +209,18 @@ function CustomerSection() {
                 value={query}
                 onChange={(e) => {
                   setQuery(e.target.value);
+                  setFocusedIndex(-1);
                   setOpen(!!e.target.value);
                 }}
                 onFocus={() => query && setOpen(true)}
                 onKeyDown={(e) => {
-                  if (e.key === "Escape") {
-                    setOpen(false);
-                    setQuery("");
+                  if (e.key === "Escape") { setOpen(false); setQuery(""); setFocusedIndex(-1); }
+                  if (e.key === "ArrowDown") { e.preventDefault(); setFocusedIndex((p) => Math.min(p + 1, customers.length - 1)); if (!open && customers.length) setOpen(true); }
+                  if (e.key === "ArrowUp") { e.preventDefault(); setFocusedIndex((p) => Math.max(p - 1, -1)); }
+                  if (e.key === "Enter") {
+                    const target = focusedIndex >= 0 ? customers[focusedIndex] : customers[0];
+                    if (target) handleSelect(target);
                   }
-                  if (e.key === "Enter" && customers[0])
-                    handleSelect(customers[0]);
                 }}
                 className="h-8 text-xs pl-7 pr-7"
               />
@@ -204,12 +243,12 @@ function CustomerSection() {
             (customers.length > 0 || (debouncedQuery && !isFetching)) && (
               <div className="absolute top-full left-0 z-50 mt-1 w-full rounded-lg border bg-popover shadow-xl overflow-hidden">
                 {customers.length > 0 ? (
-                  customers.map((c) => (
+                  customers.map((c, i) => (
                     <button
                       key={c.id}
                       type="button"
                       onClick={() => handleSelect(c)}
-                      className="w-full flex items-center gap-2.5 px-3 py-2.5 text-left hover:bg-accent hover:text-accent-foreground transition-colors border-b last:border-0"
+                      className={`w-full flex items-center gap-2.5 px-3 py-2.5 text-left hover:bg-accent hover:text-accent-foreground transition-colors border-b last:border-0${focusedIndex === i ? " bg-accent text-accent-foreground" : ""}`}
                     >
                       <div className="h-6 w-6 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
                         <User className="h-3 w-3 text-primary" />

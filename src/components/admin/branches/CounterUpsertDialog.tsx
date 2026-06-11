@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
 import { useTranslations } from 'next-intl'
 import { useCreateCounter, useUpdateCounter } from '@/hooks/useBranches'
 import { Button } from '@/components/ui/button'
@@ -20,23 +20,68 @@ interface Props {
   onClose: () => void
 }
 
+// Keyed inner component — remounts when `counter` or `open` changes.
+function CounterFormBody({
+  counter,
+  isEdit,
+  branchName,
+  isPending,
+  onCancel,
+  onSubmit,
+}: {
+  counter?: Counter | null
+  isEdit: boolean
+  branchName: string
+  isPending: boolean
+  onCancel: () => void
+  onSubmit: (name: string) => void
+}) {
+  const tCreate = useTranslations('admin.branches.counterCreateDialog')
+  const tEdit   = useTranslations('admin.branches.counterEditDialog')
+  const t       = isEdit ? tEdit : tCreate
+
+  const [counterName, setCounterName] = useState(() => counter?.counterName ?? '')
+
+  return (
+    <>
+      <DialogHeader>
+        <DialogTitle>
+          {isEdit ? tEdit('title') : tCreate('title', { branchName })}
+        </DialogTitle>
+      </DialogHeader>
+
+      <FieldGroup className="py-1">
+        <Field>
+          <FieldLabel htmlFor="counter-name">{t('counterName')}</FieldLabel>
+          <Input
+            id="counter-name"
+            className="h-9"
+            value={counterName}
+            onChange={e => setCounterName(e.target.value)}
+            onKeyDown={e => e.key === 'Enter' && onSubmit(counterName)}
+          />
+        </Field>
+      </FieldGroup>
+
+      <DialogFooter>
+        <Button variant="outline" onClick={onCancel} disabled={isPending}>{t('cancel')}</Button>
+        <Button onClick={() => onSubmit(counterName)} disabled={!counterName.trim() || isPending}>
+          {isPending && <Spinner className="mr-2" />}
+          {t('submit')}
+        </Button>
+      </DialogFooter>
+    </>
+  )
+}
+
 export function CounterUpsertDialog({ open, branchId, branchName, counter, onClose }: Props) {
   const isEdit = !!counter
-  const tCreate = useTranslations('admin.branches.counterCreateDialog')
-  const tEdit = useTranslations('admin.branches.counterEditDialog')
-  const t = isEdit ? tEdit : tCreate
-
-  const [counterName, setCounterName] = useState('')
-
-  useEffect(() => {
-    if (open) setCounterName(counter?.counterName ?? '')
-  }, [open, counter])
 
   const { mutate: create, isPending: creating } = useCreateCounter()
   const { mutate: update, isPending: updating } = useUpdateCounter()
   const isPending = creating || updating
 
-  function handleSubmit() {
+  function handleSubmit(counterName: string) {
     if (!counterName.trim()) return
     if (isEdit && counter) {
       update({ branchId, counterId: counter.id, dto: { counterName } }, { onSuccess: onClose })
@@ -48,32 +93,15 @@ export function CounterUpsertDialog({ open, branchId, branchName, counter, onClo
   return (
     <Dialog open={open} onOpenChange={o => !o && onClose()}>
       <DialogContent className="sm:max-w-sm">
-        <DialogHeader>
-          <DialogTitle>
-            {isEdit ? tEdit('title') : tCreate('title', { branchName })}
-          </DialogTitle>
-        </DialogHeader>
-
-        <FieldGroup className="py-1">
-          <Field>
-            <FieldLabel htmlFor="counter-name">{t('counterName')}</FieldLabel>
-            <Input
-              id="counter-name"
-              className="h-9"
-              value={counterName}
-              onChange={e => setCounterName(e.target.value)}
-              onKeyDown={e => e.key === 'Enter' && handleSubmit()}
-            />
-          </Field>
-        </FieldGroup>
-
-        <DialogFooter>
-          <Button variant="outline" onClick={onClose} disabled={isPending}>{t('cancel')}</Button>
-          <Button onClick={handleSubmit} disabled={!counterName.trim() || isPending}>
-            {isPending && <Spinner className="mr-2" />}
-            {t('submit')}
-          </Button>
-        </DialogFooter>
+        <CounterFormBody
+          key={`${counter?.id ?? 'new'}-${open ? '1' : '0'}`}
+          counter={counter}
+          isEdit={isEdit}
+          branchName={branchName}
+          isPending={isPending}
+          onCancel={onClose}
+          onSubmit={handleSubmit}
+        />
       </DialogContent>
     </Dialog>
   )

@@ -6,7 +6,6 @@ import { reportsRepository } from '@/lib/repositories/reports.repository'
 import { useAuthStore } from '@/stores/auth.store'
 import { useTranslations } from 'next-intl'
 import { Skeleton } from '@/components/ui/skeleton'
-import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 
 function DashboardTabSkeleton() {

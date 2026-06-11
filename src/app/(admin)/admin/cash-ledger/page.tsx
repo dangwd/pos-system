@@ -19,8 +19,12 @@ import {
 } from '@/components/ui/dialog'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
+import {
+  Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
+} from '@/components/ui/select'
 import { toast } from 'sonner'
-import type { CashDirection, CashMethod, CashCurrency } from '@/types/cash-ledger'
+import { isIncomeEntry } from '@/types/cash-ledger'
+import type { CashEntryType, CashMethod, CashCurrency } from '@/types/cash-ledger'
 
 function formatKip(n: number) {
   return n.toLocaleString('lo-LA') + ' ₭'
@@ -30,47 +34,134 @@ function today() {
   return new Date().toISOString().slice(0, 10)
 }
 
-export default function CashLedgerPage() {
+// Lives inside DialogContent (destroyOnHidden=true), so it remounts fresh on
+// each open — form state auto-resets without any manual cleanup.
+function AddEntryForm({ branchId, onClose }: { branchId: string; onClose: () => void }) {
   const t = useTranslations('admin.cashLedger')
-  const { user } = useAuthStore()
   const queryClient = useQueryClient()
-
-  const branchId = user?.branchId ?? ''
-  const [date, setDate] = useState(today())
-  const [addOpen, setAddOpen] = useState(false)
-
-  const [entryForm, setEntryForm] = useState({
+  const [form, setForm] = useState({
     description: '',
-    direction: 'In' as CashDirection,
+    entryType: 'INCOME' as CashEntryType,
     method: 'Cash' as CashMethod,
     currency: 'LAK' as CashCurrency,
     originalAmount: '',
     exchangeRate: '1',
   })
 
+  const { mutate: addEntry, isPending } = useMutation({
+    mutationFn: () => cashLedgerRepository.addManualEntry({
+      branchId,
+      description: form.description,
+      entryType: form.entryType,
+      method: form.method,
+      currency: form.currency,
+      originalAmount: Number(form.originalAmount),
+      exchangeRate: Number(form.exchangeRate),
+    }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['cash-ledger'] })
+      onClose()
+    },
+    onError: () => toast.error('Failed to add entry'),
+  })
+
+  return (
+    <>
+      <DialogHeader>
+        <DialogTitle>{t('addEntry')}</DialogTitle>
+      </DialogHeader>
+      <div className="space-y-4 py-2">
+        <div className="space-y-1.5">
+          <Label>{t('columns.description')}</Label>
+          <Input
+            value={form.description}
+            onChange={(e) => setForm(p => ({ ...p, description: e.target.value }))}
+          />
+        </div>
+        <div className="grid grid-cols-2 gap-3">
+          <div className="space-y-1.5">
+            <Label>{t('columns.direction')}</Label>
+            <Select
+              value={form.entryType}
+              onValueChange={(v) => setForm(p => ({ ...p, entryType: v as CashEntryType }))}
+            >
+              <SelectTrigger><SelectValue /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="INCOME">{t('entryType.INCOME')}</SelectItem>
+                <SelectItem value="EXPENSE">{t('entryType.EXPENSE')}</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+          <div className="space-y-1.5">
+            <Label>{t('columns.method')}</Label>
+            <Select
+              value={form.method}
+              onValueChange={(v) => setForm(p => ({ ...p, method: v as CashMethod }))}
+            >
+              <SelectTrigger><SelectValue /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="Cash">{t('method.Cash')}</SelectItem>
+                <SelectItem value="BankTransfer">{t('method.BankTransfer')}</SelectItem>
+                <SelectItem value="QR">{t('method.QR')}</SelectItem>
+                <SelectItem value="COMBINED">{t('method.COMBINED')}</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+        </div>
+        <div className="grid grid-cols-2 gap-3">
+          <div className="space-y-1.5">
+            <Label>{t('columns.amount')}</Label>
+            <Input
+              type="number"
+              min="0"
+              value={form.originalAmount}
+              onChange={(e) => setForm(p => ({ ...p, originalAmount: e.target.value }))}
+            />
+          </div>
+          <div className="space-y-1.5">
+            <Label>{t('columns.currency')}</Label>
+            <Select
+              value={form.currency}
+              onValueChange={(v) => setForm(p => ({ ...p, currency: v as CashCurrency }))}
+            >
+              <SelectTrigger><SelectValue /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="LAK">LAK</SelectItem>
+                <SelectItem value="THB">THB</SelectItem>
+                <SelectItem value="USD">USD</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+        </div>
+      </div>
+      <DialogFooter>
+        <Button variant="outline" onClick={onClose}>
+          {t('cancel')}
+        </Button>
+        <Button
+          onClick={() => addEntry()}
+          disabled={isPending || !form.description || !form.originalAmount}
+        >
+          {isPending ? <Spinner /> : t('addEntry')}
+        </Button>
+      </DialogFooter>
+    </>
+  )
+}
+
+export default function CashLedgerPage() {
+  const t = useTranslations('admin.cashLedger')
+  const { user } = useAuthStore()
+
+  const branchId = user?.branchId ?? ''
+  const [date, setDate] = useState(today())
+  const [addOpen, setAddOpen] = useState(false)
+
   const { data: ledger, isLoading } = useQuery({
     queryKey: ['cash-ledger', branchId, date],
     queryFn: () => cashLedgerRepository.getDaily(branchId, date),
     staleTime: 30_000,
     enabled: !!branchId,
-  })
-
-  const { mutate: addEntry, isPending } = useMutation({
-    mutationFn: () => cashLedgerRepository.addManualEntry({
-      branchId,
-      description: entryForm.description,
-      direction: entryForm.direction,
-      method: entryForm.method,
-      currency: entryForm.currency,
-      originalAmount: Number(entryForm.originalAmount),
-      exchangeRate: Number(entryForm.exchangeRate),
-    }),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['cash-ledger'] })
-      setAddOpen(false)
-      setEntryForm({ description: '', direction: 'In', method: 'Cash', currency: 'LAK', originalAmount: '', exchangeRate: '1' })
-    },
-    onError: () => toast.error('Failed to add entry'),
   })
 
   const summaryCards = [
@@ -136,8 +227,8 @@ export default function CashLedgerPage() {
                   <tr key={entry.id} className="border-b last:border-0 hover:bg-muted/20">
                     <td className="px-4 py-3">{entry.description}</td>
                     <td className="px-4 py-3">
-                      <Badge variant={entry.direction === 'In' ? 'default' : 'destructive'}>
-                        {t(`direction.${entry.direction}`)}
+                      <Badge variant={isIncomeEntry(entry.entryType) ? 'default' : 'destructive'}>
+                        {t(`entryType.${entry.entryType}`)}
                       </Badge>
                     </td>
                     <td className="px-4 py-3">{t(`method.${entry.method}`)}</td>
@@ -157,74 +248,7 @@ export default function CashLedgerPage() {
 
       <Dialog open={addOpen} onOpenChange={setAddOpen}>
         <DialogContent className="sm:max-w-xl">
-          <DialogHeader>
-            <DialogTitle>{t('addEntry')}</DialogTitle>
-          </DialogHeader>
-          <div className="space-y-4 py-2">
-            <div className="space-y-1.5">
-              <Label>{t('columns.description')}</Label>
-              <Input
-                value={entryForm.description}
-                onChange={(e) => setEntryForm(p => ({ ...p, description: e.target.value }))}
-              />
-            </div>
-            <div className="grid grid-cols-2 gap-3">
-              <div className="space-y-1.5">
-                <Label>{t('columns.direction')}</Label>
-                <select
-                  className="w-full rounded-md border px-3 h-9 text-sm bg-background"
-                  value={entryForm.direction}
-                  onChange={(e) => setEntryForm(p => ({ ...p, direction: e.target.value as CashDirection }))}
-                >
-                  <option value="In">{t('direction.In')}</option>
-                  <option value="Out">{t('direction.Out')}</option>
-                </select>
-              </div>
-              <div className="space-y-1.5">
-                <Label>{t('columns.method')}</Label>
-                <select
-                  className="w-full rounded-md border px-3 h-9 text-sm bg-background"
-                  value={entryForm.method}
-                  onChange={(e) => setEntryForm(p => ({ ...p, method: e.target.value as CashMethod }))}
-                >
-                  <option value="Cash">{t('method.Cash')}</option>
-                  <option value="BankTransfer">{t('method.BankTransfer')}</option>
-                  <option value="QR">{t('method.QR')}</option>
-                </select>
-              </div>
-            </div>
-            <div className="grid grid-cols-2 gap-3">
-              <div className="space-y-1.5">
-                <Label>{t('columns.amount')}</Label>
-                <Input
-                  type="number"
-                  min="0"
-                  value={entryForm.originalAmount}
-                  onChange={(e) => setEntryForm(p => ({ ...p, originalAmount: e.target.value }))}
-                />
-              </div>
-              <div className="space-y-1.5">
-                <Label>{t('columns.currency')}</Label>
-                <select
-                  className="w-full rounded-md border px-3 h-9 text-sm bg-background"
-                  value={entryForm.currency}
-                  onChange={(e) => setEntryForm(p => ({ ...p, currency: e.target.value as CashCurrency }))}
-                >
-                  <option value="LAK">LAK</option>
-                  <option value="THB">THB</option>
-                  <option value="USD">USD</option>
-                </select>
-              </div>
-            </div>
-          </div>
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setAddOpen(false)}>
-              Cancel
-            </Button>
-            <Button onClick={() => addEntry()} disabled={isPending || !entryForm.description || !entryForm.originalAmount}>
-              {isPending ? <Spinner /> : t('addEntry')}
-            </Button>
-          </DialogFooter>
+          <AddEntryForm branchId={branchId} onClose={() => setAddOpen(false)} />
         </DialogContent>
       </Dialog>
     </div>

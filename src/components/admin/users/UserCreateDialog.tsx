@@ -4,6 +4,7 @@ import { useState } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import { useTranslations } from 'next-intl'
 import { ChevronDown, ChevronUp } from 'lucide-react'
+import { Select } from 'antd'
 import { rolesRepository } from '@/lib/repositories/roles.repository'
 import { useAuthStore } from '@/stores/auth.store'
 import { useCreateUser } from '@/hooks/useUsers'
@@ -13,14 +14,6 @@ import { Input } from '@/components/ui/input'
 import {
   Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter,
 } from '@/components/ui/dialog'
-import {
-  Combobox,
-  ComboboxContent,
-  ComboboxEmpty,
-  ComboboxInput,
-  ComboboxItem,
-  ComboboxList,
-} from '@/components/ui/combobox'
 import { Field, FieldGroup, FieldLabel } from '@/components/ui/field'
 import { Spinner } from '@/components/ui/spinner'
 
@@ -110,44 +103,30 @@ export function UserCreateDialog({ open, onClose }: Props) {
 
           <Field>
             <FieldLabel>{t('branch')}</FieldLabel>
-            <Combobox
-              value={form.branchId || null}
-              onValueChange={v => v && setForm(f => ({ ...f, branchId: v }))}
-            >
-              <ComboboxInput
-                placeholder={t('branchPlaceholder')}
-                className="h-9 w-full"
-              />
-              <ComboboxContent>
-                <ComboboxList>
-                  {branches.map(b => (
-                    <ComboboxItem key={b.id} value={b.id}>{b.name}</ComboboxItem>
-                  ))}
-                </ComboboxList>
-                <ComboboxEmpty>—</ComboboxEmpty>
-              </ComboboxContent>
-            </Combobox>
+            <Select
+              value={form.branchId || undefined}
+              onChange={v => v && setForm(f => ({ ...f, branchId: v }))}
+              placeholder={t('branchPlaceholder')}
+              options={branches.map(b => ({ value: b.id, label: b.name }))}
+              showSearch
+              filterOption={(input, opt) => (opt?.label as string ?? '').toLowerCase().includes(input.toLowerCase())}
+              notFoundContent="Không tìm thấy"
+              className="w-full"
+              popupMatchSelectWidth={false}
+            />
           </Field>
 
           <Field>
             <FieldLabel>{t('role')}</FieldLabel>
-            <Combobox
-              value={form.roleId || null}
-              onValueChange={v => v && setForm(f => ({ ...f, roleId: v }))}
-            >
-              <ComboboxInput
-                placeholder={t('rolePlaceholder')}
-                className="h-9 w-full"
-              />
-              <ComboboxContent>
-                <ComboboxList>
-                  {roles.map(r => (
-                    <ComboboxItem key={r.id} value={r.id}>{r.name}</ComboboxItem>
-                  ))}
-                </ComboboxList>
-                <ComboboxEmpty>—</ComboboxEmpty>
-              </ComboboxContent>
-            </Combobox>
+            <Select
+              value={form.roleId || undefined}
+              onChange={v => v && setForm(f => ({ ...f, roleId: v }))}
+              placeholder={t('rolePlaceholder')}
+              options={roles.map(r => ({ value: r.id, label: r.name }))}
+              notFoundContent="Không tìm thấy"
+              className="w-full"
+              popupMatchSelectWidth={false}
+            />
           </Field>
 
           <button
@@ -163,24 +142,17 @@ export function UserCreateDialog({ open, onClose }: Props) {
             <>
               <Field>
                 <FieldLabel>{t('counter')}</FieldLabel>
-                <Combobox
-                  value={form.counterId || null}
-                  onValueChange={v => setForm(f => ({ ...f, counterId: v ?? '' }))}
-                >
-                  <ComboboxInput
-                    placeholder={t('counterPlaceholder')}
-                    className="h-9 w-full"
-                    disabled={!form.branchId}
-                  />
-                  <ComboboxContent>
-                    <ComboboxList>
-                      {counters.filter(c => c.isActive).map(c => (
-                        <ComboboxItem key={c.id} value={c.id}>{c.counterName}</ComboboxItem>
-                      ))}
-                    </ComboboxList>
-                    <ComboboxEmpty>—</ComboboxEmpty>
-                  </ComboboxContent>
-                </Combobox>
+                <Select
+                  value={form.counterId || undefined}
+                  onChange={v => setForm(f => ({ ...f, counterId: v ?? '' }))}
+                  placeholder={t('counterPlaceholder')}
+                  options={counters.filter(c => c.isActive).map(c => ({ value: c.id, label: c.counterName }))}
+                  disabled={!form.branchId}
+                  allowClear
+                  notFoundContent="Không tìm thấy"
+                  className="w-full"
+                  popupMatchSelectWidth={false}
+                />
               </Field>
 
               {(['email', 'address'] as const).map(field => (

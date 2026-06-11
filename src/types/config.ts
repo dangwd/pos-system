@@ -156,3 +156,16 @@ export interface AppRole {
 export interface UpdateRolePermissionsDto {
   permissionIds: string[]
 }
+
+/** POST /api/config/roles */
+export interface CreateRoleDto {
+  code: string
+  name: string
+  description: string
+}
+
+/** PUT /api/config/roles/{roleId} */
+export interface UpdateRoleDto {
+  name: string
+  description: string
+}

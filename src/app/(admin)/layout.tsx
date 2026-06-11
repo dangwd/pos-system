@@ -10,7 +10,6 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
 import { useAuthStore } from "@/stores/auth.store";
 import {
@@ -139,31 +138,32 @@ export default function AdminLayout({
       {/* ── Sidebar ──────────────────────────────────────────────────────── */}
       <aside
         className={cn(
-          "relative flex flex-col border-r bg-muted/20 shrink-0 transition-[width] duration-200 overflow-hidden",
-          collapsed ? "w-14" : "w-60",
+          "relative flex flex-col bg-sidebar border-r border-sidebar-border shrink-0 transition-[width] duration-200 overflow-hidden",
+          collapsed ? "w-14" : "w-64",
         )}
       >
-        {/* Sidebar header */}
+        {/* Header */}
         <div
           className={cn(
-            "flex items-center h-14 border-b shrink-0 gap-1",
-            collapsed ? "px-2 justify-center" : "px-2",
+            "flex items-center h-14 border-b border-sidebar-border shrink-0 gap-1.5 px-3",
+            collapsed && "justify-center",
           )}
         >
+          <div className={cn(
+            "h-6 w-6 rounded-md bg-primary flex items-center justify-center shrink-0",
+            !collapsed && "ml-0.5",
+          )}>
+            <Monitor className="h-3.5 w-3.5 text-white" />
+          </div>
           {!collapsed && (
-            <div className="flex items-center gap-2 flex-1 min-w-0 pl-2">
-              <Monitor className="h-5 w-5 text-primary shrink-0" />
-              <span className="font-bold text-sm truncate">{t("title")}</span>
-            </div>
+            <span className="font-semibold text-sm text-white truncate flex-1 min-w-0">
+              {t("title")}
+            </span>
           )}
-          {collapsed && <Monitor className="h-5 w-5 text-primary" />}
           <button
             onClick={handleToggle}
             title={collapsed ? t("expand") : t("collapse")}
-            className={cn(
-              "h-7 w-7 flex items-center justify-center rounded-md text-muted-foreground hover:text-foreground hover:bg-muted transition-colors shrink-0",
-              collapsed && "mt-0",
-            )}
+            className="h-7 w-7 flex items-center justify-center rounded-md text-sidebar-foreground/50 hover:text-sidebar-accent-foreground hover:bg-sidebar-accent transition-colors shrink-0"
           >
             {collapsed
               ? <PanelLeftOpen className="h-4 w-4" />
@@ -173,14 +173,15 @@ export default function AdminLayout({
 
         {/* Search — only when expanded */}
         {!collapsed && (
-          <div className="px-2 pt-3 pb-2 border-b">
+          <div className="px-3 py-2.5 border-b border-sidebar-border">
             <div className="relative">
-              <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground pointer-events-none" />
-              <Input
+              <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-sidebar-foreground/50 pointer-events-none" />
+              <input
+                type="text"
                 placeholder={t("searchPlaceholder")}
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
-                className="pl-8 h-8 text-xs"
+                className="w-full h-8 rounded-md border pl-8 pr-3 text-xs bg-sidebar-accent border-sidebar-border text-sidebar-accent-foreground placeholder:text-sidebar-foreground/50 focus:outline-none focus:ring-1 focus:ring-sidebar-primary/40 focus:border-sidebar-primary/40 transition-colors"
               />
             </div>
           </div>
@@ -195,7 +196,7 @@ export default function AdminLayout({
               if (!hasLabel) return;
               setOpenGroups((prev) => {
                 const next = new Set(prev);
-                next.has(gi) ? next.delete(gi) : next.add(gi);
+                if (next.has(gi)) { next.delete(gi) } else { next.add(gi) }
                 return next;
               });
             };
@@ -205,7 +206,7 @@ export default function AdminLayout({
                 {hasLabel && !collapsed && (
                   <button
                     onClick={toggleGroup}
-                    className="w-full flex items-center justify-between px-3 py-1.5 rounded-md text-[10px] font-semibold uppercase tracking-wider text-muted-foreground/60 hover:text-muted-foreground hover:bg-muted/50 transition-colors"
+                    className="w-full flex items-center justify-between px-2.5 py-1.5 rounded-md text-[10px] font-semibold uppercase tracking-wider text-sidebar-foreground/40 hover:text-sidebar-foreground/70 transition-colors"
                   >
                     <span>{group.label}</span>
                     <ChevronDown
@@ -236,17 +237,17 @@ export default function AdminLayout({
                               href={href}
                               title={collapsed ? label : undefined}
                               className={cn(
-                                "relative flex items-center gap-3 px-3 py-2 rounded-md text-sm font-medium transition-colors",
+                                "relative flex items-center gap-2.5 px-2.5 py-2 rounded-md text-sm font-medium transition-colors",
                                 collapsed && "justify-center px-2",
                                 isActive
-                                  ? "text-primary-foreground"
-                                  : "text-muted-foreground hover:bg-muted hover:text-foreground",
+                                  ? "text-sidebar-primary-foreground"
+                                  : "text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground",
                               )}
                             >
                               {isActive && (
                                 <motion.div
                                   layoutId="nav-highlight"
-                                  className="absolute inset-0 rounded-md bg-primary pointer-events-none"
+                                  className="absolute inset-0 rounded-md bg-sidebar-primary pointer-events-none"
                                   transition={{ type: "spring", stiffness: 380, damping: 32 }}
                                 />
                               )}
@@ -264,17 +265,11 @@ export default function AdminLayout({
           })}
 
           {!collapsed && filteredGroups.length === 0 && (
-            <p className="px-3 py-6 text-xs text-muted-foreground text-center">
+            <p className="px-3 py-6 text-xs text-sidebar-foreground/50 text-center">
               {t("noResults")}
             </p>
           )}
         </nav>
-
-        {/* Gradient accent */}
-        <div className="pointer-events-none absolute bottom-0 inset-x-0 h-40 bg-linear-to-t from-primary/15 to-transparent" />
-        <div className="pointer-events-none absolute bottom-4 right-4 h-2 w-2 rounded-full bg-primary/50" />
-        <div className="pointer-events-none absolute bottom-8 right-8 h-1.5 w-1.5 rounded-full bg-primary/30" />
-        <div className="pointer-events-none absolute bottom-6 right-10 h-1 w-1 rounded-full bg-primary/20" />
       </aside>
 
       {/* ── Right column: topbar + content ───────────────────────────────── */}

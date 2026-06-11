@@ -2,17 +2,10 @@
 
 import { useState } from 'react'
 import { useTranslations } from 'next-intl'
+import { Select } from 'antd'
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
-import {
-  Combobox,
-  ComboboxContent,
-  ComboboxEmpty,
-  ComboboxInput,
-  ComboboxItem,
-  ComboboxList,
-} from '@/components/ui/combobox'
 import { Field, FieldGroup, FieldLabel } from '@/components/ui/field'
 import { Spinner } from '@/components/ui/spinner'
 import { useCreateProduct, useCategories } from '@/hooks/useProducts'
@@ -93,29 +86,21 @@ export function ProductCreateDialog({ open, onClose }: Props) {
                 value={form.productCode}
                 onChange={(e) => set('productCode', e.target.value)}
                 placeholder="VANG-24K-NHAN"
-                className="font-mono uppercase"
+                className="h-9 font-mono uppercase"
               />
             </Field>
             <Field>
               <FieldLabel>{t('form.purity')}</FieldLabel>
-              <Combobox
-                value={form.goldPurityId || null}
-                onValueChange={v => set('goldPurityId', v ?? '')}
-              >
-                <ComboboxInput
-                  placeholder={t('form.purityPlaceholder')}
-                  showClear
-                  className="h-9"
-                />
-                <ComboboxContent>
-                  <ComboboxList>
-                    {purities.map((p) => (
-                      <ComboboxItem key={p.id} value={p.id}>{p.ma}</ComboboxItem>
-                    ))}
-                  </ComboboxList>
-                  <ComboboxEmpty>—</ComboboxEmpty>
-                </ComboboxContent>
-              </Combobox>
+              <Select
+                value={form.goldPurityId || undefined}
+                onChange={v => set('goldPurityId', v ?? '')}
+                placeholder={t('form.purityPlaceholder')}
+                options={purities.map(p => ({ value: p.id, label: p.ma }))}
+                allowClear
+                notFoundContent="Không tìm thấy"
+                className="w-full"
+                popupMatchSelectWidth={false}
+              />
             </Field>
           </div>
 
@@ -125,45 +110,34 @@ export function ProductCreateDialog({ open, onClose }: Props) {
               value={form.productName}
               onChange={(e) => set('productName', e.target.value)}
               placeholder="Nhẫn Vàng 24K Trơn"
+              className="h-9"
             />
           </Field>
 
           <div className="grid grid-cols-2 gap-3">
             <Field>
               <FieldLabel>{t('form.category')}</FieldLabel>
-              <Combobox
-                value={form.productCategoryId || null}
-                onValueChange={v => v && set('productCategoryId', v)}
-              >
-                <ComboboxInput
-                  placeholder={t('form.categoryPlaceholder')}
-                  className="h-9"
-                />
-                <ComboboxContent>
-                  <ComboboxList>
-                    {categories.map((c) => (
-                      <ComboboxItem key={c.id} value={c.id}>{c.name}</ComboboxItem>
-                    ))}
-                  </ComboboxList>
-                  <ComboboxEmpty>—</ComboboxEmpty>
-                </ComboboxContent>
-              </Combobox>
+              <Select
+                value={form.productCategoryId || undefined}
+                onChange={v => v && set('productCategoryId', v)}
+                placeholder={t('form.categoryPlaceholder')}
+                options={categories.map(c => ({ value: c.id, label: c.name }))}
+                showSearch
+                filterOption={(input, opt) => (opt?.label as string ?? '').toLowerCase().includes(input.toLowerCase())}
+                notFoundContent="Không tìm thấy"
+                className="w-full"
+                popupMatchSelectWidth={false}
+              />
             </Field>
             <Field>
               <FieldLabel>{t('form.productType')}</FieldLabel>
-              <Combobox
+              <Select
                 value={form.productType}
-                onValueChange={v => v && set('productType', v)}
-              >
-                <ComboboxInput className="h-9" />
-                <ComboboxContent>
-                  <ComboboxList>
-                    {PRODUCT_TYPE_OPTIONS.map((pt) => (
-                      <ComboboxItem key={pt} value={pt}>{t(`productTypes.${pt}`)}</ComboboxItem>
-                    ))}
-                  </ComboboxList>
-                </ComboboxContent>
-              </Combobox>
+                onChange={v => v && set('productType', v)}
+                options={PRODUCT_TYPE_OPTIONS.map(pt => ({ value: pt, label: t(`productTypes.${pt}`) }))}
+                className="w-full"
+                popupMatchSelectWidth={false}
+              />
             </Field>
           </div>
 
@@ -176,6 +150,7 @@ export function ProductCreateDialog({ open, onClose }: Props) {
               value={form.weightGram}
               onChange={(e) => set('weightGram', e.target.value)}
               placeholder="3.75"
+              className="h-9"
             />
           </Field>
         </FieldGroup>

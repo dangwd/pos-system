@@ -208,6 +208,22 @@ export function PaymentModal({
   // ── COMBINED amounts ─────────────────────────────────────────────────────────
   const [cashInput, setCashInput] = useState("");
   const [bankInput, setBankInput] = useState("");
+
+  // ── Keyboard shortcuts: 1/2/3 → payment method; auto-focus Pay on open ─────
+  useEffect(() => {
+    if (!open) return
+    const timer = setTimeout(() => {
+      document.querySelector<HTMLButtonElement>("[data-pay-action]")?.focus()
+    }, 150)
+    const handler = (e: KeyboardEvent) => {
+      if ((e.target as Element)?.tagName === "INPUT") return
+      if (e.key === "1") { e.preventDefault(); setCashInput(""); setBankInput(""); onPaymentMethodChange("cash") }
+      else if (e.key === "2") { e.preventDefault(); setCashInput(""); setBankInput(""); onPaymentMethodChange("bank-transfer") }
+      else if (e.key === "3") { e.preventDefault(); setCashInput(""); setBankInput(""); onPaymentMethodChange("combined") }
+    }
+    document.addEventListener("keydown", handler)
+    return () => { clearTimeout(timer); document.removeEventListener("keydown", handler) }
+  }, [open, onPaymentMethodChange])
   const isCombined = paymentMethod === "combined";
   const cashAmt = parseInt(cashInput.replace(/\D/g, ""), 10) || 0;
   const bankAmt = parseInt(bankInput.replace(/\D/g, ""), 10) || 0;
@@ -230,11 +246,11 @@ export function PaymentModal({
     if (remaining > 0) setCashInput(remaining.toString());
     else setCashInput("");
   };
-
-  useEffect(() => {
+  const handlePaymentMethodChange = (key: PaymentMethodKey) => {
     setCashInput("");
     setBankInput("");
-  }, [paymentMethod]);
+    onPaymentMethodChange(key);
+  };
 
   const handleCheckout = () => {
     isCombined
@@ -244,9 +260,9 @@ export function PaymentModal({
 
   return (
     <Dialog open={open} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-3xl p-0 overflow-hidden flex flex-col max-h-[90vh]">
+      <DialogContent className="sm:max-w-3xl flex flex-col max-h-[90vh] p-0">
         {/* ── Header ── */}
-        <DialogHeader className="px-5 pt-5 pb-3 border-b shrink-0">
+        <DialogHeader className="px-5 pt-5 pb-3 border-b shrink-0 mb-0">
           <div className="flex items-center gap-3">
             <DialogTitle className="text-base font-bold">
               {t("title")}
@@ -454,7 +470,7 @@ export function PaymentModal({
                 {PAYMENT_METHOD_KEYS.map((key) => (
                   <button
                     key={key}
-                    onClick={() => onPaymentMethodChange(key)}
+                    onClick={() => handlePaymentMethodChange(key)}
                     className={cn(
                       "flex items-center gap-2.5 w-full px-3 py-2 rounded-lg border text-xs font-semibold transition-colors text-left",
                       paymentMethod === key
@@ -564,6 +580,8 @@ export function PaymentModal({
             {t("cancel")}
           </Button>
           <Button
+            data-pay-action
+            autoFocus
             onClick={handleCheckout}
             disabled={isCheckingOut || !combinedValid}
             className="min-w-40 gap-2"

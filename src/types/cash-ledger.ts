@@ -1,11 +1,26 @@
-export type CashDirection = 'In' | 'Out'
-export type CashMethod = 'Cash' | 'BankTransfer' | 'QR'
+export type CashEntryType =
+  | 'INCOME'
+  | 'EXPENSE'
+  | 'SellGold'
+  | 'SellSilver'
+  | 'BuyGold'
+  | 'ExchangeGold'
+  | 'ExchangeCurrency'
+  | 'BuyMoreGold'
+  | 'ExchangeFree'
+  | 'ExchangeToMoney'
+
+/** Returns true if the entryType represents money coming IN */
+export function isIncomeEntry(entryType: CashEntryType): boolean {
+  return ['INCOME', 'SellGold', 'SellSilver', 'ExchangeCurrency', 'BuyMoreGold', 'ExchangeGold', 'ExchangeFree'].includes(entryType)
+}
+export type CashMethod = 'Cash' | 'BankTransfer' | 'QR' | 'COMBINED'
 export type CashCurrency = 'LAK' | 'THB' | 'USD'
 
 export interface CashLedgerEntry {
   id: string
   description: string
-  direction: CashDirection
+  entryType: CashEntryType
   method: CashMethod
   currency: CashCurrency
   originalAmount: number
@@ -27,7 +42,7 @@ export interface DailyCashLedger {
 export interface ManualEntryDto {
   branchId: string
   description: string
-  direction: CashDirection
+  entryType: CashEntryType
   method: CashMethod
   currency: CashCurrency
   originalAmount: number

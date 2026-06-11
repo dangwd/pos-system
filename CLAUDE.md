@@ -735,14 +735,36 @@ const total = weight * goldSellPrice + laborFee + stoneFee // trong component
 
 ### R-UI-1 · Ưu tiên thứ tự chọn component
 
+**PHẢI** duyệt qua theo thứ tự này trước khi viết bất kỳ UI nào:
+
 ```
-1. shadcn/ui gốc           (button, input, dialog, badge, sheet, form…)
-   TanStack Table           (MỌI bảng data — không exception)
-2. shadcnblocks.com         (combobox, input-group, empty, spinner, kbd…)
-3. Tự viết                  (đặt ở src/components/pos/, KHÔNG phải src/components/ui/)
+1. shadcn/ui gốc        → src/components/ui/
+   TanStack Table        (MỌI bảng data — không exception)
+
+2. shadcnblocks          → src/components/shadcnblocks/   ← KIỂM TRA TRƯỚC KHI TỰ VIẾT
+   src/components/ui/   (một số shadcnblocks cài vào ui/)
+
+3. Tự viết              → src/components/pos/  (KHÔNG phải ui/)
 ```
 
-Trước khi tự viết bất kỳ UI nào, kiểm tra shadcn/ui hoặc shadcnblocks trước.
+#### Đã cài sẵn — dùng ngay, không cần cài thêm
+
+**shadcn/ui** (`@/components/ui/`):
+`button` · `input` · `dialog` · `badge` · `checkbox` · `card` · `select` · `separator` · `skeleton` · `label` · `textarea` · `table` · `dropdown-menu` · `scroll-area` · `context-menu` · `sonner` · `field`
+
+**shadcn/ui** (từ shadcnblocks, nằm trong `ui/`):
+`combobox` · `empty` · `input-group` · `spinner`
+
+**shadcnblocks** (`@/components/shadcnblocks/`):
+`avatar-group` · `border-button` · `login-button` · `logo` · `price` · `rating` · `scrollable-tabslist` · `theme-toggle`
+
+#### Chưa cài — cần cài trước khi dùng
+
+Kiểm tra `shadcnblocks.com` hoặc `ui.shadcn.com` xem có component phù hợp không. Nếu có, cài trước:
+```bash
+npx shadcn@latest add <tên>
+npx shadcn@latest add @shadcnblocks/<tên>
+```
 
 ### R-UI-2 · TanStack Table cho mọi bảng dữ liệu
 
@@ -794,15 +816,7 @@ KHÔNG bọc thêm `<div>` bên ngoài để override style.
 KHÔNG dùng `<form onSubmit>` thủ công.  
 Mọi form phải dùng shadcn `Form` + `react-hook-form` + `@hookform/resolvers/zod`.
 
-### R-UI-10 · Cài component shadcnblocks đúng cú pháp
-
-```bash
-npx shadcn@latest add @shadcnblocks/<tên-component>
-```
-
-Registry `@shadcnblocks` đã đăng ký trong `components.json`.
-
-### R-UI-11 · Hiển thị tiền tệ LAK
+### R-UI-10 · Hiển thị tiền tệ LAK
 
 Mọi số tiền hiển thị theo format: `X,XXX,XXX ₭` (dấu phẩy phân cách, ₭ ở sau).
 
@@ -817,7 +831,7 @@ new Intl.NumberFormat('lo-LA').format(amount) + ' ₭'
 amount.toLocaleString('vi-VN') + '₫'
 ```
 
-### R-UI-12 · asChild KHÔNG tồn tại trong preset này
+### R-UI-11 · asChild KHÔNG tồn tại trong preset này
 
 Preset `b7BFgTjkG` dùng `@base-ui/react` (không phải Radix UI).  
 `asChild` prop KHÔNG có — sẽ bị bỏ qua hoặc gây lỗi runtime.

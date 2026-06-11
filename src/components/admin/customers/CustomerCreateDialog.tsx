@@ -3,18 +3,13 @@
 import { useState } from 'react'
 import { useTranslations } from 'next-intl'
 import { ChevronDown, ChevronUp } from 'lucide-react'
+import { Select } from 'antd'
 import { useCreateCustomer } from '@/hooks/useCustomers'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import {
   Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter,
 } from '@/components/ui/dialog'
-import {
-  Combobox,
-  ComboboxContent,
-  ComboboxItem,
-  ComboboxList,
-} from '@/components/ui/combobox'
 import { Field, FieldGroup, FieldLabel } from '@/components/ui/field'
 import { Spinner } from '@/components/ui/spinner'
 import type { LoyaltyTier } from '@/types/customer'
@@ -97,18 +92,14 @@ export function CustomerCreateDialog({ open, onClose }: Props) {
 
           <Field>
             <FieldLabel>{t('loyaltyTier')}</FieldLabel>
-            <Combobox
-              value={form.loyaltyTier || null}
-              onValueChange={v => setForm(f => ({ ...f, loyaltyTier: (v ?? '') as LoyaltyTier | '' }))}
-            >
-              <ComboboxContent>
-                <ComboboxList>
-                  {LOYALTY_TIERS.map(tier => (
-                    <ComboboxItem key={tier} value={tier}>{tier}</ComboboxItem>
-                  ))}
-                </ComboboxList>
-              </ComboboxContent>
-            </Combobox>
+            <Select
+              value={form.loyaltyTier || undefined}
+              onChange={v => setForm(f => ({ ...f, loyaltyTier: (v ?? '') as LoyaltyTier | '' }))}
+              options={LOYALTY_TIERS.map(tier => ({ value: tier, label: tier }))}
+              allowClear
+              className="w-full"
+              popupMatchSelectWidth={false}
+            />
           </Field>
 
           <button

@@ -1,19 +1,11 @@
 'use client'
 
-import { useEffect, useMemo, useRef, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { useTranslations } from 'next-intl'
 import { Plus } from 'lucide-react'
+import { Select } from 'antd'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
-import {
-  Combobox,
-  ComboboxContent,
-  ComboboxEmpty,
-  ComboboxInput,
-  ComboboxItem,
-  ComboboxList,
-  ComboboxTrigger,
-} from '@/components/ui/combobox'
 import { DataTable } from '@/components/shared/DataTable'
 import { TablePageSkeleton } from '@/components/shared/PageSkeleton'
 import { createProductColumns } from '@/components/admin/columns/product-columns'
@@ -24,12 +16,8 @@ import type { Product } from '@/types/product'
 
 const PAGE_SIZE = 20
 
-const TRIGGER = "inline-flex h-8 items-center justify-between gap-2 rounded-md border border-input bg-background px-3 text-sm font-normal hover:bg-accent hover:text-accent-foreground transition-colors w-full"
-
 export default function ProductsPage() {
   const t = useTranslations('admin.products')
-
-  const categoryAnchor = useRef<HTMLDivElement>(null)
 
   const [createOpen, setCreateOpen] = useState(false)
   const [editProduct, setEditProduct] = useState<Product | null>(null)
@@ -53,8 +41,6 @@ export default function ProductsPage() {
   const { mutate: deactivate } = useDeactivateProduct()
 
   const products = data?.data ?? []
-
-  const selectedCategory = categories.find(c => c.code === filterCategory)
 
   const columns = useMemo(
     () => createProductColumns(
@@ -106,29 +92,18 @@ export default function ProductsPage() {
         />
 
         {/* Category */}
-        <div ref={categoryAnchor} className="inline-flex min-w-44">
-          <Combobox
-            value={filterCategory ?? ""}
-            onValueChange={v => { setFilterCategory(v || null); setPage(1) }}
-          >
-            <ComboboxTrigger className={TRIGGER}>
-              {selectedCategory
-                ? selectedCategory.name
-                : <span className="text-muted-foreground">{t('filterAll')}</span>
-              }
-            </ComboboxTrigger>
-            <ComboboxContent anchor={categoryAnchor}>
-              <ComboboxInput placeholder={t('filterAll')} />
-              <ComboboxList>
-                <ComboboxItem value="">{t('filterAll')}</ComboboxItem>
-                {categories.map(c => (
-                  <ComboboxItem key={c.code} value={c.code}>{c.name}</ComboboxItem>
-                ))}
-              </ComboboxList>
-              <ComboboxEmpty>Không tìm thấy</ComboboxEmpty>
-            </ComboboxContent>
-          </Combobox>
-        </div>
+        <Select
+          value={filterCategory || undefined}
+          onChange={v => { setFilterCategory(v ?? null); setPage(1) }}
+          placeholder={t('filterAll')}
+          options={categories.map(c => ({ value: c.code, label: c.name }))}
+          showSearch
+          allowClear
+          filterOption={(input, opt) => (opt?.label as string ?? '').toLowerCase().includes(input.toLowerCase())}
+          notFoundContent="Không tìm thấy"
+          className="min-w-44"
+          popupMatchSelectWidth={false}
+        />
       </div>
 
       {isLoading ? (

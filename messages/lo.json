@@ -482,15 +482,25 @@
         "amountLak": "LAK",
         "time": "ເວລາ"
       },
-      "direction": {
-        "In": "ຮັບ",
-        "Out": "ຈ່າຍ"
-      },
       "method": {
         "Cash": "ເງິນສົດ",
         "BankTransfer": "ໂອນເງິນ",
-        "QR": "QR"
-      }
+        "QR": "QR",
+        "COMBINED": "ລວມກັນ"
+      },
+      "entryType": {
+        "INCOME": "ຮັບດ້ວຍຕົນເອງ",
+        "EXPENSE": "ຈ່າຍດ້ວຍຕົນເອງ",
+        "SellGold": "ຂາຍຄຳ",
+        "SellSilver": "ຂາຍເງິນ",
+        "BuyGold": "ຊື້ເຂົ້າ",
+        "ExchangeGold": "ປ່ຽນຄຳ",
+        "ExchangeCurrency": "ແລກເງິນຕ່າງປະເທດ",
+        "BuyMoreGold": "ຊື້ເພີ່ມ",
+        "ExchangeFree": "ປ່ຽນຟຣີ",
+        "ExchangeToMoney": "ປ່ຽນເປັນເງິນ"
+      },
+      "cancel": "ຍົກເລີກ"
     },
     "reports": {
       "title": "ລາຍງານ",
@@ -645,6 +655,22 @@
         "PRODUCT_MANAGE": "ຈັດການສິນຄ້າ & ໝວດໝູ່",
         "BRANCH_MANAGE": "ຈັດການສາຂາ",
         "USER_MANAGE": "ຈັດການຜູ້ໃຊ້ & ສິດທິ"
+      },
+      "createButton": "ສ້າງບົດບາດ",
+      "editInfoButton": "ແກ້ໄຂຂໍ້ມູນ",
+      "deleteButton": "ລຶບ",
+      "createDialogTitle": "ສ້າງບົດບາດໃໝ່",
+      "editInfoDialogTitle": "ແກ້ໄຂຂໍ້ມູນບົດບາດ",
+      "deleteConfirmTitle": "ລຶບບົດບາດ \"{name}\"?",
+      "deleteConfirmDescription": "ການດຳເນີນນີ້ບໍ່ສາມາດຍ້ອນໄດ້. ບົດບາດຈະຖືກລຶບຖາວອນ.",
+      "deleteConfirmButton": "ລຶບຖາວອນ",
+      "fields": {
+        "code": "ລະຫັດບົດບາດ",
+        "codePlaceholder": "ຕົວຢ່າງ: ACCOUNTANT",
+        "name": "ຊື່ບົດບາດ",
+        "namePlaceholder": "ຕົວຢ່າງ: ນັກບັນຊີ",
+        "description": "ຄຳອະທິບາຍ",
+        "descriptionPlaceholder": "ຄຳອະທິບາຍສັ້ນກ່ຽວກັບບົດບາດນີ້"
       }
     },
     "users": {

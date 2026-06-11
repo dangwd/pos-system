@@ -73,6 +73,7 @@ function ProductSearch({ onSelect }: ProductSearchProps) {
   const [search, setSearch] = useState("");
   const [debouncedSearch, setDebouncedSearch] = useState("");
   const [open, setOpen] = useState(false);
+  const [focusedIndex, setFocusedIndex] = useState(-1);
   const containerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -93,10 +94,23 @@ function ProductSearch({ onSelect }: ProductSearchProps) {
     return () => document.removeEventListener("mousedown", handler);
   }, []);
 
+  // F3 → focus product search input
+  useEffect(() => {
+    const handler = (e: KeyboardEvent) => {
+      if (e.key === "F3") {
+        e.preventDefault();
+        document.getElementById("pos-product-search")?.focus();
+      }
+    };
+    document.addEventListener("keydown", handler);
+    return () => document.removeEventListener("keydown", handler);
+  }, []);
+
   const handleSelect = (product: Product) => {
     onSelect(product);
     setSearch("");
     setDebouncedSearch("");
+    setFocusedIndex(-1);
     setOpen(false);
   };
 
@@ -111,6 +125,7 @@ function ProductSearch({ onSelect }: ProductSearchProps) {
           value={search}
           onChange={(e) => {
             setSearch(e.target.value);
+            setFocusedIndex(-1);
             setOpen(!!e.target.value);
           }}
           onFocus={() => search && setOpen(true)}
@@ -118,8 +133,21 @@ function ProductSearch({ onSelect }: ProductSearchProps) {
             if (e.key === "Escape") {
               setOpen(false);
               setSearch("");
+              setFocusedIndex(-1);
             }
-            if (e.key === "Enter" && results[0]) handleSelect(results[0]);
+            if (e.key === "ArrowDown") {
+              e.preventDefault();
+              setFocusedIndex((prev) => Math.min(prev + 1, results.length - 1));
+              if (!open && results.length > 0) setOpen(true);
+            }
+            if (e.key === "ArrowUp") {
+              e.preventDefault();
+              setFocusedIndex((prev) => Math.max(prev - 1, -1));
+            }
+            if (e.key === "Enter") {
+              const target = focusedIndex >= 0 ? results[focusedIndex] : results[0];
+              if (target) handleSelect(target);
+            }
           }}
         />
         {isFetching && (
@@ -132,12 +160,15 @@ function ProductSearch({ onSelect }: ProductSearchProps) {
       {open && (results.length > 0 || (debouncedSearch && !isFetching)) && (
         <div className="absolute top-full left-0 z-50 mt-1 w-full rounded-lg border bg-popover shadow-xl overflow-hidden">
           {results.length > 0 ? (
-            results.map((p) => (
+            results.map((p, i) => (
               <button
                 key={p.id}
                 type="button"
                 onClick={() => handleSelect(p)}
-                className="w-full flex items-center justify-between px-3 py-2.5 text-left hover:bg-accent hover:text-accent-foreground transition-colors border-b last:border-0"
+                className={cn(
+                  "w-full flex items-center justify-between px-3 py-2.5 text-left hover:bg-accent hover:text-accent-foreground transition-colors border-b last:border-0",
+                  focusedIndex === i && "bg-accent text-accent-foreground",
+                )}
               >
                 <div className="min-w-0 flex-1">
                   <p className="text-xs font-medium truncate">

@@ -1,21 +1,13 @@
 'use client'
 
-import { useEffect, useMemo, useRef, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { useTranslations } from 'next-intl'
+import { Select } from 'antd'
 import { useTransactions } from '@/hooks/useTransactions'
 import { DataTable } from '@/components/shared/DataTable'
 import { createOrderColumns } from '@/components/admin/columns/order-columns'
 import { TablePageSkeleton } from '@/components/shared/PageSkeleton'
 import { Input } from '@/components/ui/input'
-import {
-  Combobox,
-  ComboboxContent,
-  ComboboxEmpty,
-  ComboboxInput,
-  ComboboxItem,
-  ComboboxList,
-  ComboboxTrigger,
-} from '@/components/ui/combobox'
 import type { TransactionStatus, TransactionType } from '@/types/transaction'
 
 function formatKip(n: number) {
@@ -24,13 +16,8 @@ function formatKip(n: number) {
 
 const PAGE_SIZE = 20
 
-const TRIGGER = "inline-flex h-8 items-center justify-between gap-2 rounded-md border border-input bg-background px-3 text-sm font-normal hover:bg-accent hover:text-accent-foreground transition-colors w-full"
-
 export default function OrdersPage() {
   const t = useTranslations('admin.orders')
-
-  const statusAnchor = useRef<HTMLDivElement>(null)
-  const typeAnchor = useRef<HTMLDivElement>(null)
 
   const [page, setPage] = useState(1)
   const [filterStatus, setFilterStatus] = useState<string | null>(null)
@@ -112,57 +99,37 @@ export default function OrdersPage() {
         />
 
         {/* Status */}
-        <div ref={statusAnchor} className="inline-flex min-w-40">
-          <Combobox
-            value={filterStatus ?? ""}
-            onValueChange={v => { setFilterStatus(v || null); setPage(1) }}
-          >
-            <ComboboxTrigger className={TRIGGER}>
-              {filterStatus
-                ? statusLabels[filterStatus as keyof typeof statusLabels] ?? filterStatus
-                : <span className="text-muted-foreground">{t('filterStatus')}</span>
-              }
-            </ComboboxTrigger>
-            <ComboboxContent anchor={statusAnchor}>
-              <ComboboxInput placeholder={t('filterStatus')} />
-              <ComboboxList>
-                <ComboboxItem value="">{t('filterAll')}</ComboboxItem>
-                <ComboboxItem value="Pending">{statusLabels.Pending}</ComboboxItem>
-                <ComboboxItem value="Approved">{statusLabels.Approved}</ComboboxItem>
-                <ComboboxItem value="Completed">{statusLabels.Completed}</ComboboxItem>
-                <ComboboxItem value="Rejected">{statusLabels.Rejected}</ComboboxItem>
-              </ComboboxList>
-              <ComboboxEmpty>Không tìm thấy</ComboboxEmpty>
-            </ComboboxContent>
-          </Combobox>
-        </div>
+        <Select
+          value={filterStatus || undefined}
+          onChange={v => { setFilterStatus(v ?? null); setPage(1) }}
+          placeholder={t('filterStatus')}
+          options={[
+            { value: 'Pending',   label: statusLabels.Pending },
+            { value: 'Approved',  label: statusLabels.Approved },
+            { value: 'Completed', label: statusLabels.Completed },
+            { value: 'Rejected',  label: statusLabels.Rejected },
+          ]}
+          allowClear
+          className="min-w-40"
+          popupMatchSelectWidth={false}
+        />
 
         {/* Type */}
-        <div ref={typeAnchor} className="inline-flex min-w-44">
-          <Combobox
-            value={filterType ?? ""}
-            onValueChange={v => { setFilterType(v || null); setPage(1) }}
-          >
-            <ComboboxTrigger className={TRIGGER}>
-              {filterType
-                ? typeLabels[filterType as keyof typeof typeLabels] ?? filterType
-                : <span className="text-muted-foreground">{t('filterType')}</span>
-              }
-            </ComboboxTrigger>
-            <ComboboxContent anchor={typeAnchor}>
-              <ComboboxInput placeholder={t('filterType')} />
-              <ComboboxList>
-                <ComboboxItem value="">{t('filterAll')}</ComboboxItem>
-                <ComboboxItem value="SellGold">{typeLabels.SellGold}</ComboboxItem>
-                <ComboboxItem value="SellSilver">{typeLabels.SellSilver}</ComboboxItem>
-                <ComboboxItem value="BuyGold">{typeLabels.BuyGold}</ComboboxItem>
-                <ComboboxItem value="ExchangeGold">{typeLabels.ExchangeGold}</ComboboxItem>
-                <ComboboxItem value="ExchangeCurrency">{typeLabels.ExchangeCurrency}</ComboboxItem>
-              </ComboboxList>
-              <ComboboxEmpty>Không tìm thấy</ComboboxEmpty>
-            </ComboboxContent>
-          </Combobox>
-        </div>
+        <Select
+          value={filterType || undefined}
+          onChange={v => { setFilterType(v ?? null); setPage(1) }}
+          placeholder={t('filterType')}
+          options={[
+            { value: 'SellGold',         label: typeLabels.SellGold },
+            { value: 'SellSilver',       label: typeLabels.SellSilver },
+            { value: 'BuyGold',          label: typeLabels.BuyGold },
+            { value: 'ExchangeGold',     label: typeLabels.ExchangeGold },
+            { value: 'ExchangeCurrency', label: typeLabels.ExchangeCurrency },
+          ]}
+          allowClear
+          className="min-w-44"
+          popupMatchSelectWidth={false}
+        />
 
         {/* Date range */}
         <Input

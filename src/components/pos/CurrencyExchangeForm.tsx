@@ -48,12 +48,14 @@ export function CurrencyExchangeForm() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [fromCurrency, toCurrency, fromAmount])
 
-  const handleFromCurrencyChange = (curr: string) => {
+  const handleFromCurrencyChange = (curr: string | null) => {
+    if (!curr) return
     setFromCurrency(curr)
     if (curr === toCurrency) setToCurrency(curr === 'LAK' ? (rates[0]?.currencyCode ?? 'USD') : 'LAK')
   }
 
-  const handleToCurrencyChange = (curr: string) => {
+  const handleToCurrencyChange = (curr: string | null) => {
+    if (!curr) return
     setToCurrency(curr)
     if (curr === fromCurrency) setFromCurrency(curr === 'LAK' ? (rates[0]?.currencyCode ?? 'USD') : 'LAK')
   }

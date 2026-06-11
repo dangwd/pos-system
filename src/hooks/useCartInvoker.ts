@@ -3,15 +3,14 @@ import { CartCommandInvoker } from '@/lib/commands/cart.command'
 
 export function useCartInvoker() {
   const invokerRef = useRef(new CartCommandInvoker())
-  const invoker = invokerRef.current
 
   const run = useCallback((cmd: Parameters<CartCommandInvoker['run']>[0]) => {
-    invoker.run(cmd)
-  }, [invoker])
+    invokerRef.current.run(cmd)
+  }, [])
 
   const undo = useCallback(() => {
-    invoker.undo()
-  }, [invoker])
+    invokerRef.current.undo()
+  }, [])
 
-  return { run, undo, invoker }
+  return { run, undo }
 }
