@@ -1,7 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useLocale, useTranslations } from 'next-intl'
 import { toast } from 'sonner'
-import { productRepository } from '@/lib/repositories/product.repository'
+import { productRepository, type ProductListParams } from '@/lib/repositories/product.repository'
 import { getErrorMessage } from '@/lib/errors'
 import type { ApiError } from '@/lib/api-error'
 import type { AppLocale } from '@/lib/errors'
@@ -30,10 +30,10 @@ function useProductMutationBase() {
 
 // ─── Queries ──────────────────────────────────────────────────────────────────
 
-export function useProducts() {
+export function useProducts(params?: ProductListParams) {
   return useQuery({
-    queryKey: PRODUCTS_KEY,
-    queryFn: () => productRepository.getAll(),
+    queryKey: [...PRODUCTS_KEY, params],
+    queryFn: () => productRepository.getAll(params),
     staleTime: 300_000,
   })
 }

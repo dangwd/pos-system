@@ -30,9 +30,13 @@ export class TransactionRepository {
     return data
   }
 
-  /** Danh sách giao dịch có phân trang */
+  /**
+   * Danh sách giao dịch có phân trang.
+   * Luôn truyền page (mặc định 1) để backend trả PagedResult thay vì mảng phẳng.
+   */
   async getList(params?: TransactionListParams): Promise<TransactionPage> {
-    const { data } = await api.get<TransactionPage>(this.base, { params })
+    const queryParams = { page: 1, pageSize: 20, ...params }
+    const { data } = await api.get<TransactionPage>(this.base, { params: queryParams })
     return data
   }
 

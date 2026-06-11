@@ -12,28 +12,30 @@
 // ─── Enums ────────────────────────────────────────────────────────────────────
 
 /** Trạng thái tồn kho */
-export type InventoryStatus = 'Available' | 'Reserved' | 'Sold' | 'Returned'
+export type InventoryStatus = 'TiepNhan' | 'TrenQuay' | 'DaBan' | 'ChuyenXuong'
 
 /** Nguồn gốc hàng hóa */
-export type InventorySource = 'New' | 'TradeIn' | 'Adjusted'
+export type InventorySource = 'Quan' | 'Ngoai'
 
 /** Hướng điều chỉnh kho */
-export type AdjustDirection = 'In' | 'Out'
+export type AdjustDirection = 'IN' | 'OUT'
 
 // ─── Entities ─────────────────────────────────────────────────────────────────
 
 /** Một mục trong kho hàng (GET /api/inventory) */
 export interface InventoryItem {
   id: string
-  productId: string
-  productName: string        // Tên sản phẩm (snapshot)
   branchId: string
+  productCode: string        // Mã sản phẩm (snapshot)
+  productName: string        // Tên sản phẩm (snapshot)
+  category: string           // Mã danh mục (ví dụ: "VANG_24K")
+  purity: string             // Tuổi vàng (ví dụ: "24K")
+  trayId: string             // Mã khay trưng bày (ví dụ: "KHAY-A1")
   quantity: number           // Số lượng hiện tại
   weightGram: number         // Tổng trọng lượng (gram)
   trangThai: InventoryStatus
   nguonGoc: InventorySource
-  trayId: string             // Mã khay trưng bày (ví dụ: "KHAY-A1")
-  updatedAt: string          // ISO 8601
+  lastUpdatedAt: string      // ISO 8601
 }
 
 /** Log điều chỉnh kho */
@@ -64,6 +66,8 @@ export interface InventoryListParams {
   branchId?: string
   category?: string
   trayId?: string
-  status?: InventoryStatus
-  nguonGoc?: InventorySource
+  status?: InventoryStatus   // TiepNhan | TrenQuay | DaBan | ChuyenXuong
+  nguonGoc?: InventorySource // Quan | Ngoai
+  page?: number
+  pageSize?: number
 }

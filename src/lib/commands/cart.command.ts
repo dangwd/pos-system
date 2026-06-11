@@ -3,7 +3,7 @@
  *
  * Mỗi CartCommand có execute() và undo().
  * CartCommandInvoker giữ lịch sử để undo từng bước.
- * Dùng inventoryItemId làm key định danh item trong giỏ.
+ * Dùng productId làm key định danh item trong giỏ.
  */
 
 import type { CartStore } from '@/stores/cart.store'
@@ -18,17 +18,17 @@ export class AddItemCommand implements CartCommand {
   constructor(private store: CartStore, private item: CartItem) {}
 
   execute() { this.store.add(this.item) }
-  undo()    { this.store.decreaseOrRemove(this.item.inventoryItemId) }
+  undo()    { this.store.decreaseOrRemove(this.item.productId) }
 }
 
 export class RemoveItemCommand implements CartCommand {
   private snapshot: CartItem | undefined
 
-  constructor(private store: CartStore, private inventoryItemId: string) {}
+  constructor(private store: CartStore, private productId: string) {}
 
   execute() {
-    this.snapshot = this.store.getItem(this.inventoryItemId)
-    this.store.remove(this.inventoryItemId)
+    this.snapshot = this.store.getItem(this.productId)
+    this.store.remove(this.productId)
   }
 
   undo() {
@@ -41,16 +41,16 @@ export class UpdateQtyCommand implements CartCommand {
 
   constructor(
     private store: CartStore,
-    private inventoryItemId: string,
+    private productId: string,
     private qty: number
   ) {}
 
   execute() {
-    this.prevQty = this.store.getItem(this.inventoryItemId)?.qty ?? 0
-    this.store.setQty(this.inventoryItemId, this.qty)
+    this.prevQty = this.store.getItem(this.productId)?.qty ?? 0
+    this.store.setQty(this.productId, this.qty)
   }
 
-  undo() { this.store.setQty(this.inventoryItemId, this.prevQty) }
+  undo() { this.store.setQty(this.productId, this.prevQty) }
 }
 
 export class ClearCartCommand implements CartCommand {

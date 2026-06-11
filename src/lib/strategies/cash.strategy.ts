@@ -9,7 +9,7 @@ import type { PaymentStrategy } from './payment.strategy'
 import type { PaymentMethod } from '@/types/transaction'
 
 export class CashStrategy implements PaymentStrategy {
-  readonly paymentMethod: PaymentMethod = 'Cash'
+  readonly paymentMethod: PaymentMethod = 'CASH'
   readonly label = 'ເງິນສົດ'
 
   /**

@@ -69,10 +69,10 @@ export function createInventoryColumns(labels: InventoryColumnLabels): ColumnDef
       cell: ({ getValue }) => {
         const status = getValue() as string
         const variantMap: Record<string, 'default' | 'secondary' | 'outline' | 'destructive'> = {
-          Available: 'default',
-          Reserved: 'outline',
-          Sold: 'secondary',
-          Returned: 'destructive',
+          TiepNhan:    'outline',
+          TrenQuay:    'default',
+          DaBan:       'secondary',
+          ChuyenXuong: 'destructive',
         }
         return <Badge variant={variantMap[status] ?? 'secondary'}>{status}</Badge>
       },
@@ -85,7 +85,7 @@ export function createInventoryColumns(labels: InventoryColumnLabels): ColumnDef
       ),
     },
     {
-      accessorKey: 'updatedAt',
+      accessorKey: 'lastUpdatedAt',
       header: labels.updatedAt,
       cell: ({ getValue }) => (
         <span className="text-sm text-muted-foreground">

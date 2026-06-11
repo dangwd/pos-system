@@ -20,6 +20,7 @@ import { useActiveTab } from '@/hooks/useActiveTab'
 import { Badge } from '@/components/ui/badge'
 import { Minus, Plus, Trash2, ShoppingCart, Package } from 'lucide-react'
 import type { CartItem } from '@/types/cart'
+import { lineTotal as computeLineTotal } from '@/types/cart'
 import { useTranslations } from 'next-intl'
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
@@ -118,7 +119,7 @@ interface TransactionRowProps {
 
 function TransactionRow({ item, index, onQtyChange, onDelete }: TransactionRowProps) {
   const t = useTranslations('pos.transactionTable')
-  const lineTotal = (item.unitPrice ?? 0) * item.qty + (item.laborFee ?? 0) + (item.stoneFee ?? 0)
+  const rowTotal = computeLineTotal(item)
 
   // Map category name → operation label key
   const opKey = item.categoryName.toLowerCase().includes('vàng') || item.categoryName.toLowerCase().includes('gold')
@@ -154,7 +155,7 @@ function TransactionRow({ item, index, onQtyChange, onDelete }: TransactionRowPr
       <td className="px-3 py-3 min-w-40 max-w-60">
         <p className="text-sm font-medium text-foreground leading-tight truncate">{item.name}</p>
         <p className="text-[10px] text-muted-foreground font-mono mt-0.5">
-          {item.purity} · #{item.inventoryItemId.slice(0, 8).toUpperCase()}
+          {item.purity} · #{item.productId.slice(0, 8).toUpperCase()}
         </p>
       </td>
 
@@ -163,8 +164,8 @@ function TransactionRow({ item, index, onQtyChange, onDelete }: TransactionRowPr
         <QtyControl
           qty={item.qty}
           maxQty={999}
-          onDecrease={() => onQtyChange(item.inventoryItemId, item.qty - 1)}
-          onIncrease={() => onQtyChange(item.inventoryItemId, item.qty + 1)}
+          onDecrease={() => onQtyChange(item.productId, item.qty - 1)}
+          onIncrease={() => onQtyChange(item.productId, item.qty + 1)}
         />
       </td>
 
@@ -173,18 +174,18 @@ function TransactionRow({ item, index, onQtyChange, onDelete }: TransactionRowPr
 
       {/* ĐƠN GIÁ */}
       <td className="px-3 py-3 text-xs tabular-nums text-muted-foreground whitespace-nowrap">
-        {(item.unitPrice ?? 0).toLocaleString('lo-LA')} ₭
+        {item.unitPriceLakPerGram.toLocaleString('lo-LA')} ₭/g
       </td>
 
       {/* THÀNH TIỀN */}
       <td className="px-3 py-3 text-sm tabular-nums font-semibold text-foreground whitespace-nowrap">
-        {formatKip(lineTotal)}
+        {formatKip(rowTotal)}
       </td>
 
       {/* Delete */}
       <td className="px-2 py-3 w-8">
         <button
-          onClick={() => onDelete(item.inventoryItemId)}
+          onClick={() => onDelete(item.productId)}
           className="p-1 rounded-sm opacity-0 group-hover:opacity-100 text-muted-foreground hover:bg-destructive/10 hover:text-destructive transition-all"
           title={t('deleteTooltip')}
         >
@@ -302,7 +303,7 @@ export function TransactionTable() {
             <tbody>
               {items.map((item, i) => (
                 <TransactionRow
-                  key={item.inventoryItemId}
+                  key={item.productId}
                   item={item}
                   index={i}
                   onQtyChange={setQty}

@@ -48,6 +48,7 @@ import {
   Sparkles,
   X,
 } from "lucide-react";
+import { motion } from "motion/react";
 import { useTranslations } from "next-intl";
 import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
@@ -173,52 +174,57 @@ function InlineTabChip({
       aria-selected={isActive}
       onClick={onSwitch}
       className={cn(
-        "group relative flex items-center gap-1.5 px-3 h-full cursor-pointer select-none transition-all shrink-0",
-        "max-w-36 min-w-20 text-xs",
+        "group relative flex items-center gap-2 px-3.5 h-full cursor-pointer select-none shrink-0",
+        "min-w-24 max-w-44 border-r border-border/40 last:border-r-0",
+        "transition-colors duration-150",
         isActive
-          ? "text-foreground font-semibold border-b-2 border-primary bg-background/60"
-          : "text-muted-foreground hover:text-foreground hover:bg-muted/50 border-b-2 border-transparent",
+          ? "text-primary font-semibold bg-background"
+          : "text-muted-foreground hover:text-foreground hover:bg-muted/30",
       )}
     >
-      {tab.status === "holding" && (
-        <span
-          className="w-1.5 h-1.5 rounded-full bg-muted-foreground/70 shrink-0"
-          title={t("holdingStatus")}
+      {/* Indicator trượt — dùng layoutId để animate khi chuyển tab */}
+      {isActive && (
+        <motion.div
+          layoutId="pos-tab-indicator"
+          className="absolute bottom-0 inset-x-0 h-0.5 bg-primary"
+          transition={{ type: "spring", stiffness: 500, damping: 40 }}
         />
+      )}
+
+      {/* Chấm trạng thái */}
+      {tab.status === "holding" && (
+        <span className="w-2 h-2 rounded-full bg-amber-400 shrink-0 ring-2 ring-amber-400/20" title={t("holdingStatus")} />
       )}
       {tab.status === "paying" && (
-        <span
-          className="w-1.5 h-1.5 rounded-full bg-primary animate-pulse shrink-0"
-          title={t("payingStatus")}
-        />
+        <span className="w-2 h-2 rounded-full bg-blue-500 shrink-0 animate-pulse ring-2 ring-blue-500/20" title={t("payingStatus")} />
       )}
 
-      <span className="truncate flex-1">{tab.label}</span>
+      {/* Label */}
+      <span className="truncate flex-1 text-xs">{tab.label}</span>
 
+      {/* Badge số lượng */}
       {totalQty > 0 && (
-        <span className="shrink-0 text-[10px] bg-primary/15 text-primary rounded-sm px-1 font-bold leading-4">
+        <span className={cn(
+          "shrink-0 text-[10px] font-bold leading-none rounded px-1.5 py-0.5 tabular-nums",
+          isActive ? "bg-primary/15 text-primary" : "bg-muted text-muted-foreground",
+        )}>
           {totalQty}
         </span>
       )}
 
+      {/* Actions — hover khi active */}
       {isActive && (
         <div className="flex items-center gap-0.5 opacity-0 group-hover:opacity-100 shrink-0 transition-opacity">
           <button
-            onClick={(e) => {
-              e.stopPropagation();
-              onHold();
-            }}
-            className="p-0.5 rounded-sm hover:bg-muted hover:text-foreground"
+            onClick={(e) => { e.stopPropagation(); onHold(); }}
+            className="p-0.5 rounded hover:bg-amber-100 hover:text-amber-600 text-muted-foreground"
             title={t("holdTooltip")}
           >
             <PauseCircle className="h-3 w-3" />
           </button>
           <button
-            onClick={(e) => {
-              e.stopPropagation();
-              onDuplicate();
-            }}
-            className="p-0.5 rounded-sm hover:bg-muted"
+            onClick={(e) => { e.stopPropagation(); onDuplicate(); }}
+            className="p-0.5 rounded hover:bg-muted text-muted-foreground"
             title={t("duplicateTooltip")}
           >
             <Copy className="h-3 w-3" />
@@ -226,13 +232,14 @@ function InlineTabChip({
         </div>
       )}
 
+      {/* Đóng tab */}
       {showClose && (
         <button
-          onClick={(e) => {
-            e.stopPropagation();
-            onClose();
-          }}
-          className="shrink-0 p-0.5 rounded-sm opacity-0 group-hover:opacity-50 hover:opacity-100! hover:text-destructive transition-all"
+          onClick={(e) => { e.stopPropagation(); onClose(); }}
+          className={cn(
+            "shrink-0 p-0.5 rounded transition-all text-muted-foreground hover:text-destructive hover:bg-destructive/10",
+            isActive ? "opacity-0 group-hover:opacity-100" : "opacity-0 group-hover:opacity-60",
+          )}
           title={t("closeTooltip")}
         >
           <X className="h-3 w-3" />
@@ -331,7 +338,7 @@ export function PosTopBar({ products, onAddProduct }: PosTopBarProps) {
 
         {/* ── Center: Invoice tabs ────────────────────────────────────────── */}
         <div
-          className="flex-1 flex items-stretch overflow-x-auto min-w-0"
+          className="flex-1 flex items-stretch overflow-x-auto min-w-0 bg-muted/20"
           role="tablist"
           aria-label={t("tabListLabel")}
         >
@@ -351,7 +358,7 @@ export function PosTopBar({ products, onAddProduct }: PosTopBarProps) {
           <button
             onClick={openTab}
             title={t("newTabTooltip")}
-            className="shrink-0 h-full px-3 flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground hover:bg-muted/50 transition-colors border-b-2 border-transparent"
+            className="shrink-0 my-auto ml-2 h-7 w-7 flex items-center justify-center rounded-md border border-dashed border-muted-foreground/30 text-muted-foreground hover:border-primary/50 hover:text-primary hover:bg-primary/5 transition-all"
           >
             <Plus className="h-3.5 w-3.5" />
           </button>

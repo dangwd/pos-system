@@ -140,13 +140,12 @@ export default function RolesPage() {
       )}
 
       <Dialog open={!!editingRole} onOpenChange={(o) => !o && closeEdit()}>
-        <DialogContent className="sm:max-w-3xl max-h-[85vh] flex flex-col p-0 gap-0">
+        <DialogContent className="sm:max-w-5xl max-h-[90vh] flex flex-col p-0 gap-0">
           {/* Header */}
           <div className="px-6 pt-5 pb-4 border-b shrink-0">
             <DialogHeader>
               <DialogTitle className="text-base">{t('editDialogTitle', { name: editingRole?.name ?? '' })}</DialogTitle>
             </DialogHeader>
-            {/* Summary bar */}
             <div className="flex items-center gap-2 mt-3">
               <span className="text-xs text-muted-foreground">
                 {selected.size} / {allPermissions.length} quyền được chọn
@@ -162,70 +161,66 @@ export default function RolesPage() {
             </div>
           </div>
 
-          {/* Permission groups */}
-          <div className="flex-1 overflow-y-auto px-6 py-4 space-y-6">
-            {Object.entries(grouped).map(([group, perms]) => {
-              const checkedCount = perms.filter((p) => selected.has(p.id)).length
-              const allChecked = checkedCount === perms.length
-              const someChecked = checkedCount > 0 && checkedCount < perms.length
-
-              return (
-                <div key={group}>
-                  {/* Group header */}
-                  <div
-                    className="flex items-center justify-between px-3 py-2 rounded-lg bg-muted/50 border cursor-pointer select-none hover:bg-muted/70 transition-colors mb-3"
-                    onClick={() => toggleGroup(perms)}
-                  >
-                    <div className="flex items-center gap-2.5">
-                      <Checkbox
-                        checked={allChecked}
-                        data-indeterminate={someChecked || undefined}
-                        onCheckedChange={() => toggleGroup(perms)}
-                        className="pointer-events-none"
-                      />
-                      <span className="text-xs font-semibold tracking-widest uppercase text-foreground/70">
-                        {getGroupName(group)}
-                      </span>
-                    </div>
-                    <span className="text-xs tabular-nums text-muted-foreground">
-                      {checkedCount} / {perms.length}
-                    </span>
-                  </div>
-
-                  {/* Permission items — 2 column grid */}
-                  <div className="grid grid-cols-2 gap-2">
-                    {perms.map((perm) => {
-                      const isChecked = selected.has(perm.id)
-                      return (
-                        <div
-                          key={perm.id}
-                          onClick={() => togglePermission(perm.id)}
-                          className={cn(
-                            'flex items-start gap-2.5 px-3 py-2.5 rounded-lg border cursor-pointer select-none transition-colors',
-                            isChecked
-                              ? 'border-primary/30 bg-primary/5'
-                              : 'border-border/60 hover:bg-muted/40',
-                          )}
-                        >
-                          <Checkbox
-                            checked={isChecked}
-                            onCheckedChange={() => togglePermission(perm.id)}
-                            className="pointer-events-none mt-0.5 shrink-0"
-                          />
-                          <div className="min-w-0">
-                            <p className="text-sm font-medium leading-snug truncate">{getPermName(perm)}</p>
-                            <p className="text-[10px] font-mono text-muted-foreground mt-0.5 truncate">{perm.code}</p>
-                          </div>
-                        </div>
-                      )
-                    })}
-                  </div>
-                </div>
-              )
-            })}
-
-            {allPermissions.length === 0 && (
+          {/* Permission groups — 3-column card grid */}
+          <div className="flex-1 overflow-y-auto px-6 py-5">
+            <p className="text-sm font-semibold mb-4">Phân quyền chức năng</p>
+            {allPermissions.length === 0 ? (
               <p className="text-sm text-muted-foreground text-center py-8">—</p>
+            ) : (
+              <div className="grid grid-cols-3 gap-4">
+                {Object.entries(grouped).map(([group, perms]) => {
+                  const checkedCount = perms.filter((p) => selected.has(p.id)).length
+                  const allChecked = checkedCount === perms.length
+                  const someChecked = checkedCount > 0 && checkedCount < perms.length
+
+                  return (
+                    <div key={group} className="rounded-lg border border-l-4 border-l-primary bg-card overflow-hidden">
+                      {/* Card header */}
+                      <div
+                        className="flex items-center gap-3 px-4 py-3 border-b bg-muted/30 cursor-pointer select-none hover:bg-muted/50 transition-colors"
+                        onClick={() => toggleGroup(perms)}
+                      >
+                        <Checkbox
+                          checked={allChecked}
+                          data-indeterminate={someChecked || undefined}
+                          onCheckedChange={() => toggleGroup(perms)}
+                          className="pointer-events-none shrink-0"
+                        />
+                        <span className="text-sm font-semibold text-primary truncate">
+                          {getGroupName(group)}
+                        </span>
+                        <span className="ml-auto text-xs tabular-nums text-muted-foreground shrink-0">
+                          {checkedCount}/{perms.length}
+                        </span>
+                      </div>
+
+                      {/* Permission items */}
+                      <div>
+                        {perms.map((perm) => {
+                          const isChecked = selected.has(perm.id)
+                          return (
+                            <div
+                              key={perm.id}
+                              onClick={() => togglePermission(perm.id)}
+                              className={cn(
+                                'flex items-center gap-3 px-4 py-2.5 border-b last:border-0 cursor-pointer select-none transition-colors',
+                                isChecked ? 'bg-primary/5' : 'hover:bg-muted/30',
+                              )}
+                            >
+                              <Checkbox
+                                checked={isChecked}
+                                onCheckedChange={() => togglePermission(perm.id)}
+                                className="pointer-events-none shrink-0"
+                              />
+                              <span className="text-sm truncate">{getPermName(perm)}</span>
+                            </div>
+                          )
+                        })}
+                      </div>
+                    </div>
+                  )
+                })}
+              </div>
             )}
           </div>
 

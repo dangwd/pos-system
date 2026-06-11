@@ -124,13 +124,13 @@ export const useInvoiceTabStore = create<InvoiceTabStore>()(
         set({
           tabs: tabs.map((t) => {
             if (t.id !== activeId) return t;
-            // Duplicate check by inventoryItemId (1 mục kho = 1 đơn vị vật lý)
+            // Duplicate check by productId (1 mục kho = 1 đơn vị vật lý)
             const existing = t.items.find(
-              (i) => i.inventoryItemId === item.inventoryItemId,
+              (i) => i.productId === item.productId,
             );
             const items = existing
               ? t.items.map((i) =>
-                  i.inventoryItemId === item.inventoryItemId
+                  i.productId === item.productId
                     ? { ...i, qty: i.qty + 1 }
                     : i,
                 )
@@ -141,7 +141,7 @@ export const useInvoiceTabStore = create<InvoiceTabStore>()(
       },
 
       /** Giảm qty 1; tự động xóa nếu qty về 0 */
-      removeItemFromActive(inventoryItemId: string) {
+      removeItemFromActive(productId: string) {
         const { tabs } = get();
         const activeId = resolveActiveId(tabs, get().activeTabId);
         if (!activeId) return;
@@ -151,7 +151,7 @@ export const useInvoiceTabStore = create<InvoiceTabStore>()(
             if (t.id !== activeId) return t;
             const items = t.items
               .map((i) =>
-                i.inventoryItemId === inventoryItemId
+                i.productId === productId
                   ? { ...i, qty: i.qty - 1 }
                   : i,
               )
@@ -162,7 +162,7 @@ export const useInvoiceTabStore = create<InvoiceTabStore>()(
       },
 
       /** Xóa hoàn toàn sản phẩm khỏi cart (không giảm từng bước) */
-      deleteItemFromActive(inventoryItemId: string) {
+      deleteItemFromActive(productId: string) {
         const { tabs } = get();
         const activeId = resolveActiveId(tabs, get().activeTabId);
         if (!activeId) return;
@@ -174,7 +174,7 @@ export const useInvoiceTabStore = create<InvoiceTabStore>()(
               : {
                   ...t,
                   items: t.items.filter(
-                    (i) => i.inventoryItemId !== inventoryItemId,
+                    (i) => i.productId !== productId,
                   ),
                 },
           ),
@@ -182,7 +182,7 @@ export const useInvoiceTabStore = create<InvoiceTabStore>()(
       },
 
       /** Set qty chính xác; qty <= 0 → xóa sản phẩm */
-      setItemQtyInActive(inventoryItemId: string, qty: number) {
+      setItemQtyInActive(productId: string, qty: number) {
         const { tabs } = get();
         const activeId = resolveActiveId(tabs, get().activeTabId);
         if (!activeId) return;
@@ -192,9 +192,9 @@ export const useInvoiceTabStore = create<InvoiceTabStore>()(
             if (t.id !== activeId) return t;
             const items =
               qty <= 0
-                ? t.items.filter((i) => i.inventoryItemId !== inventoryItemId)
+                ? t.items.filter((i) => i.productId !== productId)
                 : t.items.map((i) =>
-                    i.inventoryItemId === inventoryItemId ? { ...i, qty } : i,
+                    i.productId === productId ? { ...i, qty } : i,
                   );
             return { ...t, items };
           }),
@@ -230,7 +230,7 @@ export const useInvoiceTabStore = create<InvoiceTabStore>()(
     }),
 
     {
-      // v2: đổi tên key để xóa dữ liệu cũ (CartItem schema thay đổi — cần inventoryItemId)
+      // v2: đổi tên key để xóa dữ liệu cũ (CartItem schema thay đổi — cần productId)
       name: "pos-invoice-tabs",
 
       // Chỉ persist tabs[], không persist activeTabId để tránh stale sau reload
@@ -240,11 +240,11 @@ export const useInvoiceTabStore = create<InvoiceTabStore>()(
       onRehydrateStorage: () => (state) => {
         if (!state || state.tabs.length === 0) return;
 
-        // Loại bỏ CartItem không có inventoryItemId (schema cũ trước khi migrate)
+        // Loại bỏ CartItem không có productId (schema cũ trước khi migrate)
         state.tabs = state.tabs.map((t) => ({
           ...t,
           items: t.items.filter(
-            (i) => "inventoryItemId" in i && !!i.inventoryItemId,
+            (i) => "productId" in i && !!i.productId,
           ),
         }));
 

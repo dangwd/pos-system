@@ -41,7 +41,7 @@ export default function GoldPuritiesPage() {
   }
 
   function openEdit(p: GoldPurity) {
-    setForm({ ma: p.ma, hamLuong: String(p.hamLuong), category: p.category })
+    setForm({ ma: p.ma, hamLuong: String(p.hamLuong), category: p.category ?? 'Gold' })
     setDialog({ mode: 'edit', purity: p })
   }
 
@@ -87,8 +87,8 @@ export default function GoldPuritiesPage() {
                   <tr key={p.id} className="border-b last:border-0 hover:bg-muted/20">
                     <td className="px-4 py-3 font-mono font-bold">{p.ma}</td>
                     <td className="px-4 py-3">
-                      <Badge variant={p.category === 'Gold' ? 'default' : 'secondary'}>
-                        {p.category === 'Gold' ? t('categoryGold') : t('categorySilver')}
+                      <Badge variant={(p.category ?? 'Gold') === 'Gold' ? 'default' : 'secondary'}>
+                        {(p.category ?? 'Gold') === 'Gold' ? t('categoryGold') : t('categorySilver')}
                       </Badge>
                     </td>
                     <td className="px-4 py-3 text-right">{p.hamLuong}%</td>

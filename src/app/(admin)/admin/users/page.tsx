@@ -1,6 +1,6 @@
 'use client'
 
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { useTranslations } from 'next-intl'
 import { Plus } from 'lucide-react'
 import { TablePageSkeleton } from '@/components/shared/PageSkeleton'
@@ -11,6 +11,7 @@ import { UserEditInfoDialog } from '@/components/admin/users/UserEditInfoDialog'
 import { UserEditRoleDialog } from '@/components/admin/users/UserEditRoleDialog'
 import { UserResetPasswordDialog } from '@/components/admin/users/UserResetPasswordDialog'
 import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
 import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from '@/components/ui/select'
@@ -28,6 +29,15 @@ export default function UsersPage() {
   const [editRoleUser, setEditRoleUser] = useState<AdminUser | null>(null)
   const [resetPwUser, setResetPwUser] = useState<AdminUser | null>(null)
   const [filterBranchId, setFilterBranchId] = useState<string>(ALL)
+  const [filterIsActive, setFilterIsActive] = useState<string>(ALL)
+  const [searchInput, setSearchInput] = useState('')
+  const [filterSearch, setFilterSearch] = useState('')
+
+  // Debounce search
+  useEffect(() => {
+    const timer = setTimeout(() => setFilterSearch(searchInput), 400)
+    return () => clearTimeout(timer)
+  }, [searchInput])
 
   const { data: branches = [] } = useBranches()
   const branchMap = useMemo(
@@ -35,9 +45,11 @@ export default function UsersPage() {
     [branches],
   )
 
-  const { data: users = [], isLoading } = useUsers(
-    filterBranchId !== ALL ? filterBranchId : undefined,
-  )
+  const { data: users = [], isLoading } = useUsers({
+    branchId: filterBranchId !== ALL ? filterBranchId : undefined,
+    search: filterSearch || undefined,
+    isActive: filterIsActive !== ALL ? (filterIsActive === 'active') : undefined,
+  })
   const { mutate: activate } = useActivateUser()
   const { mutate: deactivate } = useDeactivateUser()
 
@@ -90,29 +102,42 @@ export default function UsersPage() {
         </Button>
       </div>
 
-      {/* Branch filter */}
-      <Select value={filterBranchId} onValueChange={v => setFilterBranchId(v ?? ALL)}>
-        <SelectTrigger className="w-56 h-8 text-sm">
-          <SelectValue>
-            {(id: string | null) => !id || id === ALL
-              ? t('filterAll')
-              : (branches.find(b => b.id === id)?.name ?? id)}
-          </SelectValue>
-        </SelectTrigger>
-        <SelectContent>
-          <SelectItem value={ALL}>{t('filterAll')}</SelectItem>
-          {branches.map(b => (
-            <SelectItem key={b.id} value={b.id}>{b.name}</SelectItem>
-          ))}
-        </SelectContent>
-      </Select>
+      {/* Filter bar */}
+      <div className="flex flex-wrap items-center gap-2">
+        <Input
+          placeholder={t('searchPlaceholder')}
+          value={searchInput}
+          onChange={e => setSearchInput(e.target.value)}
+          className="h-8 w-56 text-sm"
+        />
+        <Select value={filterBranchId} onValueChange={v => setFilterBranchId(v ?? ALL)}>
+          <SelectTrigger className="h-8 w-44 text-sm">
+            <SelectValue placeholder={t('filterAll')} />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value={ALL}>{t('filterAll')}</SelectItem>
+            {branches.map(b => (
+              <SelectItem key={b.id} value={b.id}>{b.name}</SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+        <Select value={filterIsActive} onValueChange={v => setFilterIsActive(v ?? ALL)}>
+          <SelectTrigger className="h-8 w-44 text-sm">
+            <SelectValue placeholder={t('filterAllStatus')} />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value={ALL}>{t('filterAllStatus')}</SelectItem>
+            <SelectItem value="active">{t('status.active')}</SelectItem>
+            <SelectItem value="inactive">{t('status.inactive')}</SelectItem>
+          </SelectContent>
+        </Select>
+      </div>
 
       {isLoading ? <TablePageSkeleton /> : (
         <DataTable
           columns={columns}
           data={users}
-          searchKey="fullName"
-          searchPlaceholder={t('searchPlaceholder')}
+          hideSearch
         />
       )}
 

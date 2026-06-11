@@ -1,7 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useLocale, useTranslations } from 'next-intl'
 import { toast } from 'sonner'
-import { userRepository } from '@/lib/repositories/user.repository'
+import { userRepository, type UserListParams } from '@/lib/repositories/user.repository'
 import { getErrorMessage } from '@/lib/errors'
 import type { AppLocale } from '@/lib/errors'
 import type { ApiError } from '@/lib/api-error'
@@ -26,10 +26,10 @@ function useUserMutationBase() {
 
 // ─── Queries ─────────────────────────────────────────────────────────────────
 
-export function useUsers(branchId?: string) {
+export function useUsers(params?: UserListParams) {
   return useQuery({
-    queryKey: [...USERS_KEY, { branchId }],
-    queryFn: () => userRepository.getList(branchId),
+    queryKey: [...USERS_KEY, params],
+    queryFn: () => userRepository.getList(params),
     staleTime: 60_000,
   })
 }

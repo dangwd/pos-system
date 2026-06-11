@@ -27,6 +27,7 @@ import {
 import { Button } from '@/components/ui/button'
 import { Plus, X, PauseCircle, Copy } from 'lucide-react'
 import type { InvoiceTab } from '@/types/invoice-tab'
+import { lineTotal } from '@/types/cart'
 
 // ─── Confirm close dialog ─────────────────────────────────────────────────────
 
@@ -77,6 +78,10 @@ interface TabChipProps {
 
 function TabChip({ tab, isActive, onSwitch, onClose, onHold, onDuplicate, showClose }: TabChipProps) {
   const totalQty = tab.items.reduce((s, i) => s + i.qty, 0)
+  const subtotal  = tab.items.reduce((s, i) => s + lineTotal(i), 0)
+  const total     = Math.max(0, subtotal - tab.discountAmount)
+  const isHolding = tab.status === 'holding'
+  const isPaying  = tab.status === 'paying'
 
   return (
     <div
@@ -84,70 +89,95 @@ function TabChip({ tab, isActive, onSwitch, onClose, onHold, onDuplicate, showCl
       role="tab"
       aria-selected={isActive}
       className={cn(
-        // Base styles
-        'group relative flex items-center gap-1.5 px-3 py-1.5 rounded-t-md',
-        'border border-b-0 text-xs cursor-pointer select-none transition-colors',
-        'min-w-27.5 max-w-42',
-        // Active / inactive
+        'group relative flex flex-col justify-center px-3.5 pt-2 pb-1.5 cursor-pointer select-none transition-all',
+        'border-x border-t min-w-44 max-w-60',
         isActive
-          ? 'bg-background border-border text-foreground shadow-sm'
-          : 'bg-muted/60 border-transparent text-muted-foreground hover:bg-muted hover:text-foreground',
+          ? 'bg-background border-border rounded-t-lg border-t-2 border-t-primary shadow-[0_-3px_10px_-2px_rgba(0,0,0,0.07)]'
+          : 'bg-transparent border-transparent text-muted-foreground hover:text-foreground hover:bg-muted/40 rounded-t-md mt-0.5',
       )}
     >
-      {/* Indicator trạng thái holding */}
-      {tab.status === 'holding' && (
-        <span className="w-1.5 h-1.5 rounded-full bg-amber-400 shrink-0" title="Đang giữ" />
-      )}
+      {/* ── Dòng 1: chấm + label + actions ── */}
+      <div className="flex items-center gap-1.5">
+        {/* Chấm trạng thái */}
+        {isHolding
+          ? <span className="w-1.5 h-1.5 rounded-full bg-amber-400 shrink-0" />
+          : isPaying
+          ? <span className="w-1.5 h-1.5 rounded-full bg-blue-500 shrink-0 animate-pulse" />
+          : <span className={cn('w-1.5 h-1.5 rounded-full shrink-0', isActive ? 'bg-primary/50' : 'bg-muted-foreground/30')} />
+        }
 
-      {/* Indicator trạng thái paying */}
-      {tab.status === 'paying' && (
-        <span className="w-1.5 h-1.5 rounded-full bg-blue-400 shrink-0 animate-pulse" title="Đang thanh toán" />
-      )}
-
-      {/* Label hóa đơn */}
-      <span className="truncate flex-1 font-medium">{tab.label}</span>
-
-      {/* Badge số lượng sản phẩm — chỉ hiện khi có items */}
-      {totalQty > 0 && (
-        <span className="shrink-0 text-[10px] bg-primary/15 text-primary rounded px-1 font-semibold">
-          {totalQty}
+        <span className={cn(
+          'text-xs flex-1 truncate',
+          isActive ? 'text-foreground font-bold' : 'text-muted-foreground font-medium',
+        )}>
+          {tab.label}
         </span>
-      )}
 
-      {/* Action buttons — chỉ hiện khi hover tab active */}
-      {isActive && (
-        <div className="shrink-0 flex items-center gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity">
+        {/* Actions — hover */}
+        <div className={cn(
+          'flex items-center gap-0.5 transition-opacity',
+          isActive ? 'opacity-0 group-hover:opacity-100' : 'opacity-0',
+        )}>
           <button
             onClick={e => { e.stopPropagation(); onHold() }}
-            className="p-0.5 rounded hover:bg-amber-100 hover:text-amber-600"
-            title="Tạm giữ đơn (Ctrl+H)"
+            className="p-0.5 rounded hover:bg-amber-100 hover:text-amber-600 text-muted-foreground"
+            title="Tạm giữ (Ctrl+H)"
           >
             <PauseCircle className="h-3 w-3" />
           </button>
           <button
             onClick={e => { e.stopPropagation(); onDuplicate() }}
-            className="p-0.5 rounded hover:bg-muted"
-            title="Nhân bản đơn (Ctrl+D)"
+            className="p-0.5 rounded hover:bg-muted text-muted-foreground"
+            title="Nhân bản (Ctrl+D)"
           >
             <Copy className="h-3 w-3" />
           </button>
         </div>
-      )}
 
-      {/* Nút đóng — chỉ hiện khi có nhiều hơn 1 tab */}
-      {showClose && (
-        <button
-          onClick={e => { e.stopPropagation(); onClose() }}
-          className={cn(
-            'shrink-0 p-0.5 rounded transition-opacity hover:text-destructive',
-            isActive ? 'opacity-0 group-hover:opacity-100' : 'opacity-0 group-hover:opacity-60',
+        {showClose && (
+          <button
+            onClick={e => { e.stopPropagation(); onClose() }}
+            className={cn(
+              'p-0.5 rounded text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-all',
+              isActive ? 'opacity-0 group-hover:opacity-100' : 'opacity-0 group-hover:opacity-60',
+            )}
+            title="Đóng (Ctrl+W)"
+          >
+            <X className="h-3 w-3" />
+          </button>
+        )}
+      </div>
+
+      {/* ── Dòng 2: khách hàng + tổng tiền / badge ── */}
+      <div className="flex items-center justify-between gap-2 mt-1">
+        <span className={cn(
+          'text-[10px] truncate flex-1',
+          isActive ? 'text-muted-foreground' : 'text-muted-foreground/50',
+        )}>
+          {tab.customerName ?? 'Khách lẻ'}
+        </span>
+
+        <div className="flex items-center gap-1 shrink-0">
+          {isHolding && (
+            <span className="text-[9px] font-semibold px-1.5 py-0.5 rounded-full bg-amber-100 text-amber-700 leading-none">
+              Tạm giữ
+            </span>
           )}
-          title="Đóng hóa đơn (Ctrl+W)"
-          aria-label="Đóng hóa đơn"
-        >
-          <X className="h-3 w-3" />
-        </button>
-      )}
+          {isPaying && (
+            <span className="text-[9px] font-semibold px-1.5 py-0.5 rounded-full bg-blue-100 text-blue-700 leading-none">
+              Thanh toán
+            </span>
+          )}
+          {totalQty > 0 && (
+            <span className={cn(
+              'text-[10px] font-bold tabular-nums',
+              isActive ? 'text-primary' : 'text-muted-foreground/60',
+            )}>
+              {total.toLocaleString('lo-LA')} ₭
+            </span>
+          )}
+        </div>
+      </div>
     </div>
   )
 }
@@ -184,7 +214,7 @@ export function InvoiceTabBar() {
     <>
       {/* ── Tab strip ──────────────────────────────────────────────────────── */}
       <div
-        className="flex items-end gap-0.5 border-b bg-muted/30 px-2 pt-1 overflow-x-auto"
+        className="flex items-end gap-1 border-b bg-muted/20 px-3 pt-2 overflow-x-auto shrink-0"
         role="tablist"
         aria-label="Hóa đơn"
       >
@@ -204,7 +234,7 @@ export function InvoiceTabBar() {
         {/* Nút mở hóa đơn mới */}
         <button
           onClick={openTab}
-          className="mb-0.5 flex items-center gap-1 px-2 py-1.5 rounded text-xs text-muted-foreground hover:text-foreground hover:bg-muted transition-colors shrink-0"
+          className="mb-px ml-1 flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs text-muted-foreground border border-dashed border-muted-foreground/30 hover:border-primary/50 hover:text-primary hover:bg-primary/5 transition-all shrink-0"
           title="Hóa đơn mới (Ctrl+T)"
           aria-label="Mở hóa đơn mới"
         >

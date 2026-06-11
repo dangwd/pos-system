@@ -24,7 +24,7 @@ import { useCoupon } from './useCoupon'
 import { useInvoiceTabStore } from '@/stores/invoice-tab.store'
 import { CashStrategy, BankTransferStrategy, QRStrategy } from '@/lib/strategies'
 import { configRepository } from '@/lib/repositories/config.repository'
-import { calcGoldLineSell } from '@/lib/pricing'
+
 import type { Product } from '@/types/product'
 import type { CartItem } from '@/types/cart'
 import type { PaymentMethodKey } from '@/lib/strategies/payment.strategy'
@@ -87,29 +87,34 @@ export function usePos() {
   // ── Actions ─────────────────────────────────────────────────────────────────
 
   /**
-   * Thêm sản phẩm vào giỏ với unitPrice snapshot từ priceConfig.
-   *
-   * TODO: Khi UI tích hợp inventory search, truyền thêm inventoryItemId thực từ InventoryItem.
-   * Hiện tại dùng product.id làm placeholder inventoryItemId.
+   * Thêm sản phẩm vào giỏ với unitPriceLakPerGram snapshot từ priceConfig.
+   * Tìm giá theo purityCode + weightUnitId của sản phẩm.
    */
   const addToCart = (product: Product) => {
     if (!priceConfig) return // Chưa load giá — không thêm vào giỏ
 
-    // Snapshot unitPrice theo loại sản phẩm: vàng → giá/chỉ, bạc → giá/gram
-    const isSilver = product.category.code.startsWith('BAC')
-    const unitPrice = isSilver
-      ? priceConfig.silverPricePerGram
-      : calcGoldLineSell(product.weightPerUnitMg, priceConfig.goldSellPricePerChi)
+    // Tìm PriceItem khớp purity code + weightUnit của sản phẩm
+    const priceItem = priceConfig.items.find(
+      item => item.purityCode === product.purity && item.weightUnitId === product.weightUnitId
+    )
+    // Nếu không tìm thấy exact match, thử theo purity code bất kỳ unit
+    const fallback = priceConfig.items.find(item => item.purityCode === product.purity)
+    const matched = priceItem ?? fallback
+
+    // unitPriceLakPerGram = sellPrice / gramPerUnit
+    const unitPriceLakPerGram = matched ? matched.sellPrice / matched.gramPerUnit : 0
 
     const cartItem: CartItem = {
-      inventoryItemId: product.id, // placeholder — đổi thành ID thực từ inventory khi tích hợp
       productId: product.id,
       name: product.productName,
       purity: product.purity,
-      weightPerUnitMg: product.weightPerUnitMg,
+      weightGram: product.weightGram,
+      productType: product.productType,
       categoryName: product.category.name,
+      weightUnitId: product.weightUnitId,
+      weightGramOverride: null,
       qty: 1,
-      unitPrice,
+      unitPriceLakPerGram,
       laborFee: 0,
       stoneFee: 0,
     }
@@ -118,11 +123,12 @@ export function usePos() {
 
   /**
    * Thực hiện thanh toán.
-   * branchId và counterId phải được lấy từ session user hiện tại.
+   * branchId, staffId và counterId phải được lấy từ session user hiện tại.
    */
   const checkout = (params: {
-    transactionType: TransactionType
+    type: TransactionType
     branchId: string
+    staffId: string
     counterId: string
     customerId?: string
     note?: string

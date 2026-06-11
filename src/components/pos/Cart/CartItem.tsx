@@ -1,7 +1,7 @@
 /**
  * Cart.Item — Sub-component của Cart compound
  *
- * Đọc item từ CartContext (active tab) bằng inventoryItemId.
+ * Đọc item từ CartContext (active tab) bằng productId.
  * Gọi InvoiceTabStore actions để thay đổi qty hoặc xóa.
  */
 
@@ -9,6 +9,7 @@
 
 import { Button } from '@/components/ui/button'
 import { useCartContext } from './index'
+import { lineTotal } from '@/types/cart'
 import { Minus, Plus, Trash2 } from 'lucide-react'
 
 function formatKip(amount: number) {
@@ -16,12 +17,12 @@ function formatKip(amount: number) {
 }
 
 interface CartItemProps {
-  inventoryItemId: string
+  productId: string
 }
 
-export function CartItem({ inventoryItemId }: CartItemProps) {
+export function CartItem({ productId }: CartItemProps) {
   const { items, actions } = useCartContext()
-  const item = items.find(i => i.inventoryItemId === inventoryItemId)
+  const item = items.find(i => i.productId === productId)
 
   // Item có thể không tồn tại nếu vừa bị xóa — render null an toàn
   if (!item) return null
@@ -32,7 +33,7 @@ export function CartItem({ inventoryItemId }: CartItemProps) {
       {/* Tên + đơn giá */}
       <div className="flex-1 min-w-0">
         <p className="text-sm font-medium truncate">{item.name}</p>
-        <p className="text-xs text-muted-foreground">{formatKip(item.unitPrice)} / chỉ</p>
+        <p className="text-xs text-muted-foreground">{formatKip(item.unitPriceLakPerGram)} / g</p>
       </div>
 
       {/* Điều chỉnh số lượng */}
@@ -41,7 +42,7 @@ export function CartItem({ inventoryItemId }: CartItemProps) {
           variant="outline"
           size="icon"
           className="h-6 w-6"
-          onClick={() => actions.removeItem(inventoryItemId)}
+          onClick={() => actions.removeItem(productId)}
           aria-label="Giảm số lượng"
         >
           <Minus className="h-3 w-3" />
@@ -53,7 +54,7 @@ export function CartItem({ inventoryItemId }: CartItemProps) {
           value={item.qty}
           onChange={e => {
             const v = parseInt(e.target.value, 10)
-            if (!isNaN(v)) actions.setQty(inventoryItemId, v)
+            if (!isNaN(v)) actions.setQty(productId, v)
           }}
           className="w-8 text-center text-sm font-medium bg-transparent border-none outline-none"
           aria-label="Số lượng"
@@ -72,7 +73,7 @@ export function CartItem({ inventoryItemId }: CartItemProps) {
 
       {/* Thành tiền */}
       <p className="w-24 text-right text-sm font-semibold shrink-0">
-        {formatKip(item.unitPrice * item.qty)}
+        {formatKip(lineTotal(item))}
       </p>
 
       {/* Xóa hoàn toàn khỏi giỏ */}
@@ -80,7 +81,7 @@ export function CartItem({ inventoryItemId }: CartItemProps) {
         variant="ghost"
         size="icon"
         className="h-6 w-6 text-destructive hover:text-destructive shrink-0"
-        onClick={() => actions.deleteItem(inventoryItemId)}
+        onClick={() => actions.deleteItem(productId)}
         aria-label="Xóa sản phẩm"
       >
         <Trash2 className="h-3 w-3" />

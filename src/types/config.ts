@@ -4,16 +4,17 @@
 
 // ─── Bảng giá vàng / bạc ────────────────────────────────────────────────────
 
-/** Một hàng trong bảng giá (theo hàm lượng) */
+/** Một hàng trong bảng giá (theo hàm lượng × đơn vị) */
 export interface PriceItem {
   goldPurityId: string
   purityCode: string
   hamLuong: number
   category: 'Gold' | 'Silver'
-  buyPricePerChi: number    // LAK/chỉ — chỉ dùng cho Gold
-  sellPricePerChi: number   // LAK/chỉ — chỉ dùng cho Gold
-  buyPricePerGram: number   // LAK/gram — chỉ dùng cho Silver
-  sellPricePerGram: number  // LAK/gram — chỉ dùng cho Silver
+  weightUnitId: string       // FK → WeightUnit
+  weightUnitCode: string     // "chi", "bath", "gram", ...
+  gramPerUnit: number        // Hệ số quy đổi
+  buyPrice: number           // Giá mua vào (LAK/đơn vị)
+  sellPrice: number          // Giá bán ra (LAK/đơn vị)
 }
 
 /**
@@ -28,13 +29,12 @@ export interface PriceConfig {
   items: PriceItem[]
 }
 
-/** POST /api/config/prices — item trong request body */
+/** POST /api/config/prices — item trong request body (1 hàm lượng × 1 đơn vị) */
 export interface PriceItemDto {
   goldPurityId: string
-  buyPricePerChi: number
-  sellPricePerChi: number
-  buyPricePerGram: number
-  sellPricePerGram: number
+  weightUnitId: string  // ID đơn vị (Chỉ/Bath/Lượng/Gram)
+  buyPrice: number      // Giá mua vào (LAK/đơn vị)
+  sellPrice: number     // Giá bán ra (LAK/đơn vị)
 }
 
 /** POST /api/config/prices */
@@ -115,21 +115,21 @@ export interface GoldPurity {
   id: string
   ma: string                    // "9999", "24K", "18K", "925" ...
   hamLuong: number              // phần trăm nguyên chất
-  category: 'Gold' | 'Silver'  // quyết định cách tính giá
+  category?: 'Gold' | 'Silver'  // optional — backend có thể trả về hoặc không
 }
 
 /** POST /api/config/gold-purities */
 export interface CreateGoldPurityDto {
   ma: string
   hamLuong: number
-  category?: 'Gold' | 'Silver'  // mặc định Gold nếu không truyền
+  category?: 'Gold' | 'Silver'
 }
 
 /** PUT /api/config/gold-purities/{id} */
 export interface UpdateGoldPurityDto {
   ma: string
   hamLuong: number
-  category: 'Gold' | 'Silver'
+  category?: 'Gold' | 'Silver'
 }
 
 // ─── Roles & Permissions ──────────────────────────────────────────────────────

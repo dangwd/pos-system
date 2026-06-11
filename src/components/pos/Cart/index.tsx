@@ -7,7 +7,7 @@
  *
  * Cách dùng:
  *   <Cart>
- *     {items.map(i => <Cart.Item key={i.inventoryItemId} inventoryItemId={i.inventoryItemId} />)}
+ *     {items.map(i => <Cart.Item key={i.productId} productId={i.productId} />)}
  *     <Cart.Footer />
  *   </Cart>
  */

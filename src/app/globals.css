@@ -162,5 +162,6 @@
   }
   html {
     @apply font-sans;
+    font-size: 15.5px;
   }
 }

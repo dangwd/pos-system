@@ -134,6 +134,12 @@
       "title": "Nhật ký giao dịch",
       "summary": "{count} giao dịch · Doanh thu:",
       "searchPlaceholder": "Tìm theo mã hóa đơn...",
+      "filterAll": "Tất cả",
+      "filterStatus": "Trạng thái",
+      "filterType": "Loại GD",
+      "filterFrom": "Từ ngày",
+      "filterTo": "Đến ngày",
+      "filterQ": "Tìm mã HĐ, khách hàng...",
       "columns": {
         "invoiceCode": "Mã hóa đơn",
         "time": "Thời gian",
@@ -209,6 +215,8 @@
       "title": "Sản phẩm",
       "subtitle": "{count} sản phẩm trong hệ thống",
       "searchPlaceholder": "Tìm theo tên / mã...",
+      "filterAll": "Tất cả danh mục",
+      "filterCategory": "Danh mục",
       "addButton": "Thêm sản phẩm",
       "columns": {
         "product": "Sản phẩm",
@@ -271,6 +279,16 @@
       "title": "Kho hàng",
       "subtitle": "{count} mã SP",
       "searchPlaceholder": "Tìm sản phẩm...",
+      "filterAll": "Tất cả",
+      "filterBranch": "Chi nhánh",
+      "filterStatus": "Trạng thái",
+      "filterSource": "Nguồn gốc",
+      "statusTiepNhan": "Tiếp nhận",
+      "statusTrenQuay": "Trên quầy",
+      "statusDaBan": "Đã bán",
+      "statusChuyenXuong": "Chuyển xưởng",
+      "sourceQuan": "Hàng quán",
+      "sourceNgoai": "Hàng ngoại",
       "columns": {
         "product": "Sản phẩm",
         "branch": "Chi nhánh",
@@ -296,8 +314,10 @@
         "date": "Ngày"
       },
       "types": {
-        "BuyIn": "Mua vàng",
-        "ExchangeGold": "Đổi hàng"
+        "DoiHang": "Đổi hàng",
+        "MuaThem": "Mua thêm",
+        "DoiMienPhi": "Đổi miễn phí",
+        "DoiThanhTien": "Đổi thành tiền"
       }
     },
     "cashLedger": {
@@ -370,6 +390,7 @@
         "columns": {
           "purityCode": "Hàm lượng",
           "category": "Loại",
+          "unit": "Đơn vị",
           "buy": "Mua vào",
           "sell": "Bán ra"
         }
@@ -488,6 +509,7 @@
       "searchPlaceholder": "Tìm theo tên hoặc mã NV...",
       "addButton": "Thêm người dùng",
       "filterAll": "Tất cả chi nhánh",
+      "filterAllStatus": "Tất cả trạng thái",
       "columns": {
         "employeeCode": "Mã NV",
         "fullName": "Họ và tên",

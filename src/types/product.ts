@@ -31,7 +31,7 @@ export interface CreateProductDto {
   productCode: string
   productName: string
   productCategoryId: string
-  purity: string
+  goldPurityId: string | null  // FK → GET /api/config/gold-purities; null cho hàng không có hàm lượng
   weightGram: number
   weightUnitId?: string
   productType?: ProductType

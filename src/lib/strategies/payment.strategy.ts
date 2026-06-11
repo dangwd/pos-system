@@ -36,7 +36,7 @@ export type PaymentMethodKey = 'cash' | 'bank-transfer' | 'qr'
 export const PAYMENT_METHOD_KEYS: PaymentMethodKey[] = ['cash', 'bank-transfer', 'qr']
 
 export const PAYMENT_METHOD_MAP: Record<PaymentMethodKey, PaymentMethod> = {
-  'cash': 'Cash',
-  'bank-transfer': 'BankTransfer',
-  'qr': 'QR',
+  'cash': 'CASH',
+  'bank-transfer': 'BANK',
+  'qr': 'BANK',
 }

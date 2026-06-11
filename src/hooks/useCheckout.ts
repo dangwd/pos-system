@@ -3,8 +3,8 @@
  *
  * Kết hợp PaymentStrategy + TransactionRepository để hoàn thành giao dịch.
  * Luồng 2 bước theo API thực:
- *   1. create()   → POST /api/transactions         → trả về Transaction (DRAFT/PENDING)
- *   2. complete() → POST /api/transactions/{id}/complete → COMPLETED
+ *   1. create()   → POST /api/transactions         → trả về Transaction (Pending/Approved)
+ *   2. complete() → POST /api/transactions/{id}/complete → Completed
  *
  * Sau khi thanh toán thành công:
  *  - clearActiveCart() xóa giỏ hàng của tab active
@@ -19,8 +19,9 @@ import type { PaymentStrategy } from '@/lib/strategies/payment.strategy'
 import type { TransactionType } from '@/types/transaction'
 
 interface CheckoutParams {
-  transactionType: TransactionType
+  type: TransactionType
   branchId: string
+  staffId: string
   counterId: string
   customerId?: string
   note?: string
@@ -39,39 +40,41 @@ export function useCheckout(strategy: PaymentStrategy) {
       // Bước 1: chuẩn bị strategy (validate trước khi gọi API)
       await strategy.prepare(total)
 
-      // Bước 2: tạo giao dịch DRAFT/PENDING
+      // Bước 2: tạo giao dịch
       const transaction = await transactionRepository.create({
-        transactionType: params.transactionType,
+        type: params.type,
         branchId: params.branchId,
+        staffId: params.staffId,
         counterId: params.counterId,
         customerId: params.customerId,
+        paymentMethod: strategy.paymentMethod,
         note: params.note,
         items: tab.items.map(item => ({
-          inventoryItemId: item.inventoryItemId,
           productId: item.productId,
+          productName: item.name,
           quantity: item.qty,
-          unitPrice: item.unitPrice,
+          weightUnitId: item.weightUnitId ?? '',
+          weightGramOverride: item.weightGramOverride,
+          unitPriceLakPerGram: item.unitPriceLakPerGram,
+          itemRole: 'Normal',
           laborFee: item.laborFee,
           stoneFee: item.stoneFee,
         })),
       })
 
-      // Bước 3: hoàn tất giao dịch với paymentMethod
-      // Chỉ gọi complete() khi status APPROVED (có thể cần duyệt trước)
-      // Nếu backend đặt DRAFT thẳng vào APPROVED do không vượt hạn mức → complete ngay
-      if (transaction.status === 'APPROVED' || transaction.status === 'DRAFT') {
+      // Bước 3: hoàn tất nếu đã Approved
+      if (transaction.status === 'Approved') {
         return transactionRepository.complete(transaction.id, {
           paymentMethod: strategy.paymentMethod,
         })
       }
 
-      // status PENDING → cần quản lý duyệt, trả về để UI hiển thị trạng thái chờ
+      // status Pending → cần quản lý duyệt, trả về để UI hiển thị trạng thái chờ
       return transaction
     },
 
     onSuccess: (result) => {
-      // Xóa giỏ hàng sau khi GD COMPLETED hoặc PENDING (đã ghi nhận phía server)
-      if (result.status === 'COMPLETED' || result.status === 'PENDING') {
+      if (result.status === 'Completed' || result.status === 'Pending') {
         clearCart()
       }
       qc.invalidateQueries({ queryKey: ['transactions'] })

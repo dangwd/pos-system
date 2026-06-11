@@ -36,8 +36,10 @@ export default function TradePage() {
     openMenu:    t('columns.invoiceCode'),
     viewDetail:  'View',
     typeLabels: {
-      BuyIn:        t('types.BuyIn'),
-      ExchangeGold: t('types.ExchangeGold'),
+      DoiHang:      t('types.DoiHang'),
+      MuaThem:      t('types.MuaThem'),
+      DoiMienPhi:   t('types.DoiMienPhi'),
+      DoiThanhTien: t('types.DoiThanhTien'),
     },
   }), [t])
 
@@ -52,14 +54,14 @@ export default function TradePage() {
         </div>
 
         <div className="flex gap-1.5">
-          {(['all', 'BuyIn', 'ExchangeGold'] as const).map((f) => (
+          {(['all', 'DoiHang', 'MuaThem', 'DoiMienPhi', 'DoiThanhTien'] as const).map((f) => (
             <Button
               key={f}
               size="sm"
               variant={filter === f ? 'default' : 'outline'}
               onClick={() => setFilter(f)}
             >
-              {f === 'all' ? t('filterAll') : f === 'BuyIn' ? t('filterBuyIn') : t('filterExchange')}
+              {f === 'all' ? t('filterAll') : t(`types.${f}`)}
             </Button>
           ))}
         </div>
@@ -69,7 +71,7 @@ export default function TradePage() {
         <DataTable
           columns={columns}
           data={rows}
-          searchKey="invoiceCode"
+          searchKey="txnCode"
           searchPlaceholder={t('searchPlaceholder')}
         />
       )}

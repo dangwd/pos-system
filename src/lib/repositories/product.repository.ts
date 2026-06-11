@@ -11,6 +11,7 @@ import type {
 
 export interface ProductListParams {
   categoryCode?: string
+  search?: string
 }
 
 export class ProductRepository {

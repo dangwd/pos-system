@@ -1,14 +1,13 @@
 /**
- * DataTable — Generic reusable table component (TanStack Table)
+ * DataTable — Generic reusable table component (TanStack Table v8)
  *
- * Docs rule: MỌI bảng dữ liệu phải dùng TanStack Table, không dùng
- * shadcn Table primitive hay <table> HTML thuần.
+ * Two pagination modes:
+ *   Client-side (default):  getPaginationRowModel handles slicing, internal state
+ *   Server-side:            pass `serverPagination` → manualPagination:true, external page state
  *
- * Features: sort, filter theo column, global filter, pagination.
- * Columns định nghĩa riêng ở src/components/pos/columns/*.tsx
- *
- * Dùng:
- *   <DataTable columns={productColumns} data={products} searchKey="name" />
+ * Usage:
+ *   Client-side: <DataTable columns={cols} data={rows} searchKey="name" />
+ *   Server-side: <DataTable columns={cols} data={pageRows} hideSearch serverPagination={{...}} />
  */
 
 'use client'
@@ -24,6 +23,8 @@ import {
   type ColumnDef,
   type SortingState,
   type ColumnFiltersState,
+  type PaginationState,
+  type OnChangeFn,
 } from '@tanstack/react-table'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -33,14 +34,30 @@ import { Empty, EmptyTitle } from '@/components/ui/empty'
 
 // ─── Props ────────────────────────────────────────────────────────────────────
 
+interface ServerPagination {
+  /** Total record count from backend */
+  total: number
+  /** Current 1-indexed page number */
+  page: number
+  pageSize: number
+  onPageChange: (page: number) => void
+}
+
 interface DataTableProps<TData> {
   columns: ColumnDef<TData>[]
   data: TData[]
-  /** accessor key để filter theo cột cụ thể (ưu tiên hơn globalFilter) */
+  /** Column accessor key for column-level filter (overrides globalFilter) */
   searchKey?: string
   searchPlaceholder?: string
-  /** Số rows mỗi trang — mặc định 10 */
+  /** Client-side rows per page — default 10 */
   pageSize?: number
+  /** Hide the built-in search input (use when parent provides server-side search) */
+  hideSearch?: boolean
+  /**
+   * When provided, switches to server-side (manual) pagination.
+   * DataTable uses manualPagination:true — data must already be the current page's rows.
+   */
+  serverPagination?: ServerPagination
 }
 
 // ─── Component ────────────────────────────────────────────────────────────────
@@ -51,27 +68,60 @@ export function DataTable<TData>({
   searchKey,
   searchPlaceholder,
   pageSize = 10,
+  hideSearch,
+  serverPagination,
 }: DataTableProps<TData>) {
   const t = useTranslations('common.table')
   const [sorting, setSorting] = useState<SortingState>([])
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([])
   const [globalFilter, setGlobalFilter] = useState('')
 
+  // Internal pagination state for client-side mode
+  const [clientPagination, setClientPagination] = useState<PaginationState>({
+    pageIndex: 0,
+    pageSize,
+  })
+
+  // Server-side: controlled by serverPagination prop (1-indexed → 0-indexed)
+  const serverPaginationState: PaginationState | undefined = serverPagination
+    ? { pageIndex: serverPagination.page - 1, pageSize: serverPagination.pageSize }
+    : undefined
+
+  const handleServerPaginationChange: OnChangeFn<PaginationState> = serverPagination
+    ? (updater) => {
+        const next =
+          typeof updater === 'function'
+            ? updater(serverPaginationState!)
+            : updater
+        serverPagination.onPageChange(next.pageIndex + 1)
+      }
+    : () => {}
+
   const table = useReactTable({
     data,
     columns,
-    initialState: { pagination: { pageSize } },
-    state: { sorting, columnFilters, globalFilter },
+    // Server-side mode: trust that `data` is already the correct page
+    manualPagination: !!serverPagination,
+    // pageCount lets TanStack know total pages for getCanNextPage() etc.
+    pageCount: serverPagination
+      ? Math.ceil(serverPagination.total / serverPagination.pageSize)
+      : undefined,
+    state: {
+      sorting,
+      columnFilters,
+      globalFilter,
+      pagination: serverPagination ? serverPaginationState! : clientPagination,
+    },
     onSortingChange: setSorting,
     onColumnFiltersChange: setColumnFilters,
     onGlobalFilterChange: setGlobalFilter,
+    onPaginationChange: serverPagination ? handleServerPaginationChange : setClientPagination,
     getCoreRowModel: getCoreRowModel(),
     getSortedRowModel: getSortedRowModel(),
     getFilteredRowModel: getFilteredRowModel(),
     getPaginationRowModel: getPaginationRowModel(),
   })
 
-  // Giá trị filter hiện tại của searchKey column (nếu có)
   const searchValue = searchKey
     ? (table.getColumn(searchKey)?.getFilterValue() as string) ?? ''
     : globalFilter
@@ -84,15 +134,24 @@ export function DataTable<TData>({
     }
   }
 
+  const totalCount = serverPagination
+    ? serverPagination.total
+    : table.getFilteredRowModel().rows.length
+
+  const currentPage = table.getState().pagination.pageIndex + 1
+  const totalPages = table.getPageCount()
+
   return (
     <div className="space-y-3">
       {/* ── Search bar ─────────────────────────────────────────────────────── */}
-      <Input
-        placeholder={searchPlaceholder ?? t('searchPlaceholder')}
-        value={searchValue}
-        onChange={e => handleSearchChange(e.target.value)}
-        className="max-w-sm"
-      />
+      {!hideSearch && (
+        <Input
+          placeholder={searchPlaceholder ?? t('searchPlaceholder')}
+          value={searchValue}
+          onChange={e => handleSearchChange(e.target.value)}
+          className="max-w-sm"
+        />
+      )}
 
       {/* ── Table ──────────────────────────────────────────────────────────── */}
       <div className="rounded-md border overflow-hidden">
@@ -141,15 +200,15 @@ export function DataTable<TData>({
       {/* ── Pagination ─────────────────────────────────────────────────────── */}
       <div className="flex items-center justify-between text-sm">
         <span className="text-muted-foreground">
-          {t('results', { count: table.getFilteredRowModel().rows.length })}
-          {table.getPageCount() > 1 && (
+          {t('results', { count: totalCount })}
+          {totalPages > 1 && (
             <span className="ml-2">
-              · {t('page', { page: table.getState().pagination.pageIndex + 1, total: table.getPageCount() })}
+              · {t('page', { page: currentPage, total: totalPages })}
             </span>
           )}
         </span>
 
-        {table.getPageCount() > 1 && (
+        {totalPages > 1 && (
           <div className="flex items-center gap-1">
             <Button
               variant="outline"

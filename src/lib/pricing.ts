@@ -163,21 +163,26 @@ export function calcCurrencyExchange(
 
 /**
  * Tính subtotal từ danh sách CartItem.
- * subtotal = Σ (unitPrice × qty) — chưa bao gồm fees và discount.
+ * subtotal = Σ (totalGram × unitPriceLakPerGram) — chưa bao gồm fees và discount.
  */
 export function calcSubtotal(items: CartItem[]): number {
-  return items.reduce((sum, item) => sum + item.unitPrice * item.qty, 0)
+  return items.reduce((sum, item) => {
+    const totalGram = item.weightGramOverride !== null
+      ? item.weightGramOverride : item.qty * item.weightGram
+    return sum + Math.round(totalGram * item.unitPriceLakPerGram)
+  }, 0)
 }
 
 /**
  * Tính total từ danh sách CartItem sau khi trừ discount.
- * total = Σ (unitPrice × qty + laborFee + stoneFee) - discount
+ * total = Σ (totalGram × unitPriceLakPerGram + laborFee + stoneFee) - discount
  */
 export function calcTotal(items: CartItem[], discountAmount: number): number {
-  const gross = items.reduce(
-    (sum, item) => sum + item.unitPrice * item.qty + item.laborFee + item.stoneFee,
-    0
-  )
+  const gross = items.reduce((sum, item) => {
+    const totalGram = item.weightGramOverride !== null
+      ? item.weightGramOverride : item.qty * item.weightGram
+    return sum + Math.round(totalGram * item.unitPriceLakPerGram) + item.laborFee + item.stoneFee
+  }, 0)
   return Math.max(0, gross - discountAmount)
 }
 

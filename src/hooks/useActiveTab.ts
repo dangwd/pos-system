@@ -77,7 +77,7 @@ export function useActiveTab() {
     total,
     totalQty,
 
-    // Cart actions (tác động lên active tab, dùng inventoryItemId làm key)
+    // Cart actions (tác động lên active tab, dùng productId làm key)
     addItem: addItemToActive,
     removeItem: removeItemFromActive,
     deleteItem: deleteItemFromActive,

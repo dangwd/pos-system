@@ -9,16 +9,16 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Field, FieldGroup, FieldLabel } from '@/components/ui/field'
 import { Spinner } from '@/components/ui/spinner'
 import { useCreateProduct, useCategories } from '@/hooks/useProducts'
+import { useGoldPurities } from '@/hooks/useConfig'
 import type { ProductType } from '@/types/product'
 
-const PURITY_OPTIONS = ['9999', '24K', '18K', '14K', '10K', '925', 'Bạc ròng']
 const PRODUCT_TYPE_OPTIONS: ProductType[] = ['NguyenKhoi', 'CanThucTe']
 
 interface FormState {
   productCode: string
   productName: string
   productCategoryId: string
-  purity: string
+  goldPurityId: string
   weightGram: string
   productType: ProductType
 }
@@ -27,7 +27,7 @@ const EMPTY: FormState = {
   productCode: '',
   productName: '',
   productCategoryId: '',
-  purity: '',
+  goldPurityId: '',
   weightGram: '',
   productType: 'NguyenKhoi',
 }
@@ -42,13 +42,14 @@ export function ProductCreateDialog({ open, onClose }: Props) {
   const [form, setForm] = useState<FormState>(EMPTY)
   const { mutate: create, isPending } = useCreateProduct()
   const { data: categories = [] } = useCategories()
+  const { data: purities = [] } = useGoldPurities()
 
   const set = (key: keyof FormState, value: string) =>
     setForm((f) => ({ ...f, [key]: value }))
 
   const disabled =
     !form.productCode || !form.productName || !form.productCategoryId ||
-    !form.purity || !form.weightGram || isNaN(parseFloat(form.weightGram))
+    !form.weightGram || isNaN(parseFloat(form.weightGram))
 
   function handleSubmit() {
     if (disabled) return
@@ -57,7 +58,7 @@ export function ProductCreateDialog({ open, onClose }: Props) {
         productCode: form.productCode.trim(),
         productName: form.productName.trim(),
         productCategoryId: form.productCategoryId,
-        purity: form.purity,
+        goldPurityId: form.goldPurityId || null,
         weightGram: parseFloat(form.weightGram),
         productType: form.productType,
       },
@@ -90,13 +91,15 @@ export function ProductCreateDialog({ open, onClose }: Props) {
             </Field>
             <Field>
               <FieldLabel>{t('form.purity')}</FieldLabel>
-              <Select value={form.purity} onValueChange={(v) => set('purity', v ?? '')}>
+              <Select value={form.goldPurityId} onValueChange={(v) => set('goldPurityId', v ?? '')}>
                 <SelectTrigger>
-                  <SelectValue placeholder={t('form.purityPlaceholder')} />
+                  <SelectValue placeholder={t('form.purityPlaceholder')}>
+                    {(id: string | null) => id ? (purities.find(p => p.id === id)?.ma ?? id) : null}
+                  </SelectValue>
                 </SelectTrigger>
                 <SelectContent>
-                  {PURITY_OPTIONS.map((p) => (
-                    <SelectItem key={p} value={p} label={p}>{p}</SelectItem>
+                  {purities.map((p) => (
+                    <SelectItem key={p.id} value={p.id}>{p.ma}</SelectItem>
                   ))}
                 </SelectContent>
               </Select>

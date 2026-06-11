@@ -134,6 +134,12 @@
       "title": "ປະຫວັດກິດຈະກຳ",
       "summary": "{count} ກິດຈະກຳ · ລາຍຮັບ:",
       "searchPlaceholder": "ຄົ້ນຫາຕາມລະຫັດ...",
+      "filterAll": "ທັງໝົດ",
+      "filterStatus": "ສະຖານະ",
+      "filterType": "ປະເພດ GD",
+      "filterFrom": "ຈາກວັນທີ",
+      "filterTo": "ຫາວັນທີ",
+      "filterQ": "ຄົ້ນຫາໃບຮຽກ, ລູກຄ້າ...",
       "columns": {
         "invoiceCode": "ລະຫັດໃບຮຽກ",
         "time": "ເວລາ",
@@ -209,6 +215,8 @@
       "title": "ສິນຄ້າ",
       "subtitle": "{count} ສິນຄ້າໃນລະບົບ",
       "searchPlaceholder": "ຄົ້ນຫາຊື່ / ລະຫັດ...",
+      "filterAll": "ທຸກໝວດໝູ່",
+      "filterCategory": "ໝວດໝູ່",
       "addButton": "ເພີ່ມສິນຄ້າ",
       "columns": {
         "product": "ສິນຄ້າ",
@@ -271,6 +279,16 @@
       "title": "ສາງສິນຄ້າ",
       "subtitle": "{count} ລາຍການ",
       "searchPlaceholder": "ຄົ້ນຫາສິນຄ້າ...",
+      "filterAll": "ທັງໝົດ",
+      "filterBranch": "ສາຂາ",
+      "filterStatus": "ສະຖານະ",
+      "filterSource": "ແຫຼ່ງທີ່ມາ",
+      "statusTiepNhan": "ຮັບສິນຄ້າ",
+      "statusTrenQuay": "ໃນຮ້ານ",
+      "statusDaBan": "ຂາຍແລ້ວ",
+      "statusChuyenXuong": "ໂຮງງານ",
+      "sourceQuan": "ສິນຄ້າຮ້ານ",
+      "sourceNgoai": "ສິນຄ້ານຳເຂົ້າ",
       "columns": {
         "product": "ສິນຄ້າ",
         "branch": "ສາຂາ",
@@ -296,8 +314,10 @@
         "date": "ວັນທີ"
       },
       "types": {
-        "BuyIn": "ຊື້ທອງ",
-        "ExchangeGold": "ປ່ຽນທອງ"
+        "DoiHang": "ປ່ຽນສິນຄ້າ",
+        "MuaThem": "ຊື້ເພີ່ມ",
+        "DoiMienPhi": "ປ່ຽນຟຣີ",
+        "DoiThanhTien": "ປ່ຽນເປັນເງິນ"
       }
     },
     "cashLedger": {
@@ -370,6 +390,7 @@
         "columns": {
           "purityCode": "ຄວາມບໍລິສຸດ",
           "category": "ປະເພດ",
+          "unit": "ໜ່ວຍ",
           "buy": "ຊື້ເຂົ້າ",
           "sell": "ຂາຍອອກ"
         }
@@ -488,6 +509,7 @@
       "searchPlaceholder": "ຄົ້ນຫາຕາມຊື່ ຫຼື ລະຫັດ...",
       "addButton": "ເພີ່ມຜູ້ໃຊ້",
       "filterAll": "ທຸກສາຂາ",
+      "filterAllStatus": "ທຸກສະຖານະ",
       "columns": {
         "employeeCode": "ລະຫັດພະນັກງານ",
         "fullName": "ຊື່ເຕັມ",

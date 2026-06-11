@@ -10,12 +10,16 @@ import type {
   ResetPasswordDto,
 } from '@/types/admin-user'
 
+export interface UserListParams {
+  branchId?: string
+  search?: string
+  isActive?: boolean
+}
+
 export class UserRepository {
-  async getList(branchId?: string): Promise<AdminUser[]> {
+  async getList(params?: UserListParams): Promise<AdminUser[]> {
     try {
-      const { data } = await api.get<AdminUser[]>('/api/users', {
-        params: branchId ? { branchId } : undefined,
-      })
+      const { data } = await api.get<AdminUser[]>('/api/users', { params })
       return data
     } catch (err) {
       throw handleAxiosError(err)

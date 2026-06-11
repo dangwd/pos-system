@@ -26,8 +26,13 @@ export function Receipt({ open, transaction, onClose }: ReceiptProps) {
 
   if (!transaction) return null
 
-  const rawKey = transaction.paymentMethod?.toLowerCase().replace('banktransfer', 'bank-transfer') as PaymentMethodKey
-  const paymentLabel = tMethods(rawKey) ?? transaction.paymentMethod
+  const methodKeyMap: Record<string, PaymentMethodKey> = {
+    CASH: 'cash',
+    BANK: 'bank-transfer',
+    MIXED: 'cash',
+  }
+  const rawKey = transaction.paymentMethod ? methodKeyMap[transaction.paymentMethod] : undefined
+  const paymentLabel = rawKey ? tMethods(rawKey) : (transaction.paymentMethod ?? '—')
 
   return (
     <Dialog open={open} onOpenChange={onClose}>
@@ -46,7 +51,7 @@ export function Receipt({ open, transaction, onClose }: ReceiptProps) {
               {transaction.invoiceCode ?? `#${transaction.id.slice(0, 8).toUpperCase()}`}
             </p>
             <p className="text-sm text-muted-foreground">
-              {new Date(transaction.completedAt ?? transaction.createdAt ?? '').toLocaleString('lo-LA')}
+              {new Date(transaction.transactedAt ?? '').toLocaleString('lo-LA')}
             </p>
             <Badge>{paymentLabel}</Badge>
           </div>
@@ -64,9 +69,9 @@ export function Receipt({ open, transaction, onClose }: ReceiptProps) {
             <TableBody>
               {transaction.items?.map(item => (
                 <TableRow key={item.id}>
-                  <TableCell className="text-sm">{item.productName}</TableCell>
+                  <TableCell className="text-sm">{item.productSnapshotName}</TableCell>
                   <TableCell className="text-center text-sm">{item.quantity}</TableCell>
-                  <TableCell className="text-right text-sm">{formatKip(item.totalAmount)}</TableCell>
+                  <TableCell className="text-right text-sm">{formatKip(item.lineTotal)}</TableCell>
                 </TableRow>
               ))}
             </TableBody>

@@ -17,13 +17,18 @@ import type {
   UpdateInventoryStatusDto,
   InventoryListParams,
 } from '@/types/inventory'
+import type { PagedResult } from '@/types/common'
 
 export class InventoryRepository {
   private readonly base = '/api/inventory'
 
-  /** Danh sách tồn kho — filter theo branch, category, tray, status */
-  async getList(params?: InventoryListParams): Promise<InventoryItem[]> {
-    const { data } = await api.get<InventoryItem[]>(this.base, { params })
+  /**
+   * Danh sách tồn kho có phân trang — luôn truyền page (mặc định 1).
+   * Backend trả PagedResult<InventoryItem> khi có `page` param.
+   */
+  async getList(params?: InventoryListParams): Promise<PagedResult<InventoryItem>> {
+    const queryParams = { page: 1, pageSize: 20, ...params }
+    const { data } = await api.get<PagedResult<InventoryItem>>(this.base, { params: queryParams })
     return data
   }
 

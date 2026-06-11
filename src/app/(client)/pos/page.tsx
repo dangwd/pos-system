@@ -45,18 +45,19 @@ export default function PosPage() {
     try {
       // TODO: ดึง branchId/counterId จาก session user จริง เมื่อ auth context พร้อม
       const result = await pos.checkout({
-        transactionType: 'SellGold',
+        type: 'SellGold',
         branchId: 'branch-placeholder',
+        staffId: 'staff-placeholder',
         counterId: 'counter-placeholder',
         customerId: undefined,
         note: pos.note || undefined,
       })
-      if (result?.status === 'COMPLETED') {
+      if (result?.status === 'Completed') {
         setReceiptTransaction(result)
         setPaymentOpen(false)
         pos.resetTabStatus()
         toast.success(t('checkoutSuccess'))
-      } else if (result?.status === 'PENDING') {
+      } else if (result?.status === 'Pending') {
         setPaymentOpen(false)
         pos.resetTabStatus()
         toast.info(t('pendingApproval'))

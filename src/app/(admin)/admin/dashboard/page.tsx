@@ -112,7 +112,7 @@ export default function DashboardPage() {
                         <span className="font-mono text-xs text-muted-foreground">
                           {tx.invoiceCode ?? `#${tx.id.slice(0, 8).toUpperCase()}`}
                         </span>
-                        <span className="ml-3 text-muted-foreground text-xs">{tx.transactionType}</span>
+                        <span className="ml-3 text-muted-foreground text-xs">{tx.type}</span>
                       </div>
                       <div className="flex items-center gap-3">
                         <Badge variant="secondary">{tx.status}</Badge>

@@ -38,13 +38,14 @@ import {
   Users,
   Wallet,
 } from "lucide-react";
-import { motion } from "motion/react";
+import { AnimatePresence, motion } from "motion/react";
 import { useTranslations } from "next-intl";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { PageTransition } from "@/components/shared/PageTransition";
 
-function getInitials(name: string) {
+function getInitials(name: string | undefined | null) {
+  if (!name) return '?'
   return name
     .split(" ")
     .map((w) => w[0])
@@ -67,6 +68,7 @@ export default function AdminLayout({
 
   const [collapsed, setCollapsed] = useState(false);
   const [search, setSearch] = useState("");
+  const [openGroups, setOpenGroups] = useState<Set<number>>(() => new Set([0, 1, 2, 3, 4]));
 
   const NAV_GROUPS = useMemo(
     () => [
@@ -185,45 +187,81 @@ export default function AdminLayout({
         )}
 
         {/* Nav */}
-        <nav className="flex-1 px-2 py-2 overflow-y-auto space-y-2">
-          {filteredGroups.map((group, gi) => (
-            <div key={gi}>
-              {group.label && !collapsed && (
-                <p className="px-3 pb-1 text-[10px] font-semibold uppercase tracking-wider text-muted-foreground/60">
-                  {group.label}
-                </p>
-              )}
-              <div className="space-y-0.5">
-                {group.items.map(({ href, label, icon: Icon }) => {
-                  const isActive = pathname === href || pathname.startsWith(href + "/")
-                  return (
-                    <Link
-                      key={href}
-                      href={href}
-                      title={collapsed ? label : undefined}
+        <nav className="flex-1 px-2 py-2 overflow-y-auto space-y-1">
+          {filteredGroups.map((group, gi) => {
+            const isOpen = openGroups.has(gi);
+            const hasLabel = !!group.label;
+            const toggleGroup = () => {
+              if (!hasLabel) return;
+              setOpenGroups((prev) => {
+                const next = new Set(prev);
+                next.has(gi) ? next.delete(gi) : next.add(gi);
+                return next;
+              });
+            };
+
+            return (
+              <div key={gi}>
+                {hasLabel && !collapsed && (
+                  <button
+                    onClick={toggleGroup}
+                    className="w-full flex items-center justify-between px-3 py-1.5 rounded-md text-[10px] font-semibold uppercase tracking-wider text-muted-foreground/60 hover:text-muted-foreground hover:bg-muted/50 transition-colors"
+                  >
+                    <span>{group.label}</span>
+                    <ChevronDown
                       className={cn(
-                        "relative flex items-center gap-3 px-3 py-2 rounded-md text-sm font-medium transition-colors",
-                        collapsed && "justify-center px-2",
-                        isActive
-                          ? "text-primary-foreground"
-                          : "text-muted-foreground hover:bg-muted hover:text-foreground",
+                        "h-3 w-3 transition-transform duration-200",
+                        isOpen && "rotate-180",
                       )}
+                    />
+                  </button>
+                )}
+
+                <AnimatePresence initial={false}>
+                  {(!hasLabel || isOpen || collapsed) && (
+                    <motion.div
+                      key="items"
+                      initial={hasLabel ? { height: 0, opacity: 0 } : false}
+                      animate={{ height: "auto", opacity: 1 }}
+                      exit={{ height: 0, opacity: 0 }}
+                      transition={{ duration: 0.2, ease: "easeInOut" }}
+                      className="overflow-hidden"
                     >
-                      {isActive && (
-                        <motion.div
-                          layoutId="nav-highlight"
-                          className="absolute inset-0 rounded-md bg-primary pointer-events-none"
-                          transition={{ type: "spring", stiffness: 380, damping: 32 }}
-                        />
-                      )}
-                      <Icon className="relative h-4 w-4 shrink-0" />
-                      {!collapsed && <span className="relative">{label}</span>}
-                    </Link>
-                  )
-                })}
+                      <div className="space-y-0.5 pt-0.5">
+                        {group.items.map(({ href, label, icon: Icon }) => {
+                          const isActive = pathname === href || pathname.startsWith(href + "/");
+                          return (
+                            <Link
+                              key={href}
+                              href={href}
+                              title={collapsed ? label : undefined}
+                              className={cn(
+                                "relative flex items-center gap-3 px-3 py-2 rounded-md text-sm font-medium transition-colors",
+                                collapsed && "justify-center px-2",
+                                isActive
+                                  ? "text-primary-foreground"
+                                  : "text-muted-foreground hover:bg-muted hover:text-foreground",
+                              )}
+                            >
+                              {isActive && (
+                                <motion.div
+                                  layoutId="nav-highlight"
+                                  className="absolute inset-0 rounded-md bg-primary pointer-events-none"
+                                  transition={{ type: "spring", stiffness: 380, damping: 32 }}
+                                />
+                              )}
+                              <Icon className="relative h-4 w-4 shrink-0" />
+                              {!collapsed && <span className="relative">{label}</span>}
+                            </Link>
+                          );
+                        })}
+                      </div>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
               </div>
-            </div>
-          ))}
+            );
+          })}
 
           {!collapsed && filteredGroups.length === 0 && (
             <p className="px-3 py-6 text-xs text-muted-foreground text-center">

@@ -13,7 +13,7 @@ import type { PaymentStrategy } from './payment.strategy'
 import type { PaymentMethod } from '@/types/transaction'
 
 export class QRStrategy implements PaymentStrategy {
-  readonly paymentMethod: PaymentMethod = 'QR'
+  readonly paymentMethod: PaymentMethod = 'BANK'
   readonly label = 'QR Code'
 
   async prepare(_amount: number): Promise<void> {

@@ -134,6 +134,12 @@
       "title": "Transaction log",
       "summary": "{count} transactions · Revenue:",
       "searchPlaceholder": "Search by invoice code...",
+      "filterAll": "All",
+      "filterStatus": "Status",
+      "filterType": "Type",
+      "filterFrom": "From",
+      "filterTo": "To",
+      "filterQ": "Search invoice, customer...",
       "columns": {
         "invoiceCode": "Invoice code",
         "time": "Time",
@@ -209,6 +215,8 @@
       "title": "Products",
       "subtitle": "{count} products in the system",
       "searchPlaceholder": "Search by name / code...",
+      "filterAll": "All categories",
+      "filterCategory": "Category",
       "addButton": "Add product",
       "columns": {
         "product": "Product",
@@ -271,6 +279,16 @@
       "title": "Inventory",
       "subtitle": "{count} SKUs",
       "searchPlaceholder": "Search product...",
+      "filterAll": "All",
+      "filterBranch": "Branch",
+      "filterStatus": "Status",
+      "filterSource": "Source",
+      "statusTiepNhan": "Received",
+      "statusTrenQuay": "On display",
+      "statusDaBan": "Sold",
+      "statusChuyenXuong": "At workshop",
+      "sourceQuan": "Store goods",
+      "sourceNgoai": "External",
       "columns": {
         "product": "Product",
         "branch": "Branch",
@@ -296,8 +314,10 @@
         "date": "Date"
       },
       "types": {
-        "BuyIn": "Buy In",
-        "ExchangeGold": "Exchange Gold"
+        "DoiHang": "Exchange",
+        "MuaThem": "Buy More",
+        "DoiMienPhi": "Free Exchange",
+        "DoiThanhTien": "Cash Out"
       }
     },
     "cashLedger": {
@@ -370,6 +390,7 @@
         "columns": {
           "purityCode": "Purity",
           "category": "Type",
+          "unit": "Unit",
           "buy": "Buy price",
           "sell": "Sell price"
         }
@@ -488,6 +509,7 @@
       "searchPlaceholder": "Search by name or employee code...",
       "addButton": "Add user",
       "filterAll": "All branches",
+      "filterAllStatus": "All statuses",
       "columns": {
         "employeeCode": "Employee Code",
         "fullName": "Full Name",
