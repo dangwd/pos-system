@@ -50,12 +50,12 @@ export function useActiveTab() {
 
   // ── Actions ────────────────────────────────────────────────────────────────
 
-  const setCustomer = (id: string, name: string) => {
-    if (activeTab) updateTab(activeTab.id, { customerId: id, customerName: name })
+  const setCustomer = (id: string, name: string, phone?: string | null) => {
+    if (activeTab) updateTab(activeTab.id, { customerId: id, customerName: name, customerPhone: phone ?? null })
   }
 
   const clearCustomer = () => {
-    if (activeTab) updateTab(activeTab.id, { customerId: null, customerName: null })
+    if (activeTab) updateTab(activeTab.id, { customerId: null, customerName: null, customerPhone: null })
   }
 
   const setNote = (note: string) => {

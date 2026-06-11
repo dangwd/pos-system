@@ -146,7 +146,6 @@ export function usePos() {
   return {
     // Products
     products: filteredProducts,
-    allProducts: products,
     productsLoading,
     categories,
     search, setSearch,
@@ -163,6 +162,7 @@ export function usePos() {
     totalQty,
     discount: tab?.discountAmount ?? 0,
     note: tab?.note ?? '',
+    txnType: tab?.txnType ?? 'SellGold',
 
     // Cart actions
     addToCart,

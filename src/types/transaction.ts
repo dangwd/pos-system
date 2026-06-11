@@ -25,6 +25,7 @@ export type TransactionType =
 
 /** Trạng thái giao dịch */
 export type TransactionStatus =
+  | 'Draft'      // Vừa tạo, chờ xử lý
   | 'Pending'    // Chờ duyệt
   | 'Approved'   // Đã duyệt
   | 'Completed'  // Hoàn tất — bất biến
@@ -80,19 +81,15 @@ export interface CreateTransactionResult {
 
 // ─── DTOs (gửi lên API) ───────────────────────────────────────────────────────
 
-/**
- * Một dòng hàng khi tạo giao dịch.
- * unitPriceLakPerGram phải là giá snapshot — lấy từ GET /api/config/prices trước khi submit.
- * weightGramOverride: bắt buộc cho sản phẩm CanThucTe, null cho NguyenKhoi.
- */
+/** Một dòng hàng khi tạo giao dịch */
 export interface CreateTransactionItemDto {
   productId: string
   productName: string          // Snapshot tên sản phẩm tại thời điểm lập đơn
   quantity: number
-  weightUnitId: string         // ID từ GET /api/config/weight-units
-  weightGramOverride: number | null  // Bắt buộc khi CanThucTe, null khi NguyenKhoi
-  unitPriceLakPerGram: number  // Giá snapshot (LAK/gram)
-  itemRole: string             // 'Normal' | ...
+  weightUnitId: string         // FK → WeightUnit (lấy từ GET /api/config/weight-units)
+  weightGramOverride: number | null  // Trọng lượng thực đo (gram) — bắt buộc cho CanThucTe, null cho NguyenKhoi
+  unitPriceLakPerGram: number  // Giá snapshot (LAK/gram) — lấy từ bảng giá hiện tại
+  itemRole: string             // 'Normal' | 'TradeIn' | 'TradeOut'
   laborFee: number             // Phí gia công thợ (₭)
   stoneFee: number             // Phí đá đính kèm (₭)
 }
