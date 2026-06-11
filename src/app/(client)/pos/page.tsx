@@ -15,8 +15,8 @@ import { PaymentPanel } from '@/components/pos/PaymentPanel'
 import { PaymentModal } from '@/components/pos/PaymentModal'
 import { Receipt } from '@/components/pos/Receipt'
 import { toast } from 'sonner'
-import type { Transaction } from '@/types/transaction'
 import { useTranslations } from 'next-intl'
+import type { Transaction } from '@/types/transaction'
 
 export default function PosPage() {
   const t = useTranslations('pos.errors')
@@ -43,27 +43,26 @@ export default function PosPage() {
 
   const handleCheckout = async () => {
     try {
-      // TODO: ดึง branchId/counterId จาก session user จริง เมื่อ auth context พร้อม
+      // TODO: lấy branchId/staffId/counterId từ session user khi auth context sẵn sàng
       const result = await pos.checkout({
-        type: 'SellGold',
+        type: pos.txnType,
         branchId: 'branch-placeholder',
         staffId: 'staff-placeholder',
         counterId: 'counter-placeholder',
         customerId: undefined,
         note: pos.note || undefined,
       })
+      // Đóng modal và reset tab sau bất kỳ thanh toán thành công nào
+      setPaymentOpen(false)
+      pos.resetTabStatus()
+      // Hiển thị biên lai nếu hoàn tất
       if (result?.status === 'Completed') {
         setReceiptTransaction(result)
-        setPaymentOpen(false)
-        pos.resetTabStatus()
-        toast.success(t('checkoutSuccess'))
-      } else if (result?.status === 'Pending') {
-        setPaymentOpen(false)
-        pos.resetTabStatus()
-        toast.info(t('pendingApproval'))
       }
+      // Toast được hiển thị từ useCheckout onSuccess — không gọi lại ở đây
     } catch {
-      toast.error(t('checkoutFailed'))
+      // Toast lỗi được hiển thị từ useCheckout onError
+      // Giữ modal mở để người dùng thử lại
     }
   }
 

@@ -2,19 +2,25 @@
  * useCheckout — Strategy consumer hook
  *
  * Kết hợp PaymentStrategy + TransactionRepository để hoàn thành giao dịch.
- * Luồng 2 bước theo API thực:
- *   1. create()   → POST /api/transactions         → trả về Transaction (Pending/Approved)
- *   2. complete() → POST /api/transactions/{id}/complete → Completed
+ * Luồng theo API thực:
+ *   1. create() → POST /api/transactions → trả về GUID string
+ *   2. getById() → GET /api/transactions/{id} → Transaction với status thực tế
+ *   3. Nếu status === 'Approved' → complete() → COMPLETED
  *
  * Sau khi thanh toán thành công:
  *  - clearActiveCart() xóa giỏ hàng của tab active
- *  - Tab giữ nguyên (không đóng) để phục vụ khách tiếp theo
  *  - ['transactions'] cache bị invalidate
+ *  - Toast thành công / chờ duyệt được hiển thị từ đây (không phải từ page)
  */
 
 import { useMutation, useQueryClient } from '@tanstack/react-query'
+import { useLocale, useTranslations } from 'next-intl'
+import { toast } from 'sonner'
 import { transactionRepository } from '@/lib/repositories/transaction.repository'
+import { getErrorMessage } from '@/lib/errors'
 import { useActiveTab } from './useActiveTab'
+import type { ApiError } from '@/lib/api-error'
+import type { AppLocale } from '@/lib/errors'
 import type { PaymentStrategy } from '@/lib/strategies/payment.strategy'
 import type { TransactionType } from '@/types/transaction'
 
@@ -29,6 +35,8 @@ interface CheckoutParams {
 
 export function useCheckout(strategy: PaymentStrategy) {
   const qc = useQueryClient()
+  const locale = useLocale() as AppLocale
+  const t = useTranslations('pos.errors')
   const { tab, total, clearCart } = useActiveTab()
 
   return useMutation({
@@ -37,11 +45,10 @@ export function useCheckout(strategy: PaymentStrategy) {
         throw new Error('Giỏ hàng trống')
       }
 
-      // Bước 1: chuẩn bị strategy (validate trước khi gọi API)
       await strategy.prepare(total)
 
-      // Bước 2: tạo giao dịch
-      const transaction = await transactionRepository.create({
+      // create() trả về GUID string
+      const transactionId = await transactionRepository.create({
         type: params.type,
         branchId: params.branchId,
         staffId: params.staffId,
@@ -62,22 +69,38 @@ export function useCheckout(strategy: PaymentStrategy) {
         })),
       })
 
-      // Bước 3: hoàn tất nếu đã Approved
+      // Lấy Transaction đầy đủ để UI biết status và hiển thị receipt
+      const transaction = await transactionRepository.getById(transactionId)
+
+      // Nếu transaction đã được duyệt (auto-approve hoặc cashier có quyền), hoàn tất ngay
       if (transaction.status === 'Approved') {
-        return transactionRepository.complete(transaction.id, {
-          paymentMethod: strategy.paymentMethod,
-        })
+        return transactionRepository.complete(transaction.id, { paymentMethod: strategy.paymentMethod })
       }
 
-      // status Pending → cần quản lý duyệt, trả về để UI hiển thị trạng thái chờ
       return transaction
     },
 
     onSuccess: (result) => {
-      if (result.status === 'Completed' || result.status === 'Pending') {
-        clearCart()
-      }
+      // Xóa giỏ hàng và làm mới danh sách giao dịch
+      clearCart()
       qc.invalidateQueries({ queryKey: ['transactions'] })
+
+      // Hiển thị thông báo dựa trên trạng thái giao dịch
+      if (result.status === 'Completed') {
+        toast.success(t('checkoutSuccess'))
+      } else {
+        // Pending, Approved hoặc trạng thái khác → chờ duyệt
+        toast.info(t('pendingApproval'))
+      }
+    },
+
+    onError: (err: unknown) => {
+      const apiErr = err as ApiError
+      if (apiErr?.code) {
+        toast.error(getErrorMessage(apiErr.code, locale))
+      } else {
+        toast.error(t('checkoutFailed'))
+      }
     },
   })
 }

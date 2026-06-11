@@ -19,7 +19,7 @@ import { Field, FieldGroup, FieldLabel } from '@/components/ui/field'
 import { Spinner } from '@/components/ui/spinner'
 import type { LoyaltyTier } from '@/types/customer'
 
-const LOYALTY_TIERS: LoyaltyTier[] = ['Bronze', 'Silver', 'Gold', 'Platinum']
+const LOYALTY_TIERS: LoyaltyTier[] = ['silver', 'gold', 'platinum']
 
 const EMPTY_FORM = {
   name: '',

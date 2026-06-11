@@ -71,7 +71,8 @@
         "totalDue": "✦ Tiền thực thu",
         "currency": "₭ (Kip)",
         "checkout": "Thanh toán",
-        "processing": "Đang xử lý..."
+        "processing": "Đang xử lý...",
+        "createCustomer": "Tạo khách hàng mới"
       },
       "modal": {
         "title": "Xác nhận thanh toán",
@@ -108,6 +109,39 @@
       "checkoutFailed": "Thanh toán thất bại, vui lòng thử lại",
       "pendingApproval": "Đang chờ phê duyệt từ quản lý",
       "checkoutSuccess": "Thanh toán thành công!"
+    },
+    "txnTypes": {
+      "selectTitle": "Chọn loại nghiệp vụ",
+      "SellGold": {
+        "label": "Lập đơn Bán Vàng",
+        "short": "Bán Vàng",
+        "abbr": "BV",
+        "desc": "Khách mua vàng, thu Kip"
+      },
+      "SellSilver": {
+        "label": "Lập đơn Bán Bạc",
+        "short": "Bán Bạc",
+        "abbr": "BB",
+        "desc": "Khách mua bạc, thu Kip"
+      },
+      "BuyGold": {
+        "label": "Lập đơn Thu Mua Vàng",
+        "short": "Thu Mua",
+        "abbr": "MV",
+        "desc": "Mua vàng từ khách, chi Kip"
+      },
+      "ExchangeGold": {
+        "label": "Lập đơn Thu Đổi Vàng Cũ",
+        "short": "Thu Đổi",
+        "abbr": "ĐV",
+        "desc": "Đổi vàng Khamphuvong cũ sang hàng mới"
+      },
+      "ExchangeCurrency": {
+        "label": "Quầy Đổi Ngoại Tệ",
+        "short": "Ngoại Tệ",
+        "abbr": "NT",
+        "desc": "Thu đổi THB · USD → Kip"
+      }
     }
   },
   "product": {

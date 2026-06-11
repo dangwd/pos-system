@@ -11,6 +11,7 @@
 
 "use client";
 
+import { CustomerCreateDialog } from "@/components/admin/customers/CustomerCreateDialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Spinner } from "@/components/ui/spinner";
@@ -111,6 +112,7 @@ function CustomerSection() {
   const [query, setQuery] = useState("");
   const [debouncedQuery, setDebouncedQuery] = useState("");
   const [open, setOpen] = useState(false);
+  const [createOpen, setCreateOpen] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -189,7 +191,11 @@ function CustomerSection() {
                 </div>
               )}
             </div>
-            <button className="h-8 w-8 shrink-0 flex items-center justify-center rounded-md border bg-muted hover:bg-accent transition-colors">
+            <button
+              onClick={() => setCreateOpen(true)}
+              title={t("createCustomer")}
+              className="h-8 w-8 shrink-0 flex items-center justify-center rounded-md border bg-muted hover:bg-accent transition-colors"
+            >
               <Plus className="h-3.5 w-3.5 text-muted-foreground" />
             </button>
           </div>
@@ -226,6 +232,8 @@ function CustomerSection() {
             )}
         </div>
       )}
+
+      <CustomerCreateDialog open={createOpen} onClose={() => setCreateOpen(false)} />
     </div>
   );
 }

@@ -71,7 +71,8 @@
         "totalDue": "✦ ຍອດຕ້ອງຊຳລະ",
         "currency": "₭ (Kip)",
         "checkout": "ຊຳລະ",
-        "processing": "ກຳລັງດຳເນີນການ..."
+        "processing": "ກຳລັງດຳເນີນການ...",
+        "createCustomer": "ສ້າງລູກຄ້າໃໝ່"
       },
       "modal": {
         "title": "ຢືນຢັນການຊຳລະ",
@@ -108,6 +109,39 @@
       "checkoutFailed": "ຊຳລະເງິນລົ້ມເຫຼວ ກະລຸນາລອງໃໝ່",
       "pendingApproval": "ລໍຖ້າການອະນຸມັດຈາກຜູ້ຈັດການ",
       "checkoutSuccess": "ຊຳລະເງິນສຳເລັດ!"
+    },
+    "txnTypes": {
+      "selectTitle": "ເລືອກປະເພດທຸລະກິດ",
+      "SellGold": {
+        "label": "ຂາຍທອງຄຳ",
+        "short": "ຂາຍທອງ",
+        "abbr": "ຂທ",
+        "desc": "ລູກຄ້າຊື້ທອງ, ໄດ້ຮັບກີບ"
+      },
+      "SellSilver": {
+        "label": "ຂາຍເງິນ",
+        "short": "ຂາຍເງິນ",
+        "abbr": "ຂງ",
+        "desc": "ລູກຄ້າຊື້ເງິນ, ໄດ້ຮັບກີບ"
+      },
+      "BuyGold": {
+        "label": "ຮັບຊື້ທອງ",
+        "short": "ຮັບຊື້",
+        "abbr": "ຊທ",
+        "desc": "ຊື້ທອງຈາກລູກຄ້າ, ຈ່າຍກີບ"
+      },
+      "ExchangeGold": {
+        "label": "ປ່ຽນທອງເກົ່າ",
+        "short": "ປ່ຽນທອງ",
+        "abbr": "ປທ",
+        "desc": "ປ່ຽນທອງ Khamphuvong ເກົ່າເອົາສິນຄ້າໃໝ່"
+      },
+      "ExchangeCurrency": {
+        "label": "ແລກປ່ຽນເງິນຕ່າງປະເທດ",
+        "short": "ແລກເງິນ",
+        "abbr": "ແງ",
+        "desc": "ແລກ THB · USD → ກີບ"
+      }
     }
   },
   "product": {
