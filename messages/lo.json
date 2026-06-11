@@ -305,6 +305,8 @@
       "columns": {
         "name": "ຊື່ເຕັມ",
         "phone": "ໂທລະສັບ",
+        "totalPurchase": "ລວມຊື້",
+        "lastVisit": "ຄັ້ງສຸດທ້າຍ",
         "email": "ອີເມວ",
         "loyalty": "ລະດັບ",
         "points": "ຄະແນນ",

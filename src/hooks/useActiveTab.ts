@@ -1,17 +1,13 @@
 /**
  * useActiveTab — Facade hook cho tab đang active
  *
- * Component (ProductGrid, Cart) chỉ cần gọi hook này để:
- *  - Đọc state của tab đang active (items, subtotal, total, ...)
- *  - Gọi các action thao tác lên active tab
- *
  * Khi switch tab → hook trả về data mới → component tự re-render.
  * Không cần prop drilling hay context thủ công.
  */
 
 import { useMemo } from 'react'
 import { useInvoiceTabStore } from '@/stores/invoice-tab.store'
-import { calcSubtotal, calcTotal } from '@/lib/pricing'
+import { calcSubtotal, calcTotalA, calcTotalB, calcNetTotal, calcTotal } from '@/lib/pricing'
 
 export function useActiveTab() {
   const {
@@ -23,30 +19,49 @@ export function useActiveTab() {
     deleteItemFromActive,
     setItemQtyInActive,
     clearActiveCart,
+    updateCartItemInActive,
+    setLinkedInvoice,
+    clearLinkedInvoice,
   } = useInvoiceTabStore()
 
-  // Fallback về tabs[0] nếu activeTabId chưa set hoặc không tìm thấy
   const activeTab = useMemo(
     () => tabs.find(t => t.id === activeTabId) ?? tabs[0],
     [tabs, activeTabId]
   )
 
+  const items = activeTab?.items ?? []
+  const txnType = activeTab?.txnType ?? 'SellGold'
+  const discount = activeTab?.discountAmount ?? 0
+
   // ── Computed values ────────────────────────────────────────────────────────
 
-  /** Tổng tiền vàng/hàng (unitPrice × qty) — chưa bao gồm fees và discount */
-  const subtotal = useMemo(
-    () => calcSubtotal(activeTab?.items ?? []),
-    [activeTab?.items]
+  /** Gross value tất cả items (weight × price) — cho hiển thị SummaryBar */
+  const subtotal = useMemo(() => calcSubtotal(items), [items])
+
+  /** Tổng Normal items (hàng bán ra / mua vào) */
+  const totalA = useMemo(() => calcTotalA(items), [items])
+
+  /** Tổng ExchangeIn items (vàng cũ, sau PHÍ KHÒ / LAO SUT) */
+  const totalB = useMemo(() => calcTotalB(items), [items])
+
+  /**
+   * Chênh lệch có dấu:
+   *  BuyGold:      âm  → tiệm chi ra
+   *  ExchangeGold: dương/âm tuỳ A vs B
+   *  SellGold:     luôn dương
+   */
+  const netTotal = useMemo(
+    () => calcNetTotal(items, txnType, discount),
+    [items, txnType, discount]
   )
 
-  /** Tổng thanh toán = Σ(unitPrice × qty + laborFee + stoneFee) − discount, tối thiểu 0 */
+  /** Số tiền thanh toán thực tế (luôn dương) */
   const total = useMemo(
-    () => calcTotal(activeTab?.items ?? [], activeTab?.discountAmount ?? 0),
-    [activeTab?.items, activeTab?.discountAmount]
+    () => calcTotal(items, discount, txnType),
+    [items, discount, txnType]
   )
 
-  /** Tổng số lượng sản phẩm trong cart */
-  const totalQty = activeTab?.items.reduce((s, i) => s + i.qty, 0) ?? 0
+  const totalQty = items.reduce((s, i) => s + i.qty, 0)
 
   // ── Actions ────────────────────────────────────────────────────────────────
 
@@ -62,7 +77,6 @@ export function useActiveTab() {
     if (activeTab) updateTab(activeTab.id, { note })
   }
 
-  // Coupon không có API thực — chỉ hỗ trợ nhập tay discountAmount
   const applyDiscount = (discountAmount: number) => {
     if (activeTab) updateTab(activeTab.id, { discountAmount })
   }
@@ -74,17 +88,21 @@ export function useActiveTab() {
   return {
     tab: activeTab,
     subtotal,
+    totalA,
+    totalB,
+    netTotal,
     total,
     totalQty,
 
-    // Cart actions (tác động lên active tab, dùng productId làm key)
     addItem: addItemToActive,
     removeItem: removeItemFromActive,
     deleteItem: deleteItemFromActive,
     setQty: setItemQtyInActive,
     clearCart: clearActiveCart,
+    updateCartItem: updateCartItemInActive,
+    setLinkedInvoice,
+    clearLinkedInvoice,
 
-    // Tab metadata actions
     setCustomer,
     clearCustomer,
     setNote,

@@ -17,12 +17,8 @@ import type { TransactionType } from "@/types/transaction";
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
 
-// ─── Label counter ────────────────────────────────────────────────────────────
-// Module-level để tăng liên tục trong session; được hiệu chỉnh lại sau rehydrate
-
 let _tabCounter = 1;
 
-/** Tạo tab mới với label tự tăng */
 function makeNewTab(type: TransactionType = "SellGold"): InvoiceTab {
   return {
     id: crypto.randomUUID(),
@@ -37,19 +33,15 @@ function makeNewTab(type: TransactionType = "SellGold"): InvoiceTab {
     couponCode: null,
     discountAmount: 0,
     note: "",
+    linkedInvoiceCode: null,
+    linkedInvoiceItemKeys: [],
   };
 }
 
-/** Lấy active tab (fallback tabs[0] nếu activeTabId chưa được set) */
-function resolveActiveId(
-  tabs: InvoiceTab[],
-  activeTabId: string | null,
-): string | undefined {
+function resolveActiveId(tabs: InvoiceTab[], activeTabId: string | null): string | undefined {
   if (activeTabId && tabs.find((t) => t.id === activeTabId)) return activeTabId;
   return tabs[0]?.id;
 }
-
-// ─── Store ────────────────────────────────────────────────────────────────────
 
 const firstTab = makeNewTab();
 
@@ -73,34 +65,24 @@ export const useInvoiceTabStore = create<InvoiceTabStore>()(
 
       closeTab(id) {
         const { tabs, activeTabId } = get();
-
-        // Luôn giữ ít nhất 1 tab
         if (tabs.length === 1) return;
-
-        // Rule 8: không đóng tab đang trong flow thanh toán
         const target = tabs.find((t) => t.id === id);
         if (target?.status === "paying") return;
-
         const idx = tabs.findIndex((t) => t.id === id);
         const next = tabs[idx + 1] ?? tabs[idx - 1];
-
         set({
           tabs: tabs.filter((t) => t.id !== id),
-          // Nếu đóng tab đang active → chuyển sang tab kề
           activeTabId: activeTabId === id ? next.id : activeTabId,
         });
       },
 
-      switchTab(id) {
-        set({ activeTabId: id });
-      },
+      switchTab(id) { set({ activeTabId: id }); },
 
       duplicateTab(id) {
         const src = get().tabs.find((t) => t.id === id);
         if (!src) return;
         const tab: InvoiceTab = {
           ...makeNewTab(),
-          // Copy cart và khách hàng từ tab nguồn
           items: src.items.map((i) => ({ ...i })),
           customerId: src.customerId,
           customerName: src.customerName,
@@ -110,20 +92,14 @@ export const useInvoiceTabStore = create<InvoiceTabStore>()(
       },
 
       holdTab(id) {
-        set((s) => ({
-          tabs: s.tabs.map((t) =>
-            t.id === id ? { ...t, status: "holding" } : t,
-          ),
-        }));
+        set((s) => ({ tabs: s.tabs.map((t) => t.id === id ? { ...t, status: "holding" } : t) }));
       },
 
       updateTab(id, patch) {
-        set((s) => ({
-          tabs: s.tabs.map((t) => (t.id === id ? { ...t, ...patch } : t)),
-        }));
+        set((s) => ({ tabs: s.tabs.map((t) => t.id === id ? { ...t, ...patch } : t) }));
       },
 
-      // ── Cart mutations — tác động lên tab đang active ──────────────────────
+      // ── Cart mutations ──────────────────────────────────────────────────────
 
       addItemToActive(item: CartItem) {
         const { tabs } = get();
@@ -133,101 +109,128 @@ export const useInvoiceTabStore = create<InvoiceTabStore>()(
         set({
           tabs: tabs.map((t) => {
             if (t.id !== activeId) return t;
-            // Duplicate check by productId (1 mục kho = 1 đơn vị vật lý)
+            // Dedup: productId + itemRole (same product can appear as both Normal & ExchangeIn)
             const existing = t.items.find(
-              (i) => i.productId === item.productId,
+              (i) => i.productId === item.productId && i.itemRole === item.itemRole,
             );
             const items = existing
               ? t.items.map((i) =>
-                  i.productId === item.productId
+                  i.productId === item.productId && i.itemRole === item.itemRole
                     ? { ...i, qty: i.qty + 1 }
                     : i,
                 )
-              : [...t.items, { ...item, qty: 1 }];
+              : [...t.items, { ...item, qty: item.qty || 1 }];
             return { ...t, items };
           }),
         });
       },
 
-      /** Giảm qty 1; tự động xóa nếu qty về 0 */
       removeItemFromActive(productId: string) {
         const { tabs } = get();
         const activeId = resolveActiveId(tabs, get().activeTabId);
         if (!activeId) return;
-
         set({
           tabs: tabs.map((t) => {
             if (t.id !== activeId) return t;
             const items = t.items
-              .map((i) =>
-                i.productId === productId
-                  ? { ...i, qty: i.qty - 1 }
-                  : i,
-              )
+              .map((i) => i.productId === productId && i.itemRole === 'Normal' ? { ...i, qty: i.qty - 1 } : i)
               .filter((i) => i.qty > 0);
             return { ...t, items };
           }),
         });
       },
 
-      /** Xóa hoàn toàn sản phẩm khỏi cart (không giảm từng bước) */
       deleteItemFromActive(productId: string) {
         const { tabs } = get();
         const activeId = resolveActiveId(tabs, get().activeTabId);
         if (!activeId) return;
-
         set({
           tabs: tabs.map((t) =>
-            t.id !== activeId
-              ? t
-              : {
-                  ...t,
-                  items: t.items.filter(
-                    (i) => i.productId !== productId,
-                  ),
-                },
+            t.id !== activeId ? t : { ...t, items: t.items.filter((i) => i.productId !== productId) },
           ),
         });
       },
 
-      /** Set qty chính xác; qty <= 0 → xóa sản phẩm */
       setItemQtyInActive(productId: string, qty: number) {
         const { tabs } = get();
         const activeId = resolveActiveId(tabs, get().activeTabId);
         if (!activeId) return;
-
         set({
           tabs: tabs.map((t) => {
             if (t.id !== activeId) return t;
-            const items =
-              qty <= 0
-                ? t.items.filter((i) => i.productId !== productId)
-                : t.items.map((i) =>
-                    i.productId === productId ? { ...i, qty } : i,
-                  );
+            const items = qty <= 0
+              ? t.items.filter((i) => i.productId !== productId)
+              : t.items.map((i) => i.productId === productId && i.itemRole === 'Normal' ? { ...i, qty } : i);
             return { ...t, items };
           }),
         });
       },
 
-      /** Xóa toàn bộ cart + coupon + note của tab active */
       clearActiveCart() {
         const { tabs } = get();
         const activeId = resolveActiveId(tabs, get().activeTabId);
         if (!activeId) return;
-
         set({
           tabs: tabs.map((t) =>
-            t.id !== activeId
-              ? t
-              : {
-                  ...t,
-                  items: [],
-                  couponCode: null,
-                  discountAmount: 0,
-                  note: "",
-                },
+            t.id !== activeId ? t : {
+              ...t,
+              items: [],
+              couponCode: null,
+              discountAmount: 0,
+              note: "",
+              linkedInvoiceCode: null,
+              linkedInvoiceItemKeys: [],
+            },
           ),
+        });
+      },
+
+      updateCartItemInActive(productId: string, patch: Partial<CartItem>) {
+        const { tabs } = get();
+        const activeId = resolveActiveId(tabs, get().activeTabId);
+        if (!activeId) return;
+        set({
+          tabs: tabs.map((t) => {
+            if (t.id !== activeId) return t;
+            return { ...t, items: t.items.map((i) => i.productId === productId ? { ...i, ...patch } : i) };
+          }),
+        });
+      },
+
+      setLinkedInvoice(code: string, newItems: CartItem[]) {
+        const { tabs } = get();
+        const activeId = resolveActiveId(tabs, get().activeTabId);
+        if (!activeId) return;
+        set({
+          tabs: tabs.map((t) => {
+            if (t.id !== activeId) return t;
+            // Xóa items từ HĐ cũ trước đó
+            const keysToRemove = t.linkedInvoiceItemKeys;
+            const remaining = t.items.filter((i) => !keysToRemove.includes(i.productId));
+            return {
+              ...t,
+              items: [...newItems, ...remaining],
+              linkedInvoiceCode: code,
+              linkedInvoiceItemKeys: newItems.map((i) => i.productId),
+            };
+          }),
+        });
+      },
+
+      clearLinkedInvoice() {
+        const { tabs } = get();
+        const activeId = resolveActiveId(tabs, get().activeTabId);
+        if (!activeId) return;
+        set({
+          tabs: tabs.map((t) => {
+            if (t.id !== activeId) return t;
+            return {
+              ...t,
+              items: t.items.filter((i) => !t.linkedInvoiceItemKeys.includes(i.productId)),
+              linkedInvoiceCode: null,
+              linkedInvoiceItemKeys: [],
+            };
+          }),
         });
       },
 
@@ -239,30 +242,32 @@ export const useInvoiceTabStore = create<InvoiceTabStore>()(
     }),
 
     {
-      // v2: đổi tên key để xóa dữ liệu cũ (CartItem schema thay đổi — cần productId)
-      name: "pos-invoice-tabs",
-
-      // Chỉ persist tabs[], không persist activeTabId để tránh stale sau reload
+      // v3: bump version để clear localStorage cũ khi CartItem schema thay đổi (thêm itemRole)
+      name: "pos-invoice-tabs-v3",
       partialize: (s) => ({ tabs: s.tabs }),
 
-      // Sau khi rehydrate: lọc items lỗi schema cũ, khôi phục activeTabId, đồng bộ counter
       onRehydrateStorage: () => (state) => {
         if (!state || state.tabs.length === 0) return;
 
-        // Loại bỏ CartItem không có productId (schema cũ trước khi migrate)
-        // Backfill txnType cho tab cũ chưa có field này
         state.tabs = state.tabs.map((t) => ({
           ...t,
           txnType: t.txnType ?? "SellGold",
-          items: t.items.filter(
-            (i) => "productId" in i && !!i.productId,
-          ),
+          linkedInvoiceCode: t.linkedInvoiceCode ?? null,
+          linkedInvoiceItemKeys: t.linkedInvoiceItemKeys ?? [],
+          items: t.items
+            .filter((i) => "productId" in i && !!i.productId)
+            .map((i) => ({
+              ...i,
+              itemRole: i.itemRole ?? 'Normal',
+              perItemDamage: i.perItemDamage ?? 0,
+              perItemWearChi: i.perItemWearChi ?? 0,
+              isDamaged: i.isDamaged ?? false,
+              isReadOnly: i.isReadOnly ?? false,
+            })),
         }));
 
-        // Set activeTabId về tab đầu tiên
         state.activeTabId = state.tabs[0].id;
 
-        // Đồng bộ _tabCounter để label mới không trùng label cũ
         const maxNum = state.tabs.reduce((max, t) => {
           const match = t.label.match(/INV-(\d+)/);
           return match ? Math.max(max, parseInt(match[1], 10)) : max;

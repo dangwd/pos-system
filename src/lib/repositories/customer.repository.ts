@@ -10,6 +10,7 @@
 
 import api from '@/lib/axios'
 import { handleAxiosError } from '@/lib/api-error'
+import { normalizePaged, type RawPagedResult } from '@/types/common'
 import type { Customer, CreateCustomerDto, UpdateCustomerDto, CustomerSearchParams } from '@/types/customer'
 
 export class CustomerRepository {
@@ -21,8 +22,9 @@ export class CustomerRepository {
    */
   async search(params: CustomerSearchParams): Promise<Customer[]> {
     try {
-      const { data } = await api.get<Customer[]>(this.base, { params })
-      return data
+      const { data } = await api.get<Customer[] | RawPagedResult<Customer>>(this.base, { params })
+      if (Array.isArray(data)) return data
+      return normalizePaged(data).data
     } catch (err) {
       throw handleAxiosError(err)
     }

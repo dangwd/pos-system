@@ -41,12 +41,13 @@ export class InventoryRepository {
 
   /**
    * Danh sách tồn kho dạng mảng (KHÔNG phân trang) — dùng cho catalog theo
-   * chi nhánh & picker. Theo doc: không truyền `page` ⇒ backend trả mảng.
+   * chi nhánh & picker. Backend có thể trả mảng hoặc paged object — normalize về mảng.
    */
   async getAll(params?: Omit<InventoryListParams, 'page' | 'pageSize'>): Promise<InventoryItem[]> {
     try {
-      const { data } = await api.get<InventoryItem[]>(this.base, { params })
-      return data
+      const { data } = await api.get<InventoryItem[] | RawPagedResult<InventoryItem>>(this.base, { params })
+      if (Array.isArray(data)) return data
+      return normalizePaged(data).data
     } catch (err) {
       throw handleAxiosError(err)
     }
@@ -88,8 +89,9 @@ export class InventoryRepository {
   /** Lịch sử điều chỉnh kho (lọc theo chi nhánh, mặc định 20 bản ghi mới nhất) */
   async getAdjustments(params?: InventoryAdjustmentParams): Promise<InventoryAdjustment[]> {
     try {
-      const { data } = await api.get<InventoryAdjustment[]>(`${this.base}/adjustments`, { params })
-      return data
+      const { data } = await api.get<InventoryAdjustment[] | RawPagedResult<InventoryAdjustment>>(`${this.base}/adjustments`, { params })
+      if (Array.isArray(data)) return data
+      return normalizePaged(data).data
     } catch (err) {
       throw handleAxiosError(err)
     }

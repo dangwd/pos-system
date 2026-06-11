@@ -24,8 +24,9 @@ export class ProductRepository {
 
   async getAll(params?: ProductListParams): Promise<Product[]> {
     try {
-      const { data } = await api.get<Product[]>(this.base, { params })
-      return data
+      const { data } = await api.get<Product[] | RawPagedResult<Product>>(this.base, { params })
+      if (Array.isArray(data)) return data
+      return normalizePaged(data).data
     } catch (err) {
       throw handleAxiosError(err)
     }
@@ -84,8 +85,9 @@ export class ProductRepository {
 
   async getCategories(): Promise<ProductCategory[]> {
     try {
-      const { data } = await api.get<ProductCategory[]>(`${this.base}/categories`)
-      return data
+      const { data } = await api.get<ProductCategory[] | RawPagedResult<ProductCategory>>(`${this.base}/categories`)
+      if (Array.isArray(data)) return data
+      return normalizePaged(data).data
     } catch (err) {
       throw handleAxiosError(err)
     }

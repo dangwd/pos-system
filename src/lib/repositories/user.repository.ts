@@ -22,8 +22,9 @@ export interface UserListParams {
 export class UserRepository {
   async getList(params?: UserListParams): Promise<AdminUser[]> {
     try {
-      const { data } = await api.get<AdminUser[]>('/api/users', { params })
-      return data
+      const { data } = await api.get<AdminUser[] | RawPagedResult<AdminUser>>('/api/users', { params })
+      if (Array.isArray(data)) return data
+      return normalizePaged(data).data
     } catch (err) {
       throw handleAxiosError(err)
     }

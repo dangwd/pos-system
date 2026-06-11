@@ -26,11 +26,10 @@ import type { TransactionType } from '@/types/transaction'
 
 interface CheckoutParams {
   type: TransactionType
-  branchId: string
-  staffId: string
-  counterId: string
   customerId?: string
   note?: string
+  depositAmount?: number
+  referenceInvoiceCode?: string
 }
 
 export function useCheckout(strategy: PaymentStrategy) {
@@ -50,23 +49,42 @@ export function useCheckout(strategy: PaymentStrategy) {
       // create() trả về GUID string
       const transactionId = await transactionRepository.create({
         type: params.type,
-        branchId: params.branchId,
-        staffId: params.staffId,
-        counterId: params.counterId,
         customerId: params.customerId,
         paymentMethod: strategy.paymentMethod,
         note: params.note,
-        items: tab.items.map(item => ({
-          productId: item.productId,
-          productName: item.name,
-          quantity: item.qty,
-          weightUnitId: item.weightUnitId ?? '',
-          weightGramOverride: item.weightGramOverride,
-          unitPriceLakPerGram: item.unitPriceLakPerGram,
-          itemRole: 'Normal',
-          laborFee: item.laborFee,
-          stoneFee: item.stoneFee,
-        })),
+        depositAmount: params.depositAmount,
+        // Ưu tiên referenceInvoiceCode từ params; fallback về linkedInvoiceCode của tab
+        referenceInvoiceCode: params.referenceInvoiceCode ?? tab.linkedInvoiceCode ?? undefined,
+        items: tab.items.map(item => {
+          const isExchangeIn = item.itemRole === 'ExchangeIn'
+          const hasPhiKho = isExchangeIn && item.perItemDamage > 0
+          const hasLaoSut = isExchangeIn && item.perItemWearChi > 0
+
+          // ExchangeIn: weightGramOverride = trọng lượng thực sau LAO SUT
+          const effectiveWeightGram = isExchangeIn
+            ? (item.weightGramOverride ?? item.qty * item.weightGram) - item.perItemWearChi * 3.75
+            : item.weightGramOverride
+
+          // ExchangeIn: PHÍ KHÒ / LAO SUT encode vào productName để in phiếu
+          const productName = isExchangeIn && (hasPhiKho || hasLaoSut)
+            ? `${item.name} [PHÍ KHÒ: ${item.perItemDamage.toLocaleString('lo-LA')}₭ | LAO SUT: ${item.perItemWearChi} Chỉ]`
+            : item.name
+
+          return {
+            productId: item.productId,
+            productName,
+            quantity: item.qty,
+            weightUnitId: item.weightUnitId ?? '',
+            weightGramOverride: effectiveWeightGram,
+            unitPriceLak: item.unitPriceLakPerGram * item.weightGram,
+            itemRole: item.itemRole,
+            // ExchangeIn: PHÍ KHÒ encode vào laborFee
+            laborFee: isExchangeIn ? item.perItemDamage : item.laborFee,
+            stoneFee: isExchangeIn ? 0 : item.stoneFee,
+            // LAO SUT encode vào haoHutGram (gram)
+            haoHutGram: isExchangeIn ? item.perItemWearChi * 3.75 : 0,
+          }
+        }),
       })
 
       // Lấy Transaction đầy đủ để UI biết status và hiển thị receipt

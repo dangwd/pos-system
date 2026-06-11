@@ -1,5 +1,6 @@
 import api from '@/lib/axios'
 import { handleAxiosError } from '@/lib/api-error'
+import { normalizePaged, type RawPagedResult } from '@/types/common'
 import type {
   Branch,
   Counter,
@@ -12,8 +13,9 @@ import type {
 export class BranchRepository {
   async getList(): Promise<Branch[]> {
     try {
-      const { data } = await api.get<Branch[]>('/api/branches')
-      return data
+      const { data } = await api.get<Branch[] | RawPagedResult<Branch>>('/api/branches')
+      if (Array.isArray(data)) return data
+      return normalizePaged(data).data
     } catch (err) {
       throw handleAxiosError(err)
     }
@@ -48,8 +50,9 @@ export class BranchRepository {
 
   async getCounters(branchId: string): Promise<Counter[]> {
     try {
-      const { data } = await api.get<Counter[]>(`/api/branches/${branchId}/counters`)
-      return data
+      const { data } = await api.get<Counter[] | RawPagedResult<Counter>>(`/api/branches/${branchId}/counters`)
+      if (Array.isArray(data)) return data
+      return normalizePaged(data).data
     } catch (err) {
       throw handleAxiosError(err)
     }

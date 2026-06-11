@@ -45,6 +45,7 @@ export default function UsersPage() {
   const [filterIsActive, setFilterIsActive] = useState<string | null>(null)
   const [searchInput, setSearchInput] = useState('')
   const [filterSearch, setFilterSearch] = useState('')
+  const [page, setPage] = useState(1)
 
   useEffect(() => {
     const timer = setTimeout(() => { setFilterSearch(searchInput); setPage(1) }, 400)

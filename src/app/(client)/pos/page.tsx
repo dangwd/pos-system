@@ -43,12 +43,8 @@ export default function PosPage() {
 
   const handleCheckout = async () => {
     try {
-      // TODO: lấy branchId/staffId/counterId từ session user khi auth context sẵn sàng
       const result = await pos.checkout({
         type: pos.txnType,
-        branchId: 'branch-placeholder',
-        staffId: 'staff-placeholder',
-        counterId: 'counter-placeholder',
         customerId: undefined,
         note: pos.note || undefined,
       })

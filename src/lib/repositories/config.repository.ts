@@ -1,5 +1,6 @@
 import api from '@/lib/axios'
 import { handleAxiosError } from '@/lib/api-error'
+import { normalizePaged, type RawPagedResult } from '@/types/common'
 import type {
   PriceConfig,
   UpdatePriceConfigDto,
@@ -32,8 +33,9 @@ export class ConfigRepository {
 
   async getPriceHistory(limit = 20): Promise<PriceConfig[]> {
     try {
-      const { data } = await api.get<PriceConfig[]>('/api/config/prices/history', { params: { limit } })
-      return data
+      const { data } = await api.get<PriceConfig[] | RawPagedResult<PriceConfig>>('/api/config/prices/history', { params: { limit } })
+      if (Array.isArray(data)) return data
+      return normalizePaged(data).data
     } catch (err) { throw handleAxiosError(err) }
   }
 
@@ -48,8 +50,9 @@ export class ConfigRepository {
 
   async getExchangeRates(): Promise<ExchangeRate[]> {
     try {
-      const { data } = await api.get<ExchangeRate[]>('/api/config/exchange-rates')
-      return data
+      const { data } = await api.get<ExchangeRate[] | RawPagedResult<ExchangeRate>>('/api/config/exchange-rates')
+      if (Array.isArray(data)) return data
+      return normalizePaged(data).data
     } catch (err) { throw handleAxiosError(err) }
   }
 
@@ -64,8 +67,9 @@ export class ConfigRepository {
 
   async getStonePriceRules(): Promise<StonePriceRule[]> {
     try {
-      const { data } = await api.get<StonePriceRule[]>('/api/config/stone-price-rules')
-      return data
+      const { data } = await api.get<StonePriceRule[] | RawPagedResult<StonePriceRule>>('/api/config/stone-price-rules')
+      if (Array.isArray(data)) return data
+      return normalizePaged(data).data
     } catch (err) { throw handleAxiosError(err) }
   }
 
@@ -93,8 +97,9 @@ export class ConfigRepository {
 
   async getWeightUnits(): Promise<WeightUnit[]> {
     try {
-      const { data } = await api.get<WeightUnit[]>('/api/config/weight-units')
-      return data
+      const { data } = await api.get<WeightUnit[] | RawPagedResult<WeightUnit>>('/api/config/weight-units')
+      if (Array.isArray(data)) return data
+      return normalizePaged(data).data
     } catch (err) { throw handleAxiosError(err) }
   }
 
@@ -122,8 +127,9 @@ export class ConfigRepository {
 
   async getGoldPurities(): Promise<GoldPurity[]> {
     try {
-      const { data } = await api.get<GoldPurity[]>('/api/config/gold-purities')
-      return data
+      const { data } = await api.get<GoldPurity[] | RawPagedResult<GoldPurity>>('/api/config/gold-purities')
+      if (Array.isArray(data)) return data
+      return normalizePaged(data).data
     } catch (err) { throw handleAxiosError(err) }
   }
 
@@ -151,15 +157,17 @@ export class ConfigRepository {
 
   async getRoles(): Promise<AppRole[]> {
     try {
-      const { data } = await api.get<AppRole[]>('/api/config/roles')
-      return data
+      const { data } = await api.get<AppRole[] | RawPagedResult<AppRole>>('/api/config/roles')
+      if (Array.isArray(data)) return data
+      return normalizePaged(data).data
     } catch (err) { throw handleAxiosError(err) }
   }
 
   async getPermissions(): Promise<Permission[]> {
     try {
-      const { data } = await api.get<Permission[]>('/api/config/permissions')
-      return data
+      const { data } = await api.get<Permission[] | RawPagedResult<Permission>>('/api/config/permissions')
+      if (Array.isArray(data)) return data
+      return normalizePaged(data).data
     } catch (err) { throw handleAxiosError(err) }
   }
 

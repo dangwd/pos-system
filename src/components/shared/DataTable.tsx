@@ -32,6 +32,19 @@ import { ChevronLeft, ChevronRight } from 'lucide-react'
 import { useTranslations } from 'next-intl'
 import { Empty, EmptyTitle } from '@/components/ui/empty'
 
+// Returns page numbers with '...' gaps: e.g. [1, '...', 4, 5, 6, '...', 20]
+function getPageNumbers(current: number, total: number): (number | '...')[] {
+  if (total <= 7) return Array.from({ length: total }, (_, i) => i + 1)
+  const pages: (number | '...')[] = [1]
+  if (current > 3) pages.push('...')
+  for (let i = Math.max(2, current - 1); i <= Math.min(total - 1, current + 1); i++) {
+    pages.push(i)
+  }
+  if (current < total - 2) pages.push('...')
+  pages.push(total)
+  return pages
+}
+
 // ─── Props ────────────────────────────────────────────────────────────────────
 
 interface ServerPagination {
@@ -58,6 +71,8 @@ interface DataTableProps<TData> {
    * DataTable uses manualPagination:true — data must already be the current page's rows.
    */
   serverPagination?: ServerPagination
+  /** Max height for the table body area (default: 500px). Set false to disable. */
+  maxHeight?: string | false
 }
 
 // ─── Component ────────────────────────────────────────────────────────────────
@@ -70,6 +85,7 @@ export function DataTable<TData>({
   pageSize = 10,
   hideSearch,
   serverPagination,
+  maxHeight = '500px',
 }: DataTableProps<TData>) {
   const t = useTranslations('common.table')
   const [sorting, setSorting] = useState<SortingState>([])
@@ -140,6 +156,7 @@ export function DataTable<TData>({
 
   const currentPage = table.getState().pagination.pageIndex + 1
   const totalPages = table.getPageCount()
+  const pageNumbers = totalPages > 1 ? getPageNumbers(currentPage, totalPages) : []
 
   return (
     <div className="space-y-3">
@@ -154,15 +171,18 @@ export function DataTable<TData>({
       )}
 
       {/* ── Table ──────────────────────────────────────────────────────────── */}
-      <div className="rounded-md border overflow-hidden">
+      <div
+        className="rounded-md border overflow-auto"
+        style={maxHeight ? { maxHeight } : undefined}
+      >
         <table className="w-full text-sm">
-          <thead>
+          <thead className="sticky top-0 z-10">
             {table.getHeaderGroups().map(hg => (
               <tr key={hg.id} className="border-b bg-muted/50">
                 {hg.headers.map(header => (
                   <th
                     key={header.id}
-                    className="px-4 py-2 text-left font-medium text-muted-foreground"
+                    className="px-4 py-2 text-left font-medium text-muted-foreground bg-muted/50"
                   >
                     {header.isPlaceholder
                       ? null
@@ -201,11 +221,6 @@ export function DataTable<TData>({
       <div className="flex items-center justify-between text-sm">
         <span className="text-muted-foreground">
           {t('results', { count: totalCount })}
-          {totalPages > 1 && (
-            <span className="ml-2">
-              · {t('page', { page: currentPage, total: totalPages })}
-            </span>
-          )}
         </span>
 
         {totalPages > 1 && (
@@ -219,6 +234,25 @@ export function DataTable<TData>({
             >
               <ChevronLeft className="h-4 w-4" />
             </Button>
+
+            {pageNumbers.map((p, i) =>
+              p === '...' ? (
+                <span key={`ellipsis-${i}`} className="px-1 text-muted-foreground select-none">
+                  …
+                </span>
+              ) : (
+                <Button
+                  key={p}
+                  variant={p === currentPage ? 'default' : 'outline'}
+                  size="icon"
+                  className="h-7 w-7 text-xs"
+                  onClick={() => table.setPageIndex((p as number) - 1)}
+                >
+                  {p}
+                </Button>
+              )
+            )}
+
             <Button
               variant="outline"
               size="icon"
