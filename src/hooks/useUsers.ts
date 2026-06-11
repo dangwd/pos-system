@@ -34,6 +34,14 @@ export function useUsers(params?: UserListParams) {
   })
 }
 
+export function useUsersPaged(params?: UserListParams) {
+  return useQuery({
+    queryKey: [...USERS_KEY, 'paged', params],
+    queryFn: () => userRepository.getListPaged(params),
+    staleTime: 60_000,
+  })
+}
+
 export function useUser(id: string) {
   return useQuery({
     queryKey: [...USERS_KEY, id],

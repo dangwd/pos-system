@@ -34,6 +34,17 @@ export interface CreateCustomerDto {
 
 /** Query params cho GET /api/customers */
 export interface CustomerSearchParams {
-  q?: string     // Tìm theo tên hoặc SĐT
-  limit?: number // Mặc định 10
+  q?: string     // Tìm theo tên hoặc SĐT (lookup/array mode)
+  limit?: number // Mặc định 10 (lookup/array mode)
+}
+
+/**
+ * Query params cho GET /api/customers ở chế độ phân trang (table).
+ * Backend Customers hỗ trợ `search` (so khớp tên / SĐT, không phân biệt hoa thường).
+ * `page` 1-indexed; `pageSize` mặc định 20.
+ */
+export interface CustomerListParams {
+  search?: string
+  page?: number
+  pageSize?: number
 }

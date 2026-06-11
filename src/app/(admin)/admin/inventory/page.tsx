@@ -1,178 +1,127 @@
 'use client'
 
-import { useMemo, useRef, useState } from 'react'
+import { useState } from 'react'
 import { useTranslations } from 'next-intl'
-import { DataTable } from '@/components/shared/DataTable'
-import { createInventoryColumns } from '@/components/admin/columns/inventory-columns'
-import { TablePageSkeleton } from '@/components/shared/PageSkeleton'
-import {
-  Combobox,
-  ComboboxContent,
-  ComboboxEmpty,
-  ComboboxInput,
-  ComboboxItem,
-  ComboboxList,
-  ComboboxTrigger,
-} from '@/components/ui/combobox'
-import { useInventory } from '@/hooks/useInventory'
+import { cn } from '@/lib/utils'
+import { Boxes, PackagePlus } from 'lucide-react'
+import { ComboboxSelect } from '@/components/shared/ComboboxSelect'
+import { InventoryCatalog } from '@/components/admin/inventory/InventoryCatalog'
+import { InventoryDeclareForm } from '@/components/admin/inventory/InventoryDeclareForm'
+import { InventoryAdjustPanel } from '@/components/admin/inventory/InventoryAdjustPanel'
+import { InventoryActivityLog } from '@/components/admin/inventory/InventoryActivityLog'
+import { InventoryStatusDialog } from '@/components/admin/inventory/InventoryStatusDialog'
 import { useBranches } from '@/hooks/useBranches'
-import type { InventoryStatus, InventorySource } from '@/types/inventory'
+import { useInventoryValuation } from '@/hooks/useInventory'
+import { lakToForeign, findRate } from '@/lib/inventory-valuation'
+import { useAuthStore } from '@/stores/auth.store'
+import type { InventoryItem } from '@/types/inventory'
 
-const PAGE_SIZE = 20
-
-const TRIGGER = "inline-flex h-8 items-center justify-between gap-2 rounded-md border border-input bg-background px-3 text-sm font-normal hover:bg-accent hover:text-accent-foreground transition-colors w-full"
+type Tab = 'catalog' | 'declare'
 
 export default function InventoryPage() {
   const t = useTranslations('admin.inventory')
+  const user = useAuthStore(s => s.user)
 
-  const branchAnchor = useRef<HTMLDivElement>(null)
-  const statusAnchor = useRef<HTMLDivElement>(null)
-  const sourceAnchor = useRef<HTMLDivElement>(null)
+  // Phân quyền (§14): INVENTORY_MANAGE để điều chỉnh kho; PRODUCT_MANAGE để khai báo SP.
+  const canManage = !!user?.permissions.includes('INVENTORY_MANAGE')
+  const canDeclare = !!user?.permissions.includes('PRODUCT_MANAGE')
 
-  const [page, setPage] = useState(1)
-  const [filterBranchId, setFilterBranchId] = useState<string | null>(null)
-  const [filterStatus, setFilterStatus] = useState<string | null>(null)
-  const [filterSource, setFilterSource] = useState<string | null>(null)
+  const [tab, setTab] = useState<Tab>('catalog')
+  const [branchId, setBranchId] = useState<string | null>(null)
+  const [selectedItemId, setSelectedItemId] = useState<string | null>(null)
+  const [statusItem, setStatusItem] = useState<InventoryItem | null>(null)
 
   const { data: branches = [] } = useBranches()
+  // Mặc định theo chi nhánh của người dùng (§9.1 — tồn kho theo chi nhánh).
+  const effectiveBranchId = branchId ?? user?.branchId ?? branches[0]?.id ?? null
+  const branchName = branches.find(b => b.id === effectiveBranchId)?.name ?? '—'
+  const activeTab: Tab = tab === 'declare' && !canDeclare ? 'catalog' : tab
 
-  const statusLabels = useMemo(() => ({
-    TiepNhan:    t('statusTiepNhan'),
-    TrenQuay:    t('statusTrenQuay'),
-    DaBan:       t('statusDaBan'),
-    ChuyenXuong: t('statusChuyenXuong'),
-  }), [t])
-
-  const sourceLabels = useMemo(() => ({
-    Quan:  t('sourceQuan'),
-    Ngoai: t('sourceNgoai'),
-  }), [t])
-
-  const selectedBranch = branches.find(b => b.id === filterBranchId)
-
-  const { data, isLoading } = useInventory({
-    branchId: filterBranchId ?? undefined,
-    status: filterStatus as InventoryStatus ?? undefined,
-    nguonGoc: filterSource as InventorySource ?? undefined,
-    page,
-    pageSize: PAGE_SIZE,
-  })
-
-  const items = data?.data ?? []
-
-  const columns = useMemo(() => createInventoryColumns({
-    product:    t('columns.product'),
-    branch:     t('columns.branch'),
-    qty:        t('columns.qty'),
-    weight:     t('columns.weight'),
-    status:     t('filterStatus'),
-    source:     t('filterSource'),
-    tray:       'Tray',
-    updatedAt:  t('columns.lastUpdated'),
-    openMenu:   'Open menu',
-    viewDetail: 'View details',
-  }), [t])
+  const { items, totals, rates } = useInventoryValuation(effectiveBranchId)
+  const totalAssetLak = totals.totalAssetLak.toLocaleString('lo-LA', { maximumFractionDigits: 0 })
+  const usdTotal = lakToForeign(totals.totalAssetLak, findRate(rates, 'USD'))
 
   return (
-    <div className="p-6 space-y-4">
-      <div>
-        <h1 className="text-2xl font-bold">{t('title')}</h1>
-        <p className="text-muted-foreground text-sm">
-          {t('subtitle', { count: data?.total ?? 0 })}
-        </p>
-      </div>
-
-      {/* Filter bar */}
-      <div className="flex flex-wrap items-center gap-2">
-        {/* Branch */}
-        <div ref={branchAnchor} className="inline-flex min-w-48">
-          <Combobox
-            value={filterBranchId ?? ""}
-            onValueChange={v => { setFilterBranchId(v || null); setPage(1) }}
-          >
-            <ComboboxTrigger className={TRIGGER}>
-              {selectedBranch
-                ? selectedBranch.name
-                : <span className="text-muted-foreground">{t('filterBranch')}</span>
-              }
-            </ComboboxTrigger>
-            <ComboboxContent anchor={branchAnchor}>
-              <ComboboxInput placeholder={t('filterBranch')} />
-              <ComboboxList>
-                <ComboboxItem value="">{t('filterAll')}</ComboboxItem>
-                {branches.map(b => (
-                  <ComboboxItem key={b.id} value={b.id}>{b.name}</ComboboxItem>
-                ))}
-              </ComboboxList>
-              <ComboboxEmpty>Không tìm thấy</ComboboxEmpty>
-            </ComboboxContent>
-          </Combobox>
+    <div className="p-4 space-y-4">
+      {/* Top bar */}
+      <div className="flex flex-wrap items-center justify-between gap-3 rounded-xl border bg-card px-3 py-2">
+        <div className="flex items-center gap-1.5">
+          <TabButton active={activeTab === 'catalog'} onClick={() => setTab('catalog')} icon={<Boxes className="h-4 w-4" />}>
+            {t('tabs.catalog', { count: items.length })}
+          </TabButton>
+          {canDeclare && (
+            <TabButton active={activeTab === 'declare'} onClick={() => setTab('declare')} icon={<PackagePlus className="h-4 w-4" />}>
+              {t('tabs.declare')}
+            </TabButton>
+          )}
         </div>
 
-        {/* Status */}
-        <div ref={statusAnchor} className="inline-flex min-w-40">
-          <Combobox
-            value={filterStatus ?? ""}
-            onValueChange={v => { setFilterStatus(v || null); setPage(1) }}
-          >
-            <ComboboxTrigger className={TRIGGER}>
-              {filterStatus
-                ? statusLabels[filterStatus as keyof typeof statusLabels] ?? filterStatus
-                : <span className="text-muted-foreground">{t('filterStatus')}</span>
-              }
-            </ComboboxTrigger>
-            <ComboboxContent anchor={statusAnchor}>
-              <ComboboxInput placeholder={t('filterStatus')} />
-              <ComboboxList>
-                <ComboboxItem value="">{t('filterAll')}</ComboboxItem>
-                <ComboboxItem value="TiepNhan">{statusLabels.TiepNhan}</ComboboxItem>
-                <ComboboxItem value="TrenQuay">{statusLabels.TrenQuay}</ComboboxItem>
-                <ComboboxItem value="DaBan">{statusLabels.DaBan}</ComboboxItem>
-                <ComboboxItem value="ChuyenXuong">{statusLabels.ChuyenXuong}</ComboboxItem>
-              </ComboboxList>
-              <ComboboxEmpty>Không tìm thấy</ComboboxEmpty>
-            </ComboboxContent>
-          </Combobox>
-        </div>
-
-        {/* Source */}
-        <div ref={sourceAnchor} className="inline-flex min-w-36">
-          <Combobox
-            value={filterSource ?? ""}
-            onValueChange={v => { setFilterSource(v || null); setPage(1) }}
-          >
-            <ComboboxTrigger className={TRIGGER}>
-              {filterSource
-                ? sourceLabels[filterSource as keyof typeof sourceLabels] ?? filterSource
-                : <span className="text-muted-foreground">{t('filterSource')}</span>
-              }
-            </ComboboxTrigger>
-            <ComboboxContent anchor={sourceAnchor}>
-              <ComboboxInput placeholder={t('filterSource')} />
-              <ComboboxList>
-                <ComboboxItem value="">{t('filterAll')}</ComboboxItem>
-                <ComboboxItem value="Quan">{sourceLabels.Quan}</ComboboxItem>
-                <ComboboxItem value="Ngoai">{sourceLabels.Ngoai}</ComboboxItem>
-              </ComboboxList>
-              <ComboboxEmpty>Không tìm thấy</ComboboxEmpty>
-            </ComboboxContent>
-          </Combobox>
+        <div className="flex items-center gap-4">
+          <ComboboxSelect
+            value={effectiveBranchId}
+            onChange={setBranchId}
+            options={branches.map(b => ({ value: b.id, label: b.name }))}
+            placeholder={t('filterBranch')}
+            className="w-48"
+          />
+          <div className="text-right">
+            <span className="text-xs text-muted-foreground">{t('totalAsset')}: </span>
+            <span className="font-bold text-primary tabular-nums">{totalAssetLak} ₭</span>
+            <span className="ml-1 text-xs text-muted-foreground">(~{usdTotal == null ? 'N/A' : usdTotal.toLocaleString('lo-LA', { maximumFractionDigits: 0 })} USD)</span>
+          </div>
         </div>
       </div>
 
-      {isLoading ? <TablePageSkeleton /> : (
-        <DataTable
-          columns={columns}
-          data={items}
-          hideSearch
-          serverPagination={data ? {
-            total: data.total,
-            page: data.page,
-            pageSize: data.pageSize,
-            onPageChange: setPage,
-          } : undefined}
-        />
-      )}
+      {/* Workspace */}
+      <div className="grid grid-cols-1 gap-4 xl:grid-cols-[1fr_360px]">
+        <div className="min-w-0">
+          {activeTab === 'catalog' ? (
+            <InventoryCatalog
+              branchId={effectiveBranchId}
+              branchName={branchName}
+              onEditItem={canManage ? item => setSelectedItemId(item.id) : undefined}
+            />
+          ) : (
+            <InventoryDeclareForm onBack={() => setTab('catalog')} />
+          )}
+        </div>
+
+        <aside className="space-y-4">
+          {canManage && (
+            <InventoryAdjustPanel
+              branchId={effectiveBranchId}
+              selectedItemId={selectedItemId}
+              onSelectItem={setSelectedItemId}
+              onChangeStatus={setStatusItem}
+            />
+          )}
+          <InventoryActivityLog branchId={effectiveBranchId} branchName={branchName} />
+        </aside>
+      </div>
+
+      <InventoryStatusDialog item={statusItem} onClose={() => setStatusItem(null)} />
     </div>
+  )
+}
+
+function TabButton({
+  active, onClick, icon, children,
+}: {
+  active: boolean
+  onClick: () => void
+  icon: React.ReactNode
+  children: React.ReactNode
+}) {
+  return (
+    <button
+      onClick={onClick}
+      className={cn(
+        'inline-flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-sm font-medium transition-colors',
+        active ? 'bg-primary text-primary-foreground' : 'text-muted-foreground hover:bg-muted',
+      )}
+    >
+      {icon}
+      {children}
+    </button>
   )
 }

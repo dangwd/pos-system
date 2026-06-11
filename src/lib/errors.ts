@@ -131,6 +131,31 @@ const ERROR_MESSAGES: Record<string, ErrorMap> = {
     vi: 'Số lượng tồn kho không đủ',
     en: 'Insufficient stock quantity',
   },
+  INVENTORY_ITEM_NOT_AVAILABLE: {
+    lo: 'ສິນຄ້າບໍ່ໄດ້ຢູ່ໃນສະຖານະວາງຂາຍ',
+    vi: 'Sản phẩm không ở trạng thái trên quầy',
+    en: 'Item is not on display',
+  },
+  INVENTORY_INVALID_DIRECTION: {
+    lo: 'ທິດທາງຕ້ອງເປັນ IN ຫຼື OUT',
+    vi: 'Hướng điều chỉnh phải là Nhập (IN) hoặc Xuất (OUT)',
+    en: 'Direction must be IN or OUT',
+  },
+  INVENTORY_INVALID_QUANTITY: {
+    lo: 'ຈຳນວນຕ້ອງຫຼາຍກວ່າ 0',
+    vi: 'Số lượng phải lớn hơn 0',
+    en: 'Quantity must be greater than 0',
+  },
+  INVENTORY_REASON_REQUIRED: {
+    lo: 'ກະລຸນາລະບຸເຫດຜົນຂອງການປັບປ່ຽນ',
+    vi: 'Vui lòng nhập lý do điều chỉnh',
+    en: 'Adjustment reason is required',
+  },
+  INVENTORY_INVALID_STATUS: {
+    lo: 'ສະຖານະສິນຄ້າບໍ່ຖືກຕ້ອງ',
+    vi: 'Trạng thái mục kho không hợp lệ',
+    en: 'Invalid inventory item status',
+  },
 
   // ── PRODUCT ───────────────────────────────────────────────────────────────
   PRODUCT_NOT_FOUND: {

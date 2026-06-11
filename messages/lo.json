@@ -276,25 +276,103 @@
       }
     },
     "inventory": {
-      "title": "ສາງສິນຄ້າ",
-      "subtitle": "{count} ລາຍການ",
-      "searchPlaceholder": "ຄົ້ນຫາສິນຄ້າ...",
-      "filterAll": "ທັງໝົດ",
       "filterBranch": "ສາຂາ",
-      "filterStatus": "ສະຖານະ",
-      "filterSource": "ແຫຼ່ງທີ່ມາ",
+      "noResults": "ບໍ່ພົບຂໍ້ມູນ",
+      "totalAsset": "ມູນຄ່າລວມສິນຄ້າຄົງເຫຼືອ",
+      "tabs": {
+        "catalog": "ລາຍການສິນຄ້າ ({count})",
+        "declare": "ແຈ້ງສິນຄ້າໃໝ່"
+      },
       "statusTiepNhan": "ຮັບສິນຄ້າ",
+      "statusDaDinhGia": "ປະເມີນລາຄາແລ້ວ",
       "statusTrenQuay": "ໃນຮ້ານ",
       "statusDaBan": "ຂາຍແລ້ວ",
       "statusChuyenXuong": "ໂຮງງານ",
-      "sourceQuan": "ສິນຄ້າຮ້ານ",
-      "sourceNgoai": "ສິນຄ້ານຳເຂົ້າ",
-      "columns": {
-        "product": "ສິນຄ້າ",
-        "branch": "ສາຂາ",
-        "qty": "ຈຳນວນ",
-        "weight": "ນ້ຳໜັກ (gram)",
-        "lastUpdated": "ອັບເດດ"
+      "summary": {
+        "goldStock": "ລວມທອງຄົງເຫຼືອ (ຈີ)",
+        "silverStock": "ລວມເງິນຄົງເຫຼືອ",
+        "assetValue": "ມູນຄ່າຊັບສິນສາງ"
+      },
+      "catalog": {
+        "title": "ຕາຕະລາງລາຄາສິນຄ້າຕົວຈິງ - {branch}",
+        "subtitle": "ກົດ 'ແກ້ໄຂ' ເພື່ອປັບສິນຄ້າ.",
+        "edit": "ແກ້ໄຂ",
+        "pieces": "ອັນ",
+        "lot": "ລັອດ",
+        "labor": "ຄ່າແຮງ",
+        "stone": "ຄ່າຫີນ",
+        "na": "N/A",
+        "columns": {
+          "product": "ສິນຄ້າ",
+          "priceLink": "ມັດລາຄາ",
+          "stdWeight": "ນ້ຳໜັກມາດຕະຖານ",
+          "extraCost": "ຄ່າໃຊ້ຈ່າຍເພີ່ມ (ແຮງ/ຫີນ)",
+          "retailPrice": "ລາຄາຂາຍຍ່ອຍ",
+          "stock": "ຄົງເຫຼືອ",
+          "actions": "ຈັດການ"
+        }
+      },
+      "adjustPanel": {
+        "title": "ປັບເຂົ້າ-ອອກສາງໂດຍກົງ",
+        "selectProduct": "ເລືອກສິນຄ້າ:",
+        "selectPlaceholder": "ເລືອກສິນຄ້າ...",
+        "empty": "ບໍ່ພົບສິນຄ້າ",
+        "changeStatus": "ປ່ຽນສະຖານະ",
+        "direction": "ຮູບແບບ:",
+        "directionIn": "ນຳເຂົ້າ",
+        "directionOut": "ນຳອອກ",
+        "quantity": "ຈຳນວນ",
+        "currentStock": "ຄົງເຫຼືອ {qty}",
+        "exceedsStock": "ເກີນຈຳນວນທີ່ມີ ({qty})",
+        "reason": "ໝາຍເຫດເຫດຜົນ:",
+        "reasonPlaceholder": "ຕົວຢ່າງ: ກວດນັບທ້າຍກະ...",
+        "note": "ທຸກການປັບປ່ຽນຖືກບັນທຶກໃນລະບົບ Khamphuvong HQ, ກະລຸນາລະບຸເຫດຜົນໃຫ້ຊັດເຈນ.",
+        "submit": "ບັນທຶກສິນຄ້າຄົງເຫຼືອ"
+      },
+      "activityLog": {
+        "title": "ບັນທຶກການເຄື່ອນໄຫວສາງ",
+        "empty": "ຍັງບໍ່ມີລາຍການ",
+        "in": "ນຳເຂົ້າ",
+        "out": "ນຳອອກ"
+      },
+      "declare": {
+        "title": "ແຈ້ງສິນຄ້າໃໝ່ ແລະ ມັດລາຄາ",
+        "subtitle": "ປ້ອນຂໍ້ມູນສິນຄ້າ. ລາຄາຄຳນວນອັດຕະໂນມັດ.",
+        "back": "ກັບຄືນ",
+        "name": "ຊື່ສິນຄ້າ",
+        "namePlaceholder": "ຕົວຢ່າງ: ແຫວນທອງ 18K",
+        "sku": "ລະຫັດສິນຄ້າ (SKU)",
+        "skuPlaceholder": "ຕົວຢ່າງ: KPV-GOLD-0001",
+        "category": "ໝວດໝູ່",
+        "categoryPlaceholder": "ເລືອກໝວດໝູ່",
+        "priceLink": "ມັດລາຄາ (ເນື້ອທອງ%)",
+        "priceLinkPlaceholder": "ເລືອກເນື້ອທອງ",
+        "stdWeight": "ນ້ຳໜັກມາດຕະຖານ (ຈີ)",
+        "weightEquiv": "ເທົ່າກັບ: {gram} ກຣາມ",
+        "labor": "ຄ່າແຮງ (₭)",
+        "stone": "ຄ່າຫີນ (₭)",
+        "cancel": "ຍົກເລີກ",
+        "submit": "ລົງທະບຽນ & ບັນທຶກສາງ",
+        "stockNote": "ການນີ້ສ້າງສິນຄ້າເຂົ້າລາຍການ ແລະ ຜູກມັດລາຄາ. ສິນຄ້າຄົງເຫຼືອເບື້ອງຕົ້ນເກີດຈາກທຸລະກຳຊື້ເຂົ້າ (ນຳເຂົ້າສາງ), ບໍ່ສ້າງໂດຍກົງທີ່ນີ້.",
+        "preview": {
+          "title": "ຕາຕະລາງລາຄາ Live",
+          "metalValue": "ມູນຄ່າໂລຫະ",
+          "laborDetail": "ຄ່າແຮງ",
+          "stoneSurcharge": "ຄ່າຫີນ",
+          "estSell": "ລາຄາຂາຍໂດຍປະມານ",
+          "thbEquiv": "ເທົ່າ THB",
+          "usdEquiv": "ເທົ່າ USD"
+        }
+      },
+      "statusDialog": {
+        "title": "ປ່ຽນສະຖານະສິນຄ້າ",
+        "newStatus": "ສະຖານະໃໝ່",
+        "cancel": "ຍົກເລີກ",
+        "submit": "ບັນທຶກ"
+      },
+      "toasts": {
+        "adjustSuccess": "ປັບປ່ຽນສາງສຳເລັດ ({code})",
+        "statusSuccess": "ປ່ຽນສະຖານະສຳເລັດ"
       }
     },
     "trade": {

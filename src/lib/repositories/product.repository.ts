@@ -1,5 +1,6 @@
 import api from '@/lib/axios'
 import { handleAxiosError } from '@/lib/api-error'
+import { normalizePaged, type PagedResult, type RawPagedResult } from '@/types/common'
 import type {
   Product,
   ProductCategory,
@@ -12,6 +13,8 @@ import type {
 export interface ProductListParams {
   categoryCode?: string
   search?: string
+  page?: number
+  pageSize?: number
 }
 
 export class ProductRepository {
@@ -23,6 +26,20 @@ export class ProductRepository {
     try {
       const { data } = await api.get<Product[]>(this.base, { params })
       return data
+    } catch (err) {
+      throw handleAxiosError(err)
+    }
+  }
+
+  /**
+   * Danh sách sản phẩm có phân trang (server-side).
+   * Luôn truyền page (mặc định 1) để backend trả PagedResult thay vì mảng phẳng.
+   */
+  async getPaged(params?: ProductListParams): Promise<PagedResult<Product>> {
+    try {
+      const queryParams = { page: 1, pageSize: 20, ...params }
+      const { data } = await api.get<RawPagedResult<Product>>(this.base, { params: queryParams })
+      return normalizePaged(data)
     } catch (err) {
       throw handleAxiosError(err)
     }

@@ -11,6 +11,7 @@
  */
 
 import api from '@/lib/axios'
+import { normalizePaged, type RawPagedResult } from '@/types/common'
 import type {
   Transaction,
   TransactionPage,
@@ -36,8 +37,8 @@ export class TransactionRepository {
    */
   async getList(params?: TransactionListParams): Promise<TransactionPage> {
     const queryParams = { page: 1, pageSize: 20, ...params }
-    const { data } = await api.get<TransactionPage>(this.base, { params: queryParams })
-    return data
+    const { data } = await api.get<RawPagedResult<Transaction>>(this.base, { params: queryParams })
+    return normalizePaged(data)
   }
 
   /** Chi tiết giao dịch */

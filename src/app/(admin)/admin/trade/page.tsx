@@ -12,15 +12,20 @@ import type { TradeType } from '@/types/trade'
 
 type Filter = 'all' | TradeType
 
+const PAGE_SIZE = 20
+
 export default function TradePage() {
   const t = useTranslations('admin.trade')
   const [filter, setFilter] = useState<Filter>('all')
+  const [page, setPage] = useState(1)
 
   const { data, isLoading } = useQuery({
-    queryKey: ['trade', filter],
-    queryFn: () => tradeRepository.getList(
-      filter === 'all' ? {} : { loai: filter }
-    ),
+    queryKey: ['trade', filter, page],
+    queryFn: () => tradeRepository.getList({
+      ...(filter === 'all' ? {} : { loai: filter }),
+      page,
+      limit: PAGE_SIZE,
+    }),
     staleTime: 30_000,
   })
 
@@ -59,7 +64,7 @@ export default function TradePage() {
               key={f}
               size="sm"
               variant={filter === f ? 'default' : 'outline'}
-              onClick={() => setFilter(f)}
+              onClick={() => { setFilter(f); setPage(1) }}
             >
               {f === 'all' ? t('filterAll') : t(`types.${f}`)}
             </Button>
@@ -71,8 +76,13 @@ export default function TradePage() {
         <DataTable
           columns={columns}
           data={rows}
-          searchKey="txnCode"
-          searchPlaceholder={t('searchPlaceholder')}
+          hideSearch
+          serverPagination={data ? {
+            total: data.total,
+            page: data.page,
+            pageSize: data.pageSize,
+            onPageChange: setPage,
+          } : undefined}
         />
       )}
     </div>

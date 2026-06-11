@@ -19,7 +19,7 @@ const geistMono = Geist_Mono({
 })
 
 export const metadata: Metadata = {
-  title: 'FoxAI POS — Khamphuvong',
+  title: 'FoxAI POS — Khamphauvong',
   description: 'Hệ thống bán hàng FoxAI POS',
 }
 

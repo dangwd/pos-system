@@ -1,5 +1,6 @@
 import api from '@/lib/axios'
 import { handleAxiosError } from '@/lib/api-error'
+import { normalizePaged, type PagedResult, type RawPagedResult } from '@/types/common'
 import type {
   AdminUser,
   AssignCounterDto,
@@ -14,6 +15,8 @@ export interface UserListParams {
   branchId?: string
   search?: string
   isActive?: boolean
+  page?: number
+  pageSize?: number
 }
 
 export class UserRepository {
@@ -21,6 +24,19 @@ export class UserRepository {
     try {
       const { data } = await api.get<AdminUser[]>('/api/users', { params })
       return data
+    } catch (err) {
+      throw handleAxiosError(err)
+    }
+  }
+
+  /**
+   * Phân trang server-side. Truyền page+pageSize → backend trả PagedResult.
+   * Giữ nguyên `getList` (mảng) cho dropdown/lookup.
+   */
+  async getListPaged(params?: UserListParams): Promise<PagedResult<AdminUser>> {
+    try {
+      const { data } = await api.get<RawPagedResult<AdminUser>>('/api/users', { params })
+      return normalizePaged(data)
     } catch (err) {
       throw handleAxiosError(err)
     }

@@ -276,25 +276,103 @@
       }
     },
     "inventory": {
-      "title": "Kho hàng",
-      "subtitle": "{count} mã SP",
-      "searchPlaceholder": "Tìm sản phẩm...",
-      "filterAll": "Tất cả",
       "filterBranch": "Chi nhánh",
-      "filterStatus": "Trạng thái",
-      "filterSource": "Nguồn gốc",
+      "noResults": "Không tìm thấy",
+      "totalAsset": "Tổng lượng trị giá tồn",
+      "tabs": {
+        "catalog": "Danh mục hàng hóa ({count})",
+        "declare": "Khai báo sản phẩm mới"
+      },
       "statusTiepNhan": "Tiếp nhận",
+      "statusDaDinhGia": "Đã định giá",
       "statusTrenQuay": "Trên quầy",
       "statusDaBan": "Đã bán",
       "statusChuyenXuong": "Chuyển xưởng",
-      "sourceQuan": "Hàng quán",
-      "sourceNgoai": "Hàng ngoại",
-      "columns": {
-        "product": "Sản phẩm",
-        "branch": "Chi nhánh",
-        "qty": "Số lượng",
-        "weight": "Trọng lượng (gram)",
-        "lastUpdated": "Cập nhật"
+      "summary": {
+        "goldStock": "Tổng tồn vàng ta (Chỉ)",
+        "silverStock": "Tổng tồn bạc chế tác",
+        "assetValue": "Tổng giá trị tài sản kho"
+      },
+      "catalog": {
+        "title": "Bảng đối chiếu giá hàng hóa thực tế - {branch}",
+        "subtitle": "Nhấn 'Sửa' để chọn sản phẩm vào panel điều chỉnh kho.",
+        "edit": "Sửa",
+        "pieces": "chiếc",
+        "lot": "Lô",
+        "labor": "Công",
+        "stone": "Đá",
+        "na": "N/A",
+        "columns": {
+          "product": "Sản phẩm",
+          "priceLink": "Liên kết mã giá",
+          "stdWeight": "Định lượng quy chuẩn",
+          "extraCost": "Chi phí phụ (công/đá)",
+          "retailPrice": "Đơn giá bán lẻ",
+          "stock": "Tồn kho",
+          "actions": "Thao tác"
+        }
+      },
+      "adjustPanel": {
+        "title": "Điều chỉnh xuất nhập kho trực tiếp",
+        "selectProduct": "Chọn sản phẩm quầy:",
+        "selectPlaceholder": "Chọn sản phẩm...",
+        "empty": "Không có sản phẩm",
+        "changeStatus": "Đổi trạng thái",
+        "direction": "Hình thức xuất/nhập:",
+        "directionIn": "Nhập kho",
+        "directionOut": "Xuất kho",
+        "quantity": "Số lượng bổ sung/bớt ra (Chiếc)",
+        "currentStock": "Tồn: {qty}",
+        "exceedsStock": "Vượt quá tồn kho ({qty})",
+        "reason": "Ghi chú lý do bổ sung:",
+        "reasonPlaceholder": "VD: Kiểm đếm cuối ca thừa nhẫn, điều chỉnh khớp mé hàng...",
+        "note": "Toàn bộ thao tác điều chỉnh kho được ghi lại trên cơ sở liên kết chuỗi Khamphuvong HQ, hãy điền lý do rõ ràng trước khi ghi sổ.",
+        "submit": "Ghi nhận tồn kho mới"
+      },
+      "activityLog": {
+        "title": "Nhật ký hoạt động điều chuyển kho bãi",
+        "empty": "Chưa có hoạt động điều chỉnh",
+        "in": "NHẬP KHO",
+        "out": "XUẤT KHO"
+      },
+      "declare": {
+        "title": "Khai báo sản phẩm mới và gán mã liên kết biểu giá",
+        "subtitle": "Điền thuộc tính sản phẩm. Đơn giá tự tính toán live dựa trên mã giá được gán.",
+        "back": "Quay lại danh sách",
+        "name": "Tên sản phẩm hàng hóa",
+        "namePlaceholder": "VD: Nhẫn nam tỳ hưu chiêu tài vàng ta 18K",
+        "sku": "Mã sản phẩm (SKU)",
+        "skuPlaceholder": "VD: KPV-GOLD-0001",
+        "category": "Phân nhóm hàng hóa",
+        "categoryPlaceholder": "Chọn danh mục",
+        "priceLink": "Gán mã giá liên kết (Hàm lượng%)",
+        "priceLinkPlaceholder": "Chọn hàm lượng",
+        "stdWeight": "Khối lượng vàng quy chuẩn (Chỉ)",
+        "weightEquiv": "Tương đương: {gram} Gram",
+        "labor": "Tiền công quy chuẩn (₭)",
+        "stone": "Tiền đá/hột gắn kèm (₭)",
+        "cancel": "Hủy bỏ",
+        "submit": "Đăng ký danh mục & Ghi sổ kho",
+        "stockNote": "Thao tác này tạo sản phẩm vào danh mục và gán mã giá. Tồn kho ban đầu phát sinh qua giao dịch mua vào (nhập kho), không tạo trực tiếp tại đây.",
+        "preview": {
+          "title": "Bảng chi tiết live đơn giá quy đổi tham chiếu",
+          "metalValue": "Giá phần kim loại",
+          "laborDetail": "Tiền công chi tiết",
+          "stoneSurcharge": "Phụ phí đá gắn",
+          "estSell": "Ước giá bán ra",
+          "thbEquiv": "Quy đổi THB",
+          "usdEquiv": "Quy đổi USD"
+        }
+      },
+      "statusDialog": {
+        "title": "Đổi trạng thái mục kho",
+        "newStatus": "Trạng thái mới",
+        "cancel": "Hủy",
+        "submit": "Lưu"
+      },
+      "toasts": {
+        "adjustSuccess": "Điều chỉnh kho thành công ({code})",
+        "statusSuccess": "Cập nhật trạng thái thành công"
       }
     },
     "trade": {
