@@ -62,6 +62,7 @@
         "reprint": "ພິມຄືນ",
         "customerLabel": "ລູກຄ້າ (F4)",
         "customerSearch": "ຄົ້ນຫາລູກຄ້າ...",
+        "customerNotFound": "ບໍ່ພົບລູກຄ້າ",
         "subtotalLabel": "ລວມສິນຄ້າ (A)",
         "discountLabel": "ສ່ວນຫຼຸດ (B)",
         "discountInput": "ໃສ່ສ່ວນຫຼຸດ ₭...",
@@ -70,7 +71,8 @@
         "totalDue": "✦ ຍອດຕ້ອງຊຳລະ",
         "currency": "₭ (Kip)",
         "checkout": "ຊຳລະ",
-        "processing": "ກຳລັງດຳເນີນການ..."
+        "processing": "ກຳລັງດຳເນີນການ...",
+        "createCustomer": "ສ້າງລູກຄ້າໃໝ່"
       },
       "modal": {
         "title": "ຢືນຢັນການຊຳລະ",
@@ -107,6 +109,39 @@
       "checkoutFailed": "ຊຳລະເງິນລົ້ມເຫຼວ ກະລຸນາລອງໃໝ່",
       "pendingApproval": "ລໍຖ້າການອະນຸມັດຈາກຜູ້ຈັດການ",
       "checkoutSuccess": "ຊຳລະເງິນສຳເລັດ!"
+    },
+    "txnTypes": {
+      "selectTitle": "ເລືອກປະເພດທຸລະກິດ",
+      "SellGold": {
+        "label": "ຂາຍທອງຄຳ",
+        "short": "ຂາຍທອງ",
+        "abbr": "ຂທ",
+        "desc": "ລູກຄ້າຊື້ທອງ, ໄດ້ຮັບກີບ"
+      },
+      "SellSilver": {
+        "label": "ຂາຍເງິນ",
+        "short": "ຂາຍເງິນ",
+        "abbr": "ຂງ",
+        "desc": "ລູກຄ້າຊື້ເງິນ, ໄດ້ຮັບກີບ"
+      },
+      "BuyGold": {
+        "label": "ຮັບຊື້ທອງ",
+        "short": "ຮັບຊື້",
+        "abbr": "ຊທ",
+        "desc": "ຊື້ທອງຈາກລູກຄ້າ, ຈ່າຍກີບ"
+      },
+      "ExchangeGold": {
+        "label": "ປ່ຽນທອງເກົ່າ",
+        "short": "ປ່ຽນທອງ",
+        "abbr": "ປທ",
+        "desc": "ປ່ຽນທອງ Khamphuvong ເກົ່າເອົາສິນຄ້າໃໝ່"
+      },
+      "ExchangeCurrency": {
+        "label": "ແລກປ່ຽນເງິນຕ່າງປະເທດ",
+        "short": "ແລກເງິນ",
+        "abbr": "ແງ",
+        "desc": "ແລກ THB · USD → ກີບ"
+      }
     }
   },
   "product": {
@@ -266,35 +301,144 @@
       "title": "ລູກຄ້າ",
       "subtitle": "{count} ລູກຄ້າ",
       "searchPlaceholder": "ຄົ້ນຫາຕາມຊື່ ຫຼື ໂທ...",
+      "addButton": "ເພີ່ມລູກຄ້າ",
       "columns": {
         "name": "ຊື່ເຕັມ",
         "phone": "ໂທລະສັບ",
         "totalPurchase": "ລວມຊື້",
         "lastVisit": "ຄັ້ງສຸດທ້າຍ",
+        "email": "ອີເມວ",
+        "loyalty": "ລະດັບ",
+        "points": "ຄະແນນ",
+        "status": "ສະຖານະ",
         "openMenu": "ເປີດເມນູ",
-        "viewDetail": "ເບິ່ງລາຍລະອຽດ"
+        "viewDetail": "ເບິ່ງລາຍລະອຽດ",
+        "edit": "ແກ້ໄຂ"
+      },
+      "toasts": {
+        "createSuccess": "ເພີ່ມລູກຄ້າໃໝ່ສຳເລັດ",
+        "updateSuccess": "ອັບເດດລູກຄ້າສຳເລັດ"
+      },
+      "createDialog": {
+        "title": "ເພີ່ມລູກຄ້າ",
+        "name": "ຊື່ເຕັມ",
+        "namePlaceholder": "ໃສ່ຊື່ເຕັມ...",
+        "phone": "ໂທລະສັບ",
+        "phonePlaceholder": "0201112222",
+        "email": "ອີເມວ",
+        "emailPlaceholder": "example@email.com",
+        "address": "ທີ່ຢູ່",
+        "dateOfBirth": "ວັນເດືອນປີເກີດ",
+        "loyaltyTier": "ລະດັບສະມາຊິກ",
+        "loyaltyPlaceholder": "ເລືອກລະດັບ...",
+        "optionalSection": "ຂໍ້ມູນເພີ່ມເຕີມ",
+        "cancel": "ຍົກເລີກ",
+        "submit": "ເພີ່ມ"
+      },
+      "editDialog": {
+        "title": "ອັບເດດ: {name}",
+        "cancel": "ຍົກເລີກ",
+        "submit": "ບັນທຶກ"
       }
     },
     "inventory": {
-      "title": "ສາງສິນຄ້າ",
-      "subtitle": "{count} ລາຍການ",
-      "searchPlaceholder": "ຄົ້ນຫາສິນຄ້າ...",
-      "filterAll": "ທັງໝົດ",
       "filterBranch": "ສາຂາ",
-      "filterStatus": "ສະຖານະ",
-      "filterSource": "ແຫຼ່ງທີ່ມາ",
+      "noResults": "ບໍ່ພົບຂໍ້ມູນ",
+      "totalAsset": "ມູນຄ່າລວມສິນຄ້າຄົງເຫຼືອ",
+      "tabs": {
+        "catalog": "ລາຍການສິນຄ້າ ({count})",
+        "declare": "ແຈ້ງສິນຄ້າໃໝ່"
+      },
       "statusTiepNhan": "ຮັບສິນຄ້າ",
+      "statusDaDinhGia": "ປະເມີນລາຄາແລ້ວ",
       "statusTrenQuay": "ໃນຮ້ານ",
       "statusDaBan": "ຂາຍແລ້ວ",
       "statusChuyenXuong": "ໂຮງງານ",
-      "sourceQuan": "ສິນຄ້າຮ້ານ",
-      "sourceNgoai": "ສິນຄ້ານຳເຂົ້າ",
-      "columns": {
-        "product": "ສິນຄ້າ",
-        "branch": "ສາຂາ",
-        "qty": "ຈຳນວນ",
-        "weight": "ນ້ຳໜັກ (gram)",
-        "lastUpdated": "ອັບເດດ"
+      "summary": {
+        "goldStock": "ລວມທອງຄົງເຫຼືອ (ຈີ)",
+        "silverStock": "ລວມເງິນຄົງເຫຼືອ",
+        "assetValue": "ມູນຄ່າຊັບສິນສາງ"
+      },
+      "catalog": {
+        "title": "ຕາຕະລາງລາຄາສິນຄ້າຕົວຈິງ - {branch}",
+        "subtitle": "ກົດ 'ແກ້ໄຂ' ເພື່ອປັບສິນຄ້າ.",
+        "edit": "ແກ້ໄຂ",
+        "pieces": "ອັນ",
+        "lot": "ລັອດ",
+        "labor": "ຄ່າແຮງ",
+        "stone": "ຄ່າຫີນ",
+        "na": "N/A",
+        "columns": {
+          "product": "ສິນຄ້າ",
+          "priceLink": "ມັດລາຄາ",
+          "stdWeight": "ນ້ຳໜັກມາດຕະຖານ",
+          "extraCost": "ຄ່າໃຊ້ຈ່າຍເພີ່ມ (ແຮງ/ຫີນ)",
+          "retailPrice": "ລາຄາຂາຍຍ່ອຍ",
+          "stock": "ຄົງເຫຼືອ",
+          "actions": "ຈັດການ"
+        }
+      },
+      "adjustPanel": {
+        "title": "ປັບເຂົ້າ-ອອກສາງໂດຍກົງ",
+        "selectProduct": "ເລືອກສິນຄ້າ:",
+        "selectPlaceholder": "ເລືອກສິນຄ້າ...",
+        "empty": "ບໍ່ພົບສິນຄ້າ",
+        "changeStatus": "ປ່ຽນສະຖານະ",
+        "direction": "ຮູບແບບ:",
+        "directionIn": "ນຳເຂົ້າ",
+        "directionOut": "ນຳອອກ",
+        "quantity": "ຈຳນວນ",
+        "currentStock": "ຄົງເຫຼືອ {qty}",
+        "exceedsStock": "ເກີນຈຳນວນທີ່ມີ ({qty})",
+        "reason": "ໝາຍເຫດເຫດຜົນ:",
+        "reasonPlaceholder": "ຕົວຢ່າງ: ກວດນັບທ້າຍກະ...",
+        "note": "ທຸກການປັບປ່ຽນຖືກບັນທຶກໃນລະບົບ Khamphuvong HQ, ກະລຸນາລະບຸເຫດຜົນໃຫ້ຊັດເຈນ.",
+        "submit": "ບັນທຶກສິນຄ້າຄົງເຫຼືອ"
+      },
+      "activityLog": {
+        "title": "ບັນທຶກການເຄື່ອນໄຫວສາງ",
+        "empty": "ຍັງບໍ່ມີລາຍການ",
+        "in": "ນຳເຂົ້າ",
+        "out": "ນຳອອກ"
+      },
+      "declare": {
+        "title": "ແຈ້ງສິນຄ້າໃໝ່ ແລະ ມັດລາຄາ",
+        "subtitle": "ປ້ອນຂໍ້ມູນສິນຄ້າ. ລາຄາຄຳນວນອັດຕະໂນມັດ.",
+        "back": "ກັບຄືນ",
+        "name": "ຊື່ສິນຄ້າ",
+        "namePlaceholder": "ຕົວຢ່າງ: ແຫວນທອງ 18K",
+        "sku": "ລະຫັດສິນຄ້າ (SKU)",
+        "skuPlaceholder": "ຕົວຢ່າງ: KPV-GOLD-0001",
+        "category": "ໝວດໝູ່",
+        "categoryPlaceholder": "ເລືອກໝວດໝູ່",
+        "priceLink": "ມັດລາຄາ (ເນື້ອທອງ%)",
+        "priceLinkPlaceholder": "ເລືອກເນື້ອທອງ",
+        "stdWeight": "ນ້ຳໜັກມາດຕະຖານ (ຈີ)",
+        "weightEquiv": "ເທົ່າກັບ: {gram} ກຣາມ",
+        "labor": "ຄ່າແຮງ (₭)",
+        "stone": "ຄ່າຫີນ (₭)",
+        "cancel": "ຍົກເລີກ",
+        "submit": "ລົງທະບຽນ & ບັນທຶກສາງ",
+        "stockNote": "ການນີ້ສ້າງສິນຄ້າເຂົ້າລາຍການ ແລະ ຜູກມັດລາຄາ. ສິນຄ້າຄົງເຫຼືອເບື້ອງຕົ້ນເກີດຈາກທຸລະກຳຊື້ເຂົ້າ (ນຳເຂົ້າສາງ), ບໍ່ສ້າງໂດຍກົງທີ່ນີ້.",
+        "preview": {
+          "title": "ຕາຕະລາງລາຄາ Live",
+          "metalValue": "ມູນຄ່າໂລຫະ",
+          "laborDetail": "ຄ່າແຮງ",
+          "stoneSurcharge": "ຄ່າຫີນ",
+          "estSell": "ລາຄາຂາຍໂດຍປະມານ",
+          "thbEquiv": "ເທົ່າ THB",
+          "usdEquiv": "ເທົ່າ USD"
+        }
+      },
+      "statusDialog": {
+        "title": "ປ່ຽນສະຖານະສິນຄ້າ",
+        "newStatus": "ສະຖານະໃໝ່",
+        "cancel": "ຍົກເລີກ",
+        "submit": "ບັນທຶກ"
+      },
+      "toasts": {
+        "adjustSuccess": "ປັບປ່ຽນສາງສຳເລັດ ({code})",
+        "statusSuccess": "ປ່ຽນສະຖານະສຳເລັດ"
       }
     },
     "trade": {
@@ -525,7 +669,8 @@
         "editRole": "ປ່ຽນບົດບາດ",
         "deactivate": "ປິດໃຊ້",
         "activate": "ເປີດໃຊ້",
-        "resetPassword": "ຕັ້ງລະຫັດຜ່ານໃໝ່"
+        "resetPassword": "ຕັ້ງລະຫັດຜ່ານໃໝ່",
+        "assignCounter": "ມອບໝາຍຂາຍ"
       },
       "roles": {
         "Cashier": "ເກັບເງິນ",
@@ -553,7 +698,9 @@
         "dateOfBirth": "ວັນເດືອນປີເກີດ",
         "cancel": "ຍົກເລີກ",
         "submit": "ສ້າງ",
-        "success": "ສ້າງຜູ້ໃຊ້ສຳເລັດ"
+        "success": "ສ້າງຜູ້ໃຊ້ສຳເລັດ",
+        "counter": "ຂາຍ",
+        "counterPlaceholder": "ເລືອກຂາຍ (ທາງເລືອກ)..."
       },
       "editInfoDialog": {
         "title": "ແກ້ໄຂຂໍ້ມູນ — {name}",
@@ -589,6 +736,14 @@
         "updateRoleSuccess": "ປ່ຽນບົດບາດສຳເລັດ",
         "resetPasswordSuccess": "ຕັ້ງລະຫັດຜ່ານໃໝ່ສຳເລັດ",
         "assignCounterSuccess": "ມອບໝາຍເຄົ້າເຕີ້ສຳເລັດ"
+      },
+      "assignCounterDialog": {
+        "title": "ມອບໝາຍຂາຍ — {name}",
+        "counter": "ຂາຍ",
+        "counterPlaceholder": "ເລືອກຂາຍ...",
+        "unassign": "ຍົກເລີກການມອບໝາຍ",
+        "cancel": "ຍົກເລີກ",
+        "submit": "ບັນທຶກ"
       }
     },
     "branches": {

@@ -38,6 +38,15 @@ export function useProducts(params?: ProductListParams) {
   })
 }
 
+/** Danh sách sản phẩm phân trang server-side (cho trang admin/products). */
+export function useProductsPaged(params: ProductListParams) {
+  return useQuery({
+    queryKey: [...PRODUCTS_KEY, 'paged', params],
+    queryFn: () => productRepository.getPaged(params),
+    staleTime: 300_000,
+  })
+}
+
 export function useProduct(id: string) {
   return useQuery({
     queryKey: [...PRODUCTS_KEY, id],

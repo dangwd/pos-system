@@ -25,6 +25,7 @@ export type TransactionType =
 
 /** Trạng thái giao dịch */
 export type TransactionStatus =
+  | 'Draft'      // Vừa tạo, chờ xử lý
   | 'Pending'    // Chờ duyệt
   | 'Approved'   // Đã duyệt
   | 'Completed'  // Hoàn tất — bất biến
@@ -38,12 +39,15 @@ export type PaymentMethod = 'CASH' | 'BANK' | 'MIXED'
 /** Một dòng hàng trong giao dịch (response) */
 export interface TransactionItem {
   id: string
+  productId?: string           // ID sản phẩm gốc — dùng khi load ExchangeIn từ HĐ cũ
   productSnapshotName: string  // Tên tại thời điểm GD (snapshot — không đổi theo SP)
   quantity: number
+  weightUnitId?: string        // FK → WeightUnit
   weightUnitName: string       // Tên đơn vị tính ("Chỉ", "Bath", ...)
   weightGram: number           // Tổng gram = qty × unit.gramPerUnit (hoặc override)
   unitPriceLak: number         // Giá snapshot tại thời điểm GD (LAK/gram)
   lineTotal: number            // weightGram × unitPriceLak
+  itemRole?: 'Normal' | 'ExchangeIn'
 }
 
 /** Thông tin khách hàng rút gọn trong transaction */
@@ -80,38 +84,35 @@ export interface CreateTransactionResult {
 
 // ─── DTOs (gửi lên API) ───────────────────────────────────────────────────────
 
-/**
- * Một dòng hàng khi tạo giao dịch.
- * unitPriceLakPerGram phải là giá snapshot — lấy từ GET /api/config/prices trước khi submit.
- * weightGramOverride: bắt buộc cho sản phẩm CanThucTe, null cho NguyenKhoi.
- */
+/** Vai trò của một dòng hàng trong giao dịch */
+export type ItemRole = 'Normal' | 'ExchangeIn'
+
+/** Một dòng hàng khi tạo giao dịch */
 export interface CreateTransactionItemDto {
   productId: string
-  productName: string          // Snapshot tên sản phẩm tại thời điểm lập đơn
+  productName: string                // Snapshot tên sản phẩm tại thời điểm lập đơn
   quantity: number
-  weightUnitId: string         // ID từ GET /api/config/weight-units
-  weightGramOverride: number | null  // Bắt buộc khi CanThucTe, null khi NguyenKhoi
-  unitPriceLakPerGram: number  // Giá snapshot (LAK/gram)
-  itemRole: string             // 'Normal' | ...
-  laborFee: number             // Phí gia công thợ (₭)
-  stoneFee: number             // Phí đá đính kèm (₭)
+  weightUnitId: string               // FK → WeightUnit
+  weightGramOverride?: number | null // Trọng lượng thực đo (gram) — CanThucTe; null/omit cho NguyenKhoi
+  unitPriceLak: number               // Giá snapshot (LAK/đơn vị) — lấy từ PriceItem.sellPrice hoặc .buyPrice
+  itemRole: ItemRole                 // 'Normal' = bán ra / 'ExchangeIn' = vàng cũ đổi vào
+  laborFee: number                   // Phí gia công thợ (₭) — hoặc PHÍ KHÒ khi ExchangeIn
+  stoneFee: number                   // Phí đá đính kèm (₭)
+  haoHutGram?: number                // Hao hụt (gram) — chỉ dùng khi ExchangeIn
 }
 
 /** POST /api/transactions — Tạo giao dịch mới */
 export interface CreateTransactionDto {
   type: TransactionType
-  branchId: string
-  staffId: string
-  counterId: string
+  // branchId / staffId / counterId KHÔNG gửi — backend lấy từ JWT claim
   customerId?: string
   items: CreateTransactionItemDto[]
-  laborFee?: number
-  stoneFee?: number
   paymentMethod: PaymentMethod
-  currency?: string | null     // null = LAK
-  exchangeRate?: number | null // null khi thanh toán LAK
+  currency?: string | null           // null = LAK
+  exchangeRate?: number | null       // null khi thanh toán LAK
   note?: string
   depositAmount?: number
+  referenceInvoiceCode?: string      // Mã HĐ bán vàng cũ liên kết (ExchangeGold)
 }
 
 /** POST /api/transactions/{id}/complete */

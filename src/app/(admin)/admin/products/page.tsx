@@ -19,8 +19,10 @@ import { TablePageSkeleton } from '@/components/shared/PageSkeleton'
 import { createProductColumns } from '@/components/admin/columns/product-columns'
 import { ProductCreateDialog } from '@/components/admin/products/ProductCreateDialog'
 import { ProductEditDialog } from '@/components/admin/products/ProductEditDialog'
-import { useProducts, useCategories, useDeactivateProduct } from '@/hooks/useProducts'
+import { useProductsPaged, useCategories, useDeactivateProduct } from '@/hooks/useProducts'
 import type { Product } from '@/types/product'
+
+const PAGE_SIZE = 20
 
 const TRIGGER = "inline-flex h-8 items-center justify-between gap-2 rounded-md border border-input bg-background px-3 text-sm font-normal hover:bg-accent hover:text-accent-foreground transition-colors w-full"
 
@@ -31,21 +33,26 @@ export default function ProductsPage() {
 
   const [createOpen, setCreateOpen] = useState(false)
   const [editProduct, setEditProduct] = useState<Product | null>(null)
+  const [page, setPage] = useState(1)
   const [filterCategory, setFilterCategory] = useState<string | null>(null)
   const [searchInput, setSearchInput] = useState('')
   const [filterSearch, setFilterSearch] = useState('')
 
   useEffect(() => {
-    const timer = setTimeout(() => setFilterSearch(searchInput), 400)
+    const timer = setTimeout(() => { setFilterSearch(searchInput); setPage(1) }, 400)
     return () => clearTimeout(timer)
   }, [searchInput])
 
   const { data: categories = [] } = useCategories()
-  const { data: products = [], isLoading } = useProducts({
+  const { data, isLoading } = useProductsPaged({
     search: filterSearch || undefined,
     categoryCode: filterCategory ?? undefined,
+    page,
+    pageSize: PAGE_SIZE,
   })
   const { mutate: deactivate } = useDeactivateProduct()
+
+  const products = data?.data ?? []
 
   const selectedCategory = categories.find(c => c.code === filterCategory)
 
@@ -80,7 +87,7 @@ export default function ProductsPage() {
         <div>
           <h1 className="text-2xl font-bold">{t('title')}</h1>
           <p className="text-muted-foreground text-sm">
-            {t('subtitle', { count: products.length })}
+            {t('subtitle', { count: data?.total ?? 0 })}
           </p>
         </div>
         <Button size="sm" className="gap-1.5" onClick={() => setCreateOpen(true)}>
@@ -102,7 +109,7 @@ export default function ProductsPage() {
         <div ref={categoryAnchor} className="inline-flex min-w-44">
           <Combobox
             value={filterCategory ?? ""}
-            onValueChange={setFilterCategory}
+            onValueChange={v => { setFilterCategory(v || null); setPage(1) }}
           >
             <ComboboxTrigger className={TRIGGER}>
               {selectedCategory
@@ -131,6 +138,12 @@ export default function ProductsPage() {
           columns={columns}
           data={products}
           hideSearch
+          serverPagination={data ? {
+            total: data.total,
+            page: data.page,
+            pageSize: data.pageSize,
+            onPageChange: setPage,
+          } : undefined}
         />
       )}
 

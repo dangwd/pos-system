@@ -62,6 +62,7 @@
         "reprint": "In lại",
         "customerLabel": "Khách hàng (F4)",
         "customerSearch": "Tìm khách hàng...",
+        "customerNotFound": "Không tìm thấy khách hàng",
         "subtotalLabel": "Tổng hàng (A)",
         "discountLabel": "Giảm giá (B)",
         "discountInput": "Nhập giảm giá ₭...",
@@ -70,7 +71,8 @@
         "totalDue": "✦ Tiền thực thu",
         "currency": "₭ (Kip)",
         "checkout": "Thanh toán",
-        "processing": "Đang xử lý..."
+        "processing": "Đang xử lý...",
+        "createCustomer": "Tạo khách hàng mới"
       },
       "modal": {
         "title": "Xác nhận thanh toán",
@@ -107,6 +109,39 @@
       "checkoutFailed": "Thanh toán thất bại, vui lòng thử lại",
       "pendingApproval": "Đang chờ phê duyệt từ quản lý",
       "checkoutSuccess": "Thanh toán thành công!"
+    },
+    "txnTypes": {
+      "selectTitle": "Chọn loại nghiệp vụ",
+      "SellGold": {
+        "label": "Lập đơn Bán Vàng",
+        "short": "Bán Vàng",
+        "abbr": "BV",
+        "desc": "Khách mua vàng, thu Kip"
+      },
+      "SellSilver": {
+        "label": "Lập đơn Bán Bạc",
+        "short": "Bán Bạc",
+        "abbr": "BB",
+        "desc": "Khách mua bạc, thu Kip"
+      },
+      "BuyGold": {
+        "label": "Lập đơn Thu Mua Vàng",
+        "short": "Thu Mua",
+        "abbr": "MV",
+        "desc": "Mua vàng từ khách, chi Kip"
+      },
+      "ExchangeGold": {
+        "label": "Lập đơn Thu Đổi Vàng Cũ",
+        "short": "Thu Đổi",
+        "abbr": "ĐV",
+        "desc": "Đổi vàng Khamphuvong cũ sang hàng mới"
+      },
+      "ExchangeCurrency": {
+        "label": "Quầy Đổi Ngoại Tệ",
+        "short": "Ngoại Tệ",
+        "abbr": "NT",
+        "desc": "Thu đổi THB · USD → Kip"
+      }
     }
   },
   "product": {
@@ -266,35 +301,142 @@
       "title": "Khách hàng",
       "subtitle": "{count} khách hàng",
       "searchPlaceholder": "Tìm theo tên hoặc SĐT...",
+      "addButton": "Thêm khách hàng",
       "columns": {
         "name": "Họ và tên",
         "phone": "Điện thoại",
-        "totalPurchase": "Tổng mua",
-        "lastVisit": "Lần cuối",
+        "email": "Email",
+        "loyalty": "Hạng",
+        "points": "Điểm",
+        "status": "Trạng thái",
         "openMenu": "Mở menu",
-        "viewDetail": "Xem chi tiết"
+        "viewDetail": "Xem chi tiết",
+        "edit": "Chỉnh sửa"
+      },
+      "toasts": {
+        "createSuccess": "Đã thêm khách hàng mới",
+        "updateSuccess": "Đã cập nhật khách hàng"
+      },
+      "createDialog": {
+        "title": "Thêm khách hàng",
+        "name": "Họ và tên",
+        "namePlaceholder": "Nhập họ và tên...",
+        "phone": "Số điện thoại",
+        "phonePlaceholder": "0201112222",
+        "email": "Email",
+        "emailPlaceholder": "example@email.com",
+        "address": "Địa chỉ",
+        "dateOfBirth": "Ngày sinh",
+        "loyaltyTier": "Hạng thành viên",
+        "loyaltyPlaceholder": "Chọn hạng...",
+        "optionalSection": "Thông tin thêm",
+        "cancel": "Hủy",
+        "submit": "Thêm"
+      },
+      "editDialog": {
+        "title": "Cập nhật: {name}",
+        "cancel": "Hủy",
+        "submit": "Lưu thay đổi"
       }
     },
     "inventory": {
-      "title": "Kho hàng",
-      "subtitle": "{count} mã SP",
-      "searchPlaceholder": "Tìm sản phẩm...",
-      "filterAll": "Tất cả",
       "filterBranch": "Chi nhánh",
-      "filterStatus": "Trạng thái",
-      "filterSource": "Nguồn gốc",
+      "noResults": "Không tìm thấy",
+      "totalAsset": "Tổng lượng trị giá tồn",
+      "tabs": {
+        "catalog": "Danh mục hàng hóa ({count})",
+        "declare": "Khai báo sản phẩm mới"
+      },
       "statusTiepNhan": "Tiếp nhận",
+      "statusDaDinhGia": "Đã định giá",
       "statusTrenQuay": "Trên quầy",
       "statusDaBan": "Đã bán",
       "statusChuyenXuong": "Chuyển xưởng",
-      "sourceQuan": "Hàng quán",
-      "sourceNgoai": "Hàng ngoại",
-      "columns": {
-        "product": "Sản phẩm",
-        "branch": "Chi nhánh",
-        "qty": "Số lượng",
-        "weight": "Trọng lượng (gram)",
-        "lastUpdated": "Cập nhật"
+      "summary": {
+        "goldStock": "Tổng tồn vàng ta (Chỉ)",
+        "silverStock": "Tổng tồn bạc chế tác",
+        "assetValue": "Tổng giá trị tài sản kho"
+      },
+      "catalog": {
+        "title": "Bảng đối chiếu giá hàng hóa thực tế - {branch}",
+        "subtitle": "Nhấn 'Sửa' để chọn sản phẩm vào panel điều chỉnh kho.",
+        "edit": "Sửa",
+        "pieces": "chiếc",
+        "lot": "Lô",
+        "labor": "Công",
+        "stone": "Đá",
+        "na": "N/A",
+        "columns": {
+          "product": "Sản phẩm",
+          "priceLink": "Liên kết mã giá",
+          "stdWeight": "Định lượng quy chuẩn",
+          "extraCost": "Chi phí phụ (công/đá)",
+          "retailPrice": "Đơn giá bán lẻ",
+          "stock": "Tồn kho",
+          "actions": "Thao tác"
+        }
+      },
+      "adjustPanel": {
+        "title": "Điều chỉnh xuất nhập kho trực tiếp",
+        "selectProduct": "Chọn sản phẩm quầy:",
+        "selectPlaceholder": "Chọn sản phẩm...",
+        "empty": "Không có sản phẩm",
+        "changeStatus": "Đổi trạng thái",
+        "direction": "Hình thức xuất/nhập:",
+        "directionIn": "Nhập kho",
+        "directionOut": "Xuất kho",
+        "quantity": "Số lượng bổ sung/bớt ra (Chiếc)",
+        "currentStock": "Tồn: {qty}",
+        "exceedsStock": "Vượt quá tồn kho ({qty})",
+        "reason": "Ghi chú lý do bổ sung:",
+        "reasonPlaceholder": "VD: Kiểm đếm cuối ca thừa nhẫn, điều chỉnh khớp mé hàng...",
+        "note": "Toàn bộ thao tác điều chỉnh kho được ghi lại trên cơ sở liên kết chuỗi Khamphuvong HQ, hãy điền lý do rõ ràng trước khi ghi sổ.",
+        "submit": "Ghi nhận tồn kho mới"
+      },
+      "activityLog": {
+        "title": "Nhật ký hoạt động điều chuyển kho bãi",
+        "empty": "Chưa có hoạt động điều chỉnh",
+        "in": "NHẬP KHO",
+        "out": "XUẤT KHO"
+      },
+      "declare": {
+        "title": "Khai báo sản phẩm mới và gán mã liên kết biểu giá",
+        "subtitle": "Điền thuộc tính sản phẩm. Đơn giá tự tính toán live dựa trên mã giá được gán.",
+        "back": "Quay lại danh sách",
+        "name": "Tên sản phẩm hàng hóa",
+        "namePlaceholder": "VD: Nhẫn nam tỳ hưu chiêu tài vàng ta 18K",
+        "sku": "Mã sản phẩm (SKU)",
+        "skuPlaceholder": "VD: KPV-GOLD-0001",
+        "category": "Phân nhóm hàng hóa",
+        "categoryPlaceholder": "Chọn danh mục",
+        "priceLink": "Gán mã giá liên kết (Hàm lượng%)",
+        "priceLinkPlaceholder": "Chọn hàm lượng",
+        "stdWeight": "Khối lượng vàng quy chuẩn (Chỉ)",
+        "weightEquiv": "Tương đương: {gram} Gram",
+        "labor": "Tiền công quy chuẩn (₭)",
+        "stone": "Tiền đá/hột gắn kèm (₭)",
+        "cancel": "Hủy bỏ",
+        "submit": "Đăng ký danh mục & Ghi sổ kho",
+        "stockNote": "Thao tác này tạo sản phẩm vào danh mục và gán mã giá. Tồn kho ban đầu phát sinh qua giao dịch mua vào (nhập kho), không tạo trực tiếp tại đây.",
+        "preview": {
+          "title": "Bảng chi tiết live đơn giá quy đổi tham chiếu",
+          "metalValue": "Giá phần kim loại",
+          "laborDetail": "Tiền công chi tiết",
+          "stoneSurcharge": "Phụ phí đá gắn",
+          "estSell": "Ước giá bán ra",
+          "thbEquiv": "Quy đổi THB",
+          "usdEquiv": "Quy đổi USD"
+        }
+      },
+      "statusDialog": {
+        "title": "Đổi trạng thái mục kho",
+        "newStatus": "Trạng thái mới",
+        "cancel": "Hủy",
+        "submit": "Lưu"
+      },
+      "toasts": {
+        "adjustSuccess": "Điều chỉnh kho thành công ({code})",
+        "statusSuccess": "Cập nhật trạng thái thành công"
       }
     },
     "trade": {
@@ -525,7 +667,8 @@
         "editRole": "Đổi vai trò",
         "deactivate": "Vô hiệu hóa",
         "activate": "Kích hoạt",
-        "resetPassword": "Đặt lại mật khẩu"
+        "resetPassword": "Đặt lại mật khẩu",
+        "assignCounter": "Phân công quầy"
       },
       "roles": {
         "Cashier": "Thu ngân",
@@ -553,7 +696,9 @@
         "dateOfBirth": "Ngày sinh",
         "cancel": "Hủy",
         "submit": "Tạo",
-        "success": "Tạo người dùng thành công"
+        "success": "Tạo người dùng thành công",
+        "counter": "Quầy",
+        "counterPlaceholder": "Chọn quầy (tùy chọn)..."
       },
       "editInfoDialog": {
         "title": "Sửa thông tin — {name}",
@@ -589,6 +734,14 @@
         "updateRoleSuccess": "Đổi vai trò thành công",
         "resetPasswordSuccess": "Đặt lại mật khẩu thành công",
         "assignCounterSuccess": "Phân công quầy thành công"
+      },
+      "assignCounterDialog": {
+        "title": "Phân công quầy — {name}",
+        "counter": "Quầy",
+        "counterPlaceholder": "Chọn quầy...",
+        "unassign": "Bỏ phân công",
+        "cancel": "Hủy",
+        "submit": "Lưu"
       }
     },
     "branches": {

@@ -101,8 +101,12 @@ export function usePos() {
     const fallback = priceConfig.items.find(item => item.purityCode === product.purity)
     const matched = priceItem ?? fallback
 
-    // unitPriceLakPerGram = sellPrice / gramPerUnit
-    const unitPriceLakPerGram = matched ? matched.sellPrice / matched.gramPerUnit : 0
+    // BuyGold dùng buyPrice (giá mua vào từ khách — thấp hơn)
+    // Các nghiệp vụ còn lại dùng sellPrice (giá bán ra cho khách)
+    const isBuyMode = (tab?.txnType ?? 'SellGold') === 'BuyGold'
+    const unitPrice = matched ? (isBuyMode ? matched.buyPrice : matched.sellPrice) : 0
+    // unitPriceLakPerGram = unitPrice / gramPerUnit — dùng cho lineTotal nội bộ
+    const unitPriceLakPerGram = matched ? unitPrice / matched.gramPerUnit : 0
 
     const cartItem: CartItem = {
       productId: product.id,
@@ -117,21 +121,21 @@ export function usePos() {
       unitPriceLakPerGram,
       laborFee: 0,
       stoneFee: 0,
+      itemRole: 'Normal',
+      perItemDamage: 0,
+      perItemWearChi: 0,
+      isDamaged: false,
+      isReadOnly: false,
     }
     addItem(cartItem)
   }
 
-  /**
-   * Thực hiện thanh toán.
-   * branchId, staffId và counterId phải được lấy từ session user hiện tại.
-   */
   const checkout = (params: {
     type: TransactionType
-    branchId: string
-    staffId: string
-    counterId: string
     customerId?: string
     note?: string
+    depositAmount?: number
+    referenceInvoiceCode?: string
   }) => checkoutMutate(params)
 
   const setTabPaying = () => {
@@ -146,7 +150,6 @@ export function usePos() {
   return {
     // Products
     products: filteredProducts,
-    allProducts: products,
     productsLoading,
     categories,
     search, setSearch,
@@ -163,6 +166,7 @@ export function usePos() {
     totalQty,
     discount: tab?.discountAmount ?? 0,
     note: tab?.note ?? '',
+    txnType: tab?.txnType ?? 'SellGold',
 
     // Cart actions
     addToCart,
