@@ -29,6 +29,7 @@ export interface UserColumnLabels {
   activate: string
   deactivate: string
   resetPassword: string
+  assignCounter: string
   roleLabels: Record<string, string>
   branchMap: Record<string, string>
   active: string
@@ -42,6 +43,7 @@ export function createUserColumns(
   onActivate: (user: AdminUser) => void,
   onDeactivate: (user: AdminUser) => void,
   onResetPassword: (user: AdminUser) => void,
+  onAssignCounter: (user: AdminUser) => void,
 ): ColumnDef<AdminUser>[] {
   return [
     {
@@ -147,6 +149,9 @@ export function createUserColumns(
               </DropdownMenuItem>
               <DropdownMenuItem onClick={() => onResetPassword(user)}>
                 {labels.resetPassword}
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => onAssignCounter(user)}>
+                {labels.assignCounter}
               </DropdownMenuItem>
               <DropdownMenuSeparator />
               {user.isActive ? (

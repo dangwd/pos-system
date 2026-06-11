@@ -16,7 +16,8 @@ export type LoyaltyTier = 'Bronze' | 'Silver' | 'Gold' | 'Platinum'
 export interface Customer {
   id: string
   name: string
-  phoneNumber: string
+  phoneNumber: string | null
+  email: string | null
   loyaltyTier: LoyaltyTier | null
   accumulatedPoints: number
   isActive: boolean
@@ -28,9 +29,15 @@ export interface Customer {
 /** POST /api/customers */
 export interface CreateCustomerDto {
   name: string
-  phoneNumber: string
+  phoneNumber?: string
+  email?: string
+  address?: string
+  dateOfBirth?: string  // YYYY-MM-DD
   loyaltyTier?: LoyaltyTier
 }
+
+/** PUT /api/customers/{id} */
+export type UpdateCustomerDto = CreateCustomerDto
 
 /** Query params cho GET /api/customers */
 export interface CustomerSearchParams {

@@ -62,6 +62,7 @@
         "reprint": "Reprint",
         "customerLabel": "Customer (F4)",
         "customerSearch": "Search customer...",
+        "customerNotFound": "No customer found",
         "subtotalLabel": "Subtotal (A)",
         "discountLabel": "Discount (B)",
         "discountInput": "Enter discount ₭...",
@@ -266,13 +267,42 @@
       "title": "Customers",
       "subtitle": "{count} customers",
       "searchPlaceholder": "Search by name or phone...",
+      "addButton": "Add customer",
       "columns": {
         "name": "Full Name",
         "phone": "Phone",
-        "totalPurchase": "Total Purchase",
-        "lastVisit": "Last Visit",
+        "email": "Email",
+        "loyalty": "Tier",
+        "points": "Points",
+        "status": "Status",
         "openMenu": "Open menu",
-        "viewDetail": "View details"
+        "viewDetail": "View details",
+        "edit": "Edit"
+      },
+      "toasts": {
+        "createSuccess": "Customer added successfully",
+        "updateSuccess": "Customer updated successfully"
+      },
+      "createDialog": {
+        "title": "Add Customer",
+        "name": "Full Name",
+        "namePlaceholder": "Enter full name...",
+        "phone": "Phone Number",
+        "phonePlaceholder": "0201112222",
+        "email": "Email",
+        "emailPlaceholder": "example@email.com",
+        "address": "Address",
+        "dateOfBirth": "Date of Birth",
+        "loyaltyTier": "Loyalty Tier",
+        "loyaltyPlaceholder": "Select tier...",
+        "optionalSection": "Optional info",
+        "cancel": "Cancel",
+        "submit": "Add"
+      },
+      "editDialog": {
+        "title": "Update: {name}",
+        "cancel": "Cancel",
+        "submit": "Save changes"
       }
     },
     "inventory": {
@@ -525,7 +555,8 @@
         "editRole": "Edit role",
         "deactivate": "Deactivate",
         "activate": "Activate",
-        "resetPassword": "Reset password"
+        "resetPassword": "Reset password",
+        "assignCounter": "Assign counter"
       },
       "roles": {
         "Cashier": "Cashier",
@@ -553,7 +584,9 @@
         "dateOfBirth": "Date of birth",
         "cancel": "Cancel",
         "submit": "Create",
-        "success": "User created successfully"
+        "success": "User created successfully",
+        "counter": "Counter",
+        "counterPlaceholder": "Select counter (optional)..."
       },
       "editInfoDialog": {
         "title": "Edit info — {name}",
@@ -589,6 +622,14 @@
         "updateRoleSuccess": "Role updated successfully",
         "resetPasswordSuccess": "Password reset successfully",
         "assignCounterSuccess": "Counter assigned successfully"
+      },
+      "assignCounterDialog": {
+        "title": "Assign counter — {name}",
+        "counter": "Counter",
+        "counterPlaceholder": "Select counter...",
+        "unassign": "Unassign",
+        "cancel": "Cancel",
+        "submit": "Save"
       }
     },
     "branches": {

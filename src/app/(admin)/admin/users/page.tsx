@@ -10,6 +10,7 @@ import { UserCreateDialog } from '@/components/admin/users/UserCreateDialog'
 import { UserEditInfoDialog } from '@/components/admin/users/UserEditInfoDialog'
 import { UserEditRoleDialog } from '@/components/admin/users/UserEditRoleDialog'
 import { UserResetPasswordDialog } from '@/components/admin/users/UserResetPasswordDialog'
+import { UserAssignCounterDialog } from '@/components/admin/users/UserAssignCounterDialog'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import {
@@ -37,6 +38,7 @@ export default function UsersPage() {
   const [editInfoUser, setEditInfoUser] = useState<AdminUser | null>(null)
   const [editRoleUser, setEditRoleUser] = useState<AdminUser | null>(null)
   const [resetPwUser, setResetPwUser] = useState<AdminUser | null>(null)
+  const [assignCounterUser, setAssignCounterUser] = useState<AdminUser | null>(null)
   const [filterBranchId, setFilterBranchId] = useState<string | null>(null)
   const [filterIsActive, setFilterIsActive] = useState<string | null>(null)
   const [searchInput, setSearchInput] = useState('')
@@ -79,8 +81,9 @@ export default function UsersPage() {
       editRole:      t('columns.editRole'),
       activate:      t('columns.activate'),
       deactivate:    t('columns.deactivate'),
-      resetPassword: t('columns.resetPassword'),
-      active:        t('status.active'),
+      resetPassword:  t('columns.resetPassword'),
+      assignCounter:  t('columns.assignCounter'),
+      active:         t('status.active'),
       inactive:      t('status.inactive'),
       branchMap,
       roleLabels: {
@@ -95,6 +98,7 @@ export default function UsersPage() {
     (user) => activate(user.id),
     (user) => deactivate(user.id),
     (user) => setResetPwUser(user),
+    (user) => setAssignCounterUser(user),
   ), [t, branchMap, activate, deactivate])
 
   return (
@@ -183,6 +187,7 @@ export default function UsersPage() {
       <UserEditInfoDialog user={editInfoUser} onClose={() => setEditInfoUser(null)} />
       <UserEditRoleDialog user={editRoleUser} onClose={() => setEditRoleUser(null)} />
       <UserResetPasswordDialog user={resetPwUser} onClose={() => setResetPwUser(null)} />
+      <UserAssignCounterDialog user={assignCounterUser} onClose={() => setAssignCounterUser(null)} />
     </div>
   )
 }
