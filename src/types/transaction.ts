@@ -2,37 +2,34 @@
  * types/transaction.ts
  *
  * Khớp với response của:
- *   POST /api/transactions
- *   GET  /api/transactions
- *   GET  /api/transactions/{id}
- *   POST /api/transactions/{id}/approve
- *   POST /api/transactions/{id}/reject
- *   POST /api/transactions/{id}/complete
+ *   POST /api/transactions           → Completed ngay lập tức (trả GUID)
+ *   GET  /api/transactions           → danh sách (flat hoặc paged tuỳ có limit/page)
+ *   GET  /api/transactions/{id}      → chi tiết
+ *   POST /api/transactions/{id}/cancel
  *
- * State machine: PENDING → APPROVED → COMPLETED
- *                        ↘ REJECTED
+ * State machine: POST → Completed → (cancel) → Cancelled
  */
 
 // ─── Enums ────────────────────────────────────────────────────────────────────
 
 /** Loại nghiệp vụ giao dịch */
 export type TransactionType =
-  | 'SellGold'         // Bán vàng
-  | 'SellSilver'       // Bán bạc
-  | 'BuyGold'          // Mua vào từ khách
-  | 'ExchangeGold'     // Đổi hàng / Thu đổi vàng
-  | 'ExchangeCurrency' // Thu đổi ngoại tệ
+  | 'SellGold'          // Bán vàng
+  | 'SellSilver'        // Bán bạc
+  | 'BuyGold'           // Mua vào từ khách
+  | 'ExchangeGold'      // Thu đổi vàng cũ
+  | 'ExchangeCurrency'  // Thu đổi ngoại tệ
+  | 'BuyMoreGold'       // Mua thêm / trade-up
+  | 'ExchangeFree'      // Đổi miễn phí (≤ 31 ngày)
+  | 'ExchangeToMoney'   // Đổi thành tiền mặt
 
-/** Trạng thái giao dịch */
+/** Trạng thái giao dịch — chỉ 2 trạng thái */
 export type TransactionStatus =
-  | 'Draft'      // Vừa tạo, chờ xử lý
-  | 'Pending'    // Chờ duyệt
-  | 'Approved'   // Đã duyệt
-  | 'Completed'  // Hoàn tất — bất biến
-  | 'Rejected'   // Bị từ chối
+  | 'Completed'   // Hoàn tất — bất biến (trừ cancel)
+  | 'Cancelled'   // Đã hủy — bất biến
 
 /** Phương thức thanh toán */
-export type PaymentMethod = 'CASH' | 'BANK' | 'MIXED'
+export type PaymentMethod = 'CASH' | 'BANK' | 'COMBINED'
 
 // ─── Entities (response từ API) ───────────────────────────────────────────────
 
@@ -43,11 +40,14 @@ export interface TransactionItem {
   productSnapshotName: string  // Tên tại thời điểm GD (snapshot — không đổi theo SP)
   quantity: number
   weightUnitId?: string        // FK → WeightUnit
-  weightUnitName: string       // Tên đơn vị tính ("Chỉ", "Bath", ...)
+  weightUnitName: string       // Snapshot tên đơn vị ("Chỉ", "Bath", ...)
   weightGram: number           // Tổng gram = qty × unit.gramPerUnit (hoặc override)
-  unitPriceLak: number         // Giá snapshot tại thời điểm GD (LAK/gram)
-  lineTotal: number            // weightGram × unitPriceLak
-  itemRole?: 'Normal' | 'ExchangeIn'
+  unitPriceLak: number         // Giá snapshot tại thời điểm GD (LAK/đơn vị)
+  tableUnitPriceLak: number    // Giá bảng hiển thị (dùng cho in phiếu)
+  lineTotal: number            // quantity × unitPriceLak
+  itemRole: 'Normal' | 'ExchangeIn'
+  laborFee: number             // Phí gia công
+  stoneFee: number             // Phí đá
 }
 
 /** Thông tin khách hàng rút gọn trong transaction */
@@ -63,72 +63,67 @@ export interface Transaction {
   invoiceCode: string
   type: TransactionType
   status: TransactionStatus
+  branchId: string
   branchName: string
+  counterId: string
   counterName: string
+  cashierId: string
   cashierName: string
+  subtotalAmount: number
+  laborFee: number
+  stoneFee: number
   totalAmount: number
-  transactedAt: string    // ISO 8601
+  currency: string
+  paymentMethod: PaymentMethod
+  cashAmount: number | null    // Số tiền mặt (khi COMBINED)
+  bankAmount: number | null    // Số tiền chuyển khoản (khi COMBINED)
+  note: string | null
+  transactedAt: string         // ISO 8601
+  referenceInvoiceCode: string | null
+  cancelReason: string | null
+  cancelledAt: string | null
+  customer: TransactionCustomer | null
   items: TransactionItem[]
-  // Optional — có thể có trong detail view
-  customer?: TransactionCustomer | null
-  paymentMethod?: PaymentMethod | null
-  note?: string | null
-}
-
-/** Kết quả tạo giao dịch (POST /api/transactions response) */
-export interface CreateTransactionResult {
-  id: string
-  invoiceCode: string
-  status: TransactionStatus
 }
 
 // ─── DTOs (gửi lên API) ───────────────────────────────────────────────────────
 
-/** Vai trò của một dòng hàng trong giao dịch */
+/** Vai trò của một dòng hàng */
 export type ItemRole = 'Normal' | 'ExchangeIn'
 
 /** Một dòng hàng khi tạo giao dịch */
 export interface CreateTransactionItemDto {
   productId: string
-  productName: string                // Snapshot tên sản phẩm tại thời điểm lập đơn
+  productName: string                // Snapshot tên sản phẩm
   quantity: number
-  weightUnitId: string               // FK → WeightUnit
-  weightGramOverride?: number | null // Trọng lượng thực đo (gram) — CanThucTe; null/omit cho NguyenKhoi
-  unitPriceLak: number               // Giá snapshot (LAK/đơn vị) — lấy từ PriceItem.sellPrice hoặc .buyPrice
-  itemRole: ItemRole                 // 'Normal' = bán ra / 'ExchangeIn' = vàng cũ đổi vào
-  laborFee: number                   // Phí gia công thợ (₭) — hoặc PHÍ KHÒ khi ExchangeIn
+  weightUnitId?: string | null       // null khi ExchangeCurrency
+  weightGramOverride?: number | null // Bắt buộc cho CanThucTe; null/omit cho NguyenKhoi
+  unitPriceLak: number               // Giá snapshot (LAK/đơn vị)
+  itemRole: ItemRole
+  laborFee: number                   // Phí gia công thợ (₭)
   stoneFee: number                   // Phí đá đính kèm (₭)
-  haoHutGram?: number                // Hao hụt (gram) — chỉ dùng khi ExchangeIn
+  haoHutGram: number                 // Hao hụt trọng lượng (gram) — LAO SUT
+  phiHuHai: number                   // Phí hủy hoại (₭) — PHÍ KHÒ cho ExchangeIn
 }
 
 /** POST /api/transactions — Tạo giao dịch mới */
 export interface CreateTransactionDto {
   type: TransactionType
-  // branchId / staffId / counterId KHÔNG gửi — backend lấy từ JWT claim
+  // branchId / staffId / counterId KHÔNG gửi — backend lấy từ JWT
   customerId?: string
   items: CreateTransactionItemDto[]
   paymentMethod: PaymentMethod
+  cashAmount?: number | null         // Bắt buộc khi COMBINED
+  bankAmount?: number | null         // Bắt buộc khi COMBINED
   currency?: string | null           // null = LAK
-  exchangeRate?: number | null       // null khi thanh toán LAK
+  exchangeRate?: number | null       // null khi LAK
   note?: string
-  depositAmount?: number
-  referenceInvoiceCode?: string      // Mã HĐ bán vàng cũ liên kết (ExchangeGold)
+  referenceInvoiceCode?: string      // Mã HĐ vàng cũ liên kết (ExchangeGold)
 }
 
-/** POST /api/transactions/{id}/complete */
-export interface CompleteTransactionDto {
-  paymentMethod: PaymentMethod
-}
-
-/** POST /api/transactions/{id}/approve */
-export interface ApproveTransactionDto {
-  approvedBy: string
-}
-
-/** POST /api/transactions/{id}/reject */
-export interface RejectTransactionDto {
-  rejectedBy: string
-  reason: string
+/** POST /api/transactions/{id}/cancel */
+export interface CancelTransactionDto {
+  reason?: string
 }
 
 // ─── Phân trang ───────────────────────────────────────────────────────────────
@@ -143,10 +138,12 @@ export interface TransactionListParams {
   branchId?: string
   status?: TransactionStatus
   type?: TransactionType
-  from?: string        // ISO 8601
-  to?: string          // ISO 8601
-  invoiceCode?: string // Tìm chính xác theo mã hóa đơn
-  q?: string           // Tìm tổng quát (tên KH, SĐT, mã GD)
+  from?: string         // ISO 8601
+  to?: string           // ISO 8601
+  invoiceCode?: string  // Tìm chính xác theo mã HĐ
+  q?: string            // Tìm tổng quát
+  /** Chế độ flat-array (POS lookup) — khi truyền `limit`, bỏ qua `page`/`pageSize` */
+  limit?: number
   page?: number
   pageSize?: number
 }

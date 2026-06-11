@@ -52,13 +52,11 @@ export type UpdateCustomerDto = CreateCustomerDto
 
 /** Query params cho GET /api/customers */
 export interface CustomerSearchParams {
-  search?: string  // Tìm theo tên hoặc SĐT
-  q?: string       // Alias cũ của search (tương thích ngược)
-  limit?: number   // Chỉ có hiệu lực khi không truyền page (chọn nhanh)
-  page?: number    // Khi truyền → kích hoạt phân trang
+  search?: string   // Tìm theo tên hoặc SĐT (alias: q)
+  q?: string        // Alias cũ của search (tương thích ngược)
+  limit?: number    // Chỉ có hiệu lực khi không truyền page (chọn nhanh, mặc định 10)
+  page?: number     // Khi truyền → kích hoạt phân trang (PagedResult)
   pageSize?: number
-  q?: string     // Tìm theo tên hoặc SĐT (lookup/array mode)
-  limit?: number // Mặc định 10 (lookup/array mode)
 }
 
 /**

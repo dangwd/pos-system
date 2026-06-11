@@ -55,15 +55,25 @@ const ERROR_MESSAGES: Record<string, ErrorMap> = {
     vi: 'Không tìm thấy giao dịch',
     en: 'Transaction not found',
   },
-  TRANSACTION_ALREADY_COMPLETED: {
-    lo: 'ການໂອນເງິນສຳເລັດແລ້ວ ບໍ່ສາມາດດັດແກ້ໄດ້',
-    vi: 'Giao dịch đã hoàn tất, không thể chỉnh sửa',
-    en: 'Transaction already completed and cannot be modified',
+  TRANSACTION_ALREADY_CANCELLED: {
+    lo: 'ໃບບິນນີ້ຖືກຍົກເລີກໄປແລ້ວ',
+    vi: 'Hóa đơn đã bị hủy trước đó',
+    en: 'Transaction has already been cancelled',
   },
-  TRANSACTION_INVALID_STATUS: {
-    lo: 'ສະຖານະການໂອນເງິນບໍ່ຖືກຕ້ອງສຳລັບການດຳເນີນການນີ້',
-    vi: 'Trạng thái giao dịch không hợp lệ cho thao tác này',
-    en: 'Invalid transaction status for this operation',
+  PAYMENT_COMBINED_AMOUNTS_REQUIRED: {
+    lo: 'ກະລຸນາລະບຸ cashAmount ແລະ bankAmount ສຳລັບການຊຳລະທີ່ລວມກັນ',
+    vi: 'Thiếu cashAmount hoặc bankAmount khi thanh toán kết hợp',
+    en: 'cashAmount and bankAmount are required for COMBINED payment',
+  },
+  PAYMENT_COMBINED_AMOUNTS_INVALID: {
+    lo: 'cashAmount ຫຼື bankAmount ບໍ່ສາມາດເປັນຕົວເລກລົບໄດ້',
+    vi: 'cashAmount hoặc bankAmount không được âm',
+    en: 'cashAmount and bankAmount must be non-negative',
+  },
+  PAYMENT_COMBINED_AMOUNTS_MISMATCH: {
+    lo: 'cashAmount + bankAmount ≠ totalAmount',
+    vi: 'Tổng cashAmount + bankAmount phải bằng tổng hóa đơn',
+    en: 'cashAmount + bankAmount must equal totalAmount',
   },
 
   // ── TRADE ─────────────────────────────────────────────────────────────────

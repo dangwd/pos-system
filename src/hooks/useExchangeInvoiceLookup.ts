@@ -26,7 +26,8 @@ export function useExchangeInvoiceLookup() {
 
   const { data: searchResult, isFetching } = useQuery({
     queryKey: ['transactions', 'lookup', debouncedQuery],
-    queryFn: () => transactionRepository.getList({ invoiceCode: debouncedQuery, type: 'SellGold' }),
+    // limit mode → backend trả mảng phẳng Transaction[]
+    queryFn: () => transactionRepository.getList({ invoiceCode: debouncedQuery, type: 'SellGold', limit: 10 }),
     enabled: debouncedQuery.length >= 3,
     staleTime: 30_000,
   })
@@ -39,7 +40,10 @@ export function useExchangeInvoiceLookup() {
 
   const { tab, setLinkedInvoice, clearLinkedInvoice } = useActiveTab()
 
-  const results = searchResult?.data ?? []
+  // limit mode → Transaction[]; paged mode → { data: Transaction[] }
+  const results: Transaction[] = Array.isArray(searchResult)
+    ? searchResult
+    : ((searchResult as unknown as { data?: Transaction[] })?.data ?? [])
 
   const selectInvoice = (transaction: Transaction) => {
     if (!priceConfig) return

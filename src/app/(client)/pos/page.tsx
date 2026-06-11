@@ -43,22 +43,16 @@ export default function PosPage() {
 
   const handleCheckout = async () => {
     try {
-      const result = await pos.checkout({
+      const transaction = await pos.checkout({
         type: pos.txnType,
         customerId: undefined,
         note: pos.note || undefined,
       })
-      // Đóng modal và reset tab sau bất kỳ thanh toán thành công nào
       setPaymentOpen(false)
       pos.resetTabStatus()
-      // Hiển thị biên lai nếu hoàn tất
-      if (result?.status === 'Completed') {
-        setReceiptTransaction(result)
-      }
-      // Toast được hiển thị từ useCheckout onSuccess — không gọi lại ở đây
+      if (transaction) setReceiptTransaction(transaction)
     } catch {
-      // Toast lỗi được hiển thị từ useCheckout onError
-      // Giữ modal mở để người dùng thử lại
+      // Toast lỗi hiển thị từ useCheckout onError — giữ modal mở để thử lại
     }
   }
 
