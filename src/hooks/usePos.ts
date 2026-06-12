@@ -21,6 +21,7 @@ import { useProducts } from './useProducts'
 import { useActiveTab } from './useActiveTab'
 import { useCheckout } from './useCheckout'
 import { useCoupon } from './useCoupon'
+import { useWeightUnits } from './useConfig'
 import { useInvoiceTabStore } from '@/stores/invoice-tab.store'
 import { CashStrategy, BankTransferStrategy, CombinedStrategy } from '@/lib/strategies'
 import { configRepository } from '@/lib/repositories/config.repository'
@@ -49,6 +50,9 @@ export function usePos() {
     queryFn: () => configRepository.getPrices(),
     staleTime: 60_000,
   })
+
+  // ── Đơn vị trọng lượng (cache 10 phút — hiếm khi thay đổi) ─────────────────
+  const { data: weightUnits = [] } = useWeightUnits()
 
   // ── Server state (sản phẩm từ API) ─────────────────────────────────────────
   const { data: products = [], isLoading: productsLoading } = useProducts()
@@ -108,14 +112,25 @@ export function usePos() {
     // unitPriceLakPerGram = unitPrice / gramPerUnit — dùng cho lineTotal nội bộ
     const unitPriceLakPerGram = matched ? unitPrice / matched.gramPerUnit : 0
 
+    // weightGram canonical = gramPerUnit từ bảng giá (source of truth cho pricing)
+    // product.weightGram có thể = 0 nếu sản phẩm chưa cấu hình → dùng matched làm fallback
+    const weightGram = matched?.gramPerUnit ?? product.weightGram
+
+    // weightUnitId: ưu tiên unit từ matched price config (đảm bảo khớp với gramPerUnit)
+    const weightUnitId = matched?.weightUnitId ?? product.weightUnitId
+
+    const weightUnit = weightUnits.find(u => u.id === weightUnitId)
+    const weightUnitName = weightUnit?.tenDonVi ?? matched?.weightUnitCode ?? null
+
     const cartItem: CartItem = {
       productId: product.id,
       name: product.productName,
       purity: product.purity,
-      weightGram: product.weightGram,
+      weightGram,
       productType: product.productType,
       categoryName: product.category.name,
-      weightUnitId: product.weightUnitId,
+      weightUnitId,
+      weightUnitName,
       weightGramOverride: null,
       qty: 1,
       unitPriceLakPerGram,

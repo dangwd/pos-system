@@ -10,7 +10,7 @@ function getHomeByRole(role: string | undefined): string {
   return role === 'Cashier' ? CASHIER_HOME : ADMIN_HOME
 }
 
-export function middleware(request: NextRequest) {
+export function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl
   const isAuthenticated = request.cookies.has('is_authenticated')
   const role = request.cookies.get('user_role')?.value

@@ -1,7 +1,6 @@
 'use client'
 
 import React from 'react'
-import { Divider } from 'antd'
 import { cn } from '@/lib/utils'
 
 interface SeparatorProps {
@@ -10,11 +9,20 @@ interface SeparatorProps {
 }
 
 function Separator({ className, orientation = 'horizontal' }: SeparatorProps) {
+  if (orientation === 'vertical') {
+    return (
+      <span
+        role="separator"
+        aria-orientation="vertical"
+        className={cn('inline-block self-stretch w-px bg-border mx-2', className)}
+      />
+    )
+  }
   return (
-    <Divider
-      type={orientation === 'vertical' ? 'vertical' : 'horizontal'}
-      className={cn('my-0 border-border', className)}
-      style={{ margin: 0 }}
+    <hr
+      role="separator"
+      aria-orientation="horizontal"
+      className={cn('border-t border-border my-0 w-full', className)}
     />
   )
 }

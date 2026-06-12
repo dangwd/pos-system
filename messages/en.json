@@ -96,13 +96,26 @@
     },
     "receipt": {
       "title": "Payment successful",
+      "cancelledTitle": "Invoice cancelled",
       "storeName": "Khamphuvong Jewelry",
       "columnProduct": "Product",
       "columnQty": "Qty",
       "columnTotal": "Total",
       "totalLabel": "Total",
       "printButton": "Print receipt",
-      "closeButton": "Close & New"
+      "closeButton": "Close & New",
+      "cancelInvoiceButton": "Cancel invoice",
+      "cancelledBadge": "Cancelled"
+    },
+    "cancelInvoice": {
+      "title": "Cancel invoice",
+      "description": "You are about to cancel invoice {code}. This action cannot be undone.",
+      "warning": "Inventory and cash ledger will be adjusted automatically.",
+      "reasonLabel": "Cancellation reason (optional)",
+      "reasonPlaceholder": "e.g. Customer changed mind, wrong entry...",
+      "backButton": "Go back",
+      "confirmButton": "Confirm cancel",
+      "cancellingButton": "Cancelling..."
     },
     "errors": {
       "emptyCart": "Cart is empty — please add items",
@@ -189,28 +202,19 @@
         "SellGold": "Sell Gold",
         "SellSilver": "Sell Silver",
         "BuyGold": "Buy Gold",
+        "BuyMoreGold": "Trade Up",
         "ExchangeGold": "Exchange Gold",
+        "ExchangeFree": "Exchange Free",
+        "ExchangeToMoney": "Exchange to Cash",
         "ExchangeCurrency": "Exchange Currency"
       },
       "transactionStatuses": {
-        "DRAFT": {
-          "label": "Draft",
-          "variant": "secondary"
-        },
-        "PENDING": {
-          "label": "Pending",
-          "variant": "outline"
-        },
-        "APPROVED": {
-          "label": "Approved",
-          "variant": "default"
-        },
-        "COMPLETED": {
+        "Completed": {
           "label": "Completed",
           "variant": "default"
         },
-        "REJECTED": {
-          "label": "Rejected",
+        "Cancelled": {
+          "label": "Cancelled",
           "variant": "destructive"
         }
       }

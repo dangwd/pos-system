@@ -96,13 +96,26 @@
     },
     "receipt": {
       "title": "Thanh toán thành công",
+      "cancelledTitle": "Hóa đơn đã hủy",
       "storeName": "Khamphuvong Jewelry",
       "columnProduct": "Sản phẩm",
       "columnQty": "Số lượng",
       "columnTotal": "Thành tiền",
       "totalLabel": "Tổng cộng",
       "printButton": "In hóa đơn",
-      "closeButton": "Đóng & Tạo mới"
+      "closeButton": "Đóng & Tạo mới",
+      "cancelInvoiceButton": "Hủy hóa đơn",
+      "cancelledBadge": "Đã hủy"
+    },
+    "cancelInvoice": {
+      "title": "Hủy hóa đơn",
+      "description": "Bạn sắp hủy hóa đơn {code}. Thao tác này không thể hoàn tác.",
+      "warning": "Kho hàng và sổ quỹ sẽ được điều chỉnh tự động.",
+      "reasonLabel": "Lý do hủy (không bắt buộc)",
+      "reasonPlaceholder": "Ví dụ: Khách đổi ý, nhập sai thông tin...",
+      "backButton": "Quay lại",
+      "confirmButton": "Xác nhận hủy",
+      "cancellingButton": "Đang hủy..."
     },
     "errors": {
       "emptyCart": "Giỏ hàng trống — vui lòng thêm sản phẩm",
@@ -189,28 +202,19 @@
         "SellGold": "Bán Vàng",
         "SellSilver": "Bán Bạc",
         "BuyGold": "Mua Vàng",
+        "BuyMoreGold": "Mua Thêm",
         "ExchangeGold": "Đổi Hàng",
+        "ExchangeFree": "Đổi Miễn Phí",
+        "ExchangeToMoney": "Đổi Thành Tiền",
         "ExchangeCurrency": "Đổi Ngoại Tệ"
       },
       "transactionStatuses": {
-        "DRAFT": {
-          "label": "Nháp",
-          "variant": "secondary"
-        },
-        "PENDING": {
-          "label": "Chờ duyệt",
-          "variant": "outline"
-        },
-        "APPROVED": {
-          "label": "Đã duyệt",
-          "variant": "default"
-        },
-        "COMPLETED": {
+        "Completed": {
           "label": "Hoàn tất",
           "variant": "default"
         },
-        "REJECTED": {
-          "label": "Từ chối",
+        "Cancelled": {
+          "label": "Đã hủy",
           "variant": "destructive"
         }
       }

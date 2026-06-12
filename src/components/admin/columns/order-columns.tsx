@@ -16,11 +16,23 @@ import {
   DropdownMenuContent,
   DropdownMenuItem,
 } from '@/components/ui/dropdown-menu'
-import { ArrowUpDown, MoreHorizontal } from 'lucide-react'
+import { ArrowUpDown, Eye, MoreHorizontal } from 'lucide-react'
 import type { Transaction, TransactionStatus, TransactionType } from '@/types/transaction'
 
 function formatKip(n: number) {
   return n.toLocaleString('lo-LA') + ' ₭'
+}
+
+// Màu badge theo loại nghiệp vụ
+const TYPE_STYLE: Record<string, string> = {
+  SellGold:        'bg-green-100/80 text-green-700 dark:bg-green-950/40 dark:text-green-400',
+  SellSilver:      'bg-teal-100/80 text-teal-700 dark:bg-teal-950/40 dark:text-teal-400',
+  BuyGold:         'bg-blue-100/80 text-blue-700 dark:bg-blue-950/40 dark:text-blue-400',
+  BuyMoreGold:     'bg-blue-100/80 text-blue-700 dark:bg-blue-950/40 dark:text-blue-400',
+  ExchangeGold:    'bg-amber-100/80 text-amber-700 dark:bg-amber-950/40 dark:text-amber-400',
+  ExchangeFree:    'bg-amber-100/80 text-amber-700 dark:bg-amber-950/40 dark:text-amber-400',
+  ExchangeToMoney: 'bg-indigo-100/80 text-indigo-700 dark:bg-indigo-950/40 dark:text-indigo-400',
+  ExchangeCurrency:'bg-violet-100/80 text-violet-700 dark:bg-violet-950/40 dark:text-violet-400',
 }
 
 export interface OrderColumnLabels {
@@ -34,6 +46,7 @@ export interface OrderColumnLabels {
   viewDetail: string
   transactionTypes: Record<string, string>
   transactionStatuses: Record<string, { label: string; variant: 'default' | 'secondary' | 'destructive' | 'outline' }>
+  onViewDetail?: (tx: Transaction) => void
 }
 
 export function createOrderColumns(labels: OrderColumnLabels): ColumnDef<Transaction>[] {
@@ -42,7 +55,7 @@ export function createOrderColumns(labels: OrderColumnLabels): ColumnDef<Transac
       accessorKey: 'invoiceCode',
       header: labels.invoiceCode,
       cell: ({ getValue, row }) => (
-        <span className="font-mono text-xs text-muted-foreground">
+        <span className="font-mono text-xs font-medium">
           {(getValue() as string) ?? `#${row.original.id.slice(0, 8).toUpperCase()}`}
         </span>
       ),
@@ -70,20 +83,25 @@ export function createOrderColumns(labels: OrderColumnLabels): ColumnDef<Transac
     },
 
     {
-      accessorKey: 'transactionType',
+      accessorKey: 'type',
       header: labels.type,
-      cell: ({ getValue }) => (
-        <Badge variant="secondary" className="text-xs">
-          {labels.transactionTypes[getValue() as TransactionType] ?? (getValue() as string)}
-        </Badge>
-      ),
+      cell: ({ getValue }) => {
+        const type = getValue() as TransactionType
+        const label = labels.transactionTypes[type] ?? type
+        const cls = TYPE_STYLE[type] ?? 'bg-secondary text-secondary-foreground'
+        return (
+          <span className={`inline-flex items-center text-[11px] font-semibold px-1.5 py-0.5 rounded ${cls}`}>
+            {label}
+          </span>
+        )
+      },
     },
 
     {
       accessorKey: 'paymentMethod',
       header: labels.payment,
       cell: ({ getValue }) => (
-        <span className="text-xs text-muted-foreground">{getValue() as string}</span>
+        <span className="text-xs text-muted-foreground tabular-nums">{getValue() as string}</span>
       ),
     },
 
@@ -109,8 +127,9 @@ export function createOrderColumns(labels: OrderColumnLabels): ColumnDef<Transac
       accessorKey: 'status',
       header: labels.status,
       cell: ({ getValue }) => {
-        const cfg = labels.transactionStatuses[getValue() as TransactionStatus]
-          ?? { label: getValue() as string, variant: 'secondary' as const }
+        const val = getValue() as TransactionStatus
+        const cfg = labels.transactionStatuses[val]
+          ?? { label: val, variant: 'secondary' as const }
         return <Badge variant={cfg.variant}>{cfg.label}</Badge>
       },
     },
@@ -125,7 +144,8 @@ export function createOrderColumns(labels: OrderColumnLabels): ColumnDef<Transac
             <span className="sr-only">{labels.openMenu}</span>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end">
-            <DropdownMenuItem onClick={() => console.log('view', row.original.id)}>
+            <DropdownMenuItem onClick={() => labels.onViewDetail?.(row.original)}>
+              <Eye className="h-3.5 w-3.5 mr-2 text-muted-foreground" />
               {labels.viewDetail}
             </DropdownMenuItem>
           </DropdownMenuContent>
