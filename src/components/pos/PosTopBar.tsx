@@ -437,7 +437,7 @@ function CloseConfirmDialog({ tab, onConfirm, onCancel }: CloseConfirmProps) {
 // ─── PosTopBar Root ───────────────────────────────────────────────────────────
 
 export interface PosTopBarProps {
-  onAddProduct: (product: Product) => void;
+  onAddProduct: (product: ProductWithStock) => void;
 }
 
 function getInitials(name: string) {

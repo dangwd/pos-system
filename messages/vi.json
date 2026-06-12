@@ -168,15 +168,13 @@
   "admin": {
     "dashboard": {
       "title": "Tổng quan",
-      "subtitle": "Thống kê hoạt động bán hàng",
+      "subtitle": "Thống kê hoạt động bán hàng hôm nay",
       "stats": {
-        "totalTransactions": "Tổng giao dịch",
-        "revenue": "Doanh thu",
-        "avgTransaction": "GD trung bình",
-        "products": "Sản phẩm"
-      },
-      "recentTitle": "Giao dịch gần đây",
-      "empty": "Chưa có giao dịch nào"
+        "totalRevenue": "Doanh thu bán",
+        "totalPurchase": "Chi phí mua vào",
+        "grossProfit": "Lãi gộp",
+        "cancelledCount": "Đơn đã hủy"
+      }
     },
     "orders": {
       "title": "Nhật ký giao dịch",
@@ -272,7 +270,7 @@
       },
       "productTypes": {
         "NguyenKhoi": "Nguyên khối",
-        "CanThucTe": "Cân thực tế"
+        "GiaDinh": "Giả định"
       },
       "toasts": {
         "createSuccess": "Thêm sản phẩm thành công",
@@ -506,27 +504,34 @@
     },
     "reports": {
       "title": "Báo cáo",
-      "selectDate": "Chọn ngày",
-      "selectBranch": "Chọn chi nhánh",
       "dashboard": {
         "title": "Tổng quan",
-        "totalRevenue": "Tổng doanh thu",
-        "totalProfit": "Lợi nhuận",
-        "totalTransactions": "Tổng giao dịch",
-        "topProducts": "SP bán chạy",
-        "columns": {
-          "product": "Sản phẩm",
-          "count": "Giao dịch"
-        }
+        "totalRevenue": "Doanh thu bán",
+        "totalPurchase": "Chi phí mua vào",
+        "grossProfit": "Lãi gộp",
+        "cancelledCount": "Đơn đã hủy"
       },
       "daily": {
         "title": "Báo cáo ngày",
-        "date": "Ngày",
-        "branch": "Chi nhánh",
-        "opening": "Số dư đầu",
-        "revenue": "Doanh thu",
-        "purchase": "Mua vào",
-        "closing": "Số dư cuối"
+        "sections": {
+          "revenue": "Doanh thu & Lãi/Lỗ",
+          "transactions": "Giao dịch",
+          "inventory": "Tồn kho",
+          "cash": "Tồn quỹ (tiền mặt LAK)"
+        },
+        "doanhThuBan": "Doanh thu bán",
+        "chiPhiMua": "Chi phí mua vào",
+        "doanhThuDoi": "Doanh thu đổi hàng",
+        "laiGopTamTinh": "Lãi gộp tạm tính",
+        "laiGopNote": "= Bán – Mua, chưa trừ vận hành",
+        "tongHoaDon": "Tổng hóa đơn Completed",
+        "tongGiaoDichTrade": "Giao dịch Trade",
+        "itemsOnDisplay": "Hàng đang trưng bày",
+        "totalWeightGram": "Tổng trọng lượng",
+        "openingLak": "Số dư đầu ngày",
+        "collectedLak": "Thu trong ngày",
+        "paidLak": "Chi trong ngày",
+        "closingLak": "Tồn quỹ cuối ngày"
       }
     },
     "config": {

@@ -1,76 +1,68 @@
 'use client'
 
-import { useQuery } from '@tanstack/react-query'
-import { transactionRepository } from '@/lib/repositories/transaction.repository'
-import { productRepository } from '@/lib/repositories/product.repository'
+import { useDashboardReport } from '@/hooks/useReports'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { Badge } from '@/components/ui/badge'
-import { ClipboardList, Package, TrendingUp, Banknote } from 'lucide-react'
 import { Skeleton } from '@/components/ui/skeleton'
-import type { Transaction } from '@/types/transaction'
+import { TrendingUp, TrendingDown, XCircle, BarChart3 } from 'lucide-react'
 import { useTranslations } from 'next-intl'
+
+function todayRange() {
+  const d = new Date()
+  const from = new Date(d.getFullYear(), d.getMonth(), d.getDate())
+  const to = new Date(d.getFullYear(), d.getMonth(), d.getDate(), 23, 59, 59, 999)
+  return { from: from.toISOString(), to: to.toISOString() }
+}
+
+function formatKip(n: number) {
+  return n.toLocaleString('lo-LA') + ' ₭'
+}
+
+function StatCard({
+  label,
+  value,
+  icon: Icon,
+  iconClass,
+}: {
+  label: string
+  value: string | number
+  icon: React.ElementType
+  iconClass: string
+}) {
+  return (
+    <Card>
+      <CardHeader className="flex flex-row items-center justify-between pb-2">
+        <CardTitle className="text-sm font-medium text-muted-foreground">{label}</CardTitle>
+        <Icon className={`h-4 w-4 ${iconClass}`} />
+      </CardHeader>
+      <CardContent>
+        <p className="text-2xl font-bold tabular-nums">{value}</p>
+      </CardContent>
+    </Card>
+  )
+}
 
 function DashboardSkeleton() {
   return (
-    <div className="space-y-6">
-      <div className="grid grid-cols-2 xl:grid-cols-4 gap-4">
-        {[0, 1, 2, 3].map((i) => (
-          <div key={i} className="rounded-lg border p-4 space-y-3">
-            <div className="flex items-center justify-between">
-              <Skeleton className="h-4 w-28" />
-              <Skeleton className="h-4 w-4" />
-            </div>
-            <Skeleton className="h-8 w-24" />
+    <div className="grid grid-cols-2 xl:grid-cols-4 gap-4">
+      {[0, 1, 2, 3].map((i) => (
+        <div key={i} className="rounded-lg border p-4 space-y-3">
+          <div className="flex items-center justify-between">
+            <Skeleton className="h-4 w-28" />
+            <Skeleton className="h-4 w-4" />
           </div>
-        ))}
-      </div>
-      <div className="rounded-lg border">
-        <div className="p-4 border-b">
-          <Skeleton className="h-5 w-36" />
+          <Skeleton className="h-8 w-32" />
         </div>
-        <div className="p-4 space-y-1">
-          {[0, 1, 2, 3, 4].map((i) => (
-            <div key={i} className="flex items-center justify-between py-2.5 border-b last:border-0">
-              <Skeleton className="h-4 w-40" />
-              <Skeleton className="h-5 w-24" />
-            </div>
-          ))}
-        </div>
-      </div>
+      ))}
     </div>
   )
 }
 
-function formatKip(amount: number) {
-  return amount.toLocaleString('lo-LA') + ' ₭'
-}
-
 export default function DashboardPage() {
   const t = useTranslations('admin.dashboard')
+  const range = todayRange()
+  const { data, isLoading } = useDashboardReport(range)
 
-  const { data: txPage, isLoading: txLoading } = useQuery({
-    queryKey: ['transactions'],
-    queryFn: () => transactionRepository.getList(),
-    staleTime: 30_000,
-  })
-
-  const { data: products = [], isLoading: productsLoading } = useQuery({
-    queryKey: ['products'],
-    queryFn: () => productRepository.getAll(),
-    staleTime: 300_000,
-  })
-
-  const transactions = txPage?.data ?? []
-  const revenue = transactions.reduce((sum: number, tx: Transaction) => sum + (tx.totalAmount ?? 0), 0)
-  const avgTransaction = transactions.length ? revenue / transactions.length : 0
-  const isLoading = txLoading || productsLoading
-
-  const STATS = [
-    { labelKey: 'stats.totalTransactions', value: transactions.length, icon: ClipboardList, color: 'text-blue-500' },
-    { labelKey: 'stats.revenue',           value: formatKip(revenue),  icon: Banknote,      color: 'text-green-500' },
-    { labelKey: 'stats.avgTransaction',    value: formatKip(avgTransaction), icon: TrendingUp, color: 'text-purple-500' },
-    { labelKey: 'stats.products',          value: products.length,     icon: Package,       color: 'text-orange-500' },
-  ]
+  const grossProfit = (data?.totalRevenue ?? 0) - (data?.totalPurchase ?? 0)
 
   return (
     <div className="p-6 space-y-6">
@@ -82,49 +74,32 @@ export default function DashboardPage() {
       {isLoading ? (
         <DashboardSkeleton />
       ) : (
-        <>
-          <div className="grid grid-cols-2 xl:grid-cols-4 gap-4">
-            {STATS.map(({ labelKey, value, icon: Icon, color }) => (
-              <Card key={labelKey}>
-                <CardHeader className="flex flex-row items-center justify-between pb-2">
-                  <CardTitle className="text-sm font-medium text-muted-foreground">{t(labelKey as Parameters<typeof t>[0])}</CardTitle>
-                  <Icon className={`h-4 w-4 ${color}`} />
-                </CardHeader>
-                <CardContent>
-                  <p className="text-2xl font-bold">{value}</p>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
-
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-base">{t('recentTitle')}</CardTitle>
-            </CardHeader>
-            <CardContent>
-              {transactions.length === 0 ? (
-                <p className="text-center py-6 text-muted-foreground text-sm">{t('empty')}</p>
-              ) : (
-                <div className="space-y-2">
-                  {transactions.slice(0, 10).map((tx: Transaction) => (
-                    <div key={tx.id} className="flex items-center justify-between text-sm py-2 border-b last:border-0">
-                      <div>
-                        <span className="font-mono text-xs text-muted-foreground">
-                          {tx.invoiceCode ?? `#${tx.id.slice(0, 8).toUpperCase()}`}
-                        </span>
-                        <span className="ml-3 text-muted-foreground text-xs">{tx.type}</span>
-                      </div>
-                      <div className="flex items-center gap-3">
-                        <Badge variant="secondary">{tx.status}</Badge>
-                        <span className="font-semibold tabular-nums">{formatKip(tx.totalAmount ?? 0)}</span>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              )}
-            </CardContent>
-          </Card>
-        </>
+        <div className="grid grid-cols-2 xl:grid-cols-4 gap-4">
+          <StatCard
+            label={t('stats.totalRevenue')}
+            value={formatKip(data?.totalRevenue ?? 0)}
+            icon={TrendingUp}
+            iconClass="text-green-500"
+          />
+          <StatCard
+            label={t('stats.totalPurchase')}
+            value={formatKip(data?.totalPurchase ?? 0)}
+            icon={TrendingDown}
+            iconClass="text-orange-500"
+          />
+          <StatCard
+            label={t('stats.grossProfit')}
+            value={formatKip(grossProfit)}
+            icon={BarChart3}
+            iconClass="text-primary"
+          />
+          <StatCard
+            label={t('stats.cancelledCount')}
+            value={data?.cancelledCount ?? 0}
+            icon={XCircle}
+            iconClass="text-destructive"
+          />
+        </div>
       )}
     </div>
   )
