@@ -44,20 +44,14 @@ export function ExchangeInvoiceLookup() {
 
       {/* Search input — ẩn khi đã có HĐ liên kết */}
       {!linkedCode && (
-        <div className="relative">
-          <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground pointer-events-none" />
-          <Input
-            placeholder="Nhập mã HĐ bán vàng (ví dụ: BV-20250615-0003)..."
-            value={query}
-            onChange={e => setQuery(e.target.value)}
-            className="pl-8 pr-8 h-7 text-xs"
-          />
-          {isFetching && (
-            <div className="absolute right-2.5 top-1/2 -translate-y-1/2">
-              <Spinner className="h-3 w-3" />
-            </div>
-          )}
-        </div>
+        <Input
+          placeholder="Nhập mã HĐ bán vàng (ví dụ: BV-20250615-0003)..."
+          prefix={<Search className="h-3.5 w-3.5 text-muted-foreground" />}
+          suffix={isFetching ? <Spinner className="h-3 w-3" /> : null}
+          value={query}
+          onChange={e => setQuery(e.target.value)}
+          className="h-7 text-xs"
+        />
       )}
 
       {/* Results dropdown */}

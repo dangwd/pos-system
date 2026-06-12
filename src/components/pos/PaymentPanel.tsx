@@ -201,11 +201,12 @@ function CustomerSection() {
       ) : (
         <div ref={containerRef} className="relative">
           <div className="flex gap-1.5">
-            <div className="relative flex-1">
-              <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3 w-3 text-muted-foreground pointer-events-none" />
+            <div className="flex-1 min-w-0">
               <Input
                 id="pos-customer-search"
                 placeholder={t("customerSearch")}
+                prefix={<Search className="h-3 w-3 text-muted-foreground" />}
+                suffix={isFetching ? <Loader2 className="h-3 w-3 animate-spin text-muted-foreground" /> : null}
                 value={query}
                 onChange={(e) => {
                   setQuery(e.target.value);
@@ -222,13 +223,8 @@ function CustomerSection() {
                     if (target) handleSelect(target);
                   }
                 }}
-                className="h-8 text-xs pl-7 pr-7"
+                className="h-8 text-xs"
               />
-              {isFetching && (
-                <div className="absolute right-2.5 top-1/2 -translate-y-1/2 pointer-events-none">
-                  <Loader2 className="h-3 w-3 animate-spin" />
-                </div>
-              )}
             </div>
             <button
               onClick={() => setCreateOpen(true)}

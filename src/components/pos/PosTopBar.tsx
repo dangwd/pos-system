@@ -15,13 +15,10 @@
 "use client";
 
 import { LocaleSwitcher } from "@/components/shared/LocaleSwitcher";
-import { Button } from "@/components/ui/button";
+import { Button } from "antd";
 import {
   Dialog,
   DialogContent,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
 } from "@/components/ui/dialog";
 import {
   DropdownMenu,
@@ -55,6 +52,7 @@ import {
   Plus,
   Search,
   Sparkles,
+  User,
   X,
 } from "lucide-react";
 import { motion } from "motion/react";
@@ -116,46 +114,40 @@ function ProductSearch({ onSelect }: ProductSearchProps) {
 
   return (
     <div ref={containerRef} className="relative shrink-0 w-80 xl:w-96">
-      <div className="relative">
-        <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground pointer-events-none" />
-        <Input
-          id="pos-product-search"
-          placeholder={t("searchPlaceholder")}
-          className="pl-8 pr-8 h-8 text-xs"
-          value={search}
-          onChange={(e) => {
-            setSearch(e.target.value);
+      <Input
+        id="pos-product-search"
+        placeholder={t("searchPlaceholder")}
+        className="h-8 text-xs"
+        prefix={<Search className="h-3.5 w-3.5 text-muted-foreground" />}
+        suffix={isFetching ? <Spinner className="h-3 w-3" /> : null}
+        value={search}
+        onChange={(e) => {
+          setSearch(e.target.value);
+          setFocusedIndex(-1);
+          setOpen(!!e.target.value);
+        }}
+        onFocus={() => search && setOpen(true)}
+        onKeyDown={(e) => {
+          if (e.key === "Escape") {
+            setOpen(false);
+            setSearch("");
             setFocusedIndex(-1);
-            setOpen(!!e.target.value);
-          }}
-          onFocus={() => search && setOpen(true)}
-          onKeyDown={(e) => {
-            if (e.key === "Escape") {
-              setOpen(false);
-              setSearch("");
-              setFocusedIndex(-1);
-            }
-            if (e.key === "ArrowDown") {
-              e.preventDefault();
-              setFocusedIndex((prev) => Math.min(prev + 1, results.length - 1));
-              if (!open && results.length > 0) setOpen(true);
-            }
-            if (e.key === "ArrowUp") {
-              e.preventDefault();
-              setFocusedIndex((prev) => Math.max(prev - 1, -1));
-            }
-            if (e.key === "Enter") {
-              const target = focusedIndex >= 0 ? results[focusedIndex] : results[0];
-              if (target) handleSelect(target);
-            }
-          }}
-        />
-        {isFetching && (
-          <div className="absolute right-2.5 top-1/2 -translate-y-1/2 pointer-events-none">
-            <Spinner className="h-3 w-3" />
-          </div>
-        )}
-      </div>
+          }
+          if (e.key === "ArrowDown") {
+            e.preventDefault();
+            setFocusedIndex((prev) => Math.min(prev + 1, results.length - 1));
+            if (!open && results.length > 0) setOpen(true);
+          }
+          if (e.key === "ArrowUp") {
+            e.preventDefault();
+            setFocusedIndex((prev) => Math.max(prev - 1, -1));
+          }
+          if (e.key === "Enter") {
+            const target = focusedIndex >= 0 ? results[focusedIndex] : results[0];
+            if (target) handleSelect(target);
+          }
+        }}
+      />
 
       {open && (results.length > 0 || (debouncedSearch && !isFetching)) && (
         <div className="absolute top-full left-0 z-50 mt-1 w-full rounded-lg border bg-popover shadow-xl overflow-hidden">
@@ -223,61 +215,80 @@ function InlineTabChip({
       aria-selected={isActive}
       onClick={onSwitch}
       className={cn(
-        "group relative flex items-center gap-2 px-3.5 h-full cursor-pointer select-none shrink-0",
-        "min-w-24 max-w-44 border-r border-border/40 last:border-r-0",
+        "group relative flex items-center gap-1.5 px-3 h-full cursor-pointer select-none shrink-0",
+        "min-w-28 max-w-48 border-r border-border/50 last:border-r-0",
         "transition-colors duration-150",
         isActive
-          ? "bg-background text-foreground font-medium"
-          : "text-muted-foreground/80 hover:text-foreground hover:bg-muted/50",
+          ? "bg-background text-foreground"
+          : "text-muted-foreground hover:text-foreground hover:bg-background/60",
       )}
     >
-      {/* Indicator trượt bottom — layoutId animate khi chuyển tab */}
-      <motion.div
-        layoutId="pos-tab-indicator"
-        className={cn(
-          "absolute bottom-0 inset-x-0 h-0.5 transition-colors",
-          isActive ? "bg-primary" : "bg-transparent",
-        )}
-        transition={{ type: "spring", stiffness: 500, damping: 40 }}
-      />
+      {/* Indicator bottom — 3px, dùng layoutId để animate khi chuyển tab */}
+      {isActive && (
+        <motion.div
+          layoutId="pos-tab-indicator"
+          className="absolute bottom-0 inset-x-0 h-0.75 bg-primary rounded-t-sm"
+          transition={{ type: "spring", stiffness: 500, damping: 40 }}
+        />
+      )}
 
       {/* Chấm trạng thái */}
       {tab.status === "holding" && (
         <span
-          className="w-1.5 h-1.5 rounded-full bg-amber-400 shrink-0"
+          className="w-2 h-2 rounded-full bg-amber-400 shrink-0"
           title={t("holdingStatus")}
         />
       )}
       {tab.status === "paying" && (
         <span
-          className="w-1.5 h-1.5 rounded-full bg-blue-400 shrink-0 animate-pulse"
+          className="w-2 h-2 rounded-full bg-blue-400 shrink-0 animate-pulse"
           title={t("payingStatus")}
         />
       )}
 
-      {/* Label */}
-      <span className="truncate flex-1 text-xs">{tab.label}</span>
-
-      {/* Type abbr badge */}
+      {/* Type abbr badge — luôn hiển thị rõ */}
       <span
         className={cn(
-          "shrink-0 text-[9px] font-semibold leading-none px-1 py-0.5 rounded-sm",
+          "shrink-0 text-[9px] font-bold leading-none px-1.5 py-0.5 rounded",
           isActive
-            ? "bg-primary/8 text-primary/70"
-            : "text-muted-foreground/40",
+            ? "bg-primary/15 text-primary"
+            : "bg-muted text-muted-foreground",
         )}
       >
         {abbr}
       </span>
 
-      {/* Badge số lượng */}
+      {/* Label */}
+      <span className={cn("truncate text-xs", isActive && "font-medium", tab.customerName ? "flex-none" : "flex-1")}>
+        {tab.label}
+      </span>
+
+      {/* Customer chip — khi có khách hàng */}
+      {tab.customerName && (
+        <span
+          className={cn(
+            "flex items-center gap-0.5 shrink min-w-0 text-[10px] rounded px-1 py-0.5 truncate",
+            isActive
+              ? "bg-primary/10 text-primary font-medium"
+              : "bg-muted text-muted-foreground",
+          )}
+        >
+          <User className="h-2.5 w-2.5 shrink-0" />
+          <span className="truncate max-w-16">{tab.customerName.split(" ").pop()}</span>
+        </span>
+      )}
+
+      {/* Spacer khi không có customer */}
+      {!tab.customerName && <span className="flex-1" />}
+
+      {/* Badge số lượng — solid khi active */}
       {totalQty > 0 && (
         <span
           className={cn(
-            "shrink-0 text-[10px] font-semibold leading-none rounded-sm px-1.5 py-0.5 tabular-nums",
+            "shrink-0 text-[10px] font-bold leading-none rounded px-1.5 py-0.5 tabular-nums",
             isActive
-              ? "bg-primary/12 text-primary"
-              : "bg-muted text-muted-foreground/70",
+              ? "bg-primary text-primary-foreground"
+              : "bg-muted text-muted-foreground",
           )}
         >
           {totalQty}
@@ -288,21 +299,15 @@ function InlineTabChip({
       {isActive && (
         <div className="flex items-center gap-0.5 opacity-0 group-hover:opacity-100 shrink-0 transition-opacity">
           <button
-            onClick={(e) => {
-              e.stopPropagation();
-              onHold();
-            }}
-            className="p-0.5 rounded hover:bg-amber-50 hover:text-amber-500 text-muted-foreground/60"
+            onClick={(e) => { e.stopPropagation(); onHold(); }}
+            className="p-0.5 rounded hover:bg-amber-100 hover:text-amber-600 text-muted-foreground"
             title={t("holdTooltip")}
           >
             <PauseCircle className="h-3 w-3" />
           </button>
           <button
-            onClick={(e) => {
-              e.stopPropagation();
-              onDuplicate();
-            }}
-            className="p-0.5 rounded hover:bg-muted text-muted-foreground/60"
+            onClick={(e) => { e.stopPropagation(); onDuplicate(); }}
+            className="p-0.5 rounded hover:bg-muted text-muted-foreground"
             title={t("duplicateTooltip")}
           >
             <Copy className="h-3 w-3" />
@@ -313,15 +318,12 @@ function InlineTabChip({
       {/* Đóng tab */}
       {showClose && (
         <button
-          onClick={(e) => {
-            e.stopPropagation();
-            onClose();
-          }}
+          onClick={(e) => { e.stopPropagation(); onClose(); }}
           className={cn(
-            "shrink-0 p-0.5 rounded transition-all text-muted-foreground/50 hover:text-destructive hover:bg-destructive/8",
+            "shrink-0 p-0.5 rounded transition-all hover:text-destructive hover:bg-destructive/10",
             isActive
-              ? "opacity-0 group-hover:opacity-100"
-              : "opacity-0 group-hover:opacity-60",
+              ? "opacity-0 group-hover:opacity-100 text-muted-foreground"
+              : "opacity-0 group-hover:opacity-70 text-muted-foreground",
           )}
           title={t("closeTooltip")}
         >
@@ -392,21 +394,19 @@ function CloseConfirmDialog({ tab, onConfirm, onCancel }: CloseConfirmProps) {
   const qty = tab?.items.reduce((s, i) => s + i.qty, 0) ?? 0;
   return (
     <Dialog open={!!tab} onOpenChange={(o) => !o && onCancel()}>
-      <DialogContent className="sm:max-w-sm">
-        <DialogHeader>
-          <DialogTitle>{t("title")}</DialogTitle>
-        </DialogHeader>
+      <DialogContent
+        className="sm:max-w-sm"
+        title={t("title")}
+        footer={
+          <>
+            <Button onClick={onCancel}>{t("keep")}</Button>
+            <Button danger type="primary" onClick={onConfirm}>{t("close")}</Button>
+          </>
+        }
+      >
         <p className="text-sm text-muted-foreground">
           {t("body", { label: tab?.label ?? "", qty })}
         </p>
-        <DialogFooter>
-          <Button variant="outline" onClick={onCancel}>
-            {t("keep")}
-          </Button>
-          <Button variant="destructive" onClick={onConfirm}>
-            {t("close")}
-          </Button>
-        </DialogFooter>
       </DialogContent>
     </Dialog>
   );

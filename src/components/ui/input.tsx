@@ -1,23 +1,30 @@
 import React from 'react'
 import { Input as AntInput } from 'antd'
-import type { InputRef } from 'antd'
+import type { InputRef, InputProps as AntInputProps } from 'antd'
 import { cn } from '@/lib/utils'
 
-type InputProps = Omit<React.InputHTMLAttributes<HTMLInputElement>, 'size'> & {
+type InputProps = Omit<React.InputHTMLAttributes<HTMLInputElement>, 'size' | 'prefix' | 'suffix'> & {
   className?: string
+  /** Antd prefix — icon/element hiển thị bên trái bên trong input */
+  prefix?: AntInputProps['prefix']
+  /** Antd suffix — icon/element hiển thị bên phải bên trong input */
+  suffix?: AntInputProps['suffix']
+  allowClear?: AntInputProps['allowClear']
 }
 
 const Input = React.forwardRef<HTMLInputElement, InputProps>(
-  ({ className, type, ...props }, ref) => {
+  ({ className, type, prefix, suffix, allowClear, ...props }, ref) => {
     const antRef = React.useRef<InputRef | null>(null)
 
-    // Expose the underlying HTMLInputElement to callers that expect one (e.g. React Hook Form).
     React.useImperativeHandle(ref, () => antRef.current?.input as HTMLInputElement, [])
 
     return (
       <AntInput
         ref={antRef}
         type={type}
+        prefix={prefix}
+        suffix={suffix}
+        allowClear={allowClear}
         className={cn('w-full text-sm', className)}
         {...(props as React.HTMLAttributes<HTMLInputElement>)}
       />
