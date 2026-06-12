@@ -1,17 +1,13 @@
 "use client";
 
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
+import { Button } from "antd";
 import {
   Dialog,
   DialogContent,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Spinner } from "@/components/ui/spinner";
 import { useActiveTab } from "@/hooks/useActiveTab";
 import {
   PAYMENT_METHOD_KEYS,
@@ -110,12 +106,9 @@ function ItemRow({ item, index }: { item: CartItem; index: number }) {
         isExchange && "bg-amber-50/40 dark:bg-amber-950/10",
       )}
     >
-      {/* Số thứ tự */}
       <span className="w-5 text-[10px] text-muted-foreground/50 text-center shrink-0 pt-0.5">
         {index + 1}
       </span>
-
-      {/* Tên & thông số */}
       <div className="flex-1 min-w-0">
         <p className="text-xs font-semibold leading-snug">{item.name}</p>
         <div className="flex flex-wrap gap-x-2 gap-y-0.5 mt-0.5">
@@ -142,13 +135,9 @@ function ItemRow({ item, index }: { item: CartItem; index: number }) {
           )}
         </div>
       </div>
-
-      {/* Số lượng */}
       <div className="text-center shrink-0">
         <span className="text-xs text-muted-foreground">×{item.qty}</span>
       </div>
-
-      {/* Thành tiền */}
       <div className="text-right shrink-0">
         <span
           className={cn(
@@ -211,19 +200,20 @@ export function PaymentModal({
 
   // ── Keyboard shortcuts: 1/2/3 → payment method; auto-focus Pay on open ─────
   useEffect(() => {
-    if (!open) return
+    if (!open) return;
     const timer = setTimeout(() => {
-      document.querySelector<HTMLButtonElement>("[data-pay-action]")?.focus()
-    }, 150)
+      document.querySelector<HTMLButtonElement>("[data-pay-action]")?.focus();
+    }, 150);
     const handler = (e: KeyboardEvent) => {
-      if ((e.target as Element)?.tagName === "INPUT") return
-      if (e.key === "1") { e.preventDefault(); setCashInput(""); setBankInput(""); onPaymentMethodChange("cash") }
-      else if (e.key === "2") { e.preventDefault(); setCashInput(""); setBankInput(""); onPaymentMethodChange("bank-transfer") }
-      else if (e.key === "3") { e.preventDefault(); setCashInput(""); setBankInput(""); onPaymentMethodChange("combined") }
-    }
-    document.addEventListener("keydown", handler)
-    return () => { clearTimeout(timer); document.removeEventListener("keydown", handler) }
-  }, [open, onPaymentMethodChange])
+      if ((e.target as Element)?.tagName === "INPUT") return;
+      if (e.key === "1") { e.preventDefault(); setCashInput(""); setBankInput(""); onPaymentMethodChange("cash"); }
+      else if (e.key === "2") { e.preventDefault(); setCashInput(""); setBankInput(""); onPaymentMethodChange("bank-transfer"); }
+      else if (e.key === "3") { e.preventDefault(); setCashInput(""); setBankInput(""); onPaymentMethodChange("combined"); }
+    };
+    document.addEventListener("keydown", handler);
+    return () => { clearTimeout(timer); document.removeEventListener("keydown", handler); };
+  }, [open, onPaymentMethodChange]);
+
   const isCombined = paymentMethod === "combined";
   const cashAmt = parseInt(cashInput.replace(/\D/g, ""), 10) || 0;
   const bankAmt = parseInt(bankInput.replace(/\D/g, ""), 10) || 0;
@@ -258,48 +248,69 @@ export function PaymentModal({
       : onCheckout();
   };
 
+  const dialogTitle = (
+    <div>
+      <div className="flex items-center gap-3">
+        <span className="text-base font-bold">{t("title")}</span>
+        <Badge
+          className={cn(
+            "text-[10px] h-5 px-2 font-semibold rounded-full",
+            txnMeta.color,
+          )}
+        >
+          {txnMeta.label}
+        </Badge>
+      </div>
+      {tab?.linkedInvoiceCode && (
+        <div className="flex items-center gap-1.5 mt-1 text-[10px] text-amber-600">
+          <Link2 className="h-2.5 w-2.5" />
+          <span>
+            Liên kết HĐ:{" "}
+            <span className="font-semibold font-mono">
+              {tab.linkedInvoiceCode}
+            </span>
+          </span>
+        </div>
+      )}
+      {tab?.note && (
+        <div className="flex items-center gap-1.5 mt-0.5 text-[10px] text-muted-foreground">
+          <FileText className="h-2.5 w-2.5" />
+          <span>{tab.note}</span>
+        </div>
+      )}
+    </div>
+  );
+
+  const dialogFooter = (
+    <>
+      <Button onClick={onClose} disabled={isCheckingOut}>
+        {t("cancel")}
+      </Button>
+      <Button
+        type="primary"
+        data-pay-action
+        autoFocus
+        onClick={handleCheckout}
+        disabled={isCheckingOut || !combinedValid}
+        loading={isCheckingOut}
+        style={{ minWidth: 160 }}
+      >
+        {isCheckingOut ? t("processing") : t("pay", { amount: fmt(total) })}
+      </Button>
+    </>
+  );
+
   return (
     <Dialog open={open} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-3xl flex flex-col max-h-[90vh] p-0">
-        {/* ── Header ── */}
-        <DialogHeader className="px-5 pt-5 pb-3 border-b shrink-0 mb-0">
-          <div className="flex items-center gap-3">
-            <DialogTitle className="text-base font-bold">
-              {t("title")}
-            </DialogTitle>
-            <Badge
-              className={cn(
-                "text-[10px] h-5 px-2 font-semibold rounded-full",
-                txnMeta.color,
-              )}
-            >
-              {txnMeta.label}
-            </Badge>
-          </div>
-          {tab?.linkedInvoiceCode && (
-            <div className="flex items-center gap-1.5 mt-1 text-[10px] text-amber-600">
-              <Link2 className="h-2.5 w-2.5" />
-              <span>
-                Liên kết HĐ:{" "}
-                <span className="font-semibold font-mono">
-                  {tab.linkedInvoiceCode}
-                </span>
-              </span>
-            </div>
-          )}
-          {tab?.note && (
-            <div className="flex items-center gap-1.5 mt-0.5 text-[10px] text-muted-foreground">
-              <FileText className="h-2.5 w-2.5" />
-              <span>{tab.note}</span>
-            </div>
-          )}
-        </DialogHeader>
-
+      <DialogContent
+        className="max-w-4xl max-h-[90vh] p-0"
+        title={dialogTitle}
+        footer={dialogFooter}
+      >
         {/* ── Body 2 cột ── */}
         <div className="flex flex-1 min-h-0 overflow-hidden">
           {/* CỘT TRÁI: Danh sách hàng hoá */}
           <div className="flex-1 flex flex-col min-w-0 overflow-hidden border-r">
-            {/* ExchangeGold: 2 section */}
             {isExchange ? (
               <div className="flex-1 overflow-y-auto">
                 {exchangeItems.length > 0 && (
@@ -352,9 +363,9 @@ export function PaymentModal({
           </div>
 
           {/* CỘT PHẢI: Tóm tắt + phương thức */}
-          <div className="w-72 shrink-0 flex flex-col overflow-y-auto overflow-x-hidden">
+          <div className="w-96 shrink-0 flex flex-col overflow-y-auto overflow-x-hidden">
             {/* Tóm tắt tài chính */}
-            <div className="px-4 pt-4 pb-3 space-y-2">
+            <div className="px-5 pt-4 pb-3 space-y-2">
               {isExchange ? (
                 <>
                   <Row label="Tổng hàng mới (A)" value={fmt(totalA)} />
@@ -388,7 +399,7 @@ export function PaymentModal({
             {/* Tổng cộng nổi bật */}
             <div
               className={cn(
-                "mx-4 mb-3 rounded-xl px-4 py-3 text-center",
+                "mx-5 mb-4 rounded-xl px-4 py-4 text-center",
                 isBuy ? "bg-blue-50 dark:bg-blue-950/30" : "bg-primary/5",
               )}
             >
@@ -401,7 +412,7 @@ export function PaymentModal({
               </p>
               <p
                 className={cn(
-                  "text-2xl font-black tabular-nums tracking-tight mt-1",
+                  "text-3xl font-black tabular-nums tracking-tight mt-1",
                   isBuy || (isExchange && netTotal < 0)
                     ? "text-blue-600 dark:text-blue-400"
                     : "text-foreground",
@@ -416,13 +427,13 @@ export function PaymentModal({
 
             {/* Giảm giá */}
             {!isExchange && (
-              <div className="px-4 pb-3 border-b">
+              <div className="px-5 pb-4 border-b">
                 <Label className="text-[10px] uppercase tracking-wide text-muted-foreground">
                   {t("discountLabel")}
                 </Label>
-                <div className="mt-1.5">
+                <div className="mt-2">
                   {discount > 0 ? (
-                    <div className="flex items-center justify-between rounded-md border px-3 py-1.5 bg-secondary text-sm">
+                    <div className="flex items-center justify-between rounded-md border px-3 py-2 bg-secondary text-sm">
                       <span className="font-semibold tabular-nums text-destructive">
                         -{fmt(discount)}
                       </span>
@@ -434,7 +445,7 @@ export function PaymentModal({
                       </button>
                     </div>
                   ) : (
-                    <div className="flex gap-1.5">
+                    <div className="flex gap-2">
                       <Input
                         placeholder={t("discountPlaceholder")}
                         value={discountInput}
@@ -444,14 +455,13 @@ export function PaymentModal({
                         }
                         type="number"
                         min={0}
-                        className="h-8 text-xs"
+                        className="h-10 text-sm"
                       />
                       <Button
                         onClick={handleApplyDiscount}
                         disabled={!discountInput.trim()}
-                        variant="outline"
-                        size="sm"
-                        className="h-8 px-2.5 text-xs shrink-0"
+                        size="small"
+                        className="h-10 px-3 text-sm shrink-0"
                       >
                         {t("applyDiscount")}
                       </Button>
@@ -462,31 +472,25 @@ export function PaymentModal({
             )}
 
             {/* Phương thức thanh toán */}
-            <div className="px-4 pb-3 space-y-1.5">
+            <div className="px-5 py-4 space-y-3">
               <Label className="text-[10px] uppercase tracking-wide text-muted-foreground">
                 {t("paymentMethod")}
               </Label>
-              <div className="flex flex-col gap-1">
+              <div className="flex flex-col gap-2">
                 {PAYMENT_METHOD_KEYS.map((key) => (
                   <button
                     key={key}
                     onClick={() => handlePaymentMethodChange(key)}
                     className={cn(
-                      "flex items-center gap-2.5 w-full px-3 py-2 rounded-lg border text-xs font-semibold transition-colors text-left",
+                      "flex items-center gap-3 w-full px-4 py-2.5 rounded-lg border text-sm font-semibold transition-colors text-left",
                       paymentMethod === key
                         ? "bg-primary text-primary-foreground border-primary"
                         : "border-border hover:bg-accent text-foreground",
                     )}
                   >
-                    {key === "cash" && (
-                      <Banknote className="h-3.5 w-3.5 shrink-0" />
-                    )}
-                    {key === "bank-transfer" && (
-                      <Building2 className="h-3.5 w-3.5 shrink-0" />
-                    )}
-                    {key === "combined" && (
-                      <Layers className="h-3.5 w-3.5 shrink-0" />
-                    )}
+                    {key === "cash" && <Banknote className="h-4 w-4 shrink-0" />}
+                    {key === "bank-transfer" && <Building2 className="h-4 w-4 shrink-0" />}
+                    {key === "combined" && <Layers className="h-4 w-4 shrink-0" />}
                     {tMethods(key)}
                   </button>
                 ))}
@@ -494,11 +498,12 @@ export function PaymentModal({
 
               {/* COMBINED inputs */}
               {isCombined && (
-                <div className="rounded-lg border p-2.5 space-y-2 bg-muted/20 mt-1">
-                  <p className="text-[10px] text-muted-foreground flex justify-between">
-                    <span>
+                <div className="rounded-lg border p-4 space-y-4 bg-muted/20">
+                  {/* Status */}
+                  <div className="flex items-center justify-between text-sm">
+                    <span className="text-muted-foreground">
                       Tổng:{" "}
-                      <span className="font-semibold text-foreground">
+                      <span className="font-semibold text-foreground tabular-nums">
                         {fmt(total)}
                       </span>
                     </span>
@@ -517,85 +522,56 @@ export function PaymentModal({
                           )}
                         >
                           {combinedSum > total
-                            ? `+${fmt(combinedSum - total)}`
-                            : `-${fmt(total - combinedSum)}`}
+                            ? `Dư +${fmt(combinedSum - total)}`
+                            : `Còn -${fmt(total - combinedSum)}`}
                         </span>
                       ))}
-                  </p>
-                  <div className="grid grid-cols-2 gap-2">
-                    <div className="space-y-1">
-                      <Label className="text-[10px] text-muted-foreground flex items-center gap-1">
-                        <Banknote className="h-2.5 w-2.5" />
-                        Tiền mặt
-                      </Label>
-                      <Input
-                        type="number"
-                        min={0}
-                        placeholder="0"
-                        value={cashInput}
-                        onChange={(e) => handleCashChange(e.target.value)}
-                        className={cn(
-                          "h-7 text-xs tabular-nums",
-                          cashAmt > 0 &&
-                            combinedSum === total &&
-                            "border-green-500",
-                          cashAmt > 0 &&
-                            combinedSum !== total &&
-                            "border-amber-400",
-                        )}
-                      />
-                    </div>
-                    <div className="space-y-1">
-                      <Label className="text-[10px] text-muted-foreground flex items-center gap-1">
-                        <Building2 className="h-2.5 w-2.5" />
-                        Chuyển khoản
-                      </Label>
-                      <Input
-                        type="number"
-                        min={0}
-                        placeholder="0"
-                        value={bankInput}
-                        onChange={(e) => handleBankChange(e.target.value)}
-                        className={cn(
-                          "h-7 text-xs tabular-nums",
-                          bankAmt > 0 &&
-                            combinedSum === total &&
-                            "border-green-500",
-                          bankAmt > 0 &&
-                            combinedSum !== total &&
-                            "border-amber-400",
-                        )}
-                      />
-                    </div>
+                  </div>
+
+                  {/* Tiền mặt */}
+                  <div className="space-y-1.5">
+                    <Label className="text-sm text-muted-foreground flex items-center gap-2">
+                      <Banknote className="h-3.5 w-3.5" />
+                      Tiền mặt
+                    </Label>
+                    <Input
+                      type="number"
+                      min={0}
+                      placeholder="0"
+                      value={cashInput}
+                      onChange={(e) => handleCashChange(e.target.value)}
+                      className={cn(
+                        "h-12 text-lg tabular-nums font-semibold",
+                        cashAmt > 0 && combinedSum === total && "border-green-500 ring-1 ring-green-500/20",
+                        cashAmt > 0 && combinedSum !== total && "border-amber-400",
+                      )}
+                    />
+                  </div>
+
+                  {/* Chuyển khoản */}
+                  <div className="space-y-1.5">
+                    <Label className="text-sm text-muted-foreground flex items-center gap-2">
+                      <Building2 className="h-3.5 w-3.5" />
+                      Chuyển khoản
+                    </Label>
+                    <Input
+                      type="number"
+                      min={0}
+                      placeholder="0"
+                      value={bankInput}
+                      onChange={(e) => handleBankChange(e.target.value)}
+                      className={cn(
+                        "h-12 text-lg tabular-nums font-semibold",
+                        bankAmt > 0 && combinedSum === total && "border-green-500 ring-1 ring-green-500/20",
+                        bankAmt > 0 && combinedSum !== total && "border-amber-400",
+                      )}
+                    />
                   </div>
                 </div>
               )}
             </div>
           </div>
         </div>
-
-        {/* ── Footer ── */}
-        <DialogFooter className="mx-0 mb-0 px-5 py-3 border-t bg-muted/10 shrink-0">
-          <Button variant="outline" onClick={onClose} disabled={isCheckingOut}>
-            {t("cancel")}
-          </Button>
-          <Button
-            data-pay-action
-            autoFocus
-            onClick={handleCheckout}
-            disabled={isCheckingOut || !combinedValid}
-            className="min-w-40 gap-2"
-          >
-            {isCheckingOut ? (
-              <>
-                <Spinner />
-                {t("processing")}
-              </>
-            ) : (
-              t("pay", { amount: fmt(total) })
-            )}
-          </Button>
-        </DialogFooter>
       </DialogContent>
     </Dialog>
   );

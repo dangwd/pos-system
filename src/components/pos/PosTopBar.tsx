@@ -353,34 +353,27 @@ function TxnTypeSelectDialog({ open, onClose, onSelect }: TxnTypeSelectProps) {
 
   return (
     <Dialog open={open} onOpenChange={(o) => !o && onClose()}>
-      <DialogContent className="sm:max-w-xs min-w-2xl p-0 gap-0">
-        <DialogHeader className="px-4 pt-4 pb-3 border-b">
-          <DialogTitle className="text-sm font-semibold">
-            {t("selectTitle")}
-          </DialogTitle>
-        </DialogHeader>
-        <div className="p-1.5">
-          {TXN_TYPE_OPTIONS.map(({ type, Icon }) => (
-            <button
-              key={type}
-              onClick={() => onSelect(type)}
-              className="w-full flex items-center gap-3 px-3 py-2.5 rounded-md hover:bg-accent transition-colors text-left"
-            >
-              <div className="h-8 w-8 rounded-md bg-primary/8 flex items-center justify-center shrink-0">
-                <Icon className="h-4 w-4 text-primary" />
-              </div>
-              <div className="min-w-0 flex-1">
-                <p className="text-sm font-medium leading-tight">
-                  {t(`${type}.label`)}
-                </p>
-                <p className="text-xs text-muted-foreground mt-0.5">
-                  {t(`${type}.desc`)}
-                </p>
-              </div>
-              <ChevronRight className="h-3.5 w-3.5 text-muted-foreground/40 shrink-0" />
-            </button>
-          ))}
-        </div>
+      <DialogContent title={t("selectTitle")}>
+        {TXN_TYPE_OPTIONS.map(({ type, Icon }) => (
+          <button
+            key={type}
+            onClick={() => onSelect(type)}
+            className="w-full flex items-center gap-3 px-3 py-2.5 rounded-md hover:bg-accent transition-colors text-left"
+          >
+            <div className="h-8 w-8 rounded-md bg-primary/8 flex items-center justify-center shrink-0">
+              <Icon className="h-4 w-4 text-primary" />
+            </div>
+            <div className="min-w-0 flex-1">
+              <p className="text-sm font-medium leading-tight">
+                {t(`${type}.label`)}
+              </p>
+              <p className="text-xs text-muted-foreground mt-0.5">
+                {t(`${type}.desc`)}
+              </p>
+            </div>
+            <ChevronRight className="h-3.5 w-3.5 text-muted-foreground/40 shrink-0" />
+          </button>
+        ))}
       </DialogContent>
     </Dialog>
   );
