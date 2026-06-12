@@ -470,14 +470,17 @@ export function PaymentPanel({
   const t = useTranslations("pos.payment.panel");
   const { tab } = useActiveTab();
   const isFx = tab?.txnType === 'ExchangeCurrency';
+  const isExchangeType = isFx
+    || tab?.txnType === 'ExchangeGold'
+    || tab?.txnType === 'ExchangeFree'
+    || tab?.txnType === 'ExchangeToMoney';
   const fxDisabled = isFx && (!tab?.fxFromAmount || tab.fxFromAmount <= 0);
 
   return (
     <aside className="flex flex-col w-72 lg:w-80 shrink-0 border-l bg-card overflow-y-auto">
       <StoreHeader />
-      <OrderLookup />
-
-      <div className="mx-4 border-t border-dashed border-border/50" />
+      {!isExchangeType && <OrderLookup />}
+      {!isExchangeType && <div className="mx-4 border-t border-dashed border-border/50" />}
 
       <CustomerSection />
 

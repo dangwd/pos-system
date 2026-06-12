@@ -63,6 +63,7 @@ export function useExchangeInvoiceLookup() {
         productType: 'NguyenKhoi' as const,
         categoryName: 'Vàng cũ',
         weightUnitId: item.weightUnitId ?? null,
+        weightUnitName: item.weightUnitName ?? null,
         weightGramOverride: item.weightGram,
         qty: item.quantity,
         unitPriceLakPerGram,

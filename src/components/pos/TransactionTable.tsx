@@ -17,7 +17,7 @@ import { ExchangeInvoiceLookup } from './ExchangeInvoiceLookup'
 import { CurrencyExchangeForm } from './CurrencyExchangeForm'
 import {
   ArrowDownToLine, ArrowUpFromLine, Minus, Plus, Trash2,
-  ShoppingCart, Package, AlertTriangle,
+  ShoppingCart, Package, AlertTriangle, TrendingUp, Banknote, Equal,
 } from 'lucide-react'
 import { lineTotal } from '@/types/cart'
 import type { CartItem } from '@/types/cart'
@@ -151,7 +151,14 @@ function SellTable({ items, onQtyChange, onDelete }: {
             <td className="px-3 py-2.5 text-center text-[10px] text-muted-foreground/60">{i + 1}</td>
             <td className="px-3 py-2.5 min-w-36 max-w-52">
               <p className="text-sm font-medium truncate">{item.name}</p>
-              <p className="text-[10px] text-muted-foreground font-mono mt-0.5">{item.purity}</p>
+              <div className="flex items-center gap-1.5 mt-0.5">
+                <p className="text-[10px] text-muted-foreground font-mono">{item.purity}</p>
+                {item.weightUnitName && (
+                  <span className="text-[9px] font-semibold px-1 py-0.5 rounded bg-muted text-muted-foreground uppercase tracking-wide">
+                    /{item.weightUnitName}
+                  </span>
+                )}
+              </div>
             </td>
             <td className="px-3 py-2.5">
               <QtyControl qty={item.qty} disabled={item.isReadOnly}
@@ -160,7 +167,7 @@ function SellTable({ items, onQtyChange, onDelete }: {
                 onSetQty={(q) => onQtyChange(item.productId, q)} />
             </td>
             <td className="px-3 py-2.5 text-xs tabular-nums text-muted-foreground whitespace-nowrap">
-              {item.unitPriceLakPerGram.toLocaleString('lo-LA')} ₭/g
+              {(item.unitPriceLakPerGram * item.weightGram).toLocaleString('lo-LA')} ₭/{item.weightUnitName ?? 'g'}
             </td>
             <td className="px-3 py-2.5 text-right text-sm font-semibold tabular-nums whitespace-nowrap">
               {fmt(lineTotal(item))}
@@ -194,7 +201,7 @@ function BuyGoldTable({ items, onQtyChange, onDelete }: {
           <th className="px-3 py-2 w-7 text-center text-[10px] font-semibold text-muted-foreground">#</th>
           <th className="px-3 py-2 text-left text-[10px] font-semibold text-muted-foreground uppercase tracking-wide">Sản phẩm mua vào</th>
           <th className="px-3 py-2 text-left text-[10px] font-semibold text-muted-foreground uppercase tracking-wide">Số lượng</th>
-          <th className="px-3 py-2 text-left text-[10px] font-semibold text-muted-foreground uppercase tracking-wide whitespace-nowrap">Giá mua/g</th>
+          <th className="px-3 py-2 text-left text-[10px] font-semibold text-muted-foreground uppercase tracking-wide whitespace-nowrap">Giá mua/đv</th>
           <th className="px-3 py-2 text-right text-[10px] font-semibold text-blue-600 dark:text-blue-400 uppercase tracking-wide whitespace-nowrap">Tiệm chi</th>
           <th className="w-7" />
         </tr>
@@ -205,7 +212,14 @@ function BuyGoldTable({ items, onQtyChange, onDelete }: {
             <td className="px-3 py-2.5 text-center text-[10px] text-muted-foreground/60">{i + 1}</td>
             <td className="px-3 py-2.5 min-w-36 max-w-52">
               <p className="text-sm font-medium truncate">{item.name}</p>
-              <p className="text-[10px] text-muted-foreground font-mono mt-0.5">{item.purity}</p>
+              <div className="flex items-center gap-1.5 mt-0.5">
+                <p className="text-[10px] text-muted-foreground font-mono">{item.purity}</p>
+                {item.weightUnitName && (
+                  <span className="text-[9px] font-semibold px-1 py-0.5 rounded bg-blue-100/60 dark:bg-blue-950/40 text-blue-700 dark:text-blue-400 uppercase tracking-wide">
+                    /{item.weightUnitName}
+                  </span>
+                )}
+              </div>
             </td>
             <td className="px-3 py-2.5">
               <QtyControl qty={item.qty}
@@ -214,7 +228,7 @@ function BuyGoldTable({ items, onQtyChange, onDelete }: {
                 onSetQty={(q) => onQtyChange(item.productId, q)} />
             </td>
             <td className="px-3 py-2.5 text-xs tabular-nums text-muted-foreground whitespace-nowrap">
-              {item.unitPriceLakPerGram.toLocaleString('lo-LA')} ₭/g
+              {(item.unitPriceLakPerGram * item.weightGram).toLocaleString('lo-LA')} ₭/{item.weightUnitName ?? 'g'}
             </td>
             <td className="px-3 py-2.5 text-right text-sm font-semibold tabular-nums text-blue-600 dark:text-blue-400 whitespace-nowrap">
               {fmt(lineTotal(item))}
@@ -245,12 +259,19 @@ function ExchangeInRow({ item, index, onUpdate, onDelete }: {
       <td className="px-3 py-2 text-center text-[10px] text-muted-foreground/60">{index + 1}</td>
       <td className="px-3 py-2 min-w-32 max-w-40">
         <p className="text-xs font-medium truncate">{item.name}</p>
-        <p className="text-[10px] text-muted-foreground font-mono mt-0.5">
-          {(item.weightGramOverride ?? item.qty * item.weightGram).toFixed(2)}g
-        </p>
+        <div className="flex items-center gap-1.5 mt-0.5">
+          <p className="text-[10px] text-muted-foreground font-mono">
+            {(item.weightGramOverride ?? item.qty * item.weightGram).toFixed(2)}g
+          </p>
+          {item.weightUnitName && (
+            <span className="text-[9px] font-semibold px-1 py-0.5 rounded bg-amber-100/60 dark:bg-amber-950/40 text-amber-700 dark:text-amber-400 uppercase tracking-wide">
+              /{item.weightUnitName}
+            </span>
+          )}
+        </div>
       </td>
       <td className="px-3 py-2 text-xs tabular-nums text-muted-foreground whitespace-nowrap">
-        {item.unitPriceLakPerGram.toLocaleString('lo-LA')}
+        {(item.unitPriceLakPerGram * item.weightGram).toLocaleString('lo-LA')} ₭/{item.weightUnitName ?? 'g'}
       </td>
 
       {/* PHÍ KHÒ: checkbox + input */}
@@ -351,9 +372,9 @@ function ExchangeGoldTable({ items, totalA, totalB, netTotal, onQtyChange, onDel
       )}
 
       <SectionFooter
-        label="Tổng cấn trừ vàng cũ (B)"
+        label="(B) Tổng cấn trừ vàng cũ"
         amount={totalB}
-        className="text-amber-700 dark:text-amber-400 bg-amber-50/30 dark:bg-amber-950/10"
+        className="text-amber-700 dark:text-amber-400 bg-amber-50/50 dark:bg-amber-950/20 font-bold"
       />
 
       {/* PANEL B: Hàng mới bán ra */}
@@ -371,19 +392,30 @@ function ExchangeGoldTable({ items, totalA, totalB, netTotal, onQtyChange, onDel
         <SellTable items={normalItems} onQtyChange={onQtyChange} onDelete={onDelete} />
       )}
 
-      <SectionFooter label="Tổng hàng bán ra (A)" amount={totalA} />
+      <SectionFooter label="(A) Tổng hàng bán ra mới" amount={totalA} className="font-bold" />
 
       {/* Chênh lệch cuối */}
       <div className={cn(
-        'flex items-center justify-between px-4 py-2.5 border-t-2 shrink-0',
-        netTotal > 0 ? 'text-green-700 dark:text-green-400 bg-green-50/50 dark:bg-green-950/20'
-          : netTotal < 0 ? 'text-blue-600 dark:text-blue-400 bg-blue-50/50 dark:bg-blue-950/20'
-          : 'text-muted-foreground bg-muted/20',
+        'flex items-center justify-between px-4 py-3 border-t-2 shrink-0',
+        netTotal > 0 ? 'text-green-700 dark:text-green-400 bg-green-50/60 dark:bg-green-950/20 border-green-200 dark:border-green-900'
+          : netTotal < 0 ? 'text-blue-600 dark:text-blue-400 bg-blue-50/60 dark:bg-blue-950/20 border-blue-200 dark:border-blue-900'
+          : 'text-muted-foreground bg-muted/30',
       )}>
-        <div>
-          <p className="text-[9px] font-semibold uppercase tracking-widest opacity-70">
-            {netTotal > 0 ? '★ Khách trả thêm' : netTotal < 0 ? '💵 Tiệm trả lại khách' : 'Hoà vốn'}
-          </p>
+        <div className="flex items-center gap-2">
+          {netTotal > 0
+            ? <TrendingUp className="h-4 w-4 shrink-0" />
+            : netTotal < 0
+            ? <Banknote className="h-4 w-4 shrink-0" />
+            : <Equal className="h-4 w-4 shrink-0 opacity-60" />
+          }
+          <div>
+            <p className="text-[9px] font-semibold uppercase tracking-widest opacity-70">
+              {netTotal > 0 ? 'Khách trả thêm' : netTotal < 0 ? 'Tiệm trả lại khách' : 'Hoà vốn'}
+            </p>
+            <p className="text-[8px] opacity-50 mt-0.5">
+              {netTotal > 0 ? 'A − B' : netTotal < 0 ? 'B − A' : 'A = B'}
+            </p>
+          </div>
         </div>
         <span className="font-extrabold text-xl tabular-nums tracking-tight">
           {fmt(Math.abs(netTotal))}

@@ -48,7 +48,7 @@ function DropdownMenu({ children }: { children?: React.ReactNode }) {
         onOpenChange={setOpen}
         trigger={['click']}
         placement={placement}
-        dropdownRender={() =>
+        popupRender={() =>
           contentEl ? React.cloneElement(contentEl) : <div />
         }
       >

@@ -21,6 +21,7 @@ import { useProducts } from './useProducts'
 import { useActiveTab } from './useActiveTab'
 import { useCheckout } from './useCheckout'
 import { useCoupon } from './useCoupon'
+import { useWeightUnits } from './useConfig'
 import { useInvoiceTabStore } from '@/stores/invoice-tab.store'
 import { CashStrategy, BankTransferStrategy, CombinedStrategy } from '@/lib/strategies'
 import { configRepository } from '@/lib/repositories/config.repository'
@@ -49,6 +50,9 @@ export function usePos() {
     queryFn: () => configRepository.getPrices(),
     staleTime: 60_000,
   })
+
+  // ── Đơn vị trọng lượng (cache 10 phút — hiếm khi thay đổi) ─────────────────
+  const { data: weightUnits = [] } = useWeightUnits()
 
   // ── Server state (sản phẩm từ API) ─────────────────────────────────────────
   const { data: products = [], isLoading: productsLoading } = useProducts()
@@ -108,6 +112,10 @@ export function usePos() {
     // unitPriceLakPerGram = unitPrice / gramPerUnit — dùng cho lineTotal nội bộ
     const unitPriceLakPerGram = matched ? unitPrice / matched.gramPerUnit : 0
 
+    // Tìm tên đơn vị hiển thị (VD: "Chỉ", "Lượng") từ danh sách đơn vị
+    const weightUnit = weightUnits.find(u => u.id === (matched?.weightUnitId ?? product.weightUnitId))
+    const weightUnitName = weightUnit?.tenDonVi ?? matched?.weightUnitCode ?? null
+
     const cartItem: CartItem = {
       productId: product.id,
       name: product.productName,
@@ -116,6 +124,7 @@ export function usePos() {
       productType: product.productType,
       categoryName: product.category.name,
       weightUnitId: product.weightUnitId,
+      weightUnitName,
       weightGramOverride: null,
       qty: 1,
       unitPriceLakPerGram,

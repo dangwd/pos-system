@@ -20,6 +20,8 @@ export interface CartItem {
 
   // ── Đơn vị & trọng lượng ─────────────────────────────────────────────────────
   weightUnitId: string | null
+  /** Tên đơn vị để hiển thị, ví dụ: "Chỉ", "Lượng", "Gram" */
+  weightUnitName: string | null
   weightGramOverride: number | null
 
   // ── Số lượng & giá ───────────────────────────────────────────────────────────
