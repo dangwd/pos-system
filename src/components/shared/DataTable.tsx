@@ -12,7 +12,7 @@
 
 'use client'
 
-import { useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import { cn } from '@/lib/utils'
 import {
   useReactTable,
@@ -26,6 +26,8 @@ import {
   type ColumnFiltersState,
   type PaginationState,
   type OnChangeFn,
+  type Row,
+  type Table as TanstackTable,
 } from '@tanstack/react-table'
 import { Select } from 'antd'
 import { Button } from '@/components/ui/button'
@@ -33,6 +35,41 @@ import { Input } from '@/components/ui/input'
 import { ChevronLeft, ChevronRight, Loader2 } from 'lucide-react'
 import { useTranslations } from 'next-intl'
 import { Empty, EmptyTitle } from '@/components/ui/empty'
+
+// ─── Generic expand panel ─────────────────────────────────────────────────────
+// Renders all visible column headers + cell values in a 3-col responsive grid.
+// Used when `expandable` is true but no custom `renderSubRow` is provided.
+
+function GenericSubRow<TData>({
+  row,
+  table,
+}: {
+  row: Row<TData>
+  table: TanstackTable<TData>
+}) {
+  const headers = table.getFlatHeaders()
+  const cells = row.getVisibleCells()
+  return (
+    <div className="grid grid-cols-2 gap-x-8 gap-y-3 px-6 py-4 sm:grid-cols-3 lg:grid-cols-4">
+      {cells.map(cell => {
+        const header = headers.find(h => h.id === cell.column.id)
+        const headerNode = header
+          ? flexRender(header.column.columnDef.header, header.getContext())
+          : cell.column.id
+        return (
+          <div key={cell.id} className="flex flex-col gap-0.5 min-w-0">
+            <span className="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground truncate">
+              {headerNode}
+            </span>
+            <span className="text-sm truncate">
+              {flexRender(cell.column.columnDef.cell, cell.getContext())}
+            </span>
+          </div>
+        )
+      })}
+    </div>
+  )
+}
 
 // Returns page numbers with '...' gaps: e.g. [1, '...', 4, 5, 6, '...', 20]
 function getPageNumbers(current: number, total: number): (number | '...')[] {
@@ -88,6 +125,16 @@ interface DataTableProps<TData> {
   maxHeight?: string | false
   /** Show loading overlay (use isFetching for background refetch) */
   loading?: boolean
+  /**
+   * When provided, rows become clickable and expand to show a custom panel below.
+   * Only one row is expanded at a time. Clicking the same row collapses it.
+   */
+  renderSubRow?: (row: TData) => React.ReactNode
+  /**
+   * When true (and no renderSubRow), clicking a row expands a generic key-value
+   * detail panel showing all visible column headers + cell values.
+   */
+  expandable?: boolean
 }
 
 // ─── Component ────────────────────────────────────────────────────────────────
@@ -105,11 +152,18 @@ export function DataTable<TData>({
   serverPagination,
   maxHeight = '500px',
   loading,
+  renderSubRow,
+  expandable,
 }: DataTableProps<TData>) {
+  const hasExpand = !!renderSubRow || !!expandable
   const t = useTranslations('common.table')
   const [sorting, setSorting] = useState<SortingState>([])
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([])
   const [globalFilter, setGlobalFilter] = useState('')
+  const [expandedRowId, setExpandedRowId] = useState<string | null>(null)
+
+  // Collapse any open row when data changes (e.g. pagination, filter)
+  useEffect(() => { setExpandedRowId(null) }, [data])
 
   // Internal pagination state for client-side mode
   const [clientPagination, setClientPagination] = useState<PaginationState>({
@@ -235,6 +289,7 @@ export function DataTable<TData>({
           <thead className="sticky top-0 z-10">
             {table.getHeaderGroups().map(hg => (
               <tr key={hg.id} className="border-b bg-muted/50">
+                {hasExpand && <th className="w-8 bg-muted/50" />}
                 {hg.headers.map(header => (
                   <th
                     key={header.id}
@@ -251,18 +306,51 @@ export function DataTable<TData>({
 
           <tbody>
             {table.getRowModel().rows.length ? (
-              table.getRowModel().rows.map(row => (
-                <tr key={row.id} className="border-b hover:bg-muted/30 transition-colors">
-                  {row.getVisibleCells().map(cell => (
-                    <td key={cell.id} className="px-4 py-2">
-                      {flexRender(cell.column.columnDef.cell, cell.getContext())}
-                    </td>
-                  ))}
-                </tr>
-              ))
+              table.getRowModel().rows.map(row => {
+                const isExpanded = expandedRowId === row.id
+                return (
+                  <React.Fragment key={row.id}>
+                    <tr
+                      onClick={hasExpand ? () => setExpandedRowId(isExpanded ? null : row.id) : undefined}
+                      className={cn(
+                        'border-b transition-colors',
+                        hasExpand
+                          ? 'cursor-pointer hover:bg-muted/40 select-none'
+                          : 'hover:bg-muted/30',
+                        isExpanded && 'bg-muted/20',
+                      )}
+                    >
+                      {hasExpand && (
+                        <td className="w-8 pl-3 pr-0">
+                          <ChevronRight
+                            className={cn(
+                              'h-3.5 w-3.5 text-muted-foreground transition-transform duration-150',
+                              isExpanded && 'rotate-90',
+                            )}
+                          />
+                        </td>
+                      )}
+                      {row.getVisibleCells().map(cell => (
+                        <td key={cell.id} className="px-4 py-2">
+                          {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                        </td>
+                      ))}
+                    </tr>
+                    {hasExpand && isExpanded && (
+                      <tr className="border-b bg-muted/10">
+                        <td colSpan={columns.length + 1} className="p-0">
+                          {renderSubRow
+                            ? renderSubRow(row.original)
+                            : <GenericSubRow row={row} table={table} />}
+                        </td>
+                      </tr>
+                    )}
+                  </React.Fragment>
+                )
+              })
             ) : (
               <tr>
-                <td colSpan={columns.length}>
+                <td colSpan={columns.length + (hasExpand ? 1 : 0)}>
                   <Empty className="border-0 rounded-none py-10">
                     <EmptyTitle>{t('noData')}</EmptyTitle>
                   </Empty>

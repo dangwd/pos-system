@@ -55,8 +55,8 @@ export function useExchangeInvoiceLookup() {
       const unitPriceLakPerGram = priceItem ? priceItem.buyPrice / gramPerUnit : 0
 
       return {
-        // Dùng TransactionItem.id làm productId proxy cho ExchangeIn items
-        productId: item.id,
+        // ExchangeIn: backend nhận Product entity ID từ phiếu gốc
+        productId: item.productId ?? item.id,
         name: item.productSnapshotName,
         purity: '',
         weightGram: item.weightGram / item.quantity,

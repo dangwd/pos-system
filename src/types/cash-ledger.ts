@@ -14,7 +14,7 @@ export type CashEntryType =
 export function isIncomeEntry(entryType: CashEntryType): boolean {
   return ['INCOME', 'SellGold', 'SellSilver', 'ExchangeCurrency', 'BuyMoreGold', 'ExchangeGold', 'ExchangeFree'].includes(entryType)
 }
-export type CashMethod = 'Cash' | 'BankTransfer' | 'QR' | 'COMBINED'
+export type CashMethod = 'Cash' | 'CASH' | 'BankTransfer' | 'BANK' | 'BANK_TRANSFER' | 'QR' | 'COMBINED'
 export type CashCurrency = 'LAK' | 'THB' | 'USD'
 
 export interface CashLedgerEntry {

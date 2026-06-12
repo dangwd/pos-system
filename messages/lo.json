@@ -560,7 +560,10 @@
       },
       "method": {
         "Cash": "ເງິນສົດ",
+        "CASH": "ເງິນສົດ",
         "BankTransfer": "ໂອນເງິນ",
+        "BANK": "ໂອນເງິນ",
+        "BANK_TRANSFER": "ໂອນເງິນ",
         "QR": "QR",
         "COMBINED": "ລວມກັນ"
       },

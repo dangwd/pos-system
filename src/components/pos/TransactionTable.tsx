@@ -479,6 +479,212 @@ function SellTable({
   );
 }
 
+// ─── BuyGoldRow ───────────────────────────────────────────────────────────────
+
+function BuyGoldRow({
+  item,
+  index,
+  onQtyChange,
+  onDelete,
+  onUpdate,
+  priceConfig,
+  weightUnits,
+}: {
+  item: CartItem;
+  index: number;
+  onQtyChange: (id: string, qty: number) => void;
+  onDelete: (id: string) => void;
+  onUpdate: (id: string, patch: Partial<CartItem>) => void;
+  priceConfig: PriceConfig | undefined;
+  weightUnits: WeightUnit[];
+}) {
+  const unitPrice = Math.round(item.unitPriceLakPerGram * item.weightGram);
+  // Cân nặng thực tế (đổi sang đơn vị hiện tại)
+  const effectiveGram =
+    item.weightGramOverride !== null
+      ? item.weightGramOverride
+      : item.qty * item.weightGram;
+  const effectiveUnits =
+    item.weightGram > 0
+      ? parseFloat((effectiveGram / item.weightGram).toFixed(4))
+      : item.qty;
+
+  return (
+    <tr
+      className={cn(
+        "border-b group transition-colors hover:bg-blue-50/40 dark:hover:bg-blue-950/20",
+        index % 2 === 1 && "bg-muted/10",
+      )}
+    >
+      <td className="px-3 py-2 text-center text-[10px] text-muted-foreground/60">
+        {index + 1}
+      </td>
+      <td className="px-3 py-2 min-w-32 max-w-44">
+        <p className="text-xs font-medium truncate">{item.name}</p>
+        <p className="text-[10px] text-muted-foreground font-mono mt-0.5">
+          {item.purity}
+        </p>
+      </td>
+      <td className="px-2 py-2">
+        <UnitSelect
+          item={item}
+          priceConfig={priceConfig}
+          weightUnits={weightUnits}
+          isBuyMode={true}
+          onUpdate={onUpdate}
+          disabled={item.isReadOnly}
+        />
+      </td>
+      <td className="px-3 py-2">
+        <QtyControl
+          qty={item.qty}
+          disabled={item.isReadOnly}
+          onDecrease={() => onQtyChange(item.productId, item.qty - 1)}
+          onIncrease={() => onQtyChange(item.productId, item.qty + 1)}
+          onSetQty={(q) => onQtyChange(item.productId, q)}
+        />
+      </td>
+
+      {/* Cân nặng (trong đơn vị đã chọn) */}
+      <td className="px-2 py-2 w-24">
+        <input
+          key={item.weightUnitId ?? "default"}
+          type="number"
+          min={0.001}
+          step={0.001}
+          disabled={item.isReadOnly}
+          defaultValue={effectiveUnits}
+          onFocus={(e) => e.target.select()}
+          onBlur={(e) => {
+            const newUnits = Number(e.currentTarget.value);
+            if (newUnits > 0 && newUnits !== effectiveUnits) {
+              onUpdate(item.productId, {
+                weightGramOverride: newUnits * item.weightGram,
+              });
+            }
+          }}
+          onKeyDown={(e) => {
+            if (e.key === "Enter") e.currentTarget.blur();
+            if (e.key === "Escape") {
+              e.currentTarget.value = String(effectiveUnits);
+              e.currentTarget.blur();
+            }
+          }}
+          className="h-6 w-20 text-right text-xs px-2 tabular-nums border rounded-sm outline-none focus:ring-1 focus:ring-inset focus:ring-primary bg-background disabled:opacity-40"
+        />
+      </td>
+
+      {/* Giá mua (₭/đơn vị) */}
+      <td className="px-2 py-2 w-28">
+        {item.isReadOnly ? (
+          <span className="text-xs tabular-nums text-muted-foreground whitespace-nowrap">
+            {unitPrice.toLocaleString("lo-LA")} ₭
+          </span>
+        ) : (
+          <input
+            key={`price-${item.weightUnitId ?? "default"}`}
+            type="number"
+            min={0}
+            defaultValue={unitPrice}
+            onFocus={(e) => e.target.select()}
+            onBlur={(e) => {
+              const newPrice = Math.round(Number(e.currentTarget.value) || 0);
+              if (newPrice !== unitPrice) {
+                onUpdate(item.productId, {
+                  unitPriceLakPerGram:
+                    item.weightGram > 0 ? newPrice / item.weightGram : 0,
+                });
+              }
+            }}
+            onKeyDown={(e) => {
+              if (e.key === "Enter") e.currentTarget.blur();
+              if (e.key === "Escape") {
+                e.currentTarget.value = String(unitPrice);
+                e.currentTarget.blur();
+              }
+            }}
+            className="h-6 w-28 text-right text-xs px-2 tabular-nums border rounded-sm outline-none focus:ring-1 focus:ring-inset focus:ring-primary bg-background"
+          />
+        )}
+      </td>
+
+      {/* PHÍ KHÒ — checkbox bật / tắt + input số tiền */}
+      <td className="px-2 py-2 w-32">
+        <div className="flex items-center gap-1.5">
+          <button
+            disabled={item.isReadOnly}
+            onClick={() =>
+              onUpdate(item.productId, {
+                isDamaged: !item.isDamaged,
+                perItemDamage: item.isDamaged ? 0 : item.perItemDamage,
+              })
+            }
+            title={item.isDamaged ? "Bỏ PHÍ KHÒ" : "Bật PHÍ KHÒ"}
+            className={cn(
+              "shrink-0 w-4 h-4 rounded border-2 flex items-center justify-center transition-colors disabled:opacity-40",
+              item.isDamaged
+                ? "bg-orange-500 border-orange-500 text-white"
+                : "border-muted-foreground/30 hover:border-orange-400",
+            )}
+          >
+            {item.isDamaged && <AlertTriangle className="h-2.5 w-2.5" />}
+          </button>
+          {item.isDamaged && (
+            <Input
+              type="number"
+              min={0}
+              placeholder="0"
+              disabled={item.isReadOnly}
+              value={item.perItemDamage || ""}
+              onChange={(e) =>
+                onUpdate(item.productId, {
+                  perItemDamage: Number(e.target.value) || 0,
+                })
+              }
+              className="h-5 w-20 text-[10px] px-1.5 tabular-nums"
+            />
+          )}
+          {!item.isDamaged && (
+            <span className="text-[10px] text-muted-foreground/40">—</span>
+          )}
+        </div>
+      </td>
+
+      {/* LAO SUT (số chỉ hao mòn) */}
+      <td className="px-2 py-2 w-24">
+        <Input
+          type="number"
+          min={0}
+          step={0.01}
+          placeholder="0"
+          disabled={item.isReadOnly}
+          value={item.perItemWearChi || ""}
+          onChange={(e) =>
+            onUpdate(item.productId, {
+              perItemWearChi: Number(e.target.value) || 0,
+            })
+          }
+          className="h-5 w-20 text-[10px] px-1.5 tabular-nums"
+        />
+      </td>
+
+      <td className="px-3 py-2 text-right text-sm font-semibold tabular-nums text-blue-600 dark:text-blue-400 whitespace-nowrap">
+        {fmt(lineTotal(item))}
+      </td>
+      <td className="px-2 py-2 w-7">
+        {!item.isReadOnly && (
+          <button
+            onClick={() => onDelete(item.productId)}
+            className="p-1 rounded opacity-0 group-hover:opacity-100 text-muted-foreground hover:bg-destructive/10 hover:text-destructive transition-all"
+          >
+            <Trash2 className="h-3.5 w-3.5" />
+          </button>
+        )}
+      </td>
+    </tr>
+  );
+}
+
 // ─── BuyGoldTable ─────────────────────────────────────────────────────────────
 
 function BuyGoldTable({
@@ -509,11 +715,20 @@ function BuyGoldTable({
           <th className="px-3 py-2 text-left text-[10px] font-semibold text-muted-foreground uppercase tracking-wide whitespace-nowrap">
             Đơn vị
           </th>
-          <th className="px-3 py-2 text-left text-[10px] font-semibold text-muted-foreground uppercase tracking-wide">
+          <th className="px-3 py-2 text-left text-[10px] font-semibold text-muted-foreground uppercase tracking-wide whitespace-nowrap">
             Số lượng
           </th>
-          <th className="px-3 py-2 text-left text-[10px] font-semibold text-muted-foreground uppercase tracking-wide whitespace-nowrap">
+          <th className="px-2 py-2 text-left text-[10px] font-semibold text-muted-foreground uppercase tracking-wide whitespace-nowrap">
+            Cân nặng
+          </th>
+          <th className="px-2 py-2 text-left text-[10px] font-semibold text-muted-foreground uppercase tracking-wide whitespace-nowrap">
             Giá mua
+          </th>
+          <th className="px-2 py-2 text-left text-[10px] font-semibold text-orange-600 uppercase tracking-wide whitespace-nowrap">
+            Lỗi/Hỏng (₭)
+          </th>
+          <th className="px-2 py-2 text-left text-[10px] font-semibold text-orange-600 uppercase tracking-wide whitespace-nowrap">
+            Hao mòn (Chỉ)
           </th>
           <th className="px-3 py-2 text-right text-[10px] font-semibold text-blue-600 dark:text-blue-400 uppercase tracking-wide whitespace-nowrap">
             Tiệm chi
@@ -522,87 +737,18 @@ function BuyGoldTable({
         </tr>
       </thead>
       <tbody>
-        {items.map((item, i) => {
-          const unitPrice = Math.round(
-            item.unitPriceLakPerGram * item.weightGram,
-          );
-          return (
-            <tr
-              key={item.productId}
-              className={cn(
-                "border-b group transition-colors hover:bg-blue-50/40 dark:hover:bg-blue-950/20",
-                i % 2 === 1 && "bg-muted/10",
-              )}
-            >
-              <td className="px-3 py-2.5 text-center text-[10px] text-muted-foreground/60">
-                {i + 1}
-              </td>
-              <td className="px-3 py-2.5 min-w-36 max-w-52">
-                <p className="text-sm font-medium truncate">{item.name}</p>
-                <p className="text-[10px] text-muted-foreground font-mono mt-0.5">
-                  {item.purity}
-                </p>
-              </td>
-              <td className="px-2 py-2.5">
-                <UnitSelect
-                  item={item}
-                  priceConfig={priceConfig}
-                  weightUnits={weightUnits}
-                  isBuyMode={true}
-                  onUpdate={onUpdate}
-                />
-              </td>
-              <td className="px-3 py-2.5">
-                <QtyControl
-                  qty={item.qty}
-                  onDecrease={() => onQtyChange(item.productId, item.qty - 1)}
-                  onIncrease={() => onQtyChange(item.productId, item.qty + 1)}
-                  onSetQty={(q) => onQtyChange(item.productId, q)}
-                />
-              </td>
-              <td className="px-3 py-2.5">
-                {/* key = weightUnitId: remount khi đổi đơn vị để reset giá trị hiển thị */}
-                <input
-                  key={item.weightUnitId ?? "default"}
-                  type="number"
-                  min={0}
-                  defaultValue={unitPrice}
-                  onFocus={(e) => e.target.select()}
-                  onBlur={(e) => {
-                    const newPrice = Math.round(
-                      Number(e.currentTarget.value) || 0,
-                    );
-                    if (newPrice !== unitPrice) {
-                      onUpdate(item.productId, {
-                        unitPriceLakPerGram:
-                          item.weightGram > 0 ? newPrice / item.weightGram : 0,
-                      });
-                    }
-                  }}
-                  onKeyDown={(e) => {
-                    if (e.key === "Enter") e.currentTarget.blur();
-                    if (e.key === "Escape") {
-                      e.currentTarget.value = String(unitPrice);
-                      e.currentTarget.blur();
-                    }
-                  }}
-                  className="h-7 w-32 text-right text-xs px-2 tabular-nums border rounded-sm outline-none focus:ring-1 focus:ring-inset focus:ring-primary bg-background"
-                />
-              </td>
-              <td className="px-3 py-2.5 text-right text-sm font-semibold tabular-nums text-blue-600 dark:text-blue-400 whitespace-nowrap">
-                {fmt(lineTotal(item))}
-              </td>
-              <td className="px-2 py-2.5 w-7">
-                <button
-                  onClick={() => onDelete(item.productId)}
-                  className="p-1 rounded opacity-0 group-hover:opacity-100 text-muted-foreground hover:bg-destructive/10 hover:text-destructive transition-all"
-                >
-                  <Trash2 className="h-3.5 w-3.5" />
-                </button>
-              </td>
-            </tr>
-          );
-        })}
+        {items.map((item, i) => (
+          <BuyGoldRow
+            key={item.productId}
+            item={item}
+            index={i}
+            onQtyChange={onQtyChange}
+            onDelete={onDelete}
+            onUpdate={onUpdate}
+            priceConfig={priceConfig}
+            weightUnits={weightUnits}
+          />
+        ))}
       </tbody>
     </table>
   );

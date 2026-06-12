@@ -101,6 +101,7 @@ export function usePos() {
    */
   const addToCart = (product: ProductWithStock) => {
     if (!priceConfig) return // Chưa load giá — không thêm vào giỏ
+    if (tab?.cancelTransactionId) return // Đang ở chế độ hủy HĐ — không cho thêm sản phẩm
 
     // Tìm PriceItem khớp purity code + weightUnit của sản phẩm
     const priceItem = priceConfig.items.find(

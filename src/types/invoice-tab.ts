@@ -32,12 +32,20 @@ export interface InvoiceTab {
   /** productId của các CartItem ExchangeIn được load từ HĐ liên kết */
   linkedInvoiceItemKeys: string[];
 
+  // ── CancelMode: tra cứu để hủy hóa đơn ──────────────────────────────────────
+  /** ID giao dịch đang cần hủy — null = không ở chế độ hủy */
+  cancelTransactionId: string | null;
+  /** Mã HĐ hiển thị (để hiện badge sau reload) */
+  cancelInvoiceCode: string | null;
+
   // ── ExchangeCurrency: dữ liệu ngoại tệ ───────────────────────────────────────
   fxFromCurrency: string; // mặc định "USD"
   fxToCurrency: string; // mặc định "LAK"
   fxFromAmount: number; // số tiền khách đưa
   fxToAmount: number; // số tiền khách nhận
-  fxLakAmount: number; // giá trị quy LAK (ghi sổ)
+  fxLakAmount: number; // giá trị quy LAK (= foreignAmount × exchangeRate, ghi sổ)
+  fxFromRate: number; // tỷ giá tiền nguồn → LAK (effectiveRate); 1 khi nguồn = LAK
+  fxToRate: number; // tỷ giá tiền đích → LAK (effectiveRate); 1 khi đích = LAK
 }
 
 export interface InvoiceTabStore {
@@ -68,6 +76,18 @@ export interface InvoiceTabStore {
   /** Xóa HĐ liên kết và các ExchangeIn items tương ứng */
   clearLinkedInvoice: () => void;
 
+  /** Vào chế độ hủy HĐ: xóa cart hiện tại, fill items + customer từ HĐ tìm được */
+  enterCancelMode: (
+    transactionId: string,
+    invoiceCode: string,
+    items: CartItem[],
+    customerId: string | null,
+    customerName: string | null,
+    customerPhone: string | null,
+  ) => void;
+  /** Thoát chế độ hủy: reset cart + customer + cancel fields */
+  exitCancelMode: () => void;
+
   getActiveTab: () => InvoiceTab | undefined;
 
   /** Cập nhật dữ liệu ngoại tệ cho active tab (ExchangeCurrency) */
@@ -77,5 +97,7 @@ export interface InvoiceTabStore {
     fromAmount: number,
     toAmount: number,
     lakAmount: number,
+    fromRate: number,
+    toRate: number,
   ) => void;
 }

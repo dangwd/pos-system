@@ -569,7 +569,10 @@
       },
       "method": {
         "Cash": "Cash",
+        "CASH": "Cash",
         "BankTransfer": "Bank Transfer",
+        "BANK": "Bank Transfer",
+        "BANK_TRANSFER": "Bank Transfer",
         "QR": "QR",
         "COMBINED": "Combined"
       },

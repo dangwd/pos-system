@@ -558,7 +558,10 @@
       },
       "method": {
         "Cash": "Tiền mặt",
+        "CASH": "Tiền mặt",
         "BankTransfer": "Chuyển khoản",
+        "BANK": "Chuyển khoản",
+        "BANK_TRANSFER": "Chuyển khoản",
         "QR": "QR",
         "COMBINED": "Kết hợp"
       },

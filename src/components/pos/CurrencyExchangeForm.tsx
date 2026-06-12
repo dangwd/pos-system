@@ -34,7 +34,7 @@ export function CurrencyExchangeForm() {
   const lakAmount = Math.round(fromAmount * fromRateLak)
 
   useEffect(() => {
-    setFxData(fromCurrency, toCurrency, fromAmount, toAmount, lakAmount)
+    setFxData(fromCurrency, toCurrency, fromAmount, toAmount, lakAmount, fromRateLak, toRateLak)
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [fromCurrency, toCurrency, fromAmount])
 

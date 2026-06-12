@@ -225,13 +225,13 @@ export default function CashLedgerPage() {
                     <td className="px-4 py-3">{entry.description}</td>
                     <td className="px-4 py-3">
                       <Badge variant={isIncomeEntry(entry.entryType) ? 'default' : 'destructive'}>
-                        {t(`entryType.${entry.entryType}`)}
+                        {entry.entryType ? t(`entryType.${entry.entryType}`) : '—'}
                       </Badge>
                     </td>
-                    <td className="px-4 py-3">{t(`method.${entry.method}`)}</td>
+                    <td className="px-4 py-3">{entry.method ? t(`method.${entry.method}`) : '—'}</td>
                     <td className="px-4 py-3 font-mono">{entry.currency}</td>
-                    <td className="px-4 py-3 text-right font-mono">{entry.originalAmount.toLocaleString('lo-LA')}</td>
-                    <td className="px-4 py-3 text-right font-semibold">{formatKip(entry.amountLak)}</td>
+                    <td className="px-4 py-3 text-right font-mono">{(entry.originalAmount ?? 0).toLocaleString('lo-LA')}</td>
+                    <td className="px-4 py-3 text-right font-semibold">{formatKip(entry.amountLak ?? 0)}</td>
                     <td className="px-4 py-3 text-muted-foreground">
                       {new Date(entry.createdAt).toLocaleTimeString('lo-LA', { hour: '2-digit', minute: '2-digit' })}
                     </td>

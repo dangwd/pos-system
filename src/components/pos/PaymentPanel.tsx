@@ -14,6 +14,7 @@
 import { CustomerCreateDialog } from "@/components/admin/customers/CustomerCreateDialog";
 import { Button } from "antd";
 import { Input } from "@/components/ui/input";
+import { toast } from "sonner";
 import { useActiveTab } from "@/hooks/useActiveTab";
 import { useCustomers } from "@/hooks/useCustomers";
 import { useTransactionLookup, useCancelTransaction } from "@/hooks/useTransactions";
@@ -23,7 +24,6 @@ import {
   CreditCard,
   Loader2,
   Plus,
-  Receipt,
   ScanLine,
   Search,
   User,
@@ -78,24 +78,42 @@ function StoreHeader() {
 
 function OrderLookup() {
   const t = useTranslations("pos.payment.panel");
-  const { tab, setLinkedInvoice, clearLinkedInvoice } = useActiveTab();
-  const { result, linkedItems, isSearching, notFound, search, clear: clearSearch } = useTransactionLookup();
-  const { mutate: cancelTxn, isPending: isCancelling } = useCancelTransaction();
+  const { tab, enterCancelMode, exitCancelMode } = useActiveTab();
+  const { result, cancelItems, isSearching, notFound, search, clear: clearSearch } = useTransactionLookup();
 
   const [code, setCode] = useState("");
-  const [localCancelled, setLocalCancelled] = useState(false);
 
-  // Reset search state khi switch tab
+  // Reset khi switch tab
   useEffect(() => {
     clearSearch();
     setCode("");
-    setLocalCancelled(false);
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [tab?.id]);
 
-  // Fill items vào cart khi tìm thấy HĐ
+  // Khi cancel mode thoát (hủy thành công hoặc clear) → auto-clear search card
+  const wasCancelMode = useRef(false);
   useEffect(() => {
-    if (result) setLinkedInvoice(result.invoiceCode, linkedItems);
+    if (tab?.cancelTransactionId) {
+      wasCancelMode.current = true;
+    } else if (wasCancelMode.current) {
+      wasCancelMode.current = false;
+      clearSearch();
+      setCode("");
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [tab?.cancelTransactionId]);
+
+  // Fill toàn bộ dữ liệu HĐ vào tab khi tìm thấy
+  useEffect(() => {
+    if (!result) return;
+    enterCancelMode(
+      result.id,
+      result.invoiceCode,
+      cancelItems,
+      result.customer?.id ?? null,
+      result.customer?.name ?? null,
+      result.customer?.phoneNumber ?? null,
+    );
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [result?.id]);
 
@@ -114,43 +132,26 @@ function OrderLookup() {
   const handleSearch = () => {
     const trimmed = code.trim();
     if (!trimmed) return;
-    setLocalCancelled(false);
     search(trimmed);
   };
 
   const handleClear = () => {
     clearSearch();
-    clearLinkedInvoice();
+    exitCancelMode();
     setCode("");
-    setLocalCancelled(false);
   };
 
-  const handleCancel = () => {
-    if (!result) return;
-    cancelTxn({ id: result.id }, { onSuccess: () => setLocalCancelled(true) });
-  };
-
-  const isCancelledStatus = localCancelled || result?.status === "Cancelled";
-  const canCancel = result?.status === "Completed" && !localCancelled;
-  const linkedCode = tab?.linkedInvoiceCode;
+  const isCancelledStatus = result?.status === "Cancelled";
+  const cancelInvoiceCode = tab?.cancelInvoiceCode;
 
   return (
     <div className="px-4 py-3 shrink-0">
-      <SectionLabel
-        action={
-          result ? (
-            <button className="text-[10px] text-primary hover:underline flex items-center gap-0.5">
-              <Receipt className="h-2.5 w-2.5" />
-              {t("reprint")}
-            </button>
-          ) : undefined
-        }
-      >
+      <SectionLabel>
         {t("lookupLabel")}
       </SectionLabel>
 
-      {/* A: Input tìm kiếm */}
-      {!result && !linkedCode && (
+      {/* A: Input tìm kiếm — ẩn khi đang có result card */}
+      {!result && !cancelInvoiceCode && (
         <>
           <div className="flex gap-1.5">
             <Input
@@ -187,11 +188,11 @@ function OrderLookup() {
         </>
       )}
 
-      {/* B: Mini badge — có linkedCode từ store nhưng chưa load card */}
-      {!result && linkedCode && (
-        <div className="flex items-center gap-2 bg-muted/50 rounded-md px-3 py-2">
-          <Receipt className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
-          <span className="flex-1 text-xs font-mono truncate">{linkedCode}</span>
+      {/* B: Mini badge — sau reload: cancelInvoiceCode còn trong store nhưng result card chưa load */}
+      {!result && cancelInvoiceCode && (
+        <div className="flex items-center gap-2 bg-destructive/5 border border-destructive/20 rounded-md px-3 py-2">
+          <XCircle className="h-3.5 w-3.5 text-destructive shrink-0" />
+          <span className="flex-1 text-xs font-mono truncate text-destructive">{cancelInvoiceCode}</span>
           <button
             onClick={handleClear}
             className="shrink-0 p-1 rounded-sm hover:bg-destructive/10 hover:text-destructive transition-colors"
@@ -204,7 +205,6 @@ function OrderLookup() {
       {/* C: Result card đầy đủ */}
       {result && (
         <div className="rounded-md border bg-muted/40 text-[11px] overflow-hidden">
-          {/* Header */}
           <div className="flex items-center gap-1.5 px-2.5 py-1.5 border-b bg-muted/60">
             <span className="flex-1 font-mono font-bold text-xs truncate">
               {result.invoiceCode}
@@ -225,7 +225,6 @@ function OrderLookup() {
             </button>
           </div>
 
-          {/* Body */}
           <div className="px-2.5 py-2 space-y-1">
             <div className="flex justify-between">
               <span className="text-muted-foreground">Ngày GD</span>
@@ -234,10 +233,18 @@ function OrderLookup() {
               </span>
             </div>
             {result.customer && (
-              <div className="flex gap-2 justify-between">
-                <span className="text-muted-foreground shrink-0">Khách</span>
-                <span className="font-medium truncate">{result.customer.name}</span>
-              </div>
+              <>
+                <div className="flex gap-2 justify-between">
+                  <span className="text-muted-foreground shrink-0">Khách</span>
+                  <span className="font-medium truncate">{result.customer.name}</span>
+                </div>
+                {result.customer.phoneNumber && (
+                  <div className="flex gap-2 justify-between">
+                    <span className="text-muted-foreground shrink-0">SĐT</span>
+                    <span className="font-mono truncate">{result.customer.phoneNumber}</span>
+                  </div>
+                )}
+              </>
             )}
             <div className="flex justify-between">
               <span className="text-muted-foreground">Tổng tiền</span>
@@ -246,24 +253,6 @@ function OrderLookup() {
               </span>
             </div>
           </div>
-
-          {/* Hủy hóa đơn */}
-          {canCancel && (
-            <div className="px-2.5 pb-2.5">
-              <button
-                onClick={handleCancel}
-                disabled={isCancelling}
-                className="w-full h-7 text-[10px] font-semibold text-destructive border border-destructive/30 rounded-md hover:bg-destructive/10 transition-colors flex items-center justify-center gap-1 disabled:opacity-50"
-              >
-                {isCancelling ? (
-                  <Loader2 className="h-3 w-3 animate-spin" />
-                ) : (
-                  <XCircle className="h-3 w-3" />
-                )}
-                Hủy hóa đơn này
-              </button>
-            </div>
-          )}
         </div>
       )}
     </div>
@@ -328,18 +317,20 @@ function CustomerSection() {
           </div>
           <div className="flex-1 min-w-0">
             <p className="text-xs font-semibold truncate">{tab.customerName}</p>
-            {(tab.customerPhone) && (
+            {tab.customerPhone && (
               <p className="text-[10px] text-muted-foreground font-mono mt-0.5">
                 {tab.customerPhone}
               </p>
             )}
           </div>
-          <button
-            onClick={clearCustomer}
-            className="shrink-0 p-1 rounded-sm hover:bg-destructive/10 hover:text-destructive transition-colors"
-          >
-            <X className="h-3 w-3" />
-          </button>
+          {!tab.cancelTransactionId && (
+            <button
+              onClick={clearCustomer}
+              className="shrink-0 p-1 rounded-sm hover:bg-destructive/10 hover:text-destructive transition-colors"
+            >
+              <X className="h-3 w-3" />
+            </button>
+          )}
         </div>
       ) : (
         <div ref={containerRef} className="relative">
@@ -615,13 +606,29 @@ export function PaymentPanel({
   onClearDiscount,
 }: PaymentPanelProps) {
   const t = useTranslations("pos.payment.panel");
-  const { tab } = useActiveTab();
+  const { tab, exitCancelMode } = useActiveTab();
+  const { mutate: cancelTxn, isPending: isCancelling } = useCancelTransaction();
+
   const isFx = tab?.txnType === 'ExchangeCurrency';
   const isExchangeType = isFx
     || tab?.txnType === 'ExchangeGold'
     || tab?.txnType === 'ExchangeFree'
     || tab?.txnType === 'ExchangeToMoney';
   const fxDisabled = isFx && (!tab?.fxFromAmount || tab.fxFromAmount <= 0);
+  const isCancelMode = !!tab?.cancelTransactionId;
+
+  const handleCancelInvoice = () => {
+    if (!tab?.cancelTransactionId) return;
+    cancelTxn(
+      { id: tab.cancelTransactionId },
+      {
+        onSuccess: () => {
+          exitCancelMode();
+          toast.success("Hủy hóa đơn thành công");
+        },
+      },
+    );
+  };
 
   return (
     <aside className="flex flex-col w-72 lg:w-80 shrink-0 border-l bg-card overflow-y-auto">
@@ -646,7 +653,21 @@ export function PaymentPanel({
       )}
 
       <div className="px-4 pb-4 pt-2 shrink-0">
-        {isFx ? (
+        {isCancelMode ? (
+          <Button
+            danger
+            type="primary"
+            block
+            size="large"
+            icon={<XCircle size={16} />}
+            loading={isCancelling}
+            disabled={isCancelling}
+            onClick={handleCancelInvoice}
+            style={{ fontWeight: 700 }}
+          >
+            {isCancelling ? "Đang hủy..." : "HỦY HÓA ĐƠN"}
+          </Button>
+        ) : isFx ? (
           <Button
             type="primary"
             block

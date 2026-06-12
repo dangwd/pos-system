@@ -75,6 +75,9 @@ export interface Transaction {
   totalAmount: number;
   currency: string | null;
   exchangeRate: number | null;
+  targetCurrency: string | null;
+  targetRateToLak: number | null;
+  targetAmount: number | null;
   paymentMethod: PaymentMethod;
   cashAmount: number | null; // Số tiền mặt (khi COMBINED)
   bankAmount: number | null; // Số tiền chuyển khoản (khi COMBINED)
@@ -116,8 +119,11 @@ export interface CreateTransactionDto {
   paymentMethod: PaymentMethod;
   cashAmount?: number | null; // Bắt buộc khi COMBINED
   bankAmount?: number | null; // Bắt buộc khi COMBINED
-  currency?: string | null; // null = LAK
-  exchangeRate?: number | null; // null khi LAK
+  currency?: string | null; // loại tiền nguồn; null = LAK
+  exchangeRate?: number | null; // tỷ giá tiền nguồn → LAK; null khi nguồn = LAK
+  foreignAmount?: number | null; // số tiền nguồn khách đưa (ExchangeCurrency)
+  targetCurrency?: string | null; // loại tiền đích; null/"LAK" = trả LAK
+  targetRateToLak?: number | null; // tỷ giá tiền đích → LAK; bắt buộc khi đích ≠ LAK
   note?: string;
   referenceInvoiceCode?: string; // Mã HĐ vàng cũ liên kết (ExchangeGold)
 }
