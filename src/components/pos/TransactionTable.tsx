@@ -11,19 +11,74 @@
 
 import { cn } from '@/lib/utils'
 import { useActiveTab } from '@/hooks/useActiveTab'
+import { useConfigPrices, useWeightUnits } from '@/hooks/useConfig'
 import { Badge } from '@/components/ui/badge'
 import { Input } from '@/components/ui/input'
 import { ExchangeInvoiceLookup } from './ExchangeInvoiceLookup'
 import { CurrencyExchangeForm } from './CurrencyExchangeForm'
+import { Select } from 'antd'
 import {
   ArrowDownToLine, ArrowUpFromLine, Minus, Plus, Trash2,
   ShoppingCart, Package, AlertTriangle, TrendingUp, Banknote, Equal,
 } from 'lucide-react'
 import { lineTotal } from '@/types/cart'
 import type { CartItem } from '@/types/cart'
+import type { PriceConfig } from '@/types/config'
+import type { WeightUnit } from '@/types/config'
 import { useTranslations } from 'next-intl'
 
 function fmt(n: number) { return n.toLocaleString('lo-LA') + ' ₭' }
+
+// ─── UnitSelect — thẻ chọn đơn vị tính trong dòng sản phẩm ──────────────────
+
+function UnitSelect({ item, priceConfig, weightUnits, isBuyMode, onUpdate, disabled }: {
+  item: CartItem
+  priceConfig: PriceConfig | undefined
+  weightUnits: WeightUnit[]
+  isBuyMode?: boolean
+  onUpdate: (id: string, patch: Partial<CartItem>) => void
+  disabled?: boolean
+}) {
+  const unitOptions = (priceConfig?.items ?? [])
+    .filter(p => p.purityCode === item.purity)
+    .map(p => {
+      const wu = weightUnits.find(u => u.id === p.weightUnitId)
+      return { value: p.weightUnitId, label: wu?.tenDonVi ?? p.weightUnitCode }
+    })
+
+  if (unitOptions.length === 0) {
+    return item.weightUnitName
+      ? <span className="text-[9px] font-semibold px-1 py-0.5 rounded bg-muted text-muted-foreground uppercase tracking-wide">/{item.weightUnitName}</span>
+      : null
+  }
+
+  return (
+    <Select
+      size="small"
+      value={item.weightUnitId ?? undefined}
+      options={unitOptions}
+      disabled={disabled}
+      popupMatchSelectWidth={false}
+      variant="filled"
+      className="text-[10px]"
+      style={{ minWidth: 60 }}
+      onChange={(value: string) => {
+        const priceItem = priceConfig?.items.find(
+          p => p.weightUnitId === value && p.purityCode === item.purity
+        )
+        if (!priceItem) return
+        const wu = weightUnits.find(u => u.id === value)
+        const unitPrice = isBuyMode ? priceItem.buyPrice : priceItem.sellPrice
+        onUpdate(item.productId, {
+          weightUnitId: value,
+          weightUnitName: wu?.tenDonVi ?? priceItem.weightUnitCode,
+          weightGram: priceItem.gramPerUnit,
+          unitPriceLakPerGram: unitPrice / priceItem.gramPerUnit,
+        })
+      }}
+    />
+  )
+}
 
 // ─── InfoBar ──────────────────────────────────────────────────────────────────
 
@@ -127,10 +182,13 @@ function SectionFooter({ label, amount, className }: {
 
 // ─── SellTable — SellGold / SellSilver / ExchangeCurrency ─────────────────────
 
-function SellTable({ items, onQtyChange, onDelete }: {
+function SellTable({ items, onQtyChange, onDelete, onUpdate, priceConfig, weightUnits }: {
   items: CartItem[]
   onQtyChange: (id: string, qty: number) => void
   onDelete: (id: string) => void
+  onUpdate: (id: string, patch: Partial<CartItem>) => void
+  priceConfig: PriceConfig | undefined
+  weightUnits: WeightUnit[]
 }) {
   const t = useTranslations('pos.transactionTable')
   return (
@@ -139,6 +197,7 @@ function SellTable({ items, onQtyChange, onDelete }: {
         <tr className="border-b bg-muted/60 backdrop-blur-sm">
           <th className="px-3 py-2 w-7 text-center text-[10px] font-semibold text-muted-foreground">#</th>
           <th className="px-3 py-2 text-left text-[10px] font-semibold text-muted-foreground uppercase tracking-wide">{t('columns.item')}</th>
+          <th className="px-3 py-2 text-left text-[10px] font-semibold text-muted-foreground uppercase tracking-wide whitespace-nowrap">Đơn vị</th>
           <th className="px-3 py-2 text-left text-[10px] font-semibold text-muted-foreground uppercase tracking-wide whitespace-nowrap">{t('columns.qty')}</th>
           <th className="px-3 py-2 text-left text-[10px] font-semibold text-muted-foreground uppercase tracking-wide whitespace-nowrap">{t('columns.unitPrice')}</th>
           <th className="px-3 py-2 text-right text-[10px] font-semibold text-muted-foreground uppercase tracking-wide whitespace-nowrap">{t('columns.total')}</th>
@@ -151,14 +210,17 @@ function SellTable({ items, onQtyChange, onDelete }: {
             <td className="px-3 py-2.5 text-center text-[10px] text-muted-foreground/60">{i + 1}</td>
             <td className="px-3 py-2.5 min-w-36 max-w-52">
               <p className="text-sm font-medium truncate">{item.name}</p>
-              <div className="flex items-center gap-1.5 mt-0.5">
-                <p className="text-[10px] text-muted-foreground font-mono">{item.purity}</p>
-                {item.weightUnitName && (
-                  <span className="text-[9px] font-semibold px-1 py-0.5 rounded bg-muted text-muted-foreground uppercase tracking-wide">
-                    /{item.weightUnitName}
-                  </span>
-                )}
-              </div>
+              <p className="text-[10px] text-muted-foreground font-mono mt-0.5">{item.purity}</p>
+            </td>
+            <td className="px-2 py-2.5">
+              <UnitSelect
+                item={item}
+                priceConfig={priceConfig}
+                weightUnits={weightUnits}
+                isBuyMode={false}
+                onUpdate={onUpdate}
+                disabled={item.isReadOnly}
+              />
             </td>
             <td className="px-3 py-2.5">
               <QtyControl qty={item.qty} disabled={item.isReadOnly}
@@ -167,7 +229,7 @@ function SellTable({ items, onQtyChange, onDelete }: {
                 onSetQty={(q) => onQtyChange(item.productId, q)} />
             </td>
             <td className="px-3 py-2.5 text-xs tabular-nums text-muted-foreground whitespace-nowrap">
-              {(item.unitPriceLakPerGram * item.weightGram).toLocaleString('lo-LA')} ₭/{item.weightUnitName ?? 'g'}
+              {(item.unitPriceLakPerGram * item.weightGram).toLocaleString('lo-LA')} ₭
             </td>
             <td className="px-3 py-2.5 text-right text-sm font-semibold tabular-nums whitespace-nowrap">
               {fmt(lineTotal(item))}
@@ -189,10 +251,13 @@ function SellTable({ items, onQtyChange, onDelete }: {
 
 // ─── BuyGoldTable ─────────────────────────────────────────────────────────────
 
-function BuyGoldTable({ items, onQtyChange, onDelete }: {
+function BuyGoldTable({ items, onQtyChange, onDelete, onUpdate, priceConfig, weightUnits }: {
   items: CartItem[]
   onQtyChange: (id: string, qty: number) => void
   onDelete: (id: string) => void
+  onUpdate: (id: string, patch: Partial<CartItem>) => void
+  priceConfig: PriceConfig | undefined
+  weightUnits: WeightUnit[]
 }) {
   return (
     <table className="w-full border-collapse text-sm">
@@ -200,8 +265,9 @@ function BuyGoldTable({ items, onQtyChange, onDelete }: {
         <tr className="border-b bg-blue-50/60 dark:bg-blue-950/30 backdrop-blur-sm">
           <th className="px-3 py-2 w-7 text-center text-[10px] font-semibold text-muted-foreground">#</th>
           <th className="px-3 py-2 text-left text-[10px] font-semibold text-muted-foreground uppercase tracking-wide">Sản phẩm mua vào</th>
+          <th className="px-3 py-2 text-left text-[10px] font-semibold text-muted-foreground uppercase tracking-wide whitespace-nowrap">Đơn vị</th>
           <th className="px-3 py-2 text-left text-[10px] font-semibold text-muted-foreground uppercase tracking-wide">Số lượng</th>
-          <th className="px-3 py-2 text-left text-[10px] font-semibold text-muted-foreground uppercase tracking-wide whitespace-nowrap">Giá mua/đv</th>
+          <th className="px-3 py-2 text-left text-[10px] font-semibold text-muted-foreground uppercase tracking-wide whitespace-nowrap">Giá mua</th>
           <th className="px-3 py-2 text-right text-[10px] font-semibold text-blue-600 dark:text-blue-400 uppercase tracking-wide whitespace-nowrap">Tiệm chi</th>
           <th className="w-7" />
         </tr>
@@ -212,14 +278,16 @@ function BuyGoldTable({ items, onQtyChange, onDelete }: {
             <td className="px-3 py-2.5 text-center text-[10px] text-muted-foreground/60">{i + 1}</td>
             <td className="px-3 py-2.5 min-w-36 max-w-52">
               <p className="text-sm font-medium truncate">{item.name}</p>
-              <div className="flex items-center gap-1.5 mt-0.5">
-                <p className="text-[10px] text-muted-foreground font-mono">{item.purity}</p>
-                {item.weightUnitName && (
-                  <span className="text-[9px] font-semibold px-1 py-0.5 rounded bg-blue-100/60 dark:bg-blue-950/40 text-blue-700 dark:text-blue-400 uppercase tracking-wide">
-                    /{item.weightUnitName}
-                  </span>
-                )}
-              </div>
+              <p className="text-[10px] text-muted-foreground font-mono mt-0.5">{item.purity}</p>
+            </td>
+            <td className="px-2 py-2.5">
+              <UnitSelect
+                item={item}
+                priceConfig={priceConfig}
+                weightUnits={weightUnits}
+                isBuyMode={true}
+                onUpdate={onUpdate}
+              />
             </td>
             <td className="px-3 py-2.5">
               <QtyControl qty={item.qty}
@@ -228,7 +296,7 @@ function BuyGoldTable({ items, onQtyChange, onDelete }: {
                 onSetQty={(q) => onQtyChange(item.productId, q)} />
             </td>
             <td className="px-3 py-2.5 text-xs tabular-nums text-muted-foreground whitespace-nowrap">
-              {(item.unitPriceLakPerGram * item.weightGram).toLocaleString('lo-LA')} ₭/{item.weightUnitName ?? 'g'}
+              {(item.unitPriceLakPerGram * item.weightGram).toLocaleString('lo-LA')} ₭
             </td>
             <td className="px-3 py-2.5 text-right text-sm font-semibold tabular-nums text-blue-600 dark:text-blue-400 whitespace-nowrap">
               {fmt(lineTotal(item))}
@@ -325,12 +393,14 @@ function ExchangeInRow({ item, index, onUpdate, onDelete }: {
 
 // ─── ExchangeGoldTable ────────────────────────────────────────────────────────
 
-function ExchangeGoldTable({ items, totalA, totalB, netTotal, onQtyChange, onDelete, onUpdate }: {
+function ExchangeGoldTable({ items, totalA, totalB, netTotal, onQtyChange, onDelete, onUpdate, priceConfig, weightUnits }: {
   items: CartItem[]
   totalA: number; totalB: number; netTotal: number
   onQtyChange: (id: string, qty: number) => void
   onDelete: (id: string) => void
   onUpdate: (id: string, patch: Partial<CartItem>) => void
+  priceConfig: PriceConfig | undefined
+  weightUnits: WeightUnit[]
 }) {
   const exchangeItems = items.filter(i => i.itemRole === 'ExchangeIn')
   const normalItems = items.filter(i => i.itemRole === 'Normal')
@@ -389,7 +459,7 @@ function ExchangeGoldTable({ items, totalA, totalB, netTotal, onQtyChange, onDel
           <p className="text-xs opacity-60">Tìm sản phẩm mới từ thanh tìm kiếm (F3)</p>
         </div>
       ) : (
-        <SellTable items={normalItems} onQtyChange={onQtyChange} onDelete={onDelete} />
+        <SellTable items={normalItems} onQtyChange={onQtyChange} onDelete={onDelete} onUpdate={onUpdate} priceConfig={priceConfig} weightUnits={weightUnits} />
       )}
 
       <SectionFooter label="(A) Tổng hàng bán ra mới" amount={totalA} className="font-bold" />
@@ -465,6 +535,8 @@ function SummaryBar({ txnType, subtotal, total, discount, itemCount }: {
 
 export function TransactionTable() {
   const { tab, subtotal, totalA, totalB, netTotal, total, setQty, deleteItem, updateCartItem } = useActiveTab()
+  const { data: priceConfig } = useConfigPrices()
+  const { data: weightUnits = [] } = useWeightUnits()
   const items = tab?.items ?? []
   const txnType = tab?.txnType ?? 'SellGold'
   const discount = tab?.discountAmount ?? 0
@@ -489,6 +561,7 @@ export function TransactionTable() {
             items={items}
             totalA={totalA} totalB={totalB} netTotal={netTotal}
             onQtyChange={setQty} onDelete={deleteItem} onUpdate={updateCartItem}
+            priceConfig={priceConfig} weightUnits={weightUnits}
           />
         ) : items.length === 0 ? (
           <div className="flex flex-col items-center justify-center h-full gap-4 text-muted-foreground select-none">
@@ -504,9 +577,9 @@ export function TransactionTable() {
             <p className="text-xs opacity-60">Tìm sản phẩm ở thanh trên (F3)</p>
           </div>
         ) : isBuy ? (
-          <BuyGoldTable items={items} onQtyChange={setQty} onDelete={deleteItem} />
+          <BuyGoldTable items={items} onQtyChange={setQty} onDelete={deleteItem} onUpdate={updateCartItem} priceConfig={priceConfig} weightUnits={weightUnits} />
         ) : (
-          <SellTable items={items} onQtyChange={setQty} onDelete={deleteItem} />
+          <SellTable items={items} onQtyChange={setQty} onDelete={deleteItem} onUpdate={updateCartItem} priceConfig={priceConfig} weightUnits={weightUnits} />
         )}
       </div>
 
