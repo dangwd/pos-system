@@ -9,10 +9,10 @@ import { Input } from '@/components/ui/input'
 import { Field, FieldLabel } from '@/components/ui/field'
 import { Spinner } from '@/components/ui/spinner'
 import { useUpdateProduct, useCategories } from '@/hooks/useProducts'
+import { useGoldPurities } from '@/hooks/useConfig'
 import type { Product, ProductType } from '@/types/product'
 
-const PURITY_OPTIONS = ['9999', '24K', '18K', '14K', '10K', '925', 'Bạc ròng']
-const PRODUCT_TYPE_OPTIONS: ProductType[] = ['NguyenKhoi', 'CanThucTe']
+const PRODUCT_TYPE_OPTIONS: ProductType[] = ['NguyenKhoi', 'GiaDinh']
 
 interface Props {
   product: Product | null
@@ -22,16 +22,13 @@ interface Props {
 type FormData = {
   productName: string
   categoryId: string
-  purity: string
+  goldPurityId: string | null
   weightGram: string
   productType: ProductType
 }
 
 type CategoryOption = { id: string; name: string }
 
-// Keyed inner component — remounts when `product` changes so form state
-// always initializes from the current entity without a useEffect.
-// submitRef is populated so the outer footer button can trigger submission.
 function ProductFormBody({
   product,
   categoryOptions,
@@ -42,16 +39,17 @@ function ProductFormBody({
   submitRef: React.MutableRefObject<(() => FormData | null)>
 }) {
   const t = useTranslations('admin.products')
+  const { data: purities = [] } = useGoldPurities()
 
   const [productName, setProductName] = useState(() => product.productName)
   const [categoryId, setCategoryId]   = useState(() => product.category.id)
-  const [purity, setPurity]           = useState(() => product.purity)
+  const [goldPurityId, setGoldPurityId] = useState<string | null>(() => product.goldPurityId)
   const [weightGram, setWeightGram]   = useState(() => String(product.weightGram))
   const [productType, setProductType] = useState<ProductType>(() => product.productType)
 
   submitRef.current = () => {
-    if (!productName || !categoryId || !purity || !weightGram || isNaN(parseFloat(weightGram))) return null
-    return { productName, categoryId, purity, weightGram, productType }
+    if (!productName || !categoryId || !weightGram || isNaN(parseFloat(weightGram))) return null
+    return { productName, categoryId, goldPurityId, weightGram, productType }
   }
 
   return (
@@ -84,12 +82,13 @@ function ProductFormBody({
         <Field>
           <FieldLabel>{t('form.purity')}</FieldLabel>
           <Select
-            value={purity || undefined}
-            onChange={v => v && setPurity(v)}
+            value={goldPurityId || undefined}
+            onChange={v => setGoldPurityId(v ?? null)}
             placeholder={t('form.purityPlaceholder')}
-            options={PURITY_OPTIONS.map(p => ({ value: p, label: p }))}
+            options={purities.map(p => ({ value: p.id, label: p.ma }))}
             showSearch
             filterOption={(input, opt) => (opt?.label as string ?? '').toLowerCase().includes(input.toLowerCase())}
+            allowClear
             notFoundContent="Không tìm thấy"
             className="w-full"
             popupMatchSelectWidth={false}
@@ -147,7 +146,7 @@ export function ProductEditDialog({ product, onClose }: Props) {
         dto: {
           productName: data.productName.trim(),
           productCategoryId: data.categoryId,
-          purity: data.purity,
+          goldPurityId: data.goldPurityId,
           weightGram: parseFloat(data.weightGram),
           productType: data.productType,
         },

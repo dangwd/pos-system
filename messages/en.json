@@ -168,15 +168,16 @@
   "admin": {
     "dashboard": {
       "title": "Overview",
-      "subtitle": "Sales statistics",
+      "subtitle": "Today's sales statistics",
       "stats": {
-        "totalTransactions": "Total transactions",
-        "revenue": "Revenue",
-        "avgTransaction": "Avg transaction",
-        "products": "Products"
+        "totalRevenue": "Sales Revenue",
+        "totalPurchase": "Purchase Cost",
+        "grossProfit": "Gross Profit",
+        "cancelledCount": "Cancelled Orders"
       },
-      "recentTitle": "Recent transactions",
-      "empty": "No transactions yet"
+      "recentTitle": "Recent Invoices",
+      "viewAll": "View all",
+      "empty": "No invoices yet"
     },
     "orders": {
       "title": "Transaction log",
@@ -275,7 +276,7 @@
       },
       "productTypes": {
         "NguyenKhoi": "Fixed weight",
-        "CanThucTe": "Actual weight"
+        "GiaDinh": "Estimated"
       },
       "toasts": {
         "createSuccess": "Product added successfully",
@@ -588,27 +589,34 @@
     },
     "reports": {
       "title": "Reports",
-      "selectDate": "Select date",
-      "selectBranch": "Select branch",
       "dashboard": {
         "title": "Dashboard",
-        "totalRevenue": "Total Revenue",
-        "totalProfit": "Total Profit",
-        "totalTransactions": "Total Transactions",
-        "topProducts": "Top Products",
-        "columns": {
-          "product": "Product",
-          "count": "Transactions"
-        }
+        "totalRevenue": "Sales Revenue",
+        "totalPurchase": "Purchase Cost",
+        "grossProfit": "Gross Profit",
+        "cancelledCount": "Cancelled Orders"
       },
       "daily": {
         "title": "Daily Report",
-        "date": "Date",
-        "branch": "Branch",
-        "opening": "Opening Balance",
-        "revenue": "Revenue",
-        "purchase": "Purchase",
-        "closing": "Closing Balance"
+        "sections": {
+          "revenue": "Revenue & Profit/Loss",
+          "transactions": "Transactions",
+          "inventory": "Inventory",
+          "cash": "Cash Balance (LAK)"
+        },
+        "doanhThuBan": "Sales Revenue",
+        "chiPhiMua": "Purchase Cost",
+        "doanhThuDoi": "Exchange Revenue",
+        "laiGopTamTinh": "Estimated Gross Profit",
+        "laiGopNote": "= Sales – Purchases, excl. operating costs",
+        "tongHoaDon": "Completed Invoices",
+        "tongGiaoDichTrade": "Trade Transactions",
+        "itemsOnDisplay": "Items on Display",
+        "totalWeightGram": "Total Weight",
+        "openingLak": "Opening Balance",
+        "collectedLak": "Collected",
+        "paidLak": "Paid Out",
+        "closingLak": "Closing Balance"
       }
     },
     "config": {

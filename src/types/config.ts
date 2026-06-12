@@ -50,6 +50,7 @@ export interface ExchangeRate {
   currencyCode: string   // "THB", "USD"
   rateToLak: number
   adjustment: number
+  effectiveRate: number  // = rateToLak + adjustment — tỷ giá thực áp dụng
   effectiveFrom: string
 }
 

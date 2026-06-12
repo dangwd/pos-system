@@ -445,7 +445,11 @@ function FxBreakdown() {
         <div className="flex justify-between items-center">
           <span className="text-xs text-muted-foreground">Khách hàng thực nhận</span>
           <span className="text-xs font-semibold tabular-nums">
-            {to > 0 ? to.toLocaleString('en', { maximumFractionDigits: 4 }) : '—'} {toCurr}
+            {to > 0
+              ? toCurr === 'LAK'
+                ? Math.round(to).toLocaleString('lo-LA') + ' ₭'
+                : to.toLocaleString('en', { maximumFractionDigits: 4 }) + ' ' + toCurr
+              : '—'}
           </span>
         </div>
       </div>

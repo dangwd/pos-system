@@ -130,7 +130,7 @@ export function usePos() {
     const cartItem: CartItem = {
       productId: product.id,
       name: product.productName,
-      purity: product.purity,
+      purity: product.purity ?? '',
       weightGram,
       productType: product.productType,
       categoryName: product.categoryName,

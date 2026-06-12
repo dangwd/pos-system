@@ -12,7 +12,7 @@ import { useCreateProduct, useCategories } from '@/hooks/useProducts'
 import { useGoldPurities } from '@/hooks/useConfig'
 import type { ProductType } from '@/types/product'
 
-const PRODUCT_TYPE_OPTIONS: ProductType[] = ['NguyenKhoi', 'CanThucTe']
+const PRODUCT_TYPE_OPTIONS: ProductType[] = ['NguyenKhoi', 'GiaDinh']
 
 interface FormState {
   productCode: string

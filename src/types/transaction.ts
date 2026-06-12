@@ -73,7 +73,8 @@ export interface Transaction {
   laborFee: number;
   stoneFee: number;
   totalAmount: number;
-  currency: string;
+  currency: string | null;
+  exchangeRate: number | null;
   paymentMethod: PaymentMethod;
   cashAmount: number | null; // Số tiền mặt (khi COMBINED)
   bankAmount: number | null; // Số tiền chuyển khoản (khi COMBINED)

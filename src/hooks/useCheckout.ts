@@ -64,7 +64,7 @@ export function useCheckout(strategy: PaymentStrategy) {
               productName: `Ngoại tệ ${tab.fxFromAmount.toLocaleString()} ${tab.fxFromCurrency} → ${tab.fxToCurrency}`,
               quantity: 1,
               weightUnitId: null as string | null,
-              weightGramOverride: tab.fxFromAmount,
+              weightGramOverride: null,
               unitPriceLak: tab.fxLakAmount,
               itemRole: "Normal" as const,
               laborFee: 0,
@@ -76,7 +76,7 @@ export function useCheckout(strategy: PaymentStrategy) {
         : null;
 
       const fxNote = isFx
-        ? `FX: ${tab.fxFromAmount.toLocaleString()} ${tab.fxFromCurrency} → ${tab.fxToAmount.toLocaleString("en", { maximumFractionDigits: 4 })} ${tab.fxToCurrency}`
+        ? `FX: ${tab.fxFromAmount.toLocaleString("en", { maximumFractionDigits: 2 })} ${tab.fxFromCurrency} → ${tab.fxToAmount.toLocaleString("en", { maximumFractionDigits: 2 })} ${tab.fxToCurrency}`
         : params.note;
 
       // Tính cashAmount / bankAmount theo paymentMethod
