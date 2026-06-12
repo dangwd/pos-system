@@ -1,0 +1,32 @@
+# Dependencies & build output
+node_modules
+.next
+out
+build
+dist
+
+# Env & secrets
+.env
+.env.*
+
+# Git & CI
+.git
+.gitignore
+.github
+
+# Editor / OS
+.vscode
+.idea
+.DS_Store
+Thumbs.db
+
+# Docker
+Dockerfile
+.dockerignore
+docker-compose*.yml
+
+# Misc
+*.log
+npm-debug.log*
+README*.md
+docs

@@ -6,6 +6,8 @@ const withNextIntl = createNextIntlPlugin('./src/i18n/request.ts')
 const BACKEND = process.env.NEXT_PUBLIC_API_BASE_URL ?? 'http://localhost:5000'
 
 const nextConfig: NextConfig = {
+  // Bản build gọn cho Docker: xuất server.js + node_modules tối thiểu vào .next/standalone.
+  output: 'standalone',
   async rewrites() {
     return [
       {
