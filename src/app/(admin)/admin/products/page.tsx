@@ -66,7 +66,7 @@ export default function ProductsPage() {
           deactivate: t("columns.deactivate"),
           productTypes: {
             NguyenKhoi: t("productTypes.NguyenKhoi"),
-            CanThucTe: t("productTypes.CanThucTe"),
+            GiaDinh: t("productTypes.GiaDinh"),
           },
         },
         (product) => setEditProduct(product),
