@@ -1,7 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useLocale, useTranslations } from 'next-intl'
 import { toast } from 'sonner'
-import { productRepository, type ProductListParams } from '@/lib/repositories/product.repository'
+import { productRepository, type ProductListParams, type WithStockParams } from '@/lib/repositories/product.repository'
 import { getErrorMessage } from '@/lib/errors'
 import type { ApiError } from '@/lib/api-error'
 import type { AppLocale } from '@/lib/errors'
@@ -12,6 +12,8 @@ import type {
   CreateProductCategoryDto,
   UpdateProductCategoryDto,
 } from '@/types/product'
+
+const WITH_STOCK_KEY = ['products', 'with-stock'] as const
 
 const PRODUCTS_KEY = ['products'] as const
 const CATEGORIES_KEY = ['product-categories'] as const
@@ -34,6 +36,18 @@ export function useProducts(params?: ProductListParams) {
   return useQuery({
     queryKey: [...PRODUCTS_KEY, params],
     queryFn: () => productRepository.getAll(params),
+    staleTime: 300_000,
+  })
+}
+
+/**
+ * Sản phẩm kèm tồn kho — dùng cho POS chọn hàng.
+ * Truyền counterId để lấy tồn kho theo quầy cụ thể.
+ */
+export function useProductsWithStock(params?: WithStockParams) {
+  return useQuery({
+    queryKey: [...WITH_STOCK_KEY, params],
+    queryFn: () => productRepository.getWithStock(params),
     staleTime: 300_000,
   })
 }
