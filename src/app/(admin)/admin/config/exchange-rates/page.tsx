@@ -6,7 +6,7 @@ import { Pencil } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Spinner } from '@/components/ui/spinner'
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog'
+import { Dialog, DialogContent, DialogFooter } from '@/components/ui/dialog'
 import { Field, FieldLabel } from '@/components/ui/field'
 import { TablePageSkeleton } from '@/components/shared/PageSkeleton'
 import { useExchangeRates, useUpdateExchangeRate } from '@/hooks/useConfig'
@@ -73,10 +73,19 @@ export default function ExchangeRatesPage() {
       )}
 
       <Dialog open={!!editing} onOpenChange={(o) => !o && setEditing(null)}>
-        <DialogContent className="sm:max-w-md">
-          <DialogHeader>
-            <DialogTitle>{t('updateButton')} — {editing?.currencyCode}</DialogTitle>
-          </DialogHeader>
+        <DialogContent
+          className="sm:max-w-md"
+          title={`${t('updateButton')} — ${editing?.currencyCode}`}
+          footer={
+            <DialogFooter>
+              <Button variant="outline" onClick={() => setEditing(null)} disabled={isPending}>{t('cancel')}</Button>
+              <Button onClick={handleSubmit} disabled={isPending || !form.rateToLak}>
+                {isPending && <Spinner className="mr-2" />}
+                {t('updateButton')}
+              </Button>
+            </DialogFooter>
+          }
+        >
           <div className="space-y-4 py-2">
             <Field>
               <FieldLabel>{t('columns.rate')}</FieldLabel>
@@ -87,13 +96,6 @@ export default function ExchangeRatesPage() {
               <Input type="number" value={form.adjustment} onChange={(e) => setForm((f) => ({ ...f, adjustment: e.target.value }))} />
             </Field>
           </div>
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setEditing(null)} disabled={isPending}>{t('cancel')}</Button>
-            <Button onClick={handleSubmit} disabled={isPending || !form.rateToLak}>
-              {isPending && <Spinner className="mr-2" />}
-              {t('updateButton')}
-            </Button>
-          </DialogFooter>
         </DialogContent>
       </Dialog>
     </div>

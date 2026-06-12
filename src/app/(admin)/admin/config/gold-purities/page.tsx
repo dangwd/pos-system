@@ -3,18 +3,12 @@
 import { useState } from 'react'
 import { useTranslations } from 'next-intl'
 import { Plus, Pencil, Trash2 } from 'lucide-react'
+import { Select } from 'antd'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
-import {
-  Combobox,
-  ComboboxContent,
-  ComboboxItem,
-  ComboboxInput,
-  ComboboxList,
-} from '@/components/ui/combobox'
 import { Badge } from '@/components/ui/badge'
 import { Spinner } from '@/components/ui/spinner'
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog'
+import { Dialog, DialogContent, DialogFooter } from '@/components/ui/dialog'
 import { Field, FieldLabel } from '@/components/ui/field'
 import { TablePageSkeleton } from '@/components/shared/PageSkeleton'
 import {
@@ -117,10 +111,19 @@ export default function GoldPuritiesPage() {
       )}
 
       <Dialog open={!!dialog} onOpenChange={(o) => !o && setDialog(null)}>
-        <DialogContent className="sm:max-w-lg">
-          <DialogHeader>
-            <DialogTitle>{dialog?.mode === 'create' ? t('addButton') : t('editDialogTitle')}</DialogTitle>
-          </DialogHeader>
+        <DialogContent
+          className="sm:max-w-lg"
+          title={dialog?.mode === 'create' ? t('addButton') : t('editDialogTitle')}
+          footer={
+            <DialogFooter>
+              <Button variant="outline" onClick={() => setDialog(null)} disabled={isPending}>{t('cancel')}</Button>
+              <Button onClick={handleSubmit} disabled={isPending || !form.ma || !form.hamLuong}>
+                {isPending && <Spinner className="mr-2" />}
+                {dialog?.mode === 'create' ? t('addButton') : t('saveButton')}
+              </Button>
+            </DialogFooter>
+          }
+        >
           <div className="space-y-4 py-2">
             <Field>
               <FieldLabel>{t('form.ma')}</FieldLabel>
@@ -133,28 +136,19 @@ export default function GoldPuritiesPage() {
               </Field>
               <Field>
                 <FieldLabel>{t('form.category')}</FieldLabel>
-                <Combobox
+                <Select
                   value={form.category}
-                  onValueChange={(v) => v && setForm((f) => ({ ...f, category: v as 'Gold' | 'Silver' }))}
-                >
-                  <ComboboxInput className="w-full" />
-                  <ComboboxContent>
-                    <ComboboxList>
-                      <ComboboxItem value="Gold">{t('categoryGold')}</ComboboxItem>
-                      <ComboboxItem value="Silver">{t('categorySilver')}</ComboboxItem>
-                    </ComboboxList>
-                  </ComboboxContent>
-                </Combobox>
+                  onChange={(v) => v && setForm((f) => ({ ...f, category: v as 'Gold' | 'Silver' }))}
+                  options={[
+                    { value: 'Gold',   label: t('categoryGold') },
+                    { value: 'Silver', label: t('categorySilver') },
+                  ]}
+                  className="w-full"
+                  popupMatchSelectWidth={false}
+                />
               </Field>
             </div>
           </div>
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setDialog(null)} disabled={isPending}>{t('cancel')}</Button>
-            <Button onClick={handleSubmit} disabled={isPending || !form.ma || !form.hamLuong}>
-              {isPending && <Spinner className="mr-2" />}
-              {dialog?.mode === 'create' ? t('addButton') : t('saveButton')}
-            </Button>
-          </DialogFooter>
         </DialogContent>
       </Dialog>
     </div>

@@ -3,18 +3,13 @@
 import { useState } from 'react'
 import { useTranslations } from 'next-intl'
 import { ChevronDown, ChevronUp } from 'lucide-react'
+import { Select } from 'antd'
 import { useCreateCustomer } from '@/hooks/useCustomers'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import {
-  Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter,
+  Dialog, DialogContent, DialogFooter,
 } from '@/components/ui/dialog'
-import {
-  Combobox,
-  ComboboxContent,
-  ComboboxItem,
-  ComboboxList,
-} from '@/components/ui/combobox'
 import { Field, FieldGroup, FieldLabel } from '@/components/ui/field'
 import { Spinner } from '@/components/ui/spinner'
 import type { LoyaltyTier } from '@/types/customer'
@@ -67,11 +62,19 @@ export function CustomerCreateDialog({ open, onClose }: Props) {
 
   return (
     <Dialog open={open} onOpenChange={o => !o && onClose()}>
-      <DialogContent className="sm:max-w-lg">
-        <DialogHeader>
-          <DialogTitle>{t('title')}</DialogTitle>
-        </DialogHeader>
-
+      <DialogContent
+        className="sm:max-w-lg"
+        title={t('title')}
+        footer={
+          <DialogFooter>
+            <Button variant="outline" onClick={onClose} disabled={isPending}>{t('cancel')}</Button>
+            <Button onClick={handleSubmit} disabled={disabled || isPending}>
+              {isPending && <Spinner className="mr-2" />}
+              {t('submit')}
+            </Button>
+          </DialogFooter>
+        }
+      >
         <FieldGroup className="py-1 gap-3">
           <Field>
             <FieldLabel htmlFor="cc-name">{t('name')}</FieldLabel>
@@ -97,18 +100,14 @@ export function CustomerCreateDialog({ open, onClose }: Props) {
 
           <Field>
             <FieldLabel>{t('loyaltyTier')}</FieldLabel>
-            <Combobox
-              value={form.loyaltyTier || null}
-              onValueChange={v => setForm(f => ({ ...f, loyaltyTier: (v ?? '') as LoyaltyTier | '' }))}
-            >
-              <ComboboxContent>
-                <ComboboxList>
-                  {LOYALTY_TIERS.map(tier => (
-                    <ComboboxItem key={tier} value={tier}>{tier}</ComboboxItem>
-                  ))}
-                </ComboboxList>
-              </ComboboxContent>
-            </Combobox>
+            <Select
+              value={form.loyaltyTier || undefined}
+              onChange={v => setForm(f => ({ ...f, loyaltyTier: (v ?? '') as LoyaltyTier | '' }))}
+              options={LOYALTY_TIERS.map(tier => ({ value: tier, label: tier }))}
+              allowClear
+              className="w-full"
+              popupMatchSelectWidth={false}
+            />
           </Field>
 
           <button
@@ -156,13 +155,6 @@ export function CustomerCreateDialog({ open, onClose }: Props) {
           )}
         </FieldGroup>
 
-        <DialogFooter>
-          <Button variant="outline" onClick={onClose} disabled={isPending}>{t('cancel')}</Button>
-          <Button onClick={handleSubmit} disabled={disabled || isPending}>
-            {isPending && <Spinner className="mr-2" />}
-            {t('submit')}
-          </Button>
-        </DialogFooter>
       </DialogContent>
     </Dialog>
   )

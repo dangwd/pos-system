@@ -2,12 +2,10 @@
  * repositories/transaction.repository.ts
  *
  * Khớp với endpoints:
- *   POST   /api/transactions                    → tạo giao dịch DRAFT
- *   GET    /api/transactions                    → danh sách (phân trang)
- *   GET    /api/transactions/{id}               → chi tiết
- *   POST   /api/transactions/{id}/approve       → duyệt (PENDING → APPROVED)
- *   POST   /api/transactions/{id}/reject        → từ chối (PENDING → REJECTED)
- *   POST   /api/transactions/{id}/complete      → hoàn tất (APPROVED → COMPLETED)
+ *   POST   /api/transactions              → tạo & hoàn tất GD ngay (trả GUID)
+ *   GET    /api/transactions              → danh sách (flat khi `limit`, paged khi `page`)
+ *   GET    /api/transactions/{id}         → chi tiết
+ *   POST   /api/transactions/{id}/cancel  → hủy GD đã hoàn thành
  */
 
 import api from '@/lib/axios'
@@ -18,15 +16,13 @@ import type {
   TransactionPage,
   TransactionListParams,
   CreateTransactionDto,
-  ApproveTransactionDto,
-  RejectTransactionDto,
-  CompleteTransactionDto,
+  CancelTransactionDto,
 } from '@/types/transaction'
 
 export class TransactionRepository {
   private readonly base = '/api/transactions'
 
-  /** Tạo giao dịch mới — API trả về GUID (string) */
+  /** Tạo giao dịch — hoàn tất ngay, trả về GUID */
   async create(dto: CreateTransactionDto): Promise<string> {
     try {
       const { data } = await api.post<string>(this.base, dto)
@@ -37,11 +33,18 @@ export class TransactionRepository {
   }
 
   /**
-   * Danh sách giao dịch có phân trang.
-   * Luôn truyền page (mặc định 1) để backend trả PagedResult thay vì mảng phẳng.
+   * Danh sách giao dịch — 2 chế độ:
+   * - `limit` → mảng phẳng Transaction[] (POS lookup)
+   * - `page` / không truyền → PagedResult (admin table)
    */
-  async getList(params?: TransactionListParams): Promise<TransactionPage> {
+  async getList(params: TransactionListParams & { limit: number }): Promise<Transaction[]>
+  async getList(params?: TransactionListParams): Promise<TransactionPage>
+  async getList(params?: TransactionListParams): Promise<TransactionPage | Transaction[]> {
     try {
+      if (params && 'limit' in params && params.limit !== undefined) {
+        const { data } = await api.get<Transaction[]>(this.base, { params })
+        return data
+      }
       const queryParams = { page: 1, pageSize: 20, ...params }
       const { data } = await api.get<RawPagedResult<Transaction>>(this.base, { params: queryParams })
       return normalizePaged(data)
@@ -60,31 +63,10 @@ export class TransactionRepository {
     }
   }
 
-  /** Duyệt giao dịch PENDING → APPROVED */
-  async approve(id: string, dto: ApproveTransactionDto): Promise<Transaction> {
+  /** Hủy giao dịch đã hoàn thành */
+  async cancel(id: string, dto?: CancelTransactionDto): Promise<void> {
     try {
-      const { data } = await api.post<Transaction>(`${this.base}/${id}/approve`, dto)
-      return data
-    } catch (err) {
-      throw handleAxiosError(err)
-    }
-  }
-
-  /** Từ chối giao dịch PENDING → REJECTED */
-  async reject(id: string, dto: RejectTransactionDto): Promise<Transaction> {
-    try {
-      const { data } = await api.post<Transaction>(`${this.base}/${id}/reject`, dto)
-      return data
-    } catch (err) {
-      throw handleAxiosError(err)
-    }
-  }
-
-  /** Hoàn tất giao dịch APPROVED → COMPLETED */
-  async complete(id: string, dto: CompleteTransactionDto): Promise<Transaction> {
-    try {
-      const { data } = await api.post<Transaction>(`${this.base}/${id}/complete`, dto)
-      return data
+      await api.post(`${this.base}/${id}/cancel`, dto ?? {})
     } catch (err) {
       throw handleAxiosError(err)
     }

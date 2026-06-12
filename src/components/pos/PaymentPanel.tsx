@@ -76,6 +76,19 @@ function StoreHeader() {
 function OrderLookup() {
   const t = useTranslations("pos.payment.panel");
   const [code, setCode] = useState("");
+  const scanRef = useRef<HTMLButtonElement>(null);
+
+  // F6 → focus order lookup input
+  useEffect(() => {
+    const handler = (e: KeyboardEvent) => {
+      if (e.key === "F6") {
+        e.preventDefault();
+        document.getElementById("pos-order-lookup")?.focus();
+      }
+    };
+    document.addEventListener("keydown", handler);
+    return () => document.removeEventListener("keydown", handler);
+  }, []);
 
   return (
     <div className="px-4 py-3 shrink-0">
@@ -91,12 +104,22 @@ function OrderLookup() {
       </SectionLabel>
       <div className="flex gap-1.5">
         <Input
+          id="pos-order-lookup"
           placeholder={t("lookupPlaceholder")}
           value={code}
           onChange={(e) => setCode(e.target.value)}
+          onKeyDown={(e) => {
+            if (e.key === "Enter" && code.trim()) {
+              e.preventDefault();
+              scanRef.current?.click();
+            }
+          }}
           className="h-8 text-xs flex-1"
         />
-        <button className="h-8 w-8 shrink-0 flex items-center justify-center rounded-md border bg-muted hover:bg-accent transition-colors">
+        <button
+          ref={scanRef}
+          className="h-8 w-8 shrink-0 flex items-center justify-center rounded-md border bg-muted hover:bg-accent transition-colors"
+        >
           <ScanLine className="h-3.5 w-3.5 text-muted-foreground" />
         </button>
       </div>
@@ -113,6 +136,7 @@ function CustomerSection() {
   const [debouncedQuery, setDebouncedQuery] = useState("");
   const [open, setOpen] = useState(false);
   const [createOpen, setCreateOpen] = useState(false);
+  const [focusedIndex, setFocusedIndex] = useState(-1);
   const containerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -130,10 +154,23 @@ function CustomerSection() {
     return () => document.removeEventListener("mousedown", handler);
   }, []);
 
+  // F4 → focus customer search input
+  useEffect(() => {
+    const handler = (e: KeyboardEvent) => {
+      if (e.key === "F4") {
+        e.preventDefault();
+        document.getElementById("pos-customer-search")?.focus();
+      }
+    };
+    document.addEventListener("keydown", handler);
+    return () => document.removeEventListener("keydown", handler);
+  }, []);
+
   const handleSelect = (customer: Customer) => {
     setCustomer(customer.id, customer.name, customer.phoneNumber);
     setQuery("");
     setDebouncedQuery("");
+    setFocusedIndex(-1);
     setOpen(false);
   };
 
@@ -172,16 +209,18 @@ function CustomerSection() {
                 value={query}
                 onChange={(e) => {
                   setQuery(e.target.value);
+                  setFocusedIndex(-1);
                   setOpen(!!e.target.value);
                 }}
                 onFocus={() => query && setOpen(true)}
                 onKeyDown={(e) => {
-                  if (e.key === "Escape") {
-                    setOpen(false);
-                    setQuery("");
+                  if (e.key === "Escape") { setOpen(false); setQuery(""); setFocusedIndex(-1); }
+                  if (e.key === "ArrowDown") { e.preventDefault(); setFocusedIndex((p) => Math.min(p + 1, customers.length - 1)); if (!open && customers.length) setOpen(true); }
+                  if (e.key === "ArrowUp") { e.preventDefault(); setFocusedIndex((p) => Math.max(p - 1, -1)); }
+                  if (e.key === "Enter") {
+                    const target = focusedIndex >= 0 ? customers[focusedIndex] : customers[0];
+                    if (target) handleSelect(target);
                   }
-                  if (e.key === "Enter" && customers[0])
-                    handleSelect(customers[0]);
                 }}
                 className="h-8 text-xs pl-7 pr-7"
               />
@@ -204,12 +243,12 @@ function CustomerSection() {
             (customers.length > 0 || (debouncedQuery && !isFetching)) && (
               <div className="absolute top-full left-0 z-50 mt-1 w-full rounded-lg border bg-popover shadow-xl overflow-hidden">
                 {customers.length > 0 ? (
-                  customers.map((c) => (
+                  customers.map((c, i) => (
                     <button
                       key={c.id}
                       type="button"
                       onClick={() => handleSelect(c)}
-                      className="w-full flex items-center gap-2.5 px-3 py-2.5 text-left hover:bg-accent hover:text-accent-foreground transition-colors border-b last:border-0"
+                      className={`w-full flex items-center gap-2.5 px-3 py-2.5 text-left hover:bg-accent hover:text-accent-foreground transition-colors border-b last:border-0${focusedIndex === i ? " bg-accent text-accent-foreground" : ""}`}
                     >
                       <div className="h-6 w-6 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
                         <User className="h-3 w-3 text-primary" />
@@ -236,6 +275,59 @@ function CustomerSection() {
       <CustomerCreateDialog open={createOpen} onClose={() => setCreateOpen(false)} />
     </div>
   );
+}
+
+// ─── 4a. FxBreakdown — dùng khi txnType === ExchangeCurrency ─────────────────
+
+function FxBreakdown() {
+  const { tab, total } = useActiveTab()
+  const from = tab?.fxFromAmount ?? 0
+  const fromCurr = tab?.fxFromCurrency ?? 'USD'
+  const to = tab?.fxToAmount ?? 0
+  const toCurr = tab?.fxToCurrency ?? 'LAK'
+  const lak = tab?.fxLakAmount ?? 0
+  const rate = from > 0 ? Math.round(lak / from) : 0
+
+  return (
+    <div className="px-4 py-3 flex-1 flex flex-col gap-3">
+      <div className="space-y-2.5">
+        <div className="flex justify-between items-center">
+          <span className="text-xs text-muted-foreground">Khách nộp quầy</span>
+          <span className="text-xs font-semibold tabular-nums">
+            {from > 0 ? from.toLocaleString('en', { maximumFractionDigits: 2 }) : '—'} {fromCurr}
+          </span>
+        </div>
+        <div className="flex justify-between items-center">
+          <span className="text-xs text-muted-foreground">Tỷ suất quy đổi</span>
+          <span className="text-xs font-semibold tabular-nums text-primary">
+            {rate > 0 ? `1 ${fromCurr} = ${rate.toLocaleString('lo-LA')} ₭` : '—'}
+          </span>
+        </div>
+        <div className="flex justify-between items-center">
+          <span className="text-xs text-muted-foreground">Khách hàng thực nhận</span>
+          <span className="text-xs font-semibold tabular-nums">
+            {to > 0 ? to.toLocaleString('en', { maximumFractionDigits: 4 }) : '—'} {toCurr}
+          </span>
+        </div>
+      </div>
+
+      <div className="border-t border-border" />
+
+      <div className="rounded-lg border border-primary/20 bg-primary/5 px-4 py-4 text-center">
+        <p className="text-[10px] text-muted-foreground uppercase tracking-widest font-medium mb-1">
+          Giá trị quy LAK
+        </p>
+        <p className="text-3xl font-black tabular-nums tracking-tight leading-none text-foreground">
+          {total.toLocaleString('lo-LA')}
+        </p>
+        <p className="text-xs text-muted-foreground mt-1">₭ (Kip Lào)</p>
+      </div>
+
+      <p className="text-[10px] text-muted-foreground text-center leading-relaxed">
+        Bút toán hoán đổi ngoại tệ sẽ được ghi tự động vào Sổ Quỹ Kết.
+      </p>
+    </div>
+  )
 }
 
 // ─── 4. PaymentBreakdown ──────────────────────────────────────────────────────
@@ -364,6 +456,7 @@ export interface PaymentPanelProps {
   isCheckingOut: boolean;
   cartEmpty: boolean;
   onOpenPayment: () => void;
+  onDirectCheckout: () => void;
   onApplyDiscount: (discountAmount: number) => void;
   onClearDiscount: () => void;
 }
@@ -375,10 +468,14 @@ export function PaymentPanel({
   isCheckingOut,
   cartEmpty,
   onOpenPayment,
+  onDirectCheckout,
   onApplyDiscount,
   onClearDiscount,
 }: PaymentPanelProps) {
   const t = useTranslations("pos.payment.panel");
+  const { tab } = useActiveTab();
+  const isFx = tab?.txnType === 'ExchangeCurrency';
+  const fxDisabled = isFx && (!tab?.fxFromAmount || tab.fxFromAmount <= 0);
 
   return (
     <aside className="flex flex-col w-72 lg:w-80 shrink-0 border-l bg-card overflow-y-auto">
@@ -391,32 +488,45 @@ export function PaymentPanel({
 
       <div className="mx-4 border-t border-border/50" />
 
-      <PaymentBreakdown
-        subtotal={subtotal}
-        discount={discount}
-        total={total}
-        onApplyDiscount={onApplyDiscount}
-        onClearDiscount={onClearDiscount}
-      />
+      {isFx ? (
+        <FxBreakdown />
+      ) : (
+        <PaymentBreakdown
+          subtotal={subtotal}
+          discount={discount}
+          total={total}
+          onApplyDiscount={onApplyDiscount}
+          onClearDiscount={onClearDiscount}
+        />
+      )}
 
       <div className="px-4 pb-4 pt-2 shrink-0">
-        <Button
-          className="w-full h-11 font-bold text-sm gap-2"
-          disabled={cartEmpty || isCheckingOut}
-          onClick={onOpenPayment}
-        >
-          {isCheckingOut ? (
-            <>
-              <Spinner className="mr-1" />
-              {t("processing")}
-            </>
-          ) : (
-            <>
-              <CreditCard className="h-4 w-4" />
-              {t("checkout")}
-            </>
-          )}
-        </Button>
+        {isFx ? (
+          <Button
+            className="w-full h-11 font-bold text-sm gap-2"
+            disabled={fxDisabled || isCheckingOut}
+            onClick={onDirectCheckout}
+          >
+            {isCheckingOut ? (
+              <><Spinner className="mr-1" />{t("processing")}</>
+            ) : (
+              <><CreditCard className="h-4 w-4" />LẬP KHAI &amp; PHÁT HÀNH PHIẾU FX</>
+            )}
+          </Button>
+        ) : (
+          <Button
+            className="w-full h-11 font-bold text-sm gap-2"
+            disabled={cartEmpty || isCheckingOut}
+            onClick={onOpenPayment}
+          >
+            {isCheckingOut ? (
+              <><Spinner className="mr-1" />{t("processing")}</>
+            ) : (
+              <><CreditCard className="h-4 w-4" />{t("checkout")}</>
+            )}
+          </Button>
+        )}
+
       </div>
     </aside>
   );

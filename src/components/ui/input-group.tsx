@@ -88,14 +88,15 @@ function InputGroupButton({
   type = "button",
   variant = "ghost",
   size = "xs",
+  render: _render, // accepted for backward-compat with @base-ui/react pattern; unused in Ant Design
   ...props
-}: Omit<React.ComponentProps<typeof Button>, "size" | "type"> &
+}: Omit<React.ComponentProps<typeof Button>, "size"> &
   VariantProps<typeof inputGroupButtonVariants> & {
-    type?: "button" | "submit" | "reset"
+    render?: React.ReactElement
   }) {
   return (
     <Button
-      type={type}
+      type={type as "button" | "submit" | "reset"}
       data-size={size}
       variant={variant}
       className={cn(inputGroupButtonVariants({ size }), className)}
@@ -119,7 +120,7 @@ function InputGroupText({ className, ...props }: React.ComponentProps<"span">) {
 function InputGroupInput({
   className,
   ...props
-}: React.ComponentProps<"input">) {
+}: Omit<React.InputHTMLAttributes<HTMLInputElement>, 'size'> & { className?: string }) {
   return (
     <Input
       data-slot="input-group-control"

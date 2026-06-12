@@ -86,7 +86,7 @@ export function ExchangeInvoiceLookup() {
       )}
 
       {!linkedCode && query.length >= 3 && !isFetching && results.length === 0 && (
-        <p className="text-xs text-muted-foreground px-1">Không tìm thấy HĐ "{query}"</p>
+        <p className="text-xs text-muted-foreground px-1">Không tìm thấy HĐ &quot;{query}&quot;</p>
       )}
 
       <p className="text-[10px] text-muted-foreground leading-relaxed">

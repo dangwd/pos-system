@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import { useTranslations } from 'next-intl'
+import { Form } from 'antd'
 import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
 import { Button } from '@/components/ui/button'
@@ -63,36 +64,33 @@ export function InventoryAdjustPanel({ branchId, selectedItemId, onSelectItem, o
       )}
 
       {/* Direction toggle */}
-      <div className="space-y-1.5">
-        <label className="text-xs text-muted-foreground">{t('direction')}</label>
-        <div className="grid grid-cols-2 gap-2">
-          <Button type="button" variant={direction === 'IN' ? 'default' : 'outline'} className="gap-1.5" onClick={() => setDirection('IN')}>
-            <ArrowDownToLine className="h-4 w-4" />
-            {t('directionIn')}
-          </Button>
-          <Button type="button" variant={direction === 'OUT' ? 'default' : 'outline'} className="gap-1.5" onClick={() => setDirection('OUT')}>
-            <ArrowUpFromLine className="h-4 w-4" />
-            {t('directionOut')}
-          </Button>
-        </div>
-      </div>
+      <Form layout="vertical">
+        <Form.Item label={t('direction')}>
+          <div className="grid grid-cols-2 gap-2">
+            <Button type="button" variant={direction === 'IN' ? 'default' : 'outline'} className="gap-1.5" onClick={() => setDirection('IN')}>
+              <ArrowDownToLine className="h-4 w-4" />
+              {t('directionIn')}
+            </Button>
+            <Button type="button" variant={direction === 'OUT' ? 'default' : 'outline'} className="gap-1.5" onClick={() => setDirection('OUT')}>
+              <ArrowUpFromLine className="h-4 w-4" />
+              {t('directionOut')}
+            </Button>
+          </div>
+        </Form.Item>
 
-      {/* Quantity */}
-      <div className="space-y-1.5">
-        <label className="text-xs text-muted-foreground">
-          {t('quantity')}{selected ? ` · ${t('currentStock', { qty: selected.quantity })}` : ''}
-        </label>
-        <Input type="number" min={1} step={1} className="h-9" value={quantity} onChange={e => setQuantity(e.target.value)} placeholder="0" />
-        {exceedsStock && selected && (
-          <p className="text-xs text-destructive">{t('exceedsStock', { qty: selected.quantity })}</p>
-        )}
-      </div>
+        {/* Quantity */}
+        <Form.Item label={`${t('quantity')}${selected ? ` · ${t('currentStock', { qty: selected.quantity })}` : ''}`}>
+          <Input type="number" min={1} step={1} value={quantity} onChange={e => setQuantity(e.target.value)} placeholder="0" />
+          {exceedsStock && selected && (
+            <p className="text-xs text-destructive">{t('exceedsStock', { qty: selected.quantity })}</p>
+          )}
+        </Form.Item>
 
-      {/* Reason */}
-      <div className="space-y-1.5">
-        <label className="text-xs text-muted-foreground">{t('reason')}</label>
-        <Textarea value={reason} onChange={e => setReason(e.target.value)} placeholder={t('reasonPlaceholder')} rows={2} />
-      </div>
+        {/* Reason */}
+        <Form.Item label={t('reason')} style={{ marginBottom: 0 }}>
+          <Textarea value={reason} onChange={e => setReason(e.target.value)} placeholder={t('reasonPlaceholder')} rows={2} />
+        </Form.Item>
+      </Form>
 
       {/* Audit note */}
       <div className="flex gap-2 rounded-lg border border-primary/20 bg-primary/5 p-2.5 text-xs text-muted-foreground">

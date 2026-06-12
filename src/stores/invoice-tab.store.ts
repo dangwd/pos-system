@@ -35,6 +35,11 @@ function makeNewTab(type: TransactionType = "SellGold"): InvoiceTab {
     note: "",
     linkedInvoiceCode: null,
     linkedInvoiceItemKeys: [],
+    fxFromCurrency: 'USD',
+    fxToCurrency: 'LAK',
+    fxFromAmount: 0,
+    fxToAmount: 0,
+    fxLakAmount: 0,
   };
 }
 
@@ -239,6 +244,24 @@ export const useInvoiceTabStore = create<InvoiceTabStore>()(
         const activeId = resolveActiveId(tabs, activeTabId);
         return tabs.find((t) => t.id === activeId);
       },
+
+      setFxDataInActive(fromCurrency, toCurrency, fromAmount, toAmount, lakAmount) {
+        const { tabs } = get();
+        const activeId = resolveActiveId(tabs, get().activeTabId);
+        if (!activeId) return;
+        set({
+          tabs: tabs.map((t) =>
+            t.id !== activeId ? t : {
+              ...t,
+              fxFromCurrency: fromCurrency,
+              fxToCurrency: toCurrency,
+              fxFromAmount: fromAmount,
+              fxToAmount: toAmount,
+              fxLakAmount: lakAmount,
+            },
+          ),
+        });
+      },
     }),
 
     {
@@ -254,6 +277,11 @@ export const useInvoiceTabStore = create<InvoiceTabStore>()(
           txnType: t.txnType ?? "SellGold",
           linkedInvoiceCode: t.linkedInvoiceCode ?? null,
           linkedInvoiceItemKeys: t.linkedInvoiceItemKeys ?? [],
+          fxFromCurrency: t.fxFromCurrency ?? 'USD',
+          fxToCurrency: t.fxToCurrency ?? 'LAK',
+          fxFromAmount: t.fxFromAmount ?? 0,
+          fxToAmount: t.fxToAmount ?? 0,
+          fxLakAmount: t.fxLakAmount ?? 0,
           items: t.items
             .filter((i) => "productId" in i && !!i.productId)
             .map((i) => ({

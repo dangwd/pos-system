@@ -27,8 +27,10 @@ export default function PosPage() {
 
   // ── Payment modal lifecycle ─────────────────────────────────────────────────
 
+  const isFx = pos.txnType === 'ExchangeCurrency'
+
   const handleOpenPayment = () => {
-    if (pos.cartItems.length === 0) {
+    if (!isFx && pos.cartItems.length === 0) {
       toast.error(t('emptyCart'))
       return
     }
@@ -41,24 +43,32 @@ export default function PosPage() {
     setPaymentOpen(false)
   }
 
-  const handleCheckout = async () => {
+  const handleCheckout = async (combined?: { cashAmount: number; bankAmount: number }) => {
     try {
-      const result = await pos.checkout({
+      const transaction = await pos.checkout({
         type: pos.txnType,
         customerId: undefined,
         note: pos.note || undefined,
+        cashAmount: combined?.cashAmount,
+        bankAmount: combined?.bankAmount,
       })
-      // Đóng modal và reset tab sau bất kỳ thanh toán thành công nào
       setPaymentOpen(false)
       pos.resetTabStatus()
-      // Hiển thị biên lai nếu hoàn tất
-      if (result?.status === 'Completed') {
-        setReceiptTransaction(result)
-      }
-      // Toast được hiển thị từ useCheckout onSuccess — không gọi lại ở đây
+      if (transaction) setReceiptTransaction(transaction)
     } catch {
-      // Toast lỗi được hiển thị từ useCheckout onError
-      // Giữ modal mở để người dùng thử lại
+      // Toast lỗi hiển thị từ useCheckout onError — giữ modal mở để thử lại
+    }
+  }
+
+  // FX: bypass modal, checkout trực tiếp
+  const handleDirectCheckout = async () => {
+    pos.setTabPaying()
+    try {
+      const transaction = await pos.checkout({ type: 'ExchangeCurrency' })
+      pos.resetTabStatus()
+      if (transaction) setReceiptTransaction(transaction)
+    } catch {
+      pos.resetTabStatus()
     }
   }
 
@@ -80,6 +90,7 @@ export default function PosPage() {
           isCheckingOut={pos.isCheckingOut}
           cartEmpty={pos.cartItems.length === 0}
           onOpenPayment={handleOpenPayment}
+          onDirectCheckout={handleDirectCheckout}
           onApplyDiscount={pos.applyDiscount}
           onClearDiscount={pos.clearDiscount}
         />
@@ -88,16 +99,12 @@ export default function PosPage() {
       <PaymentModal
         open={paymentOpen}
         onClose={handleClosePayment}
-        total={pos.total}
-        subtotal={pos.subtotal}
-        discount={pos.discount}
         paymentMethod={pos.paymentMethod}
         onPaymentMethodChange={pos.setPaymentMethod}
         onCheckout={handleCheckout}
         isCheckingOut={pos.isCheckingOut}
         onApplyDiscount={pos.applyDiscount}
         onClearDiscount={pos.clearDiscount}
-        discountAmount={pos.discount}
       />
 
       <Receipt

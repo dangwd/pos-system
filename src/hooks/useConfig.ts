@@ -22,6 +22,8 @@ import type {
   AppRole,
   Permission,
   UpdateRolePermissionsDto,
+  CreateRoleDto,
+  UpdateRoleDto,
 } from '@/types/config'
 
 // ─── Query keys ───────────────────────────────────────────────────────────────
@@ -222,6 +224,42 @@ export function useUpdateRolePermissions() {
     onSuccess: () => {
       invalidate(ROLES_KEY)
       toast.success(locale === 'lo' ? 'ອັບເດດສິດສຳເລັດ' : locale === 'vi' ? 'Cập nhật quyền thành công' : 'Permissions updated')
+    },
+    onError: (err) => toast.error(getErrorMessage(err.code, locale)),
+  })
+}
+
+export function useCreateRole() {
+  const { locale, invalidate } = useConfigBase()
+  return useMutation<AppRole, ApiError, CreateRoleDto>({
+    mutationFn: (dto) => configRepository.createRole(dto),
+    onSuccess: () => {
+      invalidate(ROLES_KEY)
+      toast.success(locale === 'lo' ? 'ສ້າງບົດບາດສຳເລັດ' : locale === 'vi' ? 'Tạo vai trò thành công' : 'Role created')
+    },
+    onError: (err) => toast.error(getErrorMessage(err.code, locale)),
+  })
+}
+
+export function useUpdateRole() {
+  const { locale, invalidate } = useConfigBase()
+  return useMutation<AppRole, ApiError, { roleId: string; dto: UpdateRoleDto }>({
+    mutationFn: ({ roleId, dto }) => configRepository.updateRole(roleId, dto),
+    onSuccess: () => {
+      invalidate(ROLES_KEY)
+      toast.success(locale === 'lo' ? 'ອັບເດດບົດບາດສຳເລັດ' : locale === 'vi' ? 'Cập nhật vai trò thành công' : 'Role updated')
+    },
+    onError: (err) => toast.error(getErrorMessage(err.code, locale)),
+  })
+}
+
+export function useDeleteRole() {
+  const { locale, invalidate } = useConfigBase()
+  return useMutation<void, ApiError, string>({
+    mutationFn: (roleId) => configRepository.deleteRole(roleId),
+    onSuccess: () => {
+      invalidate(ROLES_KEY)
+      toast.success(locale === 'lo' ? 'ລຶບບົດບາດສຳເລັດ' : locale === 'vi' ? 'Xóa vai trò thành công' : 'Role deleted')
     },
     onError: (err) => toast.error(getErrorMessage(err.code, locale)),
   })

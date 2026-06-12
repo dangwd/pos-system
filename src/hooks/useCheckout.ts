@@ -1,16 +1,12 @@
 /**
  * useCheckout — Strategy consumer hook
  *
- * Kết hợp PaymentStrategy + TransactionRepository để hoàn thành giao dịch.
- * Luồng theo API thực:
- *   1. create() → POST /api/transactions → trả về GUID string
- *   2. getById() → GET /api/transactions/{id} → Transaction với status thực tế
- *   3. Nếu status === 'Approved' → complete() → COMPLETED
+ * Luồng mới (API đã đơn giản hoá):
+ *   POST /api/transactions → Completed ngay lập tức (trả GUID)
  *
- * Sau khi thanh toán thành công:
+ * Sau khi thành công:
  *  - clearActiveCart() xóa giỏ hàng của tab active
  *  - ['transactions'] cache bị invalidate
- *  - Toast thành công / chờ duyệt được hiển thị từ đây (không phải từ page)
  */
 
 import { useMutation, useQueryClient } from '@tanstack/react-query'
@@ -22,13 +18,15 @@ import { useActiveTab } from './useActiveTab'
 import type { ApiError } from '@/lib/api-error'
 import type { AppLocale } from '@/lib/errors'
 import type { PaymentStrategy } from '@/lib/strategies/payment.strategy'
-import type { TransactionType } from '@/types/transaction'
+import type { TransactionType, PaymentMethod } from '@/types/transaction'
 
 interface CheckoutParams {
   type: TransactionType
   customerId?: string
   note?: string
-  depositAmount?: number
+  paymentMethod?: PaymentMethod
+  cashAmount?: number   // Bắt buộc khi COMBINED
+  bankAmount?: number   // Bắt buộc khi COMBINED
   referenceInvoiceCode?: string
 }
 
@@ -40,27 +38,56 @@ export function useCheckout(strategy: PaymentStrategy) {
 
   return useMutation({
     mutationFn: async (params: CheckoutParams) => {
-      if (!tab || tab.items.length === 0) {
+      const isFx = params.type === 'ExchangeCurrency'
+
+      if (!tab || (!isFx && tab.items.length === 0)) {
         throw new Error('Giỏ hàng trống')
+      }
+
+      if (isFx && (!tab.fxFromAmount || tab.fxFromAmount <= 0)) {
+        throw new Error('Vui lòng nhập số tiền cần đổi')
       }
 
       await strategy.prepare(total)
 
-      // create() trả về GUID string
+      const paymentMethod = isFx ? 'CASH' : (params.paymentMethod ?? strategy.paymentMethod)
+
+      // FX: build 1 synthetic item — items thực tế không dùng
+      const fxItems = isFx ? [{
+        productId: process.env.NEXT_PUBLIC_FX_PRODUCT_ID ?? '00000000-0000-0000-0000-000000000001',
+        productName: `Ngoại tệ ${tab.fxFromAmount.toLocaleString()} ${tab.fxFromCurrency} → ${tab.fxToCurrency}`,
+        quantity: 1,
+        weightUnitId: null as string | null,
+        weightGramOverride: tab.fxFromAmount,
+        unitPriceLak: tab.fxLakAmount,
+        itemRole: 'Normal' as const,
+        laborFee: 0,
+        stoneFee: 0,
+        haoHutGram: 0,
+        phiHuHai: 0,
+      }] : null
+
+      const fxNote = isFx
+        ? `FX: ${tab.fxFromAmount.toLocaleString()} ${tab.fxFromCurrency} → ${tab.fxToAmount.toLocaleString('en', { maximumFractionDigits: 4 })} ${tab.fxToCurrency}`
+        : params.note
+
+      // create() → Completed ngay, trả về GUID
       const transactionId = await transactionRepository.create({
         type: params.type,
         customerId: params.customerId,
-        paymentMethod: strategy.paymentMethod,
-        note: params.note,
-        depositAmount: params.depositAmount,
-        // Ưu tiên referenceInvoiceCode từ params; fallback về linkedInvoiceCode của tab
+        paymentMethod,
+        cashAmount: isFx ? null : (params.cashAmount ?? null),
+        bankAmount: isFx ? null : (params.bankAmount ?? null),
+        note: fxNote,
+        currency: isFx && tab.fxFromCurrency !== 'LAK' ? tab.fxFromCurrency : undefined,
+        exchangeRate: isFx && tab.fxFromAmount > 0 ? Math.round(tab.fxLakAmount / tab.fxFromAmount) : undefined,
         referenceInvoiceCode: params.referenceInvoiceCode ?? tab.linkedInvoiceCode ?? undefined,
-        items: tab.items.map(item => {
+        items: fxItems ?? tab.items.map(item => {
           const isExchangeIn = item.itemRole === 'ExchangeIn'
           const hasPhiKho = isExchangeIn && item.perItemDamage > 0
           const hasLaoSut = isExchangeIn && item.perItemWearChi > 0
 
-          // ExchangeIn: weightGramOverride = trọng lượng thực sau LAO SUT
+          // ExchangeIn: trọng lượng thực = tổng - hao hụt LAO SUT
           const effectiveWeightGram = isExchangeIn
             ? (item.weightGramOverride ?? item.qty * item.weightGram) - item.perItemWearChi * 3.75
             : item.weightGramOverride
@@ -74,42 +101,26 @@ export function useCheckout(strategy: PaymentStrategy) {
             productId: item.productId,
             productName,
             quantity: item.qty,
-            weightUnitId: item.weightUnitId ?? '',
+            weightUnitId: item.weightUnitId ?? null,
             weightGramOverride: effectiveWeightGram,
             unitPriceLak: item.unitPriceLakPerGram * item.weightGram,
             itemRole: item.itemRole,
-            // ExchangeIn: PHÍ KHÒ encode vào laborFee
-            laborFee: isExchangeIn ? item.perItemDamage : item.laborFee,
+            laborFee: isExchangeIn ? 0 : item.laborFee,
             stoneFee: isExchangeIn ? 0 : item.stoneFee,
-            // LAO SUT encode vào haoHutGram (gram)
             haoHutGram: isExchangeIn ? item.perItemWearChi * 3.75 : 0,
+            phiHuHai: isExchangeIn ? item.perItemDamage : 0,
           }
         }),
       })
 
-      // Lấy Transaction đầy đủ để UI biết status và hiển thị receipt
-      const transaction = await transactionRepository.getById(transactionId)
-
-      // Nếu transaction đã được duyệt (auto-approve hoặc cashier có quyền), hoàn tất ngay
-      if (transaction.status === 'Approved') {
-        return transactionRepository.complete(transaction.id, { paymentMethod: strategy.paymentMethod })
-      }
-
-      return transaction
+      // Fetch full transaction để hiển thị receipt
+      return transactionRepository.getById(transactionId)
     },
 
-    onSuccess: (result) => {
-      // Xóa giỏ hàng và làm mới danh sách giao dịch
+    onSuccess: () => {
       clearCart()
       qc.invalidateQueries({ queryKey: ['transactions'] })
-
-      // Hiển thị thông báo dựa trên trạng thái giao dịch
-      if (result.status === 'Completed') {
-        toast.success(t('checkoutSuccess'))
-      } else {
-        // Pending, Approved hoặc trạng thái khác → chờ duyệt
-        toast.info(t('pendingApproval'))
-      }
+      toast.success(t('checkoutSuccess'))
     },
 
     onError: (err: unknown) => {

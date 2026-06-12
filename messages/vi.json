@@ -91,7 +91,7 @@
       "methods": {
         "cash": "Tiền mặt",
         "bank-transfer": "Chuyển khoản",
-        "qr": "QR Code"
+        "combined": "Tiền mặt + CK"
       }
     },
     "receipt": {
@@ -480,15 +480,25 @@
         "amountLak": "Quy đổi LAK",
         "time": "Thời gian"
       },
-      "direction": {
-        "In": "Thu",
-        "Out": "Chi"
-      },
       "method": {
         "Cash": "Tiền mặt",
         "BankTransfer": "Chuyển khoản",
-        "QR": "QR"
-      }
+        "QR": "QR",
+        "COMBINED": "Kết hợp"
+      },
+      "entryType": {
+        "INCOME": "Thu thủ công",
+        "EXPENSE": "Chi thủ công",
+        "SellGold": "Bán vàng",
+        "SellSilver": "Bán bạc",
+        "BuyGold": "Mua vào",
+        "ExchangeGold": "Đổi vàng",
+        "ExchangeCurrency": "Đổi ngoại tệ",
+        "BuyMoreGold": "Mua thêm",
+        "ExchangeFree": "Đổi miễn phí",
+        "ExchangeToMoney": "Đổi thành tiền"
+      },
+      "cancel": "Hủy"
     },
     "reports": {
       "title": "Báo cáo",
@@ -643,6 +653,22 @@
         "PRODUCT_MANAGE": "Quản lý sản phẩm & danh mục",
         "BRANCH_MANAGE": "Quản lý chi nhánh",
         "USER_MANAGE": "Quản lý người dùng & phân quyền"
+      },
+      "createButton": "Tạo vai trò",
+      "editInfoButton": "Sửa thông tin",
+      "deleteButton": "Xóa",
+      "createDialogTitle": "Tạo vai trò mới",
+      "editInfoDialogTitle": "Sửa thông tin vai trò",
+      "deleteConfirmTitle": "Xóa vai trò \"{name}\"?",
+      "deleteConfirmDescription": "Hành động này không thể hoàn tác. Vai trò sẽ bị xóa vĩnh viễn khỏi hệ thống.",
+      "deleteConfirmButton": "Xóa vĩnh viễn",
+      "fields": {
+        "code": "Mã vai trò",
+        "codePlaceholder": "VD: ACCOUNTANT",
+        "name": "Tên vai trò",
+        "namePlaceholder": "VD: Kế toán",
+        "description": "Mô tả",
+        "descriptionPlaceholder": "Mô tả ngắn về vai trò này"
       }
     },
     "users": {
@@ -824,6 +850,8 @@
     "table": {
       "noData": "Không có dữ liệu",
       "results": "{count} kết quả",
+      "showing": "Hiển thị {from}–{to} / {total}",
+      "rowsPerPage": "Dòng mỗi trang",
       "page": "Trang {page} / {total}",
       "searchPlaceholder": "Tìm kiếm..."
     },

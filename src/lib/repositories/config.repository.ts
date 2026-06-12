@@ -18,6 +18,8 @@ import type {
   AppRole,
   Permission,
   UpdateRolePermissionsDto,
+  CreateRoleDto,
+  UpdateRoleDto,
 } from '@/types/config'
 
 export class ConfigRepository {
@@ -174,6 +176,26 @@ export class ConfigRepository {
   async updateRolePermissions(roleId: string, dto: UpdateRolePermissionsDto): Promise<void> {
     try {
       await api.put(`/api/config/roles/${roleId}/permissions`, dto)
+    } catch (err) { throw handleAxiosError(err) }
+  }
+
+  async createRole(dto: CreateRoleDto): Promise<AppRole> {
+    try {
+      const { data } = await api.post<AppRole>('/api/config/roles', dto)
+      return data
+    } catch (err) { throw handleAxiosError(err) }
+  }
+
+  async updateRole(roleId: string, dto: UpdateRoleDto): Promise<AppRole> {
+    try {
+      const { data } = await api.put<AppRole>(`/api/config/roles/${roleId}`, dto)
+      return data
+    } catch (err) { throw handleAxiosError(err) }
+  }
+
+  async deleteRole(roleId: string): Promise<void> {
+    try {
+      await api.delete(`/api/config/roles/${roleId}`)
     } catch (err) { throw handleAxiosError(err) }
   }
 }

@@ -91,7 +91,7 @@
       "methods": {
         "cash": "Cash",
         "bank-transfer": "Bank Transfer",
-        "qr": "QR Code"
+        "combined": "Cash + Transfer"
       }
     },
     "receipt": {
@@ -363,13 +363,6 @@
         "weight": "Weight (gram)",
         "lastUpdated": "Last Updated"
       },
-      "noResults": "No results",
-      "totalAsset": "Total inventory value",
-      "tabs": {
-        "catalog": "Product catalog ({count})",
-        "declare": "Declare new product"
-      },
-      "statusDaDinhGia": "Priced",
       "summary": {
         "goldStock": "Total gold stock (Chi)",
         "silverStock": "Total silver stock",
@@ -498,15 +491,25 @@
         "amountLak": "LAK Amount",
         "time": "Time"
       },
-      "direction": {
-        "In": "In",
-        "Out": "Out"
-      },
       "method": {
         "Cash": "Cash",
         "BankTransfer": "Bank Transfer",
-        "QR": "QR"
-      }
+        "QR": "QR",
+        "COMBINED": "Combined"
+      },
+      "entryType": {
+        "INCOME": "Manual income",
+        "EXPENSE": "Manual expense",
+        "SellGold": "Sell gold",
+        "SellSilver": "Sell silver",
+        "BuyGold": "Buy gold",
+        "ExchangeGold": "Exchange gold",
+        "ExchangeCurrency": "Currency exchange",
+        "BuyMoreGold": "Trade up",
+        "ExchangeFree": "Free exchange",
+        "ExchangeToMoney": "Redeem to cash"
+      },
+      "cancel": "Cancel"
     },
     "reports": {
       "title": "Reports",
@@ -661,6 +664,22 @@
         "PRODUCT_MANAGE": "Manage Products & Categories",
         "BRANCH_MANAGE": "Manage Branches",
         "USER_MANAGE": "Manage Users & Permissions"
+      },
+      "createButton": "Create Role",
+      "editInfoButton": "Edit Info",
+      "deleteButton": "Delete",
+      "createDialogTitle": "Create New Role",
+      "editInfoDialogTitle": "Edit Role Info",
+      "deleteConfirmTitle": "Delete role \"{name}\"?",
+      "deleteConfirmDescription": "This action cannot be undone. The role will be permanently deleted.",
+      "deleteConfirmButton": "Delete permanently",
+      "fields": {
+        "code": "Role code",
+        "codePlaceholder": "e.g. ACCOUNTANT",
+        "name": "Role name",
+        "namePlaceholder": "e.g. Accountant",
+        "description": "Description",
+        "descriptionPlaceholder": "Short description of this role"
       }
     },
     "users": {
@@ -842,6 +861,8 @@
     "table": {
       "noData": "No data",
       "results": "{count} results",
+      "showing": "Showing {from}–{to} of {total}",
+      "rowsPerPage": "Rows per page",
       "page": "Page {page} / {total}",
       "searchPlaceholder": "Search..."
     },

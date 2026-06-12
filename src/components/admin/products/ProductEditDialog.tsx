@@ -1,18 +1,11 @@
 'use client'
 
-import { useEffect, useMemo, useState } from 'react'
+import { useMemo, useRef, useState } from 'react'
 import { useTranslations } from 'next-intl'
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog'
+import { Select } from 'antd'
+import { Dialog, DialogContent, DialogFooter } from '@/components/ui/dialog'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
-import {
-  Combobox,
-  ComboboxContent,
-  ComboboxEmpty,
-  ComboboxInput,
-  ComboboxItem,
-  ComboboxList,
-} from '@/components/ui/combobox'
 import { Field, FieldLabel } from '@/components/ui/field'
 import { Spinner } from '@/components/ui/spinner'
 import { useUpdateProduct, useCategories } from '@/hooks/useProducts'
@@ -26,48 +19,137 @@ interface Props {
   onClose: () => void
 }
 
+type FormData = {
+  productName: string
+  categoryId: string
+  purity: string
+  weightGram: string
+  productType: ProductType
+}
+
+type CategoryOption = { id: string; name: string }
+
+// Keyed inner component — remounts when `product` changes so form state
+// always initializes from the current entity without a useEffect.
+// submitRef is populated so the outer footer button can trigger submission.
+function ProductFormBody({
+  product,
+  categoryOptions,
+  submitRef,
+}: {
+  product: Product
+  categoryOptions: CategoryOption[]
+  submitRef: React.MutableRefObject<(() => FormData | null)>
+}) {
+  const t = useTranslations('admin.products')
+
+  const [productName, setProductName] = useState(() => product.productName)
+  const [categoryId, setCategoryId]   = useState(() => product.category.id)
+  const [purity, setPurity]           = useState(() => product.purity)
+  const [weightGram, setWeightGram]   = useState(() => String(product.weightGram))
+  const [productType, setProductType] = useState<ProductType>(() => product.productType)
+
+  submitRef.current = () => {
+    if (!productName || !categoryId || !purity || !weightGram || isNaN(parseFloat(weightGram))) return null
+    return { productName, categoryId, purity, weightGram, productType }
+  }
+
+  return (
+    <div className="space-y-3 py-1">
+      <Field>
+        <FieldLabel>{t('form.productCode')}</FieldLabel>
+        <Input value={product.productCode} disabled className="h-9 font-mono bg-muted/50" />
+      </Field>
+
+      <Field>
+        <FieldLabel>{t('form.productName')}</FieldLabel>
+        <Input value={productName} onChange={e => setProductName(e.target.value)} className="h-9" />
+      </Field>
+
+      <div className="grid grid-cols-2 gap-3">
+        <Field>
+          <FieldLabel>{t('form.category')}</FieldLabel>
+          <Select
+            value={categoryId || undefined}
+            onChange={v => v && setCategoryId(v)}
+            placeholder={t('form.categoryPlaceholder')}
+            options={categoryOptions.map(c => ({ value: c.id, label: c.name }))}
+            showSearch
+            filterOption={(input, opt) => (opt?.label as string ?? '').toLowerCase().includes(input.toLowerCase())}
+            notFoundContent="Không tìm thấy"
+            className="w-full"
+            popupMatchSelectWidth={false}
+          />
+        </Field>
+        <Field>
+          <FieldLabel>{t('form.purity')}</FieldLabel>
+          <Select
+            value={purity || undefined}
+            onChange={v => v && setPurity(v)}
+            placeholder={t('form.purityPlaceholder')}
+            options={PURITY_OPTIONS.map(p => ({ value: p, label: p }))}
+            showSearch
+            filterOption={(input, opt) => (opt?.label as string ?? '').toLowerCase().includes(input.toLowerCase())}
+            notFoundContent="Không tìm thấy"
+            className="w-full"
+            popupMatchSelectWidth={false}
+          />
+        </Field>
+      </div>
+
+      <div className="grid grid-cols-2 gap-3">
+        <Field>
+          <FieldLabel>{t('form.weight')}</FieldLabel>
+          <Input
+            type="number"
+            min={0}
+            step="0.01"
+            value={weightGram}
+            onChange={e => setWeightGram(e.target.value)}
+            placeholder="3.75"
+            className="h-9"
+          />
+        </Field>
+        <Field>
+          <FieldLabel>{t('form.productType')}</FieldLabel>
+          <Select
+            value={productType}
+            onChange={v => v && setProductType(v as ProductType)}
+            options={PRODUCT_TYPE_OPTIONS.map(pt => ({ value: pt, label: t(`productTypes.${pt}`) }))}
+            className="w-full"
+            popupMatchSelectWidth={false}
+          />
+        </Field>
+      </div>
+    </div>
+  )
+}
+
 export function ProductEditDialog({ product, onClose }: Props) {
   const t = useTranslations('admin.products')
   const { mutate: update, isPending } = useUpdateProduct()
   const { data: categories = [] } = useCategories()
+  const submitRef = useRef<() => FormData | null>(() => null)
 
   const categoryOptions = useMemo(() => {
     if (!product) return categories
-    const included = categories.some((c) => c.id === product.category.id)
+    const included = categories.some(c => c.id === product.category.id)
     return included ? categories : [product.category, ...categories]
   }, [categories, product])
 
-  const [productName, setProductName] = useState('')
-  const [categoryId, setCategoryId] = useState('')
-  const [purity, setPurity] = useState('')
-  const [weightGram, setWeightGram] = useState('')
-  const [productType, setProductType] = useState<ProductType>('NguyenKhoi')
-
-  useEffect(() => {
-    if (product) {
-      setProductName(product.productName)
-      setCategoryId(product.category.id)
-      setPurity(product.purity)
-      setWeightGram(String(product.weightGram))
-      setProductType(product.productType)
-    }
-  }, [product])
-
-  if (!product) return null
-
-  const disabled = !productName || !categoryId || !purity || !weightGram || isNaN(parseFloat(weightGram))
-
-  const handleSubmit = () => {
-    if (disabled) return
+  function handleSubmit() {
+    if (!product) return
+    const data = submitRef.current()
+    if (!data) return
     update(
       {
         id: product.id,
         dto: {
-          productName: productName.trim(),
-          productCategoryId: categoryId,
-          purity,
-          weightGram: parseFloat(weightGram),
-          productType,
+          productName: data.productName.trim(),
+          productCategoryId: data.categoryId,
+          purity: data.purity,
+          weightGram: parseFloat(data.weightGram),
+          productType: data.productType,
         },
       },
       { onSuccess: onClose },
@@ -75,106 +157,30 @@ export function ProductEditDialog({ product, onClose }: Props) {
   }
 
   return (
-    <Dialog open={!!product} onOpenChange={(o) => !o && onClose()}>
-      <DialogContent className="sm:max-w-2xl">
-        <DialogHeader>
-          <DialogTitle>{t('editDialog.title')}</DialogTitle>
-        </DialogHeader>
-
-        <div className="space-y-3 py-1">
-          <Field>
-            <FieldLabel>{t('form.productCode')}</FieldLabel>
-            <Input value={product.productCode} disabled className="font-mono bg-muted/50" />
-          </Field>
-
-          <Field>
-            <FieldLabel>{t('form.productName')}</FieldLabel>
-            <Input value={productName} onChange={(e) => setProductName(e.target.value)} />
-          </Field>
-
-          <div className="grid grid-cols-2 gap-3">
-            <Field>
-              <FieldLabel>{t('form.category')}</FieldLabel>
-              <Combobox
-                value={categoryId || null}
-                onValueChange={v => v && setCategoryId(v)}
-              >
-                <ComboboxInput
-                  placeholder={t('form.categoryPlaceholder')}
-                  className="h-9"
-                />
-                <ComboboxContent>
-                  <ComboboxList>
-                    {categoryOptions.map((c) => (
-                      <ComboboxItem key={c.id} value={c.id}>{c.name}</ComboboxItem>
-                    ))}
-                  </ComboboxList>
-                  <ComboboxEmpty>—</ComboboxEmpty>
-                </ComboboxContent>
-              </Combobox>
-            </Field>
-            <Field>
-              <FieldLabel>{t('form.purity')}</FieldLabel>
-              <Combobox
-                value={purity || null}
-                onValueChange={v => v && setPurity(v)}
-              >
-                <ComboboxInput
-                  placeholder={t('form.purityPlaceholder')}
-                  className="h-9"
-                />
-                <ComboboxContent>
-                  <ComboboxList>
-                    {PURITY_OPTIONS.map((p) => (
-                      <ComboboxItem key={p} value={p}>{p}</ComboboxItem>
-                    ))}
-                  </ComboboxList>
-                  <ComboboxEmpty>—</ComboboxEmpty>
-                </ComboboxContent>
-              </Combobox>
-            </Field>
-          </div>
-
-          <div className="grid grid-cols-2 gap-3">
-            <Field>
-              <FieldLabel>{t('form.weight')}</FieldLabel>
-              <Input
-                type="number"
-                min={0}
-                step="0.01"
-                value={weightGram}
-                onChange={(e) => setWeightGram(e.target.value)}
-                placeholder="3.75"
-              />
-            </Field>
-            <Field>
-              <FieldLabel>{t('form.productType')}</FieldLabel>
-              <Combobox
-                value={productType}
-                onValueChange={v => v && setProductType(v as ProductType)}
-              >
-                <ComboboxInput className="h-9" />
-                <ComboboxContent>
-                  <ComboboxList>
-                    {PRODUCT_TYPE_OPTIONS.map((pt) => (
-                      <ComboboxItem key={pt} value={pt}>{t(`productTypes.${pt}`)}</ComboboxItem>
-                    ))}
-                  </ComboboxList>
-                </ComboboxContent>
-              </Combobox>
-            </Field>
-          </div>
-        </div>
-
-        <DialogFooter>
-          <Button variant="outline" onClick={onClose} disabled={isPending}>
-            {t('editDialog.cancel')}
-          </Button>
-          <Button onClick={handleSubmit} disabled={isPending || disabled}>
-            {isPending && <Spinner className="mr-2" />}
-            {t('editDialog.submit')}
-          </Button>
-        </DialogFooter>
+    <Dialog open={!!product} onOpenChange={o => !o && onClose()}>
+      <DialogContent
+        className="sm:max-w-2xl"
+        title={t('editDialog.title')}
+        footer={
+          <DialogFooter>
+            <Button variant="outline" onClick={onClose} disabled={isPending}>
+              {t('editDialog.cancel')}
+            </Button>
+            <Button onClick={handleSubmit} disabled={isPending}>
+              {isPending && <Spinner className="mr-2" />}
+              {t('editDialog.submit')}
+            </Button>
+          </DialogFooter>
+        }
+      >
+        {product && (
+          <ProductFormBody
+            key={product.id}
+            product={product}
+            categoryOptions={categoryOptions}
+            submitRef={submitRef}
+          />
+        )}
       </DialogContent>
     </Dialog>
   )

@@ -14,6 +14,7 @@ import { useActiveTab } from '@/hooks/useActiveTab'
 import { Badge } from '@/components/ui/badge'
 import { Input } from '@/components/ui/input'
 import { ExchangeInvoiceLookup } from './ExchangeInvoiceLookup'
+import { CurrencyExchangeForm } from './CurrencyExchangeForm'
 import {
   ArrowDownToLine, ArrowUpFromLine, Minus, Plus, Trash2,
   ShoppingCart, Package, AlertTriangle,
@@ -54,8 +55,12 @@ function InfoBar({ label, status, customerName, note }: {
 
 // ─── QtyControl ───────────────────────────────────────────────────────────────
 
-function QtyControl({ qty, onDecrease, onIncrease, disabled }: {
-  qty: number; onDecrease: () => void; onIncrease: () => void; disabled?: boolean
+function QtyControl({ qty, onDecrease, onIncrease, onSetQty, disabled }: {
+  qty: number
+  onDecrease: () => void
+  onIncrease: () => void
+  onSetQty?: (qty: number) => void
+  disabled?: boolean
 }) {
   return (
     <div className="flex items-center">
@@ -63,9 +68,29 @@ function QtyControl({ qty, onDecrease, onIncrease, disabled }: {
         className="h-6 w-6 flex items-center justify-center rounded-l-sm border border-r-0 bg-muted hover:bg-accent disabled:opacity-40 transition-colors">
         <Minus className="h-2.5 w-2.5" />
       </button>
-      <span className="h-6 w-8 flex items-center justify-center border-y text-xs font-semibold tabular-nums bg-background select-none">
-        {qty}
-      </span>
+      <input
+        key={qty}
+        type="number"
+        min={1}
+        defaultValue={qty}
+        disabled={disabled}
+        onFocus={e => e.target.select()}
+        onKeyDown={e => {
+          if (e.key === 'Enter') {
+            e.preventDefault()
+            const n = parseInt(e.currentTarget.value, 10)
+            if (!isNaN(n) && n >= 1) { onSetQty?.(n); e.currentTarget.blur() }
+            else e.currentTarget.value = String(qty)
+          }
+          if (e.key === 'Escape') { e.currentTarget.value = String(qty); e.currentTarget.blur() }
+        }}
+        onBlur={e => {
+          const n = parseInt(e.currentTarget.value, 10)
+          if (isNaN(n) || n < 1) e.currentTarget.value = String(qty)
+          else onSetQty?.(n)
+        }}
+        className="h-6 w-10 text-center border-y text-xs font-semibold tabular-nums bg-background outline-none focus:ring-1 focus:ring-inset focus:ring-primary disabled:opacity-40"
+      />
       <button onClick={onIncrease} disabled={disabled}
         className="h-6 w-6 flex items-center justify-center rounded-r-sm border border-l-0 bg-muted hover:bg-accent disabled:opacity-40 transition-colors">
         <Plus className="h-2.5 w-2.5" />
@@ -131,7 +156,8 @@ function SellTable({ items, onQtyChange, onDelete }: {
             <td className="px-3 py-2.5">
               <QtyControl qty={item.qty} disabled={item.isReadOnly}
                 onDecrease={() => onQtyChange(item.productId, item.qty - 1)}
-                onIncrease={() => onQtyChange(item.productId, item.qty + 1)} />
+                onIncrease={() => onQtyChange(item.productId, item.qty + 1)}
+                onSetQty={(q) => onQtyChange(item.productId, q)} />
             </td>
             <td className="px-3 py-2.5 text-xs tabular-nums text-muted-foreground whitespace-nowrap">
               {item.unitPriceLakPerGram.toLocaleString('lo-LA')} ₭/g
@@ -184,7 +210,8 @@ function BuyGoldTable({ items, onQtyChange, onDelete }: {
             <td className="px-3 py-2.5">
               <QtyControl qty={item.qty}
                 onDecrease={() => onQtyChange(item.productId, item.qty - 1)}
-                onIncrease={() => onQtyChange(item.productId, item.qty + 1)} />
+                onIncrease={() => onQtyChange(item.productId, item.qty + 1)}
+                onSetQty={(q) => onQtyChange(item.productId, q)} />
             </td>
             <td className="px-3 py-2.5 text-xs tabular-nums text-muted-foreground whitespace-nowrap">
               {item.unitPriceLakPerGram.toLocaleString('lo-LA')} ₭/g
@@ -410,6 +437,7 @@ export function TransactionTable() {
   const txnType = tab?.txnType ?? 'SellGold'
   const discount = tab?.discountAmount ?? 0
   const isExchange = txnType === 'ExchangeGold'
+  const isFx = txnType === 'ExchangeCurrency'
   const isBuy = txnType === 'BuyGold'
 
   return (
@@ -422,7 +450,9 @@ export function TransactionTable() {
       />
 
       <div className="flex-1 overflow-auto min-h-0">
-        {isExchange ? (
+        {isFx ? (
+          <CurrencyExchangeForm />
+        ) : isExchange ? (
           <ExchangeGoldTable
             items={items}
             totalA={totalA} totalB={totalB} netTotal={netTotal}
@@ -448,7 +478,7 @@ export function TransactionTable() {
         )}
       </div>
 
-      {!isExchange && (
+      {!isExchange && !isFx && (
         <SummaryBar
           txnType={txnType}
           subtotal={subtotal}

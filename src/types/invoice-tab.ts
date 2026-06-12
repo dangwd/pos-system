@@ -31,6 +31,13 @@ export interface InvoiceTab {
   linkedInvoiceCode: string | null
   /** productId của các CartItem ExchangeIn được load từ HĐ liên kết */
   linkedInvoiceItemKeys: string[]
+
+  // ── ExchangeCurrency: dữ liệu ngoại tệ ───────────────────────────────────────
+  fxFromCurrency: string   // mặc định "USD"
+  fxToCurrency: string     // mặc định "LAK"
+  fxFromAmount: number     // số tiền khách đưa
+  fxToAmount: number       // số tiền khách nhận
+  fxLakAmount: number      // giá trị quy LAK (ghi sổ)
 }
 
 export interface InvoiceTabStore {
@@ -62,4 +69,7 @@ export interface InvoiceTabStore {
   clearLinkedInvoice: () => void
 
   getActiveTab: () => InvoiceTab | undefined
+
+  /** Cập nhật dữ liệu ngoại tệ cho active tab (ExchangeCurrency) */
+  setFxDataInActive: (fromCurrency: string, toCurrency: string, fromAmount: number, toAmount: number, lakAmount: number) => void
 }

@@ -22,7 +22,7 @@ import { useActiveTab } from './useActiveTab'
 import { useCheckout } from './useCheckout'
 import { useCoupon } from './useCoupon'
 import { useInvoiceTabStore } from '@/stores/invoice-tab.store'
-import { CashStrategy, BankTransferStrategy, QRStrategy } from '@/lib/strategies'
+import { CashStrategy, BankTransferStrategy, CombinedStrategy } from '@/lib/strategies'
 import { configRepository } from '@/lib/repositories/config.repository'
 
 import type { Product } from '@/types/product'
@@ -34,7 +34,7 @@ import type { TransactionType } from '@/types/transaction'
 const STRATEGIES = {
   'cash': new CashStrategy(),
   'bank-transfer': new BankTransferStrategy(),
-  'qr': new QRStrategy(),
+  'combined': new CombinedStrategy(),
 } as const
 
 export function usePos() {
@@ -134,7 +134,8 @@ export function usePos() {
     type: TransactionType
     customerId?: string
     note?: string
-    depositAmount?: number
+    cashAmount?: number
+    bankAmount?: number
     referenceInvoiceCode?: string
   }) => checkoutMutate(params)
 

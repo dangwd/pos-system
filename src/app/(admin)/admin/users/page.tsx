@@ -1,8 +1,9 @@
 'use client'
 
-import { useEffect, useMemo, useRef, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { useTranslations } from 'next-intl'
 import { Plus } from 'lucide-react'
+import { Select } from 'antd'
 import { TablePageSkeleton } from '@/components/shared/PageSkeleton'
 import { DataTable } from '@/components/shared/DataTable'
 import { createUserColumns } from '@/components/admin/columns/user-columns'
@@ -13,28 +14,14 @@ import { UserResetPasswordDialog } from '@/components/admin/users/UserResetPassw
 import { UserAssignCounterDialog } from '@/components/admin/users/UserAssignCounterDialog'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
-import {
-  Combobox,
-  ComboboxContent,
-  ComboboxEmpty,
-  ComboboxInput,
-  ComboboxItem,
-  ComboboxList,
-  ComboboxTrigger,
-} from '@/components/ui/combobox'
 import { useUsersPaged, useActivateUser, useDeactivateUser } from '@/hooks/useUsers'
 import { useBranches } from '@/hooks/useBranches'
 import type { AdminUser } from '@/types/admin-user'
-
-const TRIGGER = "inline-flex h-8 items-center justify-between gap-2 rounded-md border border-input bg-background px-3 text-sm font-normal hover:bg-accent hover:text-accent-foreground transition-colors w-full"
 
 const PAGE_SIZE = 20
 
 export default function UsersPage() {
   const t = useTranslations('admin.users')
-
-  const branchAnchor = useRef<HTMLDivElement>(null)
-  const activeAnchor = useRef<HTMLDivElement>(null)
 
   const [createOpen, setCreateOpen] = useState(false)
   const [editInfoUser, setEditInfoUser] = useState<AdminUser | null>(null)
@@ -57,8 +44,6 @@ export default function UsersPage() {
     () => Object.fromEntries(branches.map(b => [b.id, b.name])),
     [branches],
   )
-
-  const selectedBranch = branches.find(b => b.id === filterBranchId)
 
   const { data, isLoading } = useUsersPaged({
     branchId: filterBranchId ?? undefined,
@@ -132,53 +117,32 @@ export default function UsersPage() {
         />
 
         {/* Branch */}
-        <div ref={branchAnchor} className="inline-flex min-w-48">
-          <Combobox
-            value={filterBranchId ?? ""}
-            onValueChange={v => { setFilterBranchId(v || null); setPage(1) }}
-          >
-            <ComboboxTrigger className={TRIGGER}>
-              {selectedBranch
-                ? selectedBranch.name
-                : <span className="text-muted-foreground">{t('filterAll')}</span>
-              }
-            </ComboboxTrigger>
-            <ComboboxContent anchor={branchAnchor}>
-              <ComboboxInput placeholder={t('filterAll')} />
-              <ComboboxList>
-                <ComboboxItem value="">{t('filterAll')}</ComboboxItem>
-                {branches.map(b => (
-                  <ComboboxItem key={b.id} value={b.id}>{b.name}</ComboboxItem>
-                ))}
-              </ComboboxList>
-              <ComboboxEmpty>Không tìm thấy</ComboboxEmpty>
-            </ComboboxContent>
-          </Combobox>
-        </div>
+        <Select
+          value={filterBranchId || undefined}
+          onChange={v => { setFilterBranchId(v ?? null); setPage(1) }}
+          placeholder={t('filterAll')}
+          options={branches.map(b => ({ value: b.id, label: b.name }))}
+          showSearch
+          allowClear
+          filterOption={(input, opt) => (opt?.label as string ?? '').toLowerCase().includes(input.toLowerCase())}
+          notFoundContent="Không tìm thấy"
+          className="min-w-48"
+          popupMatchSelectWidth={false}
+        />
 
         {/* Active status */}
-        <div ref={activeAnchor} className="inline-flex min-w-36">
-          <Combobox
-            value={filterIsActive ?? ""}
-            onValueChange={v => { setFilterIsActive(v || null); setPage(1) }}
-          >
-            <ComboboxTrigger className={TRIGGER}>
-              {filterIsActive === 'active'
-                ? t('status.active')
-                : filterIsActive === 'inactive'
-                  ? t('status.inactive')
-                  : <span className="text-muted-foreground">{t('filterAllStatus')}</span>
-              }
-            </ComboboxTrigger>
-            <ComboboxContent anchor={activeAnchor}>
-              <ComboboxList>
-                <ComboboxItem value="">{t('filterAllStatus')}</ComboboxItem>
-                <ComboboxItem value="active">{t('status.active')}</ComboboxItem>
-                <ComboboxItem value="inactive">{t('status.inactive')}</ComboboxItem>
-              </ComboboxList>
-            </ComboboxContent>
-          </Combobox>
-        </div>
+        <Select
+          value={filterIsActive || undefined}
+          onChange={v => { setFilterIsActive(v ?? null); setPage(1) }}
+          placeholder={t('filterAllStatus')}
+          options={[
+            { value: 'active', label: t('status.active') },
+            { value: 'inactive', label: t('status.inactive') },
+          ]}
+          allowClear
+          className="min-w-36"
+          popupMatchSelectWidth={false}
+        />
       </div>
 
       {isLoading ? <TablePageSkeleton /> : (
