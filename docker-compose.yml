@@ -16,8 +16,9 @@ services:
     image: pos-system:latest
     container_name: pos-web
     restart: unless-stopped
-    ports:
-      - "${WEB_PORT:-3000}:3000"
+    # KHÔNG publish ra host — chỉ Nginx (service bên dưới) truy cập web:3000.
+    expose:
+      - "3000"
     environment:
       - NODE_ENV=production
     # Cho phép container truy cập backend chạy trên máy host (Linux).
@@ -29,6 +30,23 @@ services:
       timeout: 5s
       retries: 3
       start_period: 20s
+
+  # ── Nginx reverse proxy ──────────────────────────────────────────────────────
+  # Cổng vào DUY NHẤT. Route /api/* → backend host:5056, còn lại → web:3000.
+  # Nhờ proxy này, browser gọi /api/... tương đối (axios baseURL='') — không CORS.
+  nginx:
+    image: nginx:alpine
+    container_name: pos-nginx
+    restart: unless-stopped
+    depends_on:
+      - web
+    ports:
+      - "${PUBLIC_PORT:-2222}:80"
+    volumes:
+      - ./nginx.conf:/etc/nginx/nginx.conf:ro
+    # host.docker.internal → máy host (nơi backend ASP.NET Core lắng nghe :5056).
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
 
   # ── Backend (tham khảo) — bật khi muốn chạy chung 1 compose ─────────────────
   # backend:
