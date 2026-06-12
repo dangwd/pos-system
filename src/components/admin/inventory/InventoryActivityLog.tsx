@@ -14,10 +14,11 @@ interface Props {
 export function InventoryActivityLog({ branchId, branchName }: Props) {
   const t = useTranslations('admin.inventory.activityLog')
 
-  const { data: logs = [], isLoading } = useInventoryAdjustments(
+  const { data: logsPage, isLoading } = useInventoryAdjustments(
     branchId ? { branchId } : undefined,
     !!branchId,
   )
+  const logs = logsPage?.data ?? []
 
   return (
     <div className="rounded-xl border bg-card p-4">

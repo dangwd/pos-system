@@ -19,6 +19,7 @@ import { useCustomers } from "@/hooks/useCustomers";
 import type { Customer } from "@/types/customer";
 import {
   CreditCard,
+  Loader2,
   Plus,
   Receipt,
   ScanLine,
@@ -225,7 +226,7 @@ function CustomerSection() {
               />
               {isFetching && (
                 <div className="absolute right-2.5 top-1/2 -translate-y-1/2 pointer-events-none">
-                  <Spinner className="h-3 w-3" />
+                  <Loader2 className="h-3 w-3 animate-spin" />
                 </div>
               )}
             </div>

@@ -37,13 +37,15 @@ export type AdjustDirection = 'IN' | 'OUT'
 export interface InventoryItem {
   id: string
   branchId: string
+  counterId: string          // Guid quầy giao dịch (Migration: 20260611042622)
+  counterName: string        // Tên quầy (snapshot)
   productCode: string        // Mã sản phẩm (snapshot)
   productName: string        // Tên sản phẩm (snapshot)
   category: string           // Mã danh mục (ví dụ: "VANG_24K")
   purity: string             // Tuổi vàng (ví dụ: "24K")
   trayId: string             // Mã khay trưng bày (ví dụ: "KHAY-A1")
   quantity: number           // Số lượng hiện tại
-  weightGram: number         // Tổng trọng lượng (gram)
+  weightGram: number         // Tổng trọng lượng lô (gram) — = mỗi món × quantity
   trangThai: InventoryStatus
   nguonGoc: InventorySource
   lastUpdatedAt: string      // ISO 8601
@@ -52,15 +54,17 @@ export interface InventoryItem {
 /** Log điều chỉnh kho (`InventoryAdjustmentLog`, mã `ADJ-xxx`) */
 export interface InventoryAdjustment {
   id: string
-  adjustmentCode: string     // ADJ-001, ADJ-002, ...
+  adjustmentCode: string          // ADJ-001, ADJ-002, ...
+  branchId: string
+  branchName: string
   inventoryItemId: string
-  productName: string        // Tên sản phẩm (snapshot)
+  productName: string             // Tên sản phẩm (snapshot)
   direction: AdjustDirection
   quantity: number
-  weightGram: number         // Trọng lượng biến động (gram)
   reason: string
-  createdBy: string
-  createdAt: string          // ISO 8601
+  paymentMethod: 'CASH' | 'BANK' | null
+  actualValue: number | null      // Giá trị thực tế lô hàng (LAK)
+  createdAt: string               // ISO 8601
 }
 
 // ─── DTOs ─────────────────────────────────────────────────────────────────────
@@ -70,6 +74,8 @@ export interface AdjustInventoryDto {
   direction: AdjustDirection
   quantity: number
   reason: string
+  paymentMethod?: 'CASH' | 'BANK'   // Phương thức thanh toán (nếu có)
+  actualValue?: number               // Giá trị thực tế lô hàng (LAK)
 }
 
 /** Kết quả POST /api/inventory/{id}/adjust — backend trả `{ item, log }` */
@@ -86,10 +92,11 @@ export interface UpdateInventoryStatusDto {
 /** Query params cho GET /api/inventory */
 export interface InventoryListParams {
   branchId?: string
+  counterId?: string         // Lọc theo quầy giao dịch
   category?: string          // Mã danh mục
-  trayId?: string
   status?: InventoryStatus   // TiepNhan | DaDinhGia | TrenQuay | DaBan | ChuyenXuong
   nguonGoc?: InventorySource // Quan | Ngoai
+  keyword?: string           // Tìm theo mã SP, tên, loại, tên quầy
   page?: number
   pageSize?: number
 }
@@ -97,5 +104,27 @@ export interface InventoryListParams {
 /** Query params cho GET /api/inventory/adjustments */
 export interface InventoryAdjustmentParams {
   branchId?: string
-  limit?: number             // Mặc định 20
+  counterId?: string
+  keyword?: string           // Tìm theo mã điều chỉnh, tên SP, lý do, tên chi nhánh
+  page?: number
+  pageSize?: number
+}
+
+// ─── Bulk update ──────────────────────────────────────────────────────────────
+
+/** Một item trong PATCH /api/inventory/bulk */
+export interface BulkUpdateInventoryItem {
+  id: string
+  trangThai: InventoryStatus
+}
+
+/** Request body PATCH /api/inventory/bulk */
+export interface BulkUpdateInventoryDto {
+  items: BulkUpdateInventoryItem[]
+}
+
+/** Response PATCH /api/inventory/bulk — partial success */
+export interface BulkUpdateInventoryResult {
+  updatedCount: number
+  notFoundIds: string[]       // IDs không tìm thấy (partial success)
 }

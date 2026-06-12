@@ -113,7 +113,7 @@ export default function UsersPage() {
           placeholder={t('searchPlaceholder')}
           value={searchInput}
           onChange={e => setSearchInput(e.target.value)}
-          className="h-8 w-56 text-sm"
+          className=" w-56 text-sm"
         />
 
         {/* Branch */}

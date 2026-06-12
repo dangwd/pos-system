@@ -17,6 +17,8 @@ import type {
   AdjustInventoryDto,
   AdjustInventoryResult,
   UpdateInventoryStatusDto,
+  BulkUpdateInventoryDto,
+  BulkUpdateInventoryResult,
   InventoryListParams,
   InventoryAdjustmentParams,
 } from '@/types/inventory'
@@ -86,12 +88,26 @@ export class InventoryRepository {
     }
   }
 
-  /** Lịch sử điều chỉnh kho (lọc theo chi nhánh, mặc định 20 bản ghi mới nhất) */
-  async getAdjustments(params?: InventoryAdjustmentParams): Promise<InventoryAdjustment[]> {
+  /** Lịch sử điều chỉnh kho */
+  async getAdjustments(params?: InventoryAdjustmentParams): Promise<PagedResult<InventoryAdjustment>> {
     try {
-      const { data } = await api.get<InventoryAdjustment[] | RawPagedResult<InventoryAdjustment>>(`${this.base}/adjustments`, { params })
-      if (Array.isArray(data)) return data
-      return normalizePaged(data).data
+      const queryParams = { page: 1, pageSize: 20, ...params }
+      const { data } = await api.get<RawPagedResult<InventoryAdjustment>>(`${this.base}/adjustments`, { params: queryParams })
+      return normalizePaged(data)
+    } catch (err) {
+      throw handleAxiosError(err)
+    }
+  }
+
+  /**
+   * Cập nhật trạng thái nhiều mục kho cùng lúc (partial success).
+   * Kiểm tra `notFoundIds` để phát hiện item không tồn tại.
+   * Role: InventoryManage (Manager, SystemAdmin).
+   */
+  async bulkUpdateStatus(dto: BulkUpdateInventoryDto): Promise<BulkUpdateInventoryResult> {
+    try {
+      const { data } = await api.patch<BulkUpdateInventoryResult>(`${this.base}/bulk`, dto)
+      return data
     } catch (err) {
       throw handleAxiosError(err)
     }

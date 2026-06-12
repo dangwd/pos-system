@@ -3,14 +3,12 @@
 import { useMemo, useRef, useState } from 'react'
 import { useTranslations } from 'next-intl'
 import { Plus, ShieldCheck, MoreHorizontal, Pencil, Trash2 } from 'lucide-react'
-import { Form } from 'antd'
-import { Button } from '@/components/ui/button'
+import { Button, Form } from 'antd'
 import { Badge } from '@/components/ui/badge'
 import { Checkbox } from '@/components/ui/checkbox'
 import { Input } from '@/components/ui/input'
-import { Spinner } from '@/components/ui/spinner'
 import {
-  Dialog, DialogContent, DialogFooter,
+  Dialog, DialogContent,
 } from '@/components/ui/dialog'
 import {
   DropdownMenu, DropdownMenuTrigger, DropdownMenuContent,
@@ -97,16 +95,15 @@ function PermissionsDialog({
   return (
     <Dialog open={!!role} onOpenChange={(o) => !o && onClose()}>
       <DialogContent
-        className="sm:max-w-5xl max-h-[90vh] flex flex-col p-0 gap-0"
+        className="max-w-5xl max-h-[90vh] p-0"
         title={<span className="text-base">{t('editDialogTitle', { name: role?.name ?? '' })}</span>}
         footer={
-          <DialogFooter className="px-6 py-4 border-t shrink-0">
-            <Button variant="outline" onClick={onClose} disabled={isPending}>{t('cancel')}</Button>
-            <Button onClick={handleSave} disabled={isPending}>
-              {isPending && <Spinner className="mr-2" />}
+          <>
+            <Button onClick={onClose} disabled={isPending}>{t('cancel')}</Button>
+            <Button type="primary" onClick={handleSave} loading={isPending}>
               {t('saveButton')}
             </Button>
-          </DialogFooter>
+          </>
         }
       >
         <div className="flex items-center gap-2 px-6 pt-3 pb-1 shrink-0">
@@ -180,15 +177,12 @@ function PermissionsDialog({
             </div>
           )}
         </div>
-
       </DialogContent>
     </Dialog>
   )
 }
 
-// ─── RoleFormDialog — Create & Edit Info ──────────────────────────────────────
-// Outer: Dialog shell + mutations. Inner (RoleFormBody) is keyed so useState
-// reinitialises whenever the target switches between create and different roles.
+// ─── RoleFormDialog ───────────────────────────────────────────────────────────
 
 function RoleFormDialog({
   target, onClose,
@@ -228,13 +222,12 @@ function RoleFormDialog({
         className="sm:max-w-md"
         title={isCreate ? t('createDialogTitle') : t('editInfoDialogTitle')}
         footer={
-          <DialogFooter>
-            <Button variant="outline" onClick={onClose} disabled={isPending}>{t('cancel')}</Button>
-            <Button onClick={handleSave} disabled={isPending}>
-              {isPending && <Spinner className="mr-2" />}
+          <>
+            <Button onClick={onClose} disabled={isPending}>{t('cancel')}</Button>
+            <Button type="primary" onClick={handleSave} loading={isPending}>
               {t('saveButton')}
             </Button>
-          </DialogFooter>
+          </>
         }
       >
         {open && (
@@ -312,13 +305,12 @@ function DeleteConfirmDialog({ role, onClose }: { role: DeleteTarget; onClose: (
         className="sm:max-w-sm"
         title={t('deleteConfirmTitle', { name: role?.name ?? '' })}
         footer={
-          <DialogFooter>
-            <Button variant="outline" onClick={onClose} disabled={isPending}>{t('cancel')}</Button>
-            <Button variant="destructive" onClick={handleDelete} disabled={isPending}>
-              {isPending && <Spinner className="mr-2" />}
+          <>
+            <Button onClick={onClose} disabled={isPending}>{t('cancel')}</Button>
+            <Button danger type="primary" onClick={handleDelete} loading={isPending}>
               {t('deleteConfirmButton')}
             </Button>
-          </DialogFooter>
+          </>
         }
       >
         <p className="text-sm text-muted-foreground">{t('deleteConfirmDescription')}</p>
@@ -347,8 +339,11 @@ export default function RolesPage() {
           <h1 className="text-2xl font-bold">{t('title')}</h1>
           <p className="text-sm text-muted-foreground mt-0.5">{t('subtitle', { count: roles.length })}</p>
         </div>
-        <Button size="sm" className="gap-1.5" onClick={() => setInfoEditTarget('create')}>
-          <Plus className="h-4 w-4" />
+        <Button
+          type="primary"
+          icon={<Plus size={14} />}
+          onClick={() => setInfoEditTarget('create')}
+        >
           {t('createButton')}
         </Button>
       </div>
@@ -388,8 +383,10 @@ export default function RolesPage() {
                   </td>
                   <td className="px-4 py-3 text-right">
                     <div className="flex items-center justify-end gap-1">
-                      <Button size="sm" variant="outline" className="h-7 text-xs"
-                        onClick={() => setPermEditTarget(role)}>
+                      <Button
+                        size="small"
+                        onClick={() => setPermEditTarget(role)}
+                      >
                         {t('editButton')}
                       </Button>
                       {!role.isSystem && (

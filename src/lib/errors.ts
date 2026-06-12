@@ -175,6 +175,41 @@ const ERROR_MESSAGES: Record<string, ErrorMap> = {
     vi: "Direction phải là IN hoặc OUT",
     en: "Direction must be IN or OUT",
   },
+  INVENTORY_INVALID_QUANTITY: {
+    lo: "ຈຳນວນການປັບແຕ່ງຕ້ອງມີຄ່າຫຼາຍກ່ວາ 0",
+    vi: "Số lượng điều chỉnh phải lớn hơn 0",
+    en: "Adjustment quantity must be greater than 0",
+  },
+  INVENTORY_REASON_REQUIRED: {
+    lo: "ກະລຸນາລະບຸເຫດຜົນໃນການປັບແຕ່ງ",
+    vi: "Lý do điều chỉnh kho là bắt buộc",
+    en: "Inventory adjustment reason is required",
+  },
+  INVENTORY_BULK_EMPTY: {
+    lo: "ລາຍການ bulk update ບໍ່ສາມາດຫວ່າງໄດ້",
+    vi: "Danh sách cập nhật hàng loạt không được rỗng",
+    en: "Bulk update items list cannot be empty",
+  },
+  INVENTORY_INVALID_STATUS: {
+    lo: "ສະຖານະ trangThai ບໍ່ຖືກຕ້ອງ",
+    vi: "Giá trị trạng thái trangThai không hợp lệ",
+    en: "Invalid trangThai status value",
+  },
+  EXCHANGE_FREE_REFERENCE_REQUIRED: {
+    lo: "ExchangeFree ຕ້ອງລະບຸ referenceInvoiceCode",
+    vi: "ExchangeFree bắt buộc truyền mã hóa đơn gốc (referenceInvoiceCode)",
+    en: "referenceInvoiceCode is required for ExchangeFree",
+  },
+  EXCHANGE_FREE_REFERENCE_NOT_FOUND: {
+    lo: "ບໍ່ພົບໃບບິນທ່ຽງຕ້ອງ",
+    vi: "Không tìm thấy hóa đơn gốc",
+    en: "Reference invoice not found",
+  },
+  EXCHANGE_FREE_REFERENCE_EXPIRED: {
+    lo: "ໃບບິນທ່ຽງຕ້ອງເກີນ 30 ວັນ ໝົດສິດດ່ຽນຟຣີ",
+    vi: "Hóa đơn gốc quá 30 ngày, không còn hiệu lực đổi miễn phí",
+    en: "Reference invoice is over 30 days old, free exchange no longer valid",
+  },
 
   // ── PRODUCT ───────────────────────────────────────────────────────────────
   PRODUCT_NOT_FOUND: {
