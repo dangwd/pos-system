@@ -174,7 +174,10 @@
         "totalPurchase": "ຄ່າໃຊ້ຈ່າຍຊື້ເຂົ້າ",
         "grossProfit": "ກຳໄລລວມ",
         "cancelledCount": "ຍົກເລີກ"
-      }
+      },
+      "recentTitle": "ໃບເກັບເງິນຫຼ້າສຸດ",
+      "viewAll": "ເບິ່ງທັງໝົດ",
+      "empty": "ຍັງບໍ່ມີໃບເກັບເງິນ"
     },
     "orders": {
       "title": "ປະຫວັດກິດຈະກຳ",

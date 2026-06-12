@@ -174,7 +174,10 @@
         "totalPurchase": "Chi phí mua vào",
         "grossProfit": "Lãi gộp",
         "cancelledCount": "Đơn đã hủy"
-      }
+      },
+      "recentTitle": "Hóa đơn gần đây",
+      "viewAll": "Xem tất cả",
+      "empty": "Chưa có hóa đơn nào"
     },
     "orders": {
       "title": "Nhật ký giao dịch",

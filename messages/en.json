@@ -174,7 +174,10 @@
         "totalPurchase": "Purchase Cost",
         "grossProfit": "Gross Profit",
         "cancelledCount": "Cancelled Orders"
-      }
+      },
+      "recentTitle": "Recent Invoices",
+      "viewAll": "View all",
+      "empty": "No invoices yet"
     },
     "orders": {
       "title": "Transaction log",
