@@ -3,6 +3,7 @@ import { handleAxiosError } from '@/lib/api-error'
 import { normalizePaged, type PagedResult, type RawPagedResult } from '@/types/common'
 import type {
   Product,
+  ProductWithStock,
   ProductCategory,
   CreateProductDto,
   UpdateProductDto,
@@ -13,8 +14,15 @@ import type {
 export interface ProductListParams {
   categoryCode?: string
   search?: string
+  isActive?: boolean
   page?: number
   pageSize?: number
+}
+
+export interface WithStockParams {
+  counterId?: string
+  categoryCode?: string
+  search?: string
 }
 
 export class ProductRepository {
@@ -41,6 +49,15 @@ export class ProductRepository {
       const queryParams = { page: 1, pageSize: 20, ...params }
       const { data } = await api.get<RawPagedResult<Product>>(this.base, { params: queryParams })
       return normalizePaged(data)
+    } catch (err) {
+      throw handleAxiosError(err)
+    }
+  }
+
+  async getWithStock(params?: WithStockParams): Promise<ProductWithStock[]> {
+    try {
+      const { data } = await api.get<ProductWithStock[]>(`${this.base}/with-stock`, { params })
+      return data
     } catch (err) {
       throw handleAxiosError(err)
     }
@@ -85,9 +102,8 @@ export class ProductRepository {
 
   async getCategories(): Promise<ProductCategory[]> {
     try {
-      const { data } = await api.get<ProductCategory[] | RawPagedResult<ProductCategory>>(`${this.base}/categories`)
-      if (Array.isArray(data)) return data
-      return normalizePaged(data).data
+      const { data } = await api.get<ProductCategory[]>(`${this.base}/categories`)
+      return data
     } catch (err) {
       throw handleAxiosError(err)
     }

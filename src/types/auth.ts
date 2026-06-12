@@ -13,6 +13,7 @@ export interface LoginResponse {
   role: UserRole
   permissions: string[]
   branchId: string | null
+  counterId: string | null
 }
 
 export interface AuthUser {
@@ -21,6 +22,7 @@ export interface AuthUser {
   role: UserRole
   permissions: string[]
   branchId: string | null
+  counterId: string | null
 }
 
 export interface RefreshResponse {
@@ -36,5 +38,6 @@ export interface MeResponse {
   role: UserRole
   permissions: string[]
   branchId: string | null
+  counterId: string | null
   lastLoginAt: string | null
 }

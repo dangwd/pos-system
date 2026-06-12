@@ -9,20 +9,41 @@ export interface ProductCategory {
 
 // ─── Enum ─────────────────────────────────────────────────────────────────────
 
-export type ProductType = 'NguyenKhoi' | 'CanThucTe'
+export type ProductType = 'NguyenKhoi' | 'GiaDinh'
 
-// ─── Sản phẩm ─────────────────────────────────────────────────────────────────
+// ─── Sản phẩm (GET /api/products) ─────────────────────────────────────────────
 
 export interface Product {
   id: string
   productCode: string
   productName: string
   category: ProductCategory
-  purity: string
+  goldPurityId: string | null
+  purity: string | null
   weightGram: number
   weightUnitId: string | null
   productType: ProductType
   isActive: boolean
+}
+
+// ─── Sản phẩm kèm tồn kho (GET /api/products/with-stock) ─────────────────────
+// Cấu trúc flat (không có category nested), dùng cho POS chọn hàng.
+
+export interface ProductWithStock {
+  id: string
+  productCode: string
+  productName: string
+  categoryId: string
+  categoryCode: string
+  categoryName: string
+  goldPurityId: string | null
+  purity: string | null
+  weightGram: number
+  weightUnitId: string | null
+  productType: ProductType
+  isActive: boolean
+  stockQuantity: number
+  stockWeightGram: number
 }
 
 // ─── DTOs ─────────────────────────────────────────────────────────────────────
@@ -31,7 +52,7 @@ export interface CreateProductDto {
   productCode: string
   productName: string
   productCategoryId: string
-  goldPurityId: string | null  // FK → GET /api/config/gold-purities; null cho hàng không có hàm lượng
+  goldPurityId: string | null
   weightGram: number
   weightUnitId?: string
   productType?: ProductType
@@ -40,7 +61,7 @@ export interface CreateProductDto {
 export interface UpdateProductDto {
   productName: string
   productCategoryId: string
-  purity: string
+  goldPurityId: string | null
   weightGram: number
   weightUnitId?: string
   productType?: ProductType

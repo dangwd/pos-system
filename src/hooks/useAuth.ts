@@ -24,6 +24,7 @@ export function useLogin() {
           role: data.role,
           permissions: data.permissions,
           branchId: data.branchId,
+          counterId: data.counterId,
         },
         data.accessToken,
         data.refreshToken,

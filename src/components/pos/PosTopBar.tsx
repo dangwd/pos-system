@@ -26,12 +26,12 @@ import {
 import { Input } from "@/components/ui/input";
 import { Spinner } from "@/components/ui/spinner";
 import { useLogout } from "@/hooks/useAuth";
-import { useProducts } from "@/hooks/useProducts";
+import { useProductsWithStock } from "@/hooks/useProducts";
 import { cn } from "@/lib/utils";
 import { useAuthStore } from "@/stores/auth.store";
 import { useInvoiceTabStore } from "@/stores/invoice-tab.store";
 import type { InvoiceTab } from "@/types/invoice-tab";
-import type { Product } from "@/types/product";
+import type { ProductWithStock } from "@/types/product";
 import type { TransactionType } from "@/types/transaction";
 import { Button } from "antd";
 import {
@@ -59,7 +59,7 @@ import { useEffect, useRef, useState } from "react";
 // ─── ProductSearch ────────────────────────────────────────────────────────────
 
 interface ProductSearchProps {
-  onSelect: (product: Product) => void;
+  onSelect: (product: ProductWithStock) => void;
 }
 
 function ProductSearch({ onSelect }: ProductSearchProps) {
@@ -75,8 +75,11 @@ function ProductSearch({ onSelect }: ProductSearchProps) {
     return () => clearTimeout(timer);
   }, [search]);
 
-  const { data: searchResults = [], isFetching } = useProducts(
-    debouncedSearch ? { search: debouncedSearch } : undefined,
+  const { user } = useAuthStore();
+  const { data: searchResults = [], isFetching } = useProductsWithStock(
+    debouncedSearch
+      ? { search: debouncedSearch, counterId: user?.counterId ?? undefined }
+      : undefined,
   );
   const results = debouncedSearch ? searchResults.slice(0, 8) : [];
 
@@ -100,7 +103,7 @@ function ProductSearch({ onSelect }: ProductSearchProps) {
     return () => document.removeEventListener("keydown", handler);
   }, []);
 
-  const handleSelect = (product: Product) => {
+  const handleSelect = (product: ProductWithStock) => {
     onSelect(product);
     setSearch("");
     setDebouncedSearch("");
@@ -164,7 +167,12 @@ function ProductSearch({ onSelect }: ProductSearchProps) {
                     {p.productName}
                   </p>
                   <p className="text-[10px] text-muted-foreground font-mono mt-0.5">
-                    {p.category.name} · {p.purity} · {p.productCode}
+                    {p.categoryName} · {p.purity ?? "—"} · {p.productCode}
+                    {p.stockQuantity === 0 && (
+                      <span className="ml-1.5 text-destructive font-semibold">
+                        (hết hàng)
+                      </span>
+                    )}
                   </p>
                 </div>
               </button>

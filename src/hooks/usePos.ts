@@ -17,16 +17,17 @@
 
 import { useState } from 'react'
 import { useQuery } from '@tanstack/react-query'
-import { useProducts } from './useProducts'
+import { useProductsWithStock } from './useProducts'
 import { useActiveTab } from './useActiveTab'
 import { useCheckout } from './useCheckout'
 import { useCoupon } from './useCoupon'
 import { useWeightUnits } from './useConfig'
 import { useInvoiceTabStore } from '@/stores/invoice-tab.store'
+import { useAuthStore } from '@/stores/auth.store'
 import { CashStrategy, BankTransferStrategy, CombinedStrategy } from '@/lib/strategies'
 import { configRepository } from '@/lib/repositories/config.repository'
 
-import type { Product } from '@/types/product'
+import type { ProductWithStock } from '@/types/product'
 import type { CartItem } from '@/types/cart'
 import type { PaymentMethodKey } from '@/lib/strategies/payment.strategy'
 import type { TransactionType } from '@/types/transaction'
@@ -44,6 +45,8 @@ export function usePos() {
   const [search, setSearch] = useState('')
   const [category, setCategory] = useState('all')
 
+  const { user } = useAuthStore()
+
   // ── Bảng giá hiện tại (cache 1 phút — giá cập nhật theo giờ) ────────────────
   const { data: priceConfig } = useQuery({
     queryKey: ['price-config', 'current'],
@@ -54,8 +57,10 @@ export function usePos() {
   // ── Đơn vị trọng lượng (cache 10 phút — hiếm khi thay đổi) ─────────────────
   const { data: weightUnits = [] } = useWeightUnits()
 
-  // ── Server state (sản phẩm từ API) ─────────────────────────────────────────
-  const { data: products = [], isLoading: productsLoading } = useProducts()
+  // ── Server state (sản phẩm kèm tồn kho theo quầy của cashier) ──────────────
+  const { data: products = [], isLoading: productsLoading } = useProductsWithStock(
+    user?.counterId ? { counterId: user.counterId } : undefined
+  )
 
   // ── Active tab state (cart, giảm giá, v.v.) ─────────────────────────────────
   const {
@@ -77,14 +82,14 @@ export function usePos() {
 
   // ── Product filtering ───────────────────────────────────────────────────────
   const categories = ['all', ...Array.from(new Set(
-    products.map(p => p.category.name)
+    products.map(p => p.categoryName)
   ))]
 
   const filteredProducts = products.filter(p => {
     const q = search.toLowerCase()
     const matchSearch = p.productName.toLowerCase().includes(q) ||
                         p.productCode.toLowerCase().includes(q)
-    const matchCategory = category === 'all' || p.category.name === category
+    const matchCategory = category === 'all' || p.categoryName === category
     return matchSearch && matchCategory
   })
 
@@ -94,7 +99,7 @@ export function usePos() {
    * Thêm sản phẩm vào giỏ với unitPriceLakPerGram snapshot từ priceConfig.
    * Tìm giá theo purityCode + weightUnitId của sản phẩm.
    */
-  const addToCart = (product: Product) => {
+  const addToCart = (product: ProductWithStock) => {
     if (!priceConfig) return // Chưa load giá — không thêm vào giỏ
 
     // Tìm PriceItem khớp purity code + weightUnit của sản phẩm
@@ -128,7 +133,7 @@ export function usePos() {
       purity: product.purity,
       weightGram,
       productType: product.productType,
-      categoryName: product.category.name,
+      categoryName: product.categoryName,
       weightUnitId,
       weightUnitName,
       weightGramOverride: null,
