@@ -7,7 +7,7 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Badge } from '@/components/ui/badge'
 import { Spinner } from '@/components/ui/spinner'
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog'
+import { Dialog, DialogContent, DialogFooter } from '@/components/ui/dialog'
 import { Field, FieldLabel } from '@/components/ui/field'
 import { TablePageSkeleton } from '@/components/shared/PageSkeleton'
 import {
@@ -141,10 +141,19 @@ export default function WeightUnitsPage() {
       )}
 
       <Dialog open={createOpen} onOpenChange={(o) => !o && setCreateOpen(false)}>
-        <DialogContent className="sm:max-w-lg">
-          <DialogHeader>
-            <DialogTitle>{t('createDialogTitle')}</DialogTitle>
-          </DialogHeader>
+        <DialogContent
+          className="sm:max-w-lg"
+          title={t('createDialogTitle')}
+          footer={
+            <DialogFooter>
+              <Button variant="outline" onClick={() => setCreateOpen(false)} disabled={isCreating}>{t('cancel')}</Button>
+              <Button onClick={handleCreate} disabled={isCreating || !createForm.tenDonVi || !createForm.maTocDoc || !createForm.gramPerUnit}>
+                {isCreating && <Spinner className="mr-2" />}
+                {t('addButton')}
+              </Button>
+            </DialogFooter>
+          }
+        >
           <div className="space-y-4 py-2">
             <Field>
               <FieldLabel>{t('form.tenDonVi')}</FieldLabel>
@@ -159,13 +168,6 @@ export default function WeightUnitsPage() {
               <Input type="number" min="0" step="0.001" value={createForm.gramPerUnit} onChange={(e) => setCreateForm((f) => ({ ...f, gramPerUnit: e.target.value }))} placeholder="37.799" />
             </Field>
           </div>
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setCreateOpen(false)} disabled={isCreating}>{t('cancel')}</Button>
-            <Button onClick={handleCreate} disabled={isCreating || !createForm.tenDonVi || !createForm.maTocDoc || !createForm.gramPerUnit}>
-              {isCreating && <Spinner className="mr-2" />}
-              {t('addButton')}
-            </Button>
-          </DialogFooter>
         </DialogContent>
       </Dialog>
     </div>

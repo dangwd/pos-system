@@ -14,12 +14,13 @@ function formatKip(n: number) {
   return n.toLocaleString('lo-LA') + ' ₭'
 }
 
-const PAGE_SIZE = 20
-
 export default function OrdersPage() {
   const t = useTranslations('admin.orders')
 
   const [page, setPage] = useState(1)
+  const [pageSize, setPageSize] = useState(20)
+  const [sortField, setSortField] = useState<string | null>(null)
+  const [sortOrder, setSortOrder] = useState<'asc' | 'desc' | null>(null)
   const [filterStatus, setFilterStatus] = useState<string | null>(null)
   const [filterType, setFilterType] = useState<string | null>(null)
   const [filterFrom, setFilterFrom] = useState('')
@@ -47,14 +48,16 @@ export default function OrdersPage() {
     ExchangeCurrency: t('transactionTypes.ExchangeCurrency'),
   }), [t])
 
-  const { data, isLoading } = useTransactions({
+  const { data, isLoading, isFetching } = useTransactions({
     status: filterStatus as TransactionStatus ?? undefined,
     type: filterType as TransactionType ?? undefined,
     from: filterFrom || undefined,
     to: filterTo || undefined,
     q: filterQ || undefined,
     page,
-    pageSize: PAGE_SIZE,
+    pageSize,
+    sortField: sortField ?? undefined,
+    sortOrder: sortOrder ?? undefined,
   })
 
   const transactions = data?.data ?? []
@@ -80,7 +83,7 @@ export default function OrdersPage() {
   }), [t, statusLabels, typeLabels])
 
   return (
-    <div className="p-6 space-y-4">
+    <div className="p-6 flex flex-col h-full gap-4">
       <div>
         <h1 className="text-2xl font-bold">{t('title')}</h1>
         <p className="text-muted-foreground text-sm">
@@ -153,11 +156,17 @@ export default function OrdersPage() {
           columns={columns}
           data={transactions}
           hideSearch
+          maxHeight={false}
+          loading={isFetching}
           serverPagination={data ? {
             total: data.total,
             page: data.page,
             pageSize: data.pageSize,
             onPageChange: setPage,
+            onPageSizeChange: (size) => { setPageSize(size); setPage(1) },
+            sortField: sortField ?? undefined,
+            sortOrder: sortOrder ?? undefined,
+            onSortChange: (field, order) => { setSortField(field); setSortOrder(order); setPage(1) },
           } : undefined}
         />
       )}

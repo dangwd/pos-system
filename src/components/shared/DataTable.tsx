@@ -13,6 +13,7 @@
 'use client'
 
 import { useState } from 'react'
+import { cn } from '@/lib/utils'
 import {
   useReactTable,
   getCoreRowModel,
@@ -26,9 +27,10 @@ import {
   type PaginationState,
   type OnChangeFn,
 } from '@tanstack/react-table'
+import { Select } from 'antd'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
-import { ChevronLeft, ChevronRight } from 'lucide-react'
+import { ChevronLeft, ChevronRight, Loader2 } from 'lucide-react'
 import { useTranslations } from 'next-intl'
 import { Empty, EmptyTitle } from '@/components/ui/empty'
 
@@ -54,6 +56,10 @@ interface ServerPagination {
   page: number
   pageSize: number
   onPageChange: (page: number) => void
+  onPageSizeChange?: (size: number) => void
+  sortField?: string
+  sortOrder?: 'asc' | 'desc'
+  onSortChange?: (field: string | null, order: 'asc' | 'desc' | null) => void
 }
 
 interface DataTableProps<TData> {
@@ -64,6 +70,8 @@ interface DataTableProps<TData> {
   searchPlaceholder?: string
   /** Client-side rows per page — default 10 */
   pageSize?: number
+  /** Page size choices shown in the selector — default [10, 20, 50] */
+  pageSizeOptions?: number[]
   /** Hide the built-in search input (use when parent provides server-side search) */
   hideSearch?: boolean
   /**
@@ -71,11 +79,20 @@ interface DataTableProps<TData> {
    * DataTable uses manualPagination:true — data must already be the current page's rows.
    */
   serverPagination?: ServerPagination
-  /** Max height for the table body area (default: 500px). Set false to disable. */
+  /**
+   * Max height for the scrollable table body.
+   * - string (e.g. "500px", "calc(100vh - 300px)"): clamps the table to that height
+   * - false: table grows to fill the parent (parent must be a flex/height container)
+   * - default: "500px"
+   */
   maxHeight?: string | false
+  /** Show loading overlay (use isFetching for background refetch) */
+  loading?: boolean
 }
 
 // ─── Component ────────────────────────────────────────────────────────────────
+
+const DEFAULT_PAGE_SIZE_OPTIONS = [10, 20, 50]
 
 export function DataTable<TData>({
   columns,
@@ -83,9 +100,11 @@ export function DataTable<TData>({
   searchKey,
   searchPlaceholder,
   pageSize = 10,
+  pageSizeOptions = DEFAULT_PAGE_SIZE_OPTIONS,
   hideSearch,
   serverPagination,
   maxHeight = '500px',
+  loading,
 }: DataTableProps<TData>) {
   const t = useTranslations('common.table')
   const [sorting, setSorting] = useState<SortingState>([])
@@ -103,6 +122,11 @@ export function DataTable<TData>({
     ? { pageIndex: serverPagination.page - 1, pageSize: serverPagination.pageSize }
     : undefined
 
+  // Server-side: derive sorting state from serverPagination props
+  const serverSortingState: SortingState = serverPagination?.sortField
+    ? [{ id: serverPagination.sortField, desc: serverPagination.sortOrder === 'desc' }]
+    : []
+
   const handleServerPaginationChange: OnChangeFn<PaginationState> = serverPagination
     ? (updater) => {
         const next =
@@ -113,22 +137,33 @@ export function DataTable<TData>({
       }
     : () => {}
 
+  const handleServerSortingChange: OnChangeFn<SortingState> = (updater) => {
+    const next = typeof updater === 'function' ? updater(serverSortingState) : updater
+    const first = next[0]
+    serverPagination?.onSortChange?.(
+      first?.id ?? null,
+      first ? (first.desc ? 'desc' : 'asc') : null,
+    )
+  }
+
   const table = useReactTable({
     data,
     columns,
-    // Server-side mode: trust that `data` is already the correct page
+    // Server-side mode: trust that `data` is already the correct page/sort/filter
     manualPagination: !!serverPagination,
+    manualSorting: !!serverPagination,
+    manualFiltering: !!serverPagination,
     // pageCount lets TanStack know total pages for getCanNextPage() etc.
     pageCount: serverPagination
       ? Math.ceil(serverPagination.total / serverPagination.pageSize)
       : undefined,
     state: {
-      sorting,
+      sorting: serverPagination ? serverSortingState : sorting,
       columnFilters,
       globalFilter,
       pagination: serverPagination ? serverPaginationState! : clientPagination,
     },
-    onSortingChange: setSorting,
+    onSortingChange: serverPagination ? handleServerSortingChange : setSorting,
     onColumnFiltersChange: setColumnFilters,
     onGlobalFilterChange: setGlobalFilter,
     onPaginationChange: serverPagination ? handleServerPaginationChange : setClientPagination,
@@ -155,26 +190,47 @@ export function DataTable<TData>({
     : table.getFilteredRowModel().rows.length
 
   const currentPage = table.getState().pagination.pageIndex + 1
+  const currentPageSize = table.getState().pagination.pageSize
   const totalPages = table.getPageCount()
   const pageNumbers = totalPages > 1 ? getPageNumbers(currentPage, totalPages) : []
 
+  const showingFrom = Math.min((currentPage - 1) * currentPageSize + 1, totalCount)
+  const showingTo   = Math.min(currentPage * currentPageSize, totalCount)
+
+  function handlePageSizeChange(size: number) {
+    if (serverPagination) {
+      serverPagination.onPageSizeChange?.(size)
+      serverPagination.onPageChange(1)
+    } else {
+      table.setPageSize(size)
+      table.setPageIndex(0)
+    }
+  }
+
+  const fillMode = maxHeight === false
+
   return (
-    <div className="space-y-3">
+    <div className={cn(fillMode ? 'flex flex-col h-full gap-3 overflow-hidden' : 'space-y-3')}>
       {/* ── Search bar ─────────────────────────────────────────────────────── */}
       {!hideSearch && (
         <Input
           placeholder={searchPlaceholder ?? t('searchPlaceholder')}
           value={searchValue}
           onChange={e => handleSearchChange(e.target.value)}
-          className="max-w-sm"
+          className={cn('max-w-sm', fillMode && 'shrink-0')}
         />
       )}
 
       {/* ── Table ──────────────────────────────────────────────────────────── */}
       <div
-        className="rounded-md border overflow-auto"
+        className={cn('rounded-md border overflow-auto relative', fillMode && 'flex-1 min-h-0')}
         style={maxHeight ? { maxHeight } : undefined}
       >
+        {loading && (
+          <div className="absolute inset-0 z-20 flex items-center justify-center bg-background/60 backdrop-blur-[1px]">
+            <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
+          </div>
+        )}
         <table className="w-full text-sm">
           <thead className="sticky top-0 z-10">
             {table.getHeaderGroups().map(hg => (
@@ -218,11 +274,28 @@ export function DataTable<TData>({
       </div>
 
       {/* ── Pagination ─────────────────────────────────────────────────────── */}
-      <div className="flex items-center justify-between text-sm">
-        <span className="text-muted-foreground">
-          {t('results', { count: totalCount })}
-        </span>
+      <div className={cn('flex items-center justify-between gap-4 text-sm', fillMode && 'shrink-0')}>
+        {/* Left: range display + page size selector */}
+        <div className="flex items-center gap-3 text-muted-foreground">
+          <span>
+            {totalCount === 0
+              ? t('results', { count: 0 })
+              : t('showing', { from: showingFrom, to: showingTo, total: totalCount })}
+          </span>
+          <div className="flex items-center gap-1.5">
+            <span className="text-xs">{t('rowsPerPage')}</span>
+            <Select
+              size="small"
+              value={currentPageSize}
+              onChange={handlePageSizeChange}
+              options={pageSizeOptions.map(s => ({ value: s, label: String(s) }))}
+              popupMatchSelectWidth={false}
+              style={{ width: 64 }}
+            />
+          </div>
+        </div>
 
+        {/* Right: Previous / page numbers / Next */}
         {totalPages > 1 && (
           <div className="flex items-center gap-1">
             <Button

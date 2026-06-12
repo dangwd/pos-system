@@ -1,6 +1,6 @@
 'use client'
 
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog'
+import { Dialog, DialogContent, DialogFooter } from '@/components/ui/dialog'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Separator } from '@/components/ui/separator'
@@ -36,14 +36,24 @@ export function Receipt({ open, transaction, onClose }: ReceiptProps) {
 
   return (
     <Dialog open={open} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-md">
-        <DialogHeader>
-          <DialogTitle className="flex items-center gap-2 text-green-600">
+      <DialogContent
+        className="sm:max-w-md"
+        title={
+          <span className="flex items-center gap-2 text-green-600">
             <CheckCircle2 className="h-5 w-5" />
             {t('title')}
-          </DialogTitle>
-        </DialogHeader>
-
+          </span>
+        }
+        footer={
+          <DialogFooter>
+            <Button variant="outline" onClick={() => window.print()}>
+              <Printer className="h-4 w-4 mr-2" />
+              {t('printButton')}
+            </Button>
+            <Button onClick={onClose}>{t('closeButton')}</Button>
+          </DialogFooter>
+        }
+      >
         <div className="space-y-4">
           <div className="text-center space-y-1">
             <p className="font-bold text-lg">{t('storeName')}</p>
@@ -87,13 +97,6 @@ export function Receipt({ open, transaction, onClose }: ReceiptProps) {
           </div>
         </div>
 
-        <DialogFooter>
-          <Button variant="outline" onClick={() => window.print()}>
-            <Printer className="h-4 w-4 mr-2" />
-            {t('printButton')}
-          </Button>
-          <Button onClick={onClose}>{t('closeButton')}</Button>
-        </DialogFooter>
       </DialogContent>
     </Dialog>
   )

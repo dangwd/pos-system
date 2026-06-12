@@ -4,9 +4,6 @@ import React from 'react'
 import { Modal } from 'antd'
 import { cn } from '@/lib/utils'
 
-// Width tokens extracted from Tailwind max-w-* classes passed as className.
-// The actual width is controlled by antd's width prop; layout CSS is not forwarded.
-
 interface DialogCtxType {
   open: boolean
   setOpen: (v: boolean) => void
@@ -82,19 +79,26 @@ interface DialogContentProps {
   children?: React.ReactNode
   className?: string
   showCloseButton?: boolean
+  /** Passed to antd Modal title slot — renders in the header with antd's default styling */
+  title?: React.ReactNode
+  /** Passed to antd Modal footer slot — renders with antd's default border-top and padding */
+  footer?: React.ReactNode
 }
 
-function DialogContent({ children, className, showCloseButton = true }: DialogContentProps) {
+function DialogContent({
+  children,
+  className,
+  showCloseButton = true,
+  title,
+  footer,
+}: DialogContentProps) {
   const { open, setOpen } = React.useContext(DialogCtx)
   const width = parseWidth(className)
 
-  // Parse layout hints from className and forward to antd Modal styles.
-  // antd Modal ignores className for layout — these must be explicit style overrides.
   const isNoPadding = !!className?.includes('p-0')
-  const isFlexCol = !!(className?.includes('flex') && className?.includes('flex-col'))
   const maxHeight = className?.match(/\bmax-h-\[([^\]]+)\]/)?.[1]
+  const isFlexCol = !!(className?.includes('flex') && className?.includes('flex-col'))
 
-  // antd v6 only supports styles.body (not styles.content) — all layout overrides go here.
   const bodyStyle: React.CSSProperties = {}
   if (isNoPadding) bodyStyle.padding = 0
   if (maxHeight) {
@@ -114,7 +118,8 @@ function DialogContent({ children, className, showCloseButton = true }: DialogCo
     <Modal
       open={open}
       onCancel={() => setOpen(false)}
-      footer={null}
+      title={title}
+      footer={footer ?? null}
       closable={showCloseButton}
       width={width}
       destroyOnHidden
@@ -128,49 +133,33 @@ function DialogContent({ children, className, showCloseButton = true }: DialogCo
   )
 }
 
-function DialogHeader({ className, ...props }: React.ComponentProps<'div'>) {
-  return (
-    <div
-      className={cn('mb-4 flex flex-col gap-1', className)}
-      {...props}
-    />
-  )
+/** Semantic wrapper — renders children as-is; use className for custom header layouts */
+function DialogHeader({ className, children, ...props }: React.ComponentProps<'div'>) {
+  if (className) return <div className={className} {...props}>{children}</div>
+  return <>{children}</>
 }
 
-function DialogFooter({
-  className,
-  children,
-  ...props
-}: React.ComponentProps<'div'>) {
+/** Renders a right-aligned flex row for action buttons — use as the `footer` prop value on DialogContent */
+function DialogFooter({ className, children, ...props }: React.ComponentProps<'div'>) {
   return (
-    <div
-      className={cn('flex flex-col-reverse gap-2 pt-4 border-t sm:flex-row sm:justify-end', className)}
-      {...props}
-    >
+    <div className={cn('flex justify-end gap-2', className)} {...props}>
       {children}
     </div>
   )
 }
 
-function DialogTitle({ className, ...props }: React.ComponentProps<'div'>) {
-  return (
-    <div
-      className={cn('text-base font-semibold leading-none', className)}
-      {...props}
-    />
-  )
+/** Semantic title text — renders inline; use className to override antd's default title font */
+function DialogTitle({ className, children, ...props }: React.ComponentProps<'div'>) {
+  if (className) return <span className={className} {...props}>{children}</span>
+  return <>{children}</>
 }
 
 function DialogDescription({ className, ...props }: React.ComponentProps<'p'>) {
   return (
-    <p
-      className={cn('text-sm text-muted-foreground', className)}
-      {...props}
-    />
+    <p className={cn('text-sm text-muted-foreground', className)} {...props} />
   )
 }
 
-// No-op portals — Ant Design Modal handles its own portal
 function DialogPortal({ children }: { children?: React.ReactNode }) {
   return <>{children}</>
 }

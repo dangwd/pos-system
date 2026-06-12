@@ -1,9 +1,9 @@
 'use client'
 
-import { useState } from 'react'
+import { useRef, useState } from 'react'
 import { useTranslations } from 'next-intl'
 import {
-  Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter,
+  Dialog, DialogContent, DialogFooter,
 } from '@/components/ui/dialog'
 import { Button } from '@/components/ui/button'
 import { ComboboxSelect } from '@/components/shared/ComboboxSelect'
@@ -21,73 +21,70 @@ const STATUS_VALUES: InventoryStatus[] = ['TiepNhan', 'DaDinhGia', 'TrenQuay', '
 
 // Keyed inner component — remounts when `item` changes so status state
 // always initializes from the current entity without a useEffect.
+// submitRef is populated so the outer footer button can trigger submission.
 function StatusFormBody({
   item,
-  isPending,
-  onCancel,
-  onSubmit,
+  submitRef,
 }: {
   item: InventoryItem
-  isPending: boolean
-  onCancel: () => void
-  onSubmit: (status: InventoryStatus) => void
+  submitRef: React.MutableRefObject<(() => InventoryStatus | null)>
 }) {
   const t       = useTranslations('admin.inventory')
   const tDialog = useTranslations('admin.inventory.statusDialog')
 
   const [status, setStatus] = useState<InventoryStatus>(() => item.trangThai)
 
-  const unchanged = status === item.trangThai
+  submitRef.current = () => (status !== item.trangThai ? status : null)
 
   return (
-    <>
-      <DialogHeader>
-        <DialogTitle>{tDialog('title')}</DialogTitle>
-        <DialogDescription>
-          {item.productName} · {t(`status${item.trangThai}`)}
-        </DialogDescription>
-      </DialogHeader>
-
-      <div className="py-1">
-        <Field>
-          <FieldLabel>{tDialog('newStatus')}</FieldLabel>
-          <ComboboxSelect
-            value={status}
-            onChange={v => v && setStatus(v as InventoryStatus)}
-            options={STATUS_VALUES.map(s => ({ value: s, label: t(`status${s}`) }))}
-          />
-        </Field>
-      </div>
-
-      <DialogFooter>
-        <Button variant="outline" onClick={onCancel} disabled={isPending}>{tDialog('cancel')}</Button>
-        <Button onClick={() => onSubmit(status)} disabled={unchanged || isPending}>
-          {isPending && <Spinner className="mr-2" />}
-          {tDialog('submit')}
-        </Button>
-      </DialogFooter>
-    </>
+    <div className="py-1">
+      <p className="text-sm text-muted-foreground mb-3">
+        {item.productName} · {t(`status${item.trangThai}`)}
+      </p>
+      <Field>
+        <FieldLabel>{tDialog('newStatus')}</FieldLabel>
+        <ComboboxSelect
+          value={status}
+          onChange={v => v && setStatus(v as InventoryStatus)}
+          options={STATUS_VALUES.map(s => ({ value: s, label: t(`status${s}`) }))}
+        />
+      </Field>
+    </div>
   )
 }
 
 export function InventoryStatusDialog({ item, onClose }: Props) {
+  const tDialog = useTranslations('admin.inventory.statusDialog')
   const { mutate: updateStatus, isPending } = useUpdateInventoryStatus()
+  const submitRef = useRef<() => InventoryStatus | null>(() => null)
 
-  function handleSubmit(status: InventoryStatus) {
+  function handleSubmit() {
     if (!item) return
+    const status = submitRef.current()
+    if (!status) return
     updateStatus({ id: item.id, dto: { trangThai: status } }, { onSuccess: onClose })
   }
 
   return (
     <Dialog open={!!item} onOpenChange={o => !o && onClose()}>
-      <DialogContent className="sm:max-w-md">
+      <DialogContent
+        className="sm:max-w-md"
+        title={tDialog('title')}
+        footer={
+          <DialogFooter>
+            <Button variant="outline" onClick={onClose} disabled={isPending}>{tDialog('cancel')}</Button>
+            <Button onClick={handleSubmit} disabled={isPending}>
+              {isPending && <Spinner className="mr-2" />}
+              {tDialog('submit')}
+            </Button>
+          </DialogFooter>
+        }
+      >
         {item && (
           <StatusFormBody
             key={item.id}
             item={item}
-            isPending={isPending}
-            onCancel={onClose}
-            onSubmit={handleSubmit}
+            submitRef={submitRef}
           />
         )}
       </DialogContent>

@@ -3,7 +3,7 @@
 import { useState } from 'react'
 import { useTranslations } from 'next-intl'
 import { Select } from 'antd'
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog'
+import { Dialog, DialogContent, DialogFooter } from '@/components/ui/dialog'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Field, FieldGroup, FieldLabel } from '@/components/ui/field'
@@ -73,11 +73,19 @@ export function ProductCreateDialog({ open, onClose }: Props) {
 
   return (
     <Dialog open={open} onOpenChange={(o) => !o && onClose()}>
-      <DialogContent className="sm:max-w-2xl">
-        <DialogHeader>
-          <DialogTitle>{t('createDialog.title')}</DialogTitle>
-        </DialogHeader>
-
+      <DialogContent
+        className="sm:max-w-2xl"
+        title={t('createDialog.title')}
+        footer={
+          <DialogFooter>
+            <Button variant="outline" onClick={onClose} disabled={isPending}>{t('createDialog.cancel')}</Button>
+            <Button onClick={handleSubmit} disabled={isPending || disabled}>
+              {isPending && <Spinner className="mr-2" />}
+              {t('createDialog.submit')}
+            </Button>
+          </DialogFooter>
+        }
+      >
         <FieldGroup className="py-1 gap-3">
           <div className="grid grid-cols-2 gap-3">
             <Field>
@@ -155,13 +163,6 @@ export function ProductCreateDialog({ open, onClose }: Props) {
           </Field>
         </FieldGroup>
 
-        <DialogFooter>
-          <Button variant="outline" onClick={onClose} disabled={isPending}>{t('createDialog.cancel')}</Button>
-          <Button onClick={handleSubmit} disabled={isPending || disabled}>
-            {isPending && <Spinner className="mr-2" />}
-            {t('createDialog.submit')}
-          </Button>
-        </DialogFooter>
       </DialogContent>
     </Dialog>
   )

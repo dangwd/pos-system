@@ -8,7 +8,7 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Badge } from '@/components/ui/badge'
 import { Spinner } from '@/components/ui/spinner'
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog'
+import { Dialog, DialogContent, DialogFooter } from '@/components/ui/dialog'
 import { Field, FieldLabel } from '@/components/ui/field'
 import { TablePageSkeleton } from '@/components/shared/PageSkeleton'
 import {
@@ -111,10 +111,19 @@ export default function GoldPuritiesPage() {
       )}
 
       <Dialog open={!!dialog} onOpenChange={(o) => !o && setDialog(null)}>
-        <DialogContent className="sm:max-w-lg">
-          <DialogHeader>
-            <DialogTitle>{dialog?.mode === 'create' ? t('addButton') : t('editDialogTitle')}</DialogTitle>
-          </DialogHeader>
+        <DialogContent
+          className="sm:max-w-lg"
+          title={dialog?.mode === 'create' ? t('addButton') : t('editDialogTitle')}
+          footer={
+            <DialogFooter>
+              <Button variant="outline" onClick={() => setDialog(null)} disabled={isPending}>{t('cancel')}</Button>
+              <Button onClick={handleSubmit} disabled={isPending || !form.ma || !form.hamLuong}>
+                {isPending && <Spinner className="mr-2" />}
+                {dialog?.mode === 'create' ? t('addButton') : t('saveButton')}
+              </Button>
+            </DialogFooter>
+          }
+        >
           <div className="space-y-4 py-2">
             <Field>
               <FieldLabel>{t('form.ma')}</FieldLabel>
@@ -140,13 +149,6 @@ export default function GoldPuritiesPage() {
               </Field>
             </div>
           </div>
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setDialog(null)} disabled={isPending}>{t('cancel')}</Button>
-            <Button onClick={handleSubmit} disabled={isPending || !form.ma || !form.hamLuong}>
-              {isPending && <Spinner className="mr-2" />}
-              {dialog?.mode === 'create' ? t('addButton') : t('saveButton')}
-            </Button>
-          </DialogFooter>
         </DialogContent>
       </Dialog>
     </div>

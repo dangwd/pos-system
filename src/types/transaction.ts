@@ -146,4 +146,6 @@ export interface TransactionListParams {
   limit?: number
   page?: number
   pageSize?: number
+  sortField?: string
+  sortOrder?: 'asc' | 'desc'
 }

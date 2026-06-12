@@ -12,7 +12,7 @@ import { useBranches, useCounters } from '@/hooks/useBranches'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import {
-  Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter,
+  Dialog, DialogContent, DialogFooter,
 } from '@/components/ui/dialog'
 import { Field, FieldGroup, FieldLabel } from '@/components/ui/field'
 import { Spinner } from '@/components/ui/spinner'
@@ -82,11 +82,19 @@ export function UserCreateDialog({ open, onClose }: Props) {
 
   return (
     <Dialog open={open} onOpenChange={o => !o && onClose()}>
-      <DialogContent className="sm:max-w-xl">
-        <DialogHeader>
-          <DialogTitle>{t('title')}</DialogTitle>
-        </DialogHeader>
-
+      <DialogContent
+        className="sm:max-w-xl"
+        title={t('title')}
+        footer={
+          <DialogFooter>
+            <Button variant="outline" onClick={onClose} disabled={isPending}>{t('cancel')}</Button>
+            <Button onClick={handleSubmit} disabled={disabled || isPending}>
+              {isPending && <Spinner className="mr-2" />}
+              {t('submit')}
+            </Button>
+          </DialogFooter>
+        }
+      >
         <FieldGroup className="py-1 gap-3">
           {(['employeeCode', 'fullName', 'phone', 'password'] as const).map(field => (
             <Field key={field}>
@@ -175,13 +183,6 @@ export function UserCreateDialog({ open, onClose }: Props) {
           )}
         </FieldGroup>
 
-        <DialogFooter>
-          <Button variant="outline" onClick={onClose} disabled={isPending}>{t('cancel')}</Button>
-          <Button onClick={handleSubmit} disabled={disabled || isPending}>
-            {isPending && <Spinner className="mr-2" />}
-            {t('submit')}
-          </Button>
-        </DialogFooter>
       </DialogContent>
     </Dialog>
   )

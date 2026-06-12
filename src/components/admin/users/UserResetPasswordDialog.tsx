@@ -9,7 +9,7 @@ import { Field, FieldLabel } from '@/components/ui/field'
 import { InputGroup, InputGroupAddon, InputGroupButton, InputGroupInput } from '@/components/ui/input-group'
 import { Spinner } from '@/components/ui/spinner'
 import {
-  Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter,
+  Dialog, DialogContent, DialogFooter,
 } from '@/components/ui/dialog'
 import type { AdminUser } from '@/types/admin-user'
 
@@ -41,11 +41,19 @@ export function UserResetPasswordDialog({ user, onClose }: Props) {
 
   return (
     <Dialog open={!!user} onOpenChange={o => !o && handleClose()}>
-      <DialogContent className="sm:max-w-md">
-        <DialogHeader>
-          <DialogTitle>{t('title', { name: user?.fullName ?? '' })}</DialogTitle>
-        </DialogHeader>
-
+      <DialogContent
+        className="sm:max-w-md"
+        title={t('title', { name: user?.fullName ?? '' })}
+        footer={
+          <DialogFooter>
+            <Button variant="outline" onClick={handleClose} disabled={isPending}>{t('cancel')}</Button>
+            <Button onClick={handleSubmit} disabled={!password || isPending}>
+              {isPending && <Spinner className="mr-2" />}
+              {t('submit')}
+            </Button>
+          </DialogFooter>
+        }
+      >
         <Field className="py-1">
           <FieldLabel htmlFor="new-password">{t('newPassword')}</FieldLabel>
           <InputGroup>
@@ -64,13 +72,6 @@ export function UserResetPasswordDialog({ user, onClose }: Props) {
           </InputGroup>
         </Field>
 
-        <DialogFooter>
-          <Button variant="outline" onClick={handleClose} disabled={isPending}>{t('cancel')}</Button>
-          <Button onClick={handleSubmit} disabled={!password || isPending}>
-            {isPending && <Spinner className="mr-2" />}
-            {t('submit')}
-          </Button>
-        </DialogFooter>
       </DialogContent>
     </Dialog>
   )

@@ -42,7 +42,7 @@ export function Providers({ children }: { children: React.ReactNode }) {
   }))
   return (
     <QueryClientProvider client={qc}>
-      <StyleProvider>
+      <StyleProvider layer>
         <ConfigProvider theme={antdTheme}>
           <App>
             {children}

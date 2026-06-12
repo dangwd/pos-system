@@ -861,6 +861,8 @@
     "table": {
       "noData": "No data",
       "results": "{count} results",
+      "showing": "Showing {from}–{to} of {total}",
+      "rowsPerPage": "Rows per page",
       "page": "Page {page} / {total}",
       "searchPlaceholder": "Search..."
     },

@@ -852,6 +852,8 @@
     "table": {
       "noData": "ບໍ່ມີຂໍ້ມູນ",
       "results": "{count} ຜົນລັບ",
+      "showing": "ສະແດງ {from}–{to} ຈາກ {total}",
+      "rowsPerPage": "ແຖວຕໍ່ໜ້າ",
       "page": "ໜ້າ {page} / {total}",
       "searchPlaceholder": "ຄົ້ນຫາ..."
     },

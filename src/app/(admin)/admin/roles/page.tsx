@@ -1,15 +1,16 @@
 'use client'
 
-import { useMemo, useState } from 'react'
+import { useMemo, useRef, useState } from 'react'
 import { useTranslations } from 'next-intl'
 import { Plus, ShieldCheck, MoreHorizontal, Pencil, Trash2 } from 'lucide-react'
+import { Form } from 'antd'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Checkbox } from '@/components/ui/checkbox'
 import { Input } from '@/components/ui/input'
 import { Spinner } from '@/components/ui/spinner'
 import {
-  Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter,
+  Dialog, DialogContent, DialogFooter,
 } from '@/components/ui/dialog'
 import {
   DropdownMenu, DropdownMenuTrigger, DropdownMenuContent,
@@ -95,26 +96,31 @@ function PermissionsDialog({
 
   return (
     <Dialog open={!!role} onOpenChange={(o) => !o && onClose()}>
-      <DialogContent className="sm:max-w-5xl max-h-[90vh] flex flex-col p-0 gap-0">
-        <div className="px-6 pt-5 pb-4 border-b shrink-0">
-          <DialogHeader>
-            <DialogTitle className="text-base">
-              {t('editDialogTitle', { name: role?.name ?? '' })}
-            </DialogTitle>
-          </DialogHeader>
-          <div className="flex items-center gap-2 mt-3">
-            <span className="text-xs text-muted-foreground">
-              {selected.size} / {allPermissions.length} quyền được chọn
-            </span>
-            {selected.size > 0 && (
-              <button
-                onClick={() => setSelected(new Set())}
-                className="text-xs text-muted-foreground hover:text-destructive underline underline-offset-2 transition-colors"
-              >
-                Bỏ chọn tất cả
-              </button>
-            )}
-          </div>
+      <DialogContent
+        className="sm:max-w-5xl max-h-[90vh] flex flex-col p-0 gap-0"
+        title={<span className="text-base">{t('editDialogTitle', { name: role?.name ?? '' })}</span>}
+        footer={
+          <DialogFooter className="px-6 py-4 border-t shrink-0">
+            <Button variant="outline" onClick={onClose} disabled={isPending}>{t('cancel')}</Button>
+            <Button onClick={handleSave} disabled={isPending}>
+              {isPending && <Spinner className="mr-2" />}
+              {t('saveButton')}
+            </Button>
+          </DialogFooter>
+        }
+      >
+        <div className="flex items-center gap-2 px-6 pt-3 pb-1 shrink-0">
+          <span className="text-xs text-muted-foreground">
+            {selected.size} / {allPermissions.length} quyền được chọn
+          </span>
+          {selected.size > 0 && (
+            <button
+              onClick={() => setSelected(new Set())}
+              className="text-xs text-muted-foreground hover:text-destructive underline underline-offset-2 transition-colors"
+            >
+              Bỏ chọn tất cả
+            </button>
+          )}
         </div>
 
         <div className="flex-1 overflow-y-auto px-6 py-5">
@@ -175,13 +181,6 @@ function PermissionsDialog({
           )}
         </div>
 
-        <DialogFooter className="px-6 py-4 border-t shrink-0">
-          <Button variant="outline" onClick={onClose} disabled={isPending}>{t('cancel')}</Button>
-          <Button onClick={handleSave} disabled={isPending}>
-            {isPending && <Spinner className="mr-2" />}
-            {t('saveButton')}
-          </Button>
-        </DialogFooter>
       </DialogContent>
     </Dialog>
   )
@@ -199,20 +198,24 @@ function RoleFormDialog({
 }) {
   const isCreate = target === 'create'
   const role = isCreate ? null : (target as AppRole | null)
+  const t = useTranslations('admin.roles')
 
   const { mutate: createRole, isPending: isCreating } = useCreateRole()
   const { mutate: updateRole, isPending: isUpdating } = useUpdateRole()
   const isPending = isCreating || isUpdating
+  const submitRef = useRef<() => { code: string; name: string; description: string } | null>(() => null)
 
-  function handleSave(code: string, name: string, description: string) {
+  function handleSave() {
+    const data = submitRef.current()
+    if (!data) return
     if (isCreate) {
       createRole(
-        { code: code.trim().toUpperCase(), name: name.trim(), description: description.trim() },
+        { code: data.code.trim().toUpperCase(), name: data.name.trim(), description: data.description.trim() },
         { onSuccess: onClose },
       )
     } else if (role) {
       updateRole(
-        { roleId: role.id, dto: { name: name.trim(), description: description.trim() } },
+        { roleId: role.id, dto: { name: data.name.trim(), description: data.description.trim() } },
         { onSuccess: onClose },
       )
     }
@@ -221,15 +224,25 @@ function RoleFormDialog({
   const open = target !== null
   return (
     <Dialog open={open} onOpenChange={(o) => !o && onClose()}>
-      <DialogContent className="sm:max-w-md">
+      <DialogContent
+        className="sm:max-w-md"
+        title={isCreate ? t('createDialogTitle') : t('editInfoDialogTitle')}
+        footer={
+          <DialogFooter>
+            <Button variant="outline" onClick={onClose} disabled={isPending}>{t('cancel')}</Button>
+            <Button onClick={handleSave} disabled={isPending}>
+              {isPending && <Spinner className="mr-2" />}
+              {t('saveButton')}
+            </Button>
+          </DialogFooter>
+        }
+      >
         {open && (
           <RoleFormBody
             key={isCreate ? 'create' : (role?.id ?? 'none')}
             isCreate={isCreate}
             role={role}
-            isPending={isPending}
-            onCancel={onClose}
-            onSave={handleSave}
+            submitRef={submitRef}
           />
         )}
       </DialogContent>
@@ -237,67 +250,48 @@ function RoleFormDialog({
   )
 }
 
-function RoleFormBody({ isCreate, role, isPending, onCancel, onSave }: {
+function RoleFormBody({ isCreate, role, submitRef }: {
   isCreate: boolean
   role: AppRole | null
-  isPending: boolean
-  onCancel: () => void
-  onSave: (code: string, name: string, description: string) => void
+  submitRef: React.RefObject<() => { code: string; name: string; description: string } | null>
 }) {
   const t = useTranslations('admin.roles')
   const [code, setCode] = useState(() => role?.code ?? '')
   const [name, setName] = useState(() => role?.name ?? '')
   const [description, setDescription] = useState(() => role?.description ?? '')
 
+  submitRef.current = () =>
+    name.trim() && (!isCreate || code.trim()) ? { code, name, description } : null
+
   return (
-    <>
-      <DialogHeader>
-        <DialogTitle>{isCreate ? t('createDialogTitle') : t('editInfoDialogTitle')}</DialogTitle>
-      </DialogHeader>
-
-      <div className="space-y-4 py-2">
-        {isCreate && (
-          <div className="space-y-1.5">
-            <label className="text-sm font-medium">{t('fields.code')}</label>
-            <Input
-              value={code}
-              onChange={(e) => setCode(e.target.value)}
-              placeholder={t('fields.codePlaceholder')}
-              className="font-mono uppercase"
-              autoFocus
-            />
-          </div>
-        )}
-        <div className="space-y-1.5">
-          <label className="text-sm font-medium">{t('fields.name')}</label>
+    <Form layout="vertical" className="py-2">
+      {isCreate && (
+        <Form.Item label={t('fields.code')}>
           <Input
-            value={name}
-            onChange={(e) => setName(e.target.value)}
-            placeholder={t('fields.namePlaceholder')}
-            autoFocus={!isCreate}
+            value={code}
+            onChange={(e) => setCode(e.target.value)}
+            placeholder={t('fields.codePlaceholder')}
+            className="font-mono uppercase"
+            autoFocus
           />
-        </div>
-        <div className="space-y-1.5">
-          <label className="text-sm font-medium">{t('fields.description')}</label>
-          <Input
-            value={description}
-            onChange={(e) => setDescription(e.target.value)}
-            placeholder={t('fields.descriptionPlaceholder')}
-          />
-        </div>
-      </div>
-
-      <DialogFooter>
-        <Button variant="outline" onClick={onCancel} disabled={isPending}>{t('cancel')}</Button>
-        <Button
-          onClick={() => onSave(code, name, description)}
-          disabled={isPending || !name.trim() || (isCreate && !code.trim())}
-        >
-          {isPending && <Spinner className="mr-2" />}
-          {t('saveButton')}
-        </Button>
-      </DialogFooter>
-    </>
+        </Form.Item>
+      )}
+      <Form.Item label={t('fields.name')}>
+        <Input
+          value={name}
+          onChange={(e) => setName(e.target.value)}
+          placeholder={t('fields.namePlaceholder')}
+          autoFocus={!isCreate}
+        />
+      </Form.Item>
+      <Form.Item label={t('fields.description')} style={{ marginBottom: 0 }}>
+        <Input
+          value={description}
+          onChange={(e) => setDescription(e.target.value)}
+          placeholder={t('fields.descriptionPlaceholder')}
+        />
+      </Form.Item>
+    </Form>
   )
 }
 
@@ -314,22 +308,20 @@ function DeleteConfirmDialog({ role, onClose }: { role: DeleteTarget; onClose: (
 
   return (
     <Dialog open={!!role} onOpenChange={(o) => !o && onClose()}>
-      <DialogContent className="sm:max-w-sm">
-        <DialogHeader>
-          <DialogTitle>{t('deleteConfirmTitle', { name: role?.name ?? '' })}</DialogTitle>
-        </DialogHeader>
+      <DialogContent
+        className="sm:max-w-sm"
+        title={t('deleteConfirmTitle', { name: role?.name ?? '' })}
+        footer={
+          <DialogFooter>
+            <Button variant="outline" onClick={onClose} disabled={isPending}>{t('cancel')}</Button>
+            <Button variant="destructive" onClick={handleDelete} disabled={isPending}>
+              {isPending && <Spinner className="mr-2" />}
+              {t('deleteConfirmButton')}
+            </Button>
+          </DialogFooter>
+        }
+      >
         <p className="text-sm text-muted-foreground">{t('deleteConfirmDescription')}</p>
-        <DialogFooter>
-          <Button variant="outline" onClick={onClose} disabled={isPending}>{t('cancel')}</Button>
-          <Button
-            variant="destructive"
-            onClick={handleDelete}
-            disabled={isPending}
-          >
-            {isPending && <Spinner className="mr-2" />}
-            {t('deleteConfirmButton')}
-          </Button>
-        </DialogFooter>
       </DialogContent>
     </Dialog>
   )

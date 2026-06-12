@@ -5,6 +5,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { cashLedgerRepository } from '@/lib/repositories/cash-ledger.repository'
 import { useAuthStore } from '@/stores/auth.store'
 import { Plus } from 'lucide-react'
+import { Form } from 'antd'
 import { TablePageSkeleton } from '@/components/shared/PageSkeleton'
 import { Spinner } from '@/components/ui/spinner'
 import { useTranslations } from 'next-intl'
@@ -13,12 +14,9 @@ import { Button } from '@/components/ui/button'
 import {
   Dialog,
   DialogContent,
-  DialogHeader,
-  DialogTitle,
   DialogFooter,
 } from '@/components/ui/dialog'
 import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
 import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from '@/components/ui/select'
@@ -36,7 +34,7 @@ function today() {
 
 // Lives inside DialogContent (destroyOnHidden=true), so it remounts fresh on
 // each open — form state auto-resets without any manual cleanup.
-function AddEntryForm({ branchId, onClose }: { branchId: string; onClose: () => void }) {
+function AddEntryDialog({ branchId, open, onClose }: { branchId: string; open: boolean; onClose: () => void }) {
   const t = useTranslations('admin.cashLedger')
   const queryClient = useQueryClient()
   const [form, setForm] = useState({
@@ -66,86 +64,85 @@ function AddEntryForm({ branchId, onClose }: { branchId: string; onClose: () => 
   })
 
   return (
-    <>
-      <DialogHeader>
-        <DialogTitle>{t('addEntry')}</DialogTitle>
-      </DialogHeader>
-      <div className="space-y-4 py-2">
-        <div className="space-y-1.5">
-          <Label>{t('columns.description')}</Label>
-          <Input
-            value={form.description}
-            onChange={(e) => setForm(p => ({ ...p, description: e.target.value }))}
-          />
-        </div>
-        <div className="grid grid-cols-2 gap-3">
-          <div className="space-y-1.5">
-            <Label>{t('columns.direction')}</Label>
-            <Select
-              value={form.entryType}
-              onValueChange={(v) => setForm(p => ({ ...p, entryType: v as CashEntryType }))}
+    <Dialog open={open} onOpenChange={onClose}>
+      <DialogContent
+        className="sm:max-w-xl"
+        title={t('addEntry')}
+        footer={
+          <DialogFooter>
+            <Button variant="outline" onClick={onClose}>
+              {t('cancel')}
+            </Button>
+            <Button
+              onClick={() => addEntry()}
+              disabled={isPending || !form.description || !form.originalAmount}
             >
-              <SelectTrigger><SelectValue /></SelectTrigger>
-              <SelectContent>
-                <SelectItem value="INCOME">{t('entryType.INCOME')}</SelectItem>
-                <SelectItem value="EXPENSE">{t('entryType.EXPENSE')}</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-          <div className="space-y-1.5">
-            <Label>{t('columns.method')}</Label>
-            <Select
-              value={form.method}
-              onValueChange={(v) => setForm(p => ({ ...p, method: v as CashMethod }))}
-            >
-              <SelectTrigger><SelectValue /></SelectTrigger>
-              <SelectContent>
-                <SelectItem value="Cash">{t('method.Cash')}</SelectItem>
-                <SelectItem value="BankTransfer">{t('method.BankTransfer')}</SelectItem>
-                <SelectItem value="QR">{t('method.QR')}</SelectItem>
-                <SelectItem value="COMBINED">{t('method.COMBINED')}</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-        </div>
-        <div className="grid grid-cols-2 gap-3">
-          <div className="space-y-1.5">
-            <Label>{t('columns.amount')}</Label>
+              {isPending ? <Spinner /> : t('addEntry')}
+            </Button>
+          </DialogFooter>
+        }
+      >
+        <Form layout="vertical" className="py-2">
+          <Form.Item label={t('columns.description')}>
             <Input
-              type="number"
-              min="0"
-              value={form.originalAmount}
-              onChange={(e) => setForm(p => ({ ...p, originalAmount: e.target.value }))}
+              value={form.description}
+              onChange={(e) => setForm(p => ({ ...p, description: e.target.value }))}
             />
+          </Form.Item>
+          <div className="grid grid-cols-2 gap-3">
+            <Form.Item label={t('columns.direction')}>
+              <Select
+                value={form.entryType}
+                onValueChange={(v) => setForm(p => ({ ...p, entryType: v as CashEntryType }))}
+              >
+                <SelectTrigger><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="INCOME">{t('entryType.INCOME')}</SelectItem>
+                  <SelectItem value="EXPENSE">{t('entryType.EXPENSE')}</SelectItem>
+                </SelectContent>
+              </Select>
+            </Form.Item>
+            <Form.Item label={t('columns.method')}>
+              <Select
+                value={form.method}
+                onValueChange={(v) => setForm(p => ({ ...p, method: v as CashMethod }))}
+              >
+                <SelectTrigger><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="Cash">{t('method.Cash')}</SelectItem>
+                  <SelectItem value="BankTransfer">{t('method.BankTransfer')}</SelectItem>
+                  <SelectItem value="QR">{t('method.QR')}</SelectItem>
+                  <SelectItem value="COMBINED">{t('method.COMBINED')}</SelectItem>
+                </SelectContent>
+              </Select>
+            </Form.Item>
           </div>
-          <div className="space-y-1.5">
-            <Label>{t('columns.currency')}</Label>
-            <Select
-              value={form.currency}
-              onValueChange={(v) => setForm(p => ({ ...p, currency: v as CashCurrency }))}
-            >
-              <SelectTrigger><SelectValue /></SelectTrigger>
-              <SelectContent>
-                <SelectItem value="LAK">LAK</SelectItem>
-                <SelectItem value="THB">THB</SelectItem>
-                <SelectItem value="USD">USD</SelectItem>
-              </SelectContent>
-            </Select>
+          <div className="grid grid-cols-2 gap-3">
+            <Form.Item label={t('columns.amount')}>
+              <Input
+                type="number"
+                min="0"
+                value={form.originalAmount}
+                onChange={(e) => setForm(p => ({ ...p, originalAmount: e.target.value }))}
+              />
+            </Form.Item>
+            <Form.Item label={t('columns.currency')} style={{ marginBottom: 0 }}>
+              <Select
+                value={form.currency}
+                onValueChange={(v) => setForm(p => ({ ...p, currency: v as CashCurrency }))}
+              >
+                <SelectTrigger><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="LAK">LAK</SelectItem>
+                  <SelectItem value="THB">THB</SelectItem>
+                  <SelectItem value="USD">USD</SelectItem>
+                </SelectContent>
+              </Select>
+            </Form.Item>
           </div>
-        </div>
-      </div>
-      <DialogFooter>
-        <Button variant="outline" onClick={onClose}>
-          {t('cancel')}
-        </Button>
-        <Button
-          onClick={() => addEntry()}
-          disabled={isPending || !form.description || !form.originalAmount}
-        >
-          {isPending ? <Spinner /> : t('addEntry')}
-        </Button>
-      </DialogFooter>
-    </>
+        </Form>
+      </DialogContent>
+    </Dialog>
   )
 }
 
@@ -246,11 +243,11 @@ export default function CashLedgerPage() {
         </div>
       )}
 
-      <Dialog open={addOpen} onOpenChange={setAddOpen}>
-        <DialogContent className="sm:max-w-xl">
-          <AddEntryForm branchId={branchId} onClose={() => setAddOpen(false)} />
-        </DialogContent>
-      </Dialog>
+      <AddEntryDialog
+        branchId={branchId}
+        open={addOpen}
+        onClose={() => setAddOpen(false)}
+      />
     </div>
   )
 }

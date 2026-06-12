@@ -20,8 +20,6 @@ import { useInvoiceTabStore } from '@/stores/invoice-tab.store'
 import {
   Dialog,
   DialogContent,
-  DialogHeader,
-  DialogTitle,
   DialogFooter,
 } from '@/components/ui/dialog'
 import { Button } from '@/components/ui/button'
@@ -46,19 +44,21 @@ function CloseConfirmDialog({ tab, onConfirm, onCancel }: CloseConfirmProps) {
 
   return (
     <Dialog open={!!tab} onOpenChange={open => !open && onCancel()}>
-      <DialogContent className="sm:max-w-sm">
-        <DialogHeader>
-          <DialogTitle>Đóng hóa đơn?</DialogTitle>
-        </DialogHeader>
+      <DialogContent
+        className="sm:max-w-sm"
+        title="Đóng hóa đơn?"
+        footer={
+          <DialogFooter>
+            <Button variant="outline" onClick={onCancel}>Giữ lại</Button>
+            <Button variant="destructive" onClick={onConfirm}>Đóng hóa đơn</Button>
+          </DialogFooter>
+        }
+      >
         <p className="text-sm text-muted-foreground">
           <span className="font-medium text-foreground">{tab?.label}</span> đang có{' '}
           <span className="font-medium text-destructive">{totalQty} sản phẩm</span>.
           Đóng tab sẽ hủy toàn bộ giỏ hàng này.
         </p>
-        <DialogFooter>
-          <Button variant="outline" onClick={onCancel}>Giữ lại</Button>
-          <Button variant="destructive" onClick={onConfirm}>Đóng hóa đơn</Button>
-        </DialogFooter>
       </DialogContent>
     </Dialog>
   )

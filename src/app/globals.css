@@ -1,8 +1,24 @@
+/*
+ * Cascade layer order (lowest → highest priority):
+ *   base < antd < components < utilities
+ *
+ * MUST come before @import so this ordering is established first.
+ * antd CSS lands in @layer antd via StyleProvider layer prop.
+ * - antd > base  → antd component borders beat Tailwind preflight (* { border-width: 0 })
+ * - utilities > antd → Tailwind text-* classes on <Link> beat antd's a { color } reset
+ */
+@layer base, antd, components, utilities;
+
 @import "tailwindcss";
-@import "tw-animate-css";
-@import "shadcn/tailwind.css";
 
 @custom-variant dark (&:is(.dark *));
+
+/* data-horizontal variant — used by Field component (data-orientation="horizontal") */
+@custom-variant data-horizontal {
+  &:where([data-orientation="horizontal"]) {
+    @slot;
+  }
+}
 
 @theme inline {
   --color-background: var(--background);

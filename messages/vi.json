@@ -850,6 +850,8 @@
     "table": {
       "noData": "Không có dữ liệu",
       "results": "{count} kết quả",
+      "showing": "Hiển thị {from}–{to} / {total}",
+      "rowsPerPage": "Dòng mỗi trang",
       "page": "Trang {page} / {total}",
       "searchPlaceholder": "Tìm kiếm..."
     },
