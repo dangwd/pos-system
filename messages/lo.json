@@ -222,7 +222,9 @@
         "products": "ສິນຄ້າ",
         "orders": "ກິດຈະກຳ",
         "customers": "ລູກຄ້າ",
-        "inventory": "ສາງສິນຄ້າ",
+        "inventory": "ສິນຄ້າຄົງເຫຼືອ",
+        "stockIn": "ນຳເຂົ້າສາງ",
+        "stockOut": "ນຳອອກສາງ",
         "trade": "ການຊື້ຂາຍ",
         "cashLedger": "ສໍາເລດເງິນ",
         "reports": "ລາຍງານ",
@@ -235,7 +237,8 @@
         "users": "ຜູ້ໃຊ້",
         "roles": "ບົດບາດ",
         "branches": "ສາຂາ",
-        "groupCatalog": "ສາງສິນຄ້າ",
+        "groupCatalog": "ລາຍການ",
+        "groupWarehouse": "ສາງ",
         "groupFinance": "ການເງິນ",
         "groupConfig": "ການຕັ້ງຄ່າ",
         "groupSystem": "ລະບົບ",
@@ -347,6 +350,8 @@
       "totalAsset": "ມູນຄ່າລວມສິນຄ້າຄົງເຫຼືອ",
       "tabs": {
         "catalog": "ລາຍການສິນຄ້າ ({count})",
+        "stockIn": "ນຳເຂົ້າສາງ",
+        "stockOut": "ນຳອອກສາງ",
         "declare": "ແຈ້ງສິນຄ້າໃໝ່"
       },
       "statusTiepNhan": "ຮັບສິນຄ້າ",
@@ -361,7 +366,7 @@
       },
       "catalog": {
         "title": "ຕາຕະລາງລາຄາສິນຄ້າຕົວຈິງ - {branch}",
-        "subtitle": "ກົດ 'ແກ້ໄຂ' ເພື່ອປັບສິນຄ້າ.",
+        "subtitle": "ກົດ 'ແກ້ໄຂ' ເພື່ອປ່ຽນສະຖານະສິນຄ້າ.",
         "edit": "ແກ້ໄຂ",
         "pieces": "ອັນ",
         "lot": "ລັອດ",
@@ -378,22 +383,83 @@
           "actions": "ຈັດການ"
         }
       },
-      "adjustPanel": {
-        "title": "ປັບເຂົ້າ-ອອກສາງໂດຍກົງ",
-        "selectProduct": "ເລືອກສິນຄ້າ:",
-        "selectPlaceholder": "ເລືອກສິນຄ້າ...",
+      "stockIn": {
+        "pageTitle": "ນຳເຂົ້າສາງ",
+        "pageSubtitle": "ປະຫວັດການນຳເຂົ້າ ({count} ໃບ)",
+        "addButton": "ເພີ່ມການນຳເຂົ້າ",
+        "dialogTitle": "ເພີ່ມການນຳເຂົ້າສາງ",
+        "counter": "ຈຸດຂາຍທີ່ດຳເນີນ",
+        "counterPlaceholder": "ເລືອກຈຸດຂາຍ...",
+        "defaultReason": "ນຳເຂົ້າສາງ",
+        "cash": "ເງິນສົດ",
+        "bank": "ໂອນທະນາຄານ",
+        "selectProducts": "ເລືອກສິນຄ້າ",
+        "totalQty": "ຈຳນວນລວມ: {count}",
+        "emptyLines": "ຍັງບໍ່ມີສິນຄ້າ. ກົດ 'ເລືອກສິນຄ້າ' ເພື່ອເພີ່ມ.",
+        "rowStock": "ຄົງເຫຼືອ {qty}",
+        "reasonPlaceholder": "ໝາຍເຫດ...",
+        "save": "ບັນທຶກ",
+        "close": "ປິດ",
+        "form": {
+          "no": "ລ/ດ",
+          "code": "ລະຫັດສິນຄ້າ",
+          "name": "ຊື່ສິນຄ້າ",
+          "qty": "ຈຳນວນ",
+          "lotValue": "ມູນຄ່າລັອດ (₭)",
+          "reason": "ໝາຍເຫດ",
+          "action": "ຈັດການ"
+        },
+        "columns": {
+          "code": "ລະຫັດໃບ",
+          "product": "ສິນຄ້າ",
+          "quantity": "ຈຳນວນເຂົ້າ",
+          "payment": "ການຊຳລະ",
+          "value": "ມູນຄ່າ",
+          "reason": "ເຫດຜົນ",
+          "date": "ເວລາ"
+        }
+      },
+      "stockOut": {
+        "pageTitle": "ນຳອອກສາງ",
+        "pageSubtitle": "ປະຫວັດການນຳອອກ ({count} ໃບ)",
+        "addButton": "ເພີ່ມການນຳອອກ",
+        "dialogTitle": "ເພີ່ມການນຳອອກສາງ",
+        "counter": "ຈຸດຂາຍທີ່ດຳເນີນ",
+        "counterPlaceholder": "ເລືອກຈຸດຂາຍ...",
+        "defaultReason": "ນຳອອກສາງ",
+        "exceedsStock": "ເກີນຄົງເຫຼືອ ({qty})",
+        "selectProducts": "ເລືອກສິນຄ້າ",
+        "totalQty": "ຈຳນວນລວມ: {count}",
+        "emptyLines": "ຍັງບໍ່ມີສິນຄ້າ. ກົດ 'ເລືອກສິນຄ້າ' ເພື່ອເພີ່ມ.",
+        "rowStock": "ຄົງເຫຼືອ {qty}",
+        "reasonPlaceholder": "ໝາຍເຫດ...",
+        "save": "ບັນທຶກ",
+        "close": "ປິດ",
+        "form": {
+          "no": "ລ/ດ",
+          "code": "ລະຫັດສິນຄ້າ",
+          "name": "ຊື່ສິນຄ້າ",
+          "qty": "ຈຳນວນ",
+          "reason": "ໝາຍເຫດ",
+          "action": "ຈັດການ"
+        },
+        "columns": {
+          "code": "ລະຫັດໃບ",
+          "product": "ສິນຄ້າ",
+          "quantity": "ຈຳນວນອອກ",
+          "reason": "ເຫດຜົນ",
+          "date": "ເວລາ"
+        }
+      },
+      "productPicker": {
+        "title": "ເລືອກສິນຄ້າ",
+        "searchPlaceholder": "ຄົ້ນຫາສິນຄ້າ...",
+        "colCode": "ລະຫັດສິນຄ້າ",
+        "colName": "ຊື່ສິນຄ້າ",
+        "colStock": "ຄົງເຫຼືອ",
         "empty": "ບໍ່ພົບສິນຄ້າ",
-        "changeStatus": "ປ່ຽນສະຖານະ",
-        "direction": "ຮູບແບບ:",
-        "directionIn": "ນຳເຂົ້າ",
-        "directionOut": "ນຳອອກ",
-        "quantity": "ຈຳນວນ",
-        "currentStock": "ຄົງເຫຼືອ {qty}",
-        "exceedsStock": "ເກີນຈຳນວນທີ່ມີ ({qty})",
-        "reason": "ໝາຍເຫດເຫດຜົນ:",
-        "reasonPlaceholder": "ຕົວຢ່າງ: ກວດນັບທ້າຍກະ...",
-        "note": "ທຸກການປັບປ່ຽນຖືກບັນທຶກໃນລະບົບ Khamphuvong HQ, ກະລຸນາລະບຸເຫດຜົນໃຫ້ຊັດເຈນ.",
-        "submit": "ບັນທຶກສິນຄ້າຄົງເຫຼືອ"
+        "skip": "ຂ້າມ",
+        "confirm": "ຢືນຢັນ"
       },
       "activityLog": {
         "title": "ບັນທຶກການເຄື່ອນໄຫວສາງ",
@@ -403,7 +469,7 @@
       },
       "declare": {
         "title": "ແຈ້ງສິນຄ້າໃໝ່ ແລະ ມັດລາຄາ",
-        "subtitle": "ປ້ອນຂໍ້ມູນສິນຄ້າ. ລາຄາຄຳນວນອັດຕະໂນມັດ.",
+        "subtitle": "ແຈ້ງຂໍ້ມູນສິນຄ້າ ແລະ ຜູກມັດລາຄາ. ສິນຄ້າຄົງເຫຼືອເບື້ອງຕົ້ນ = 0, ເພີ່ມຈຳນວນຜ່ານໃບນຳເຂົ້າສາງ.",
         "back": "ກັບຄືນ",
         "name": "ຊື່ສິນຄ້າ",
         "namePlaceholder": "ຕົວຢ່າງ: ແຫວນທອງ 18K",
@@ -413,7 +479,9 @@
         "categoryPlaceholder": "ເລືອກໝວດໝູ່",
         "priceLink": "ມັດລາຄາ (ເນື້ອທອງ%)",
         "priceLinkPlaceholder": "ເລືອກເນື້ອທອງ",
+        "priceLinkHint": "ປະວ່າງສຳລັບສິນຄ້າທີ່ບໍ່ມີເນື້ອ (ແກ້ວ, ເງິນຕາ).",
         "stdWeight": "ນ້ຳໜັກມາດຕະຖານ (ຈີ)",
+        "stdWeightUnit": "ນ້ຳໜັກມາດຕະຖານ ({unit})",
         "weightEquiv": "ເທົ່າກັບ: {gram} ກຣາມ",
         "labor": "ຄ່າແຮງ (₭)",
         "stone": "ຄ່າຫີນ (₭)",
@@ -438,7 +506,10 @@
       },
       "toasts": {
         "adjustSuccess": "ປັບປ່ຽນສາງສຳເລັດ ({code})",
-        "statusSuccess": "ປ່ຽນສະຖານະສຳເລັດ"
+        "statusSuccess": "ປ່ຽນສະຖານະສຳເລັດ",
+        "bulkAdjustSuccess": "ປັບປ່ຽນສາງສຳເລັດ ({count} ລາຍການ)",
+        "bulkInsufficientStock": "{count} ລາຍການຄົງເຫຼືອບໍ່ພຽງພໍ — ຂ້າມໄປ",
+        "bulkNotFound": "{count} ລາຍການບໍ່ພົບ — ຂ້າມໄປ"
       }
     },
     "trade": {

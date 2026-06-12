@@ -19,6 +19,8 @@ import type {
   UpdateInventoryStatusDto,
   BulkUpdateInventoryDto,
   BulkUpdateInventoryResult,
+  BulkAdjustInventoryDto,
+  BulkAdjustInventoryResult,
   InventoryListParams,
   InventoryAdjustmentParams,
 } from '@/types/inventory'
@@ -72,6 +74,20 @@ export class InventoryRepository {
   async adjust(id: string, dto: AdjustInventoryDto): Promise<AdjustInventoryResult> {
     try {
       const { data } = await api.post<AdjustInventoryResult>(`${this.base}/${id}/adjust`, dto)
+      return data
+    } catch (err) {
+      throw handleAxiosError(err)
+    }
+  }
+
+  /**
+   * Điều chỉnh tồn kho NHIỀU mục cùng lúc (nhập/xuất) — mỗi item có direction riêng.
+   * Partial success: trả về `{ adjustedCount, notFoundIds, insufficientStockIds }`.
+   * Role: InventoryManage (Manager, SystemAdmin).
+   */
+  async bulkAdjust(dto: BulkAdjustInventoryDto): Promise<BulkAdjustInventoryResult> {
+    try {
+      const { data } = await api.post<BulkAdjustInventoryResult>(`${this.base}/bulk-adjust`, dto)
       return data
     } catch (err) {
       throw handleAxiosError(err)

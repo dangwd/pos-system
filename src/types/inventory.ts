@@ -128,3 +128,31 @@ export interface BulkUpdateInventoryResult {
   updatedCount: number
   notFoundIds: string[]       // IDs không tìm thấy (partial success)
 }
+
+// ─── Bulk adjust (nhập/xuất nhiều mục cùng lúc) ───────────────────────────────
+
+/** Một item trong POST /api/inventory/bulk-adjust */
+export interface BulkAdjustInventoryItem {
+  id: string
+  direction: AdjustDirection
+  quantity: number
+  reason: string
+  paymentMethod?: 'CASH' | 'BANK'   // Phương thức thanh toán (chỉ ý nghĩa với IN)
+  actualValue?: number              // Giá trị thực lô hàng (LAK)
+}
+
+/** Request body POST /api/inventory/bulk-adjust */
+export interface BulkAdjustInventoryDto {
+  items: BulkAdjustInventoryItem[]
+}
+
+/**
+ * Response POST /api/inventory/bulk-adjust — partial success.
+ * Item thất bại được bỏ qua (không tìm thấy / thiếu tồn); item còn lại vẫn xử lý.
+ * Frontend phải kiểm tra cả `notFoundIds` lẫn `insufficientStockIds`.
+ */
+export interface BulkAdjustInventoryResult {
+  adjustedCount: number
+  notFoundIds: string[]
+  insufficientStockIds: string[]
+}

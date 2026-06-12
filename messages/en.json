@@ -222,7 +222,9 @@
         "products": "Products",
         "orders": "Transactions",
         "customers": "Customers",
-        "inventory": "Inventory",
+        "inventory": "Stock on hand",
+        "stockIn": "Stock in",
+        "stockOut": "Stock out",
         "trade": "Trade",
         "cashLedger": "Cash Ledger",
         "reports": "Reports",
@@ -236,6 +238,7 @@
         "roles": "Roles",
         "branches": "Branches",
         "groupCatalog": "Catalog",
+        "groupWarehouse": "Warehouse",
         "groupFinance": "Finance",
         "groupConfig": "Configuration",
         "groupSystem": "System",
@@ -347,6 +350,8 @@
       "totalAsset": "Total inventory value",
       "tabs": {
         "catalog": "Product catalog ({count})",
+        "stockIn": "Stock in",
+        "stockOut": "Stock out",
         "declare": "Declare new product"
       },
       "statusTiepNhan": "Received",
@@ -370,7 +375,7 @@
       },
       "catalog": {
         "title": "Actual goods price sheet - {branch}",
-        "subtitle": "Click 'Edit' to load a product into the stock adjust panel.",
+        "subtitle": "Click 'Edit' to change the stock item status.",
         "edit": "Edit",
         "pieces": "pcs",
         "lot": "Lot",
@@ -387,22 +392,83 @@
           "actions": "Actions"
         }
       },
-      "adjustPanel": {
-        "title": "Direct stock in/out adjustment",
-        "selectProduct": "Select counter product:",
-        "selectPlaceholder": "Select product...",
+      "stockIn": {
+        "pageTitle": "Stock in",
+        "pageSubtitle": "Stock-in history ({count} records)",
+        "addButton": "New stock-in",
+        "dialogTitle": "New stock-in",
+        "counter": "Counter",
+        "counterPlaceholder": "Select counter...",
+        "defaultReason": "Stock-in",
+        "cash": "Cash",
+        "bank": "Bank transfer",
+        "selectProducts": "Select products",
+        "totalQty": "Total quantity: {count}",
+        "emptyLines": "No products yet. Click 'Select products' to add.",
+        "rowStock": "In stock: {qty}",
+        "reasonPlaceholder": "Note...",
+        "save": "Save",
+        "close": "Close",
+        "form": {
+          "no": "No.",
+          "code": "Code",
+          "name": "Name",
+          "qty": "Quantity",
+          "lotValue": "Lot value (₭)",
+          "reason": "Note",
+          "action": "Action"
+        },
+        "columns": {
+          "code": "Slip code",
+          "product": "Product",
+          "quantity": "In qty",
+          "payment": "Payment",
+          "value": "Value",
+          "reason": "Reason",
+          "date": "Time"
+        }
+      },
+      "stockOut": {
+        "pageTitle": "Stock out",
+        "pageSubtitle": "Stock-out history ({count} records)",
+        "addButton": "New stock-out",
+        "dialogTitle": "New stock-out",
+        "counter": "Counter",
+        "counterPlaceholder": "Select counter...",
+        "defaultReason": "Stock-out",
+        "exceedsStock": "Over stock ({qty})",
+        "selectProducts": "Select products",
+        "totalQty": "Total quantity: {count}",
+        "emptyLines": "No products yet. Click 'Select products' to add.",
+        "rowStock": "In stock: {qty}",
+        "reasonPlaceholder": "Note...",
+        "save": "Save",
+        "close": "Close",
+        "form": {
+          "no": "No.",
+          "code": "Code",
+          "name": "Name",
+          "qty": "Quantity",
+          "reason": "Note",
+          "action": "Action"
+        },
+        "columns": {
+          "code": "Slip code",
+          "product": "Product",
+          "quantity": "Out qty",
+          "reason": "Reason",
+          "date": "Time"
+        }
+      },
+      "productPicker": {
+        "title": "Select products",
+        "searchPlaceholder": "Search products...",
+        "colCode": "Code",
+        "colName": "Name",
+        "colStock": "Stock",
         "empty": "No products",
-        "changeStatus": "Change status",
-        "direction": "In/out type:",
-        "directionIn": "Stock in",
-        "directionOut": "Stock out",
-        "quantity": "Quantity in/out (pcs)",
-        "currentStock": "In stock: {qty}",
-        "exceedsStock": "Exceeds available stock ({qty})",
-        "reason": "Adjustment reason note:",
-        "reasonPlaceholder": "e.g. End-of-shift count surplus, reconcile mismatch...",
-        "note": "All stock adjustments are logged across the Khamphuvong HQ chain — please enter a clear reason before recording.",
-        "submit": "Record new stock"
+        "skip": "Cancel",
+        "confirm": "Confirm"
       },
       "activityLog": {
         "title": "Warehouse transfer activity log",
@@ -412,7 +478,7 @@
       },
       "declare": {
         "title": "Declare new product and link price code",
-        "subtitle": "Fill product attributes. Unit price is computed live from the linked price code.",
+        "subtitle": "Declare product attributes and link a price code. Initial stock = 0, add quantity via a stock-in slip.",
         "back": "Back to list",
         "name": "Product name",
         "namePlaceholder": "e.g. Gold pixiu ring 18K",
@@ -422,7 +488,9 @@
         "categoryPlaceholder": "Select category",
         "priceLink": "Linked price code (Purity%)",
         "priceLinkPlaceholder": "Select purity",
+        "priceLinkHint": "Leave empty for items without purity (gemstones, currency).",
         "stdWeight": "Standard gold weight (Chi)",
+        "stdWeightUnit": "Standard weight ({unit})",
         "weightEquiv": "Equivalent: {gram} Gram",
         "labor": "Standard labor fee (₭)",
         "stone": "Stone/gem fee (₭)",
@@ -447,7 +515,10 @@
       },
       "toasts": {
         "adjustSuccess": "Stock adjusted ({code})",
-        "statusSuccess": "Status updated"
+        "statusSuccess": "Status updated",
+        "bulkAdjustSuccess": "Stock adjusted ({count} items)",
+        "bulkInsufficientStock": "{count} items had insufficient stock — skipped",
+        "bulkNotFound": "{count} items not found — skipped"
       }
     },
     "trade": {

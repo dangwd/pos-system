@@ -13,8 +13,10 @@ import {
 import { cn } from "@/lib/utils";
 import { useAuthStore } from "@/stores/auth.store";
 import {
+  ArrowDownToLine,
   ArrowLeft,
   ArrowLeftRight,
+  ArrowUpFromLine,
   BarChart3,
   Boxes,
   Building2,
@@ -67,7 +69,7 @@ export default function AdminLayout({
 
   const [collapsed, setCollapsed] = useState(false);
   const [search, setSearch] = useState("");
-  const [openGroups, setOpenGroups] = useState<Set<number>>(() => new Set([0, 1, 2, 3, 4]));
+  const [openGroups, setOpenGroups] = useState<Set<number>>(() => new Set([0, 1, 2, 3, 4, 5]));
 
   const NAV_GROUPS = useMemo(
     () => [
@@ -91,7 +93,14 @@ export default function AdminLayout({
         items: [
           { href: "/admin/products", label: t("nav.products"), icon: Package },
           { href: "/admin/customers", label: t("nav.customers"), icon: Users },
+        ],
+      },
+      {
+        label: t("nav.groupWarehouse"),
+        items: [
           { href: "/admin/inventory", label: t("nav.inventory"), icon: Boxes },
+          { href: "/admin/stock-in", label: t("nav.stockIn"), icon: ArrowDownToLine },
+          { href: "/admin/stock-out", label: t("nav.stockOut"), icon: ArrowUpFromLine },
         ],
       },
       {

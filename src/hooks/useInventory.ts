@@ -13,6 +13,8 @@ import type {
   AdjustInventoryDto,
   AdjustInventoryResult,
   UpdateInventoryStatusDto,
+  BulkAdjustInventoryDto,
+  BulkAdjustInventoryResult,
   InventoryItem,
 } from '@/types/inventory'
 
@@ -103,6 +105,24 @@ export function useAdjustInventory() {
     onSuccess: (res) => {
       invalidate()
       toast.success(t('adjustSuccess', { code: res.log.adjustmentCode }))
+    },
+    onError: (err) => toast.error(getErrorMessage(err.code, locale)),
+  })
+}
+
+/**
+ * Nhập/Xuất nhiều mục kho cùng lúc (POST /api/inventory/bulk-adjust).
+ * Partial success: báo riêng số điều chỉnh thành công, số thiếu tồn và số không tìm thấy.
+ */
+export function useBulkAdjustInventory() {
+  const { locale, t, invalidate } = useInventoryMutationBase()
+  return useMutation<BulkAdjustInventoryResult, ApiError, BulkAdjustInventoryDto>({
+    mutationFn: (dto) => inventoryRepository.bulkAdjust(dto),
+    onSuccess: (res) => {
+      invalidate()
+      if (res.adjustedCount > 0) toast.success(t('bulkAdjustSuccess', { count: res.adjustedCount }))
+      if (res.insufficientStockIds.length > 0) toast.warning(t('bulkInsufficientStock', { count: res.insufficientStockIds.length }))
+      if (res.notFoundIds.length > 0) toast.warning(t('bulkNotFound', { count: res.notFoundIds.length }))
     },
     onError: (err) => toast.error(getErrorMessage(err.code, locale)),
   })

@@ -7,7 +7,6 @@ import { Boxes, PackagePlus } from 'lucide-react'
 import { ComboboxSelect } from '@/components/shared/ComboboxSelect'
 import { InventoryCatalog } from '@/components/admin/inventory/InventoryCatalog'
 import { InventoryDeclareForm } from '@/components/admin/inventory/InventoryDeclareForm'
-import { InventoryAdjustPanel } from '@/components/admin/inventory/InventoryAdjustPanel'
 import { InventoryActivityLog } from '@/components/admin/inventory/InventoryActivityLog'
 import { InventoryStatusDialog } from '@/components/admin/inventory/InventoryStatusDialog'
 import { useBranches } from '@/hooks/useBranches'
@@ -22,13 +21,13 @@ export default function InventoryPage() {
   const t = useTranslations('admin.inventory')
   const user = useAuthStore(s => s.user)
 
-  // Phân quyền (§14): INVENTORY_MANAGE để điều chỉnh kho; PRODUCT_MANAGE để khai báo SP.
+  // Phân quyền (§14): INVENTORY_MANAGE để đổi trạng thái mục kho; PRODUCT_MANAGE để khai báo SP.
+  // Nhập/Xuất kho tách thành 2 màn riêng: /admin/inventory/stock-in · /stock-out.
   const canManage = !!user?.permissions.includes('INVENTORY_MANAGE')
   const canDeclare = !!user?.permissions.includes('PRODUCT_MANAGE')
 
   const [tab, setTab] = useState<Tab>('catalog')
   const [branchId, setBranchId] = useState<string | null>(null)
-  const [selectedItemId, setSelectedItemId] = useState<string | null>(null)
   const [statusItem, setStatusItem] = useState<InventoryItem | null>(null)
 
   const { data: branches = [] } = useBranches()
@@ -73,31 +72,22 @@ export default function InventoryPage() {
       </div>
 
       {/* Workspace */}
-      <div className="grid grid-cols-1 gap-4 xl:grid-cols-[1fr_360px]">
-        <div className="min-w-0">
-          {activeTab === 'catalog' ? (
+      {activeTab === 'declare' ? (
+        <InventoryDeclareForm onBack={() => setTab('catalog')} />
+      ) : (
+        <div className="grid grid-cols-1 gap-4 xl:grid-cols-[1fr_360px]">
+          <div className="min-w-0">
             <InventoryCatalog
               branchId={effectiveBranchId}
               branchName={branchName}
-              onEditItem={canManage ? item => setSelectedItemId(item.id) : undefined}
+              onEditItem={canManage ? setStatusItem : undefined}
             />
-          ) : (
-            <InventoryDeclareForm onBack={() => setTab('catalog')} />
-          )}
+          </div>
+          <aside>
+            <InventoryActivityLog branchId={effectiveBranchId} branchName={branchName} />
+          </aside>
         </div>
-
-        <aside className="space-y-4">
-          {canManage && (
-            <InventoryAdjustPanel
-              branchId={effectiveBranchId}
-              selectedItemId={selectedItemId}
-              onSelectItem={setSelectedItemId}
-              onChangeStatus={setStatusItem}
-            />
-          )}
-          <InventoryActivityLog branchId={effectiveBranchId} branchName={branchName} />
-        </aside>
-      </div>
+      )}
 
       <InventoryStatusDialog item={statusItem} onClose={() => setStatusItem(null)} />
     </div>

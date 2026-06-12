@@ -222,7 +222,9 @@
         "products": "Sản phẩm",
         "orders": "Giao dịch",
         "customers": "Khách hàng",
-        "inventory": "Kho hàng",
+        "inventory": "Tồn kho",
+        "stockIn": "Nhập kho",
+        "stockOut": "Xuất kho",
         "trade": "Mua-Bán",
         "cashLedger": "Sổ quỹ",
         "reports": "Báo cáo",
@@ -236,6 +238,7 @@
         "roles": "Vai trò",
         "branches": "Chi nhánh",
         "groupCatalog": "Danh mục",
+        "groupWarehouse": "Kho",
         "groupFinance": "Tài chính",
         "groupConfig": "Cấu hình",
         "groupSystem": "Hệ thống",
@@ -345,6 +348,8 @@
       "totalAsset": "Tổng lượng trị giá tồn",
       "tabs": {
         "catalog": "Danh mục hàng hóa ({count})",
+        "stockIn": "Nhập kho",
+        "stockOut": "Xuất kho",
         "declare": "Khai báo sản phẩm mới"
       },
       "statusTiepNhan": "Tiếp nhận",
@@ -359,7 +364,7 @@
       },
       "catalog": {
         "title": "Bảng đối chiếu giá hàng hóa thực tế - {branch}",
-        "subtitle": "Nhấn 'Sửa' để chọn sản phẩm vào panel điều chỉnh kho.",
+        "subtitle": "Nhấn 'Sửa' để đổi trạng thái mục kho.",
         "edit": "Sửa",
         "pieces": "chiếc",
         "lot": "Lô",
@@ -376,22 +381,83 @@
           "actions": "Thao tác"
         }
       },
-      "adjustPanel": {
-        "title": "Điều chỉnh xuất nhập kho trực tiếp",
-        "selectProduct": "Chọn sản phẩm quầy:",
-        "selectPlaceholder": "Chọn sản phẩm...",
+      "stockIn": {
+        "pageTitle": "Nhập kho",
+        "pageSubtitle": "Lịch sử nhập kho ({count} phiếu)",
+        "addButton": "Thêm mới nhập kho",
+        "dialogTitle": "Thêm mới nhập kho",
+        "counter": "Quầy thực hiện",
+        "counterPlaceholder": "Chọn quầy...",
+        "defaultReason": "Nhập kho",
+        "cash": "Tiền mặt",
+        "bank": "Chuyển khoản",
+        "selectProducts": "Chọn sản phẩm",
+        "totalQty": "Tổng số lượng: {count}",
+        "emptyLines": "Chưa có sản phẩm. Nhấn 'Chọn sản phẩm' để thêm.",
+        "rowStock": "Tồn: {qty}",
+        "reasonPlaceholder": "Ghi chú...",
+        "save": "Lưu",
+        "close": "Đóng",
+        "form": {
+          "no": "STT",
+          "code": "Mã hàng",
+          "name": "Tên hàng",
+          "qty": "Số lượng",
+          "lotValue": "Giá trị lô (₭)",
+          "reason": "Ghi chú",
+          "action": "Thao tác"
+        },
+        "columns": {
+          "code": "Mã phiếu",
+          "product": "Sản phẩm",
+          "quantity": "SL nhập",
+          "payment": "Thanh toán",
+          "value": "Giá trị",
+          "reason": "Lý do",
+          "date": "Thời gian"
+        }
+      },
+      "stockOut": {
+        "pageTitle": "Xuất kho",
+        "pageSubtitle": "Lịch sử xuất kho ({count} phiếu)",
+        "addButton": "Thêm mới xuất kho",
+        "dialogTitle": "Thêm mới xuất kho",
+        "counter": "Quầy thực hiện",
+        "counterPlaceholder": "Chọn quầy...",
+        "defaultReason": "Xuất kho",
+        "exceedsStock": "Vượt tồn ({qty})",
+        "selectProducts": "Chọn sản phẩm",
+        "totalQty": "Tổng số lượng: {count}",
+        "emptyLines": "Chưa có sản phẩm. Nhấn 'Chọn sản phẩm' để thêm.",
+        "rowStock": "Tồn: {qty}",
+        "reasonPlaceholder": "Ghi chú...",
+        "save": "Lưu",
+        "close": "Đóng",
+        "form": {
+          "no": "STT",
+          "code": "Mã hàng",
+          "name": "Tên hàng",
+          "qty": "Số lượng",
+          "reason": "Ghi chú",
+          "action": "Thao tác"
+        },
+        "columns": {
+          "code": "Mã phiếu",
+          "product": "Sản phẩm",
+          "quantity": "SL xuất",
+          "reason": "Lý do",
+          "date": "Thời gian"
+        }
+      },
+      "productPicker": {
+        "title": "Chọn sản phẩm",
+        "searchPlaceholder": "Tìm kiếm sản phẩm...",
+        "colCode": "Mã hàng",
+        "colName": "Tên hàng",
+        "colStock": "Tồn",
         "empty": "Không có sản phẩm",
-        "changeStatus": "Đổi trạng thái",
-        "direction": "Hình thức xuất/nhập:",
-        "directionIn": "Nhập kho",
-        "directionOut": "Xuất kho",
-        "quantity": "Số lượng bổ sung/bớt ra (Chiếc)",
-        "currentStock": "Tồn: {qty}",
-        "exceedsStock": "Vượt quá tồn kho ({qty})",
-        "reason": "Ghi chú lý do bổ sung:",
-        "reasonPlaceholder": "VD: Kiểm đếm cuối ca thừa nhẫn, điều chỉnh khớp mé hàng...",
-        "note": "Toàn bộ thao tác điều chỉnh kho được ghi lại trên cơ sở liên kết chuỗi Khamphuvong HQ, hãy điền lý do rõ ràng trước khi ghi sổ.",
-        "submit": "Ghi nhận tồn kho mới"
+        "skip": "Bỏ qua",
+        "confirm": "Xác nhận"
       },
       "activityLog": {
         "title": "Nhật ký hoạt động điều chuyển kho bãi",
@@ -401,7 +467,7 @@
       },
       "declare": {
         "title": "Khai báo sản phẩm mới và gán mã liên kết biểu giá",
-        "subtitle": "Điền thuộc tính sản phẩm. Đơn giá tự tính toán live dựa trên mã giá được gán.",
+        "subtitle": "Khai báo thuộc tính sản phẩm và gán mã giá. Tồn kho ban đầu = 0, nhập số lượng qua phiếu nhập kho.",
         "back": "Quay lại danh sách",
         "name": "Tên sản phẩm hàng hóa",
         "namePlaceholder": "VD: Nhẫn nam tỳ hưu chiêu tài vàng ta 18K",
@@ -411,7 +477,9 @@
         "categoryPlaceholder": "Chọn danh mục",
         "priceLink": "Gán mã giá liên kết (Hàm lượng%)",
         "priceLinkPlaceholder": "Chọn hàm lượng",
+        "priceLinkHint": "Bỏ trống với hàng không có hàm lượng (đá quý, ngoại tệ).",
         "stdWeight": "Khối lượng vàng quy chuẩn (Chỉ)",
+        "stdWeightUnit": "Khối lượng quy chuẩn ({unit})",
         "weightEquiv": "Tương đương: {gram} Gram",
         "labor": "Tiền công quy chuẩn (₭)",
         "stone": "Tiền đá/hột gắn kèm (₭)",
@@ -436,7 +504,10 @@
       },
       "toasts": {
         "adjustSuccess": "Điều chỉnh kho thành công ({code})",
-        "statusSuccess": "Cập nhật trạng thái thành công"
+        "statusSuccess": "Cập nhật trạng thái thành công",
+        "bulkAdjustSuccess": "Điều chỉnh kho thành công ({count} mục)",
+        "bulkInsufficientStock": "{count} mục không đủ tồn — đã bỏ qua",
+        "bulkNotFound": "{count} mục không tìm thấy — đã bỏ qua"
       }
     },
     "trade": {

@@ -468,12 +468,14 @@ Các API danh sách lớn (`users`, `products`, `customers`, `inventory`, `trans
   {
     "id": "3fa85f64-5717-4562-b3fc-2c963f66afa6",
     "employeeCode": "NV001",
+    "username": "NV001",
     "fullName": "Trần Văn Nhân Viên",
     "phone": "020-99998888",
     "email": "nv001@khamphuvong.la",
     "address": "Bản Phonxay, Vientiane",
     "dateOfBirth": "1995-03-20",
     "branchId": "3fa85f64-5717-4562-b3fc-2c963f66afa6",
+    "branchName": "Chi nhánh Trung tâm",
     "counterId": "3fa85f64-5717-4562-b3fc-2c963f66afa6",
     "counterName": "Quầy 1 — Bán vàng",
     "role": { "id": "...", "code": "Cashier", "name": "Nhân viên bán hàng" },
@@ -484,7 +486,8 @@ Các API danh sách lớn (`users`, `products`, `customers`, `inventory`, `trans
 ]
 ```
 
-> `email`, `address`, `dateOfBirth`, `counterId`, `counterName` — trả về `null` nếu chưa được thiết lập. `GET /api/users/{id}` trả về cùng cấu trúc cho một người dùng.
+> `email`, `address`, `dateOfBirth`, `counterId`, `counterName` — trả về `null` nếu chưa được thiết lập.  
+> `GET /api/users/{id}` trả về cùng cấu trúc cho một người dùng.
 
 ---
 
@@ -511,7 +514,7 @@ Tạo tài khoản người dùng mới.
 
 > `email`, `address`, `dateOfBirth`, `counterId` — tuỳ chọn. `counterId` là quầy phân công cho nhân viên; quầy phải đang hoạt động và thuộc đúng chi nhánh (`branchId`) của nhân viên.
 
-**Response `201 Created`:** `{ "id": "...", "employeeCode": "NV002", "fullName": "..." }`
+**Response `201 Created`:** Cấu trúc đầy đủ như `GET /api/users/{id}` (kèm `branchName`, `counterName`, `role`).
 
 **Lỗi:**
 
@@ -582,16 +585,93 @@ Kích hoạt / vô hiệu hoá tài khoản. **Response `204 No Content`.**
 
 ## 4. Customers — Khách hàng
 
+> **Xác thực:** Tất cả endpoint yêu cầu `Authorization: Bearer <accessToken>`.
+
+---
+
+### Model dữ liệu
+
+#### `CustomerSummary` — dùng trong danh sách & chọn nhanh
+
+| Trường | Kiểu | Mô tả |
+|---|---|---|
+| `id` | `string (uuid)` | Mã định danh khách hàng |
+| `name` | `string` | Họ tên đầy đủ |
+| `phoneNumber` | `string` | Số điện thoại (rỗng nếu không có) |
+| `email` | `string \| null` | Email |
+| `loyaltyTier` | `"silver" \| "gold" \| "platinum"` | Hạng thành viên |
+| `accumulatedPoints` | `number` | Điểm tích lũy |
+| `isActive` | `boolean` | Trạng thái hoạt động |
+| `createdAt` | `string (ISO 8601)` | Thời điểm tạo (UTC) |
+
+#### `CustomerDetail` — dùng khi xem chi tiết / sau khi tạo / cập nhật
+
+Bao gồm tất cả trường của `CustomerSummary`, cộng thêm:
+
+| Trường | Kiểu | Mô tả |
+|---|---|---|
+| `address` | `string \| null` | Địa chỉ |
+| `dateOfBirth` | `string \| null` | Ngày sinh, định dạng `YYYY-MM-DD` |
+| `totalCompletedInvoices` | `number` | Tổng số hóa đơn đã hoàn thành |
+
+#### TypeScript interfaces
+
+```typescript
+export interface CustomerSummary {
+  id: string;
+  name: string;
+  phoneNumber: string;
+  email: string | null;
+  loyaltyTier: 'silver' | 'gold' | 'platinum';
+  accumulatedPoints: number;
+  isActive: boolean;
+  createdAt: string;
+}
+
+export interface CustomerDetail extends CustomerSummary {
+  address: string | null;
+  dateOfBirth: string | null; // "YYYY-MM-DD"
+  totalCompletedInvoices: number;
+}
+
+export interface CreateCustomerRequest {
+  name: string;
+  phoneNumber?: string;
+  loyaltyTier?: 'silver' | 'gold' | 'platinum';
+  email?: string;
+  address?: string;
+  dateOfBirth?: string; // "YYYY-MM-DD"
+}
+
+// UpdateCustomerRequest có cùng shape với CreateCustomerRequest
+export type UpdateCustomerRequest = CreateCustomerRequest;
+```
+
+---
+
 ### `GET /api/customers`
 
-Tìm kiếm khách hàng theo tên hoặc số điện thoại.
+Tìm kiếm khách hàng theo tên hoặc số điện thoại.  
+**Hoạt động theo 2 chế độ** tuỳ vào có truyền `page` hay không:
 
-**Query params:** `search` (từ khoá — tìm theo tên/SĐT; `q` là alias cũ), `limit` (mặc định 10); `page`, `pageSize` (mặc định 20) — **có `page`** ⇒ trả `PagedResult` (màn quản lý KH), **không có** ⇒ trả mảng gọn theo `limit` (chọn nhanh khi lập đơn).
+| Chế độ | Điều kiện | Kết quả | Dùng khi |
+|---|---|---|---|
+| **Chọn nhanh** | Không truyền `page` | Mảng phẳng `CustomerSummary[]`, tối đa `limit` bản ghi | Dropdown chọn KH khi lập đơn |
+| **Phân trang** | Truyền `page` | `PagedResult<CustomerSummary>` | Màn hình quản lý khách hàng |
 
-> Khi truyền `limit`: trả `array` phẳng.  
-> Khi không truyền `limit`: trả object phân trang `{ total, page, pageSize, data }`.
+**Query params:**
 
-**Response `200 OK` (phân trang):**
+| Tham số | Kiểu | Mặc định | Mô tả |
+|---|---|---|---|
+| `search` | `string` | — | Từ khoá tìm theo tên hoặc SĐT |
+| `q` | `string` | — | Alias cũ của `search` (tương thích ngược) |
+| `limit` | `number` | `10` | Số bản ghi tối đa (chỉ có hiệu lực ở chế độ chọn nhanh) |
+| `page` | `number` | — | Số trang (bắt đầu từ 1) — **khi truyền → kích hoạt phân trang** |
+| `pageSize` | `number` | `20` | Số bản ghi mỗi trang (chỉ có hiệu lực khi có `page`) |
+
+> Chỉ trả về khách hàng có `isActive = true`, sắp xếp theo tên A→Z.
+
+**Response `200 OK` — chế độ chọn nhanh (không truyền `page`):**
 
 ```json
 [
@@ -608,11 +688,47 @@ Tìm kiếm khách hàng theo tên hoặc số điện thoại.
 ]
 ```
 
+**Response `200 OK` — chế độ phân trang (truyền `page=1`):**
+
+```json
+{
+  "total": 58,
+  "page": 1,
+  "pageSize": 20,
+  "data": [
+    {
+      "id": "3fa85f64-5717-4562-b3fc-2c963f66afa6",
+      "name": "Somchai Phommavong",
+      "phoneNumber": "020-55551234",
+      "email": "somchai@example.com",
+      "loyaltyTier": "silver",
+      "accumulatedPoints": 1500,
+      "isActive": true,
+      "createdAt": "2025-01-15T08:30:00Z"
+    }
+  ]
+}
+```
+
+**Ví dụ gọi API (frontend):**
+
+```typescript
+// Chọn nhanh khi lập đơn
+GET /api/customers?search=somchai&limit=5
+// → CustomerSummary[]
+
+// Màn hình quản lý khách hàng
+GET /api/customers?search=somchai&page=1&pageSize=20
+// → PagedResult<CustomerSummary>
+```
+
 ---
 
 ### `GET /api/customers/{id}`
 
-Lấy chi tiết khách hàng (kèm `totalCompletedInvoices`).
+Lấy thông tin đầy đủ của một khách hàng theo ID. Kèm tổng số hóa đơn đã hoàn thành.
+
+**Path param:** `id` — UUID của khách hàng.
 
 **Response `200 OK`:**
 
@@ -632,11 +748,17 @@ Lấy chi tiết khách hàng (kèm `totalCompletedInvoices`).
 }
 ```
 
+**Lỗi:**
+
+| Mã lỗi | HTTP | Mô tả |
+|---|---|---|
+| `CUSTOMER_NOT_FOUND` | `404` | Không tìm thấy khách hàng với ID này |
+
 ---
 
 ### `POST /api/customers`
 
-Tạo khách hàng mới.
+Tạo khách hàng mới. Trả về `CustomerDetail` của khách hàng vừa tạo.
 
 **Request body:**
 
@@ -651,16 +773,57 @@ Tạo khách hàng mới.
 }
 ```
 
-> `loyaltyTier`: `silver` | `gold` | `platinum` (mặc định `silver`).  
-> `phoneNumber`, `email`, `address`, `dateOfBirth` — tuỳ chọn.
+**Quy tắc các trường:**
 
-**Lỗi:** `CUSTOMER_PHONE_DUPLICATE` 422
+| Trường | Bắt buộc | Mặc định | Ghi chú |
+|---|---|---|---|
+| `name` | ✅ | — | Tên khách hàng, tự động trim |
+| `phoneNumber` | ❌ | `""` | Nếu cung cấp → phải duy nhất trong hệ thống |
+| `loyaltyTier` | ❌ | `"silver"` | Chỉ nhận: `silver` \| `gold` \| `platinum` |
+| `email` | ❌ | `null` | |
+| `address` | ❌ | `null` | |
+| `dateOfBirth` | ❌ | `null` | Định dạng `YYYY-MM-DD` |
+
+**Response `200 OK`:** `CustomerDetail` (kèm `totalCompletedInvoices: 0`).
+
+**Lỗi:**
+
+| Mã lỗi | HTTP | Mô tả |
+|---|---|---|
+| `CUSTOMER_PHONE_DUPLICATE` | `422` | Số điện thoại đã tồn tại trong hệ thống |
 
 ---
 
 ### `PUT /api/customers/{id}`
 
-Cập nhật thông tin khách hàng. (Request body tương tự POST, hỗ trợ `null` để xoá.)
+Cập nhật thông tin khách hàng. Request body có cùng cấu trúc với `POST`.  
+Trả về `CustomerDetail` sau khi cập nhật.
+
+**Path param:** `id` — UUID của khách hàng.
+
+**Request body:** Tương tự `POST /api/customers`. Truyền `null` cho `email` / `address` / `dateOfBirth` để xoá giá trị.
+
+**Ví dụ xoá email:**
+
+```json
+{
+  "name": "Somchai Phommavong",
+  "phoneNumber": "020-55551234",
+  "loyaltyTier": "silver",
+  "email": null,
+  "address": null,
+  "dateOfBirth": null
+}
+```
+
+**Response `200 OK`:** `CustomerDetail` (kèm `totalCompletedInvoices` hiện tại).
+
+**Lỗi:**
+
+| Mã lỗi | HTTP | Mô tả |
+|---|---|---|
+| `CUSTOMER_NOT_FOUND` | `404` | Không tìm thấy khách hàng với ID này |
+| `CUSTOMER_PHONE_DUPLICATE` | `422` | Số điện thoại đã được dùng bởi khách hàng khác |
 
 ---
 
@@ -752,10 +915,10 @@ Lấy chi tiết sản phẩm (kèm `isActive`).
 > `productType`: `NguyenKhoi` (mặc định) | `CanThucTe`.
 
 > **⚙️ Lưu ý tích hợp Kho & phí (backend xác nhận) — ranh giới hiện tại:**
-> - **Tạo sản phẩm chỉ tạo master data, KHÔNG sinh tồn kho.** Hiện **chưa có endpoint khai báo tồn kho ban đầu**. `InventoryItem` chỉ phát sinh qua **giao dịch nhập kho** (chiều `IN`: `BuyGold` / `BuyMoreGold` / item-vào khi thu đổi — xem [§8](#8-transactions--giao-dịch-bán-hàng-pos)) hoặc qua dữ liệu **seed**. `POST /api/inventory/{id}/adjust` **yêu cầu mục kho đã tồn tại**.
+> - **Tạo sản phẩm sẽ tự sinh bản ghi tồn kho `quantity = 0` cho TẤT CẢ quầy đang hoạt động** (chạy **ngầm, fire-and-forget** — API trả `201` ngay, không đợi seed; lỗi seed chỉ ghi log). Nhờ vậy `POST /api/inventory/{id}/adjust` (chiều `IN`) **dùng được ngay** để **nhập tồn ban đầu** mà không cần tạo mục kho thủ công. Thao tác này **idempotent** (bỏ qua quầy đã có item). Tồn cũng tăng qua **giao dịch nhập kho** (chiều `IN`: `BuyGold` / `BuyMoreGold` / item-vào khi thu đổi — xem [§8](#8-transactions--giao-dịch-bán-hàng-pos)).
 > - **Tiền công** và **tiền đá KHÔNG phải field của sản phẩm** — nhập tại thời điểm bán (`TransactionItem.laborFee` / `stoneFee`). Nếu form khai báo SP có 2 ô này thì chỉ để **preview/gợi ý**, **chưa được lưu**.
 > - **ĐVT** (`weightUnitId`) **CÓ** được lưu trên sản phẩm — không nằm trong nhóm "chưa lưu".
-> - Muốn lưu đủ (tồn kho ban đầu, tiền công/đá mặc định theo SP) cần **backend bổ sung** endpoint/field tương ứng.
+> - Còn lại: muốn **tiền công / tiền đá mặc định theo từng SP** thì cần **backend bổ sung field** (hiện chỉ nhập lúc bán). *(Riêng tồn kho ban đầu đã xử lý qua auto-seed + `adjust` ở bullet 1.)*
 
 **Response `201 Created`:** `{ "id": "...", "productCode": "..." }`
 
@@ -1149,6 +1312,7 @@ Lấy danh sách hàng tồn kho, hỗ trợ tìm kiếm theo từ khóa và ph�
 | Tham số | Kiểu | Mặc định | Mô tả |
 |---|---|---|---|
 | `branchId` | GUID | — | Lọc theo chi nhánh |
+| `counterId` | GUID | — | Lọc theo quầy giao dịch |
 | `category` | string | — | Lọc theo mã danh mục |
 | `status` | string | — | `TiepNhan` \| `DaDinhGia` \| `TrenQuay` \| `ChuyenXuong` \| `DaBan` |
 | `nguonGoc` | string | — | `Quan` \| `Ngoai` |
@@ -1170,6 +1334,8 @@ Lấy danh sách hàng tồn kho, hỗ trợ tìm kiếm theo từ khóa và ph�
     {
       "id": "3fa85f64-5717-4562-b3fc-2c963f66afa6",
       "branchId": "3fa85f64-5717-4562-b3fc-2c963f66afa6",
+      "counterId": "7c9e6679-7425-40de-944b-e07fc1f90ae7",
+      "counterName": "Quầy 1 — Vàng 24K",
       "productCode": "V24K-NHAN-001",
       "productName": "Nhẫn Vàng 24K Trơn",
       "category": "VANG_24K",
@@ -1229,6 +1395,8 @@ Lấy chi tiết một mục kho. **Lỗi:** `INVENTORY_NOT_FOUND` 404
   "item": {
     "id": "...",
     "branchId": "...",
+    "counterId": "7c9e6679-7425-40de-944b-e07fc1f90ae7",
+    "counterName": "Quầy 1 — Vàng 24K",
     "productCode": "V24K-NHAN-001",
     "productName": "Nhẫn Vàng 24K Trơn",
     "category": "VANG_24K",
@@ -1279,6 +1447,50 @@ Cập nhật trạng thái mục kho.
 
 ---
 
+### `PATCH /api/inventory/bulk`
+
+Cập nhật trạng thái nhiều mục kho cùng lúc. Mỗi item trong danh sách có thể mang trạng thái khác nhau.
+
+**Yêu cầu policy:** `InventoryManage` (Manager, SystemAdmin).
+
+**Request body:**
+
+```json
+{
+  "items": [
+    { "id": "3fa85f64-5717-4562-b3fc-2c963f66afa6", "trangThai": "TrenQuay" },
+    { "id": "7c9e6679-7425-40de-944b-e07fc1f90ae7", "trangThai": "DaDinhGia" },
+    { "id": "a1b2c3d4-e5f6-7890-abcd-ef1234567890", "trangThai": "DaBan" }
+  ]
+}
+```
+
+| Trường | Bắt buộc | Mô tả |
+|---|---|---|
+| `items` | ✔ | Danh sách items cần cập nhật (không được rỗng) |
+| `items[].id` | ✔ | GUID của mục kho |
+| `items[].trangThai` | ✔ | Trạng thái mới: `TiepNhan` \| `DaDinhGia` \| `TrenQuay` \| `ChuyenXuong` \| `DaBan` |
+
+**Response `200 OK`:**
+
+```json
+{
+  "updatedCount": 2,
+  "notFoundIds": ["a1b2c3d4-e5f6-7890-abcd-ef1234567890"]
+}
+```
+
+> **Partial success:** Nếu một số `id` không tồn tại, hệ thống vẫn cập nhật các item tìm thấy và trả về danh sách `notFoundIds`. Frontend nên kiểm tra `notFoundIds` sau khi nhận response.
+
+**Lỗi:**
+
+| Mã lỗi | HTTP | Mô tả |
+|---|---|---|
+| `INVENTORY_BULK_EMPTY` | 422 | Danh sách `items` rỗng |
+| `INVENTORY_INVALID_STATUS` | 422 | Giá trị `trangThai` không hợp lệ |
+
+---
+
 ### `GET /api/inventory/adjustments`
 
 Lấy lịch sử điều chỉnh tồn kho, hỗ trợ tìm kiếm và phân trang.
@@ -1288,6 +1500,7 @@ Lấy lịch sử điều chỉnh tồn kho, hỗ trợ tìm kiếm và phân tr
 | Tham số | Kiểu | Mặc định | Mô tả |
 |---|---|---|---|
 | `branchId` | GUID | — | Lọc theo chi nhánh |
+| `counterId` | GUID | — | Lọc theo quầy giao dịch |
 | `keyword` | string | — | Tìm theo mã điều chỉnh, tên sản phẩm, lý do, tên chi nhánh |
 | `page` | int | `1` | Trang hiện tại |
 | `pageSize` | int | `20` | Số bản ghi/trang (tối đa 100) |
@@ -1326,20 +1539,22 @@ Lấy lịch sử điều chỉnh tồn kho, hỗ trợ tìm kiếm và phân tr
 
 ### Luồng trạng thái
 
+Hóa đơn chỉ có **2 trạng thái**. Mọi hóa đơn được tạo ra đều ở trạng thái `Completed` ngay lập tức — không qua bước duyệt.
+
 ```
-Cashier tạo đơn
-      │
-      ▼
-  [ PENDING ] ─── Manager duyệt ──► [ APPROVED ] ─── Thanh toán ──► [ COMPLETED ]
-      │                                                                (bất biến)
-      └─── Manager từ chối ──► [ REJECTED ]
+POST /api/transactions
+        │
+        ▼
+  [ COMPLETED ] ──── POST /{id}/cancel ────► [ CANCELLED ]
+   (bất biến,                                 (bất biến,
+    không sửa)                                 không khôi phục)
 ```
 
 ---
 
 ### `POST /api/transactions`
 
-Tạo giao dịch bán hàng mới (trạng thái ban đầu: `PENDING`).
+Tạo và hoàn thành giao dịch bán hàng ngay lập tức (trạng thái: `Completed`). Phương thức thanh toán phải được cung cấp tại thời điểm tạo.
 
 **Yêu cầu xác thực.** `branchId`, `staffId`, `counterId` được lấy tự động từ JWT — **không truyền trong body**.
 
@@ -1349,11 +1564,12 @@ Tạo giao dịch bán hàng mới (trạng thái ban đầu: `PENDING`).
 {
   "type": "SellGold",
   "paymentMethod": "CASH",
+  "cashAmount": null,
+  "bankAmount": null,
   "customerId": "3fa85f64-5717-4562-b3fc-2c963f66afa6",
   "currency": null,
   "exchangeRate": null,
   "note": "Khách VIP",
-  "depositAmount": 0,
   "referenceInvoiceCode": null,
   "items": [
     {
@@ -1376,7 +1592,9 @@ Tạo giao dịch bán hàng mới (trạng thái ban đầu: `PENDING`).
 | Trường | Bắt buộc | Mô tả |
 |---|---|---|
 | `type` | ✔ | `SellGold` \| `SellSilver` \| `BuyGold` \| `ExchangeGold` \| `ExchangeCurrency` \| `BuyMoreGold` \| `ExchangeFree` \| `ExchangeToMoney` |
-| `paymentMethod` | ✔ | `CASH` \| `BANK` |
+| `paymentMethod` | ✔ | `CASH` \| `BANK` \| `COMBINED` |
+| `cashAmount` | — | Số tiền mặt (LAK). **Bắt buộc khi `paymentMethod = COMBINED`** |
+| `bankAmount` | — | Số tiền chuyển khoản (LAK). **Bắt buộc khi `paymentMethod = COMBINED`** |
 | `items[].productId` | ✔ | ID sản phẩm |
 | `items[].quantity` | ✔ | Số lượng |
 | `items[].weightUnitId` | — | ID đơn vị tính (lấy từ `GET /api/config/weight-units`). `null` khi `ExchangeCurrency` |
@@ -1388,8 +1606,9 @@ Tạo giao dịch bán hàng mới (trạng thái ban đầu: `PENDING`).
 | `items[].haoHutGram` | — | Trọng lượng hao hụt (grams, mặc định 0) |
 | `items[].phiHuHai` | — | Phí hủy hoại (LAK, mặc định 0) |
 | `customerId` | — | ID khách hàng (tuỳ chọn) |
-| `depositAmount` | — | Số tiền đặt cọc (LAK, mặc định 0) |
 | `referenceInvoiceCode` | — | Mã hóa đơn gốc — dùng cho luồng đổi hàng (`ExchangeGold`) |
+
+> **Ví dụ thanh toán kết hợp:** khách trả 5,000,000 ₭ tiền mặt + 6,500,000 ₭ chuyển khoản cho đơn tổng 11,500,000 ₭ → `"paymentMethod": "COMBINED", "cashAmount": 5000000, "bankAmount": 6500000`. Tổng `cashAmount + bankAmount` phải **bằng chính xác** `totalAmount`.
 
 **Cách tính tự động (backend):**
 
@@ -1421,7 +1640,7 @@ Lấy danh sách giao dịch với phân trang hoặc không phân trang.
 | Tham số | Kiểu | Mặc định | Mô tả |
 |---|---|---|---|
 | `branchId` | GUID | — | Lọc theo chi nhánh |
-| `status` | string | — | `Draft` \| `Pending` \| `Approved` \| `Rejected` \| `Completed` |
+| `status` | string | — | `Completed` \| `Cancelled` |
 | `type` | string | — | `SellGold` \| `SellSilver` \| `BuyGold` \| `ExchangeGold` \| `ExchangeCurrency` \| ... |
 | `from` | DateTime | — | Ngày bắt đầu |
 | `to` | DateTime | — | Ngày kết thúc |
@@ -1457,12 +1676,15 @@ Lấy danh sách giao dịch với phân trang hoặc không phân trang.
       "laborFee": 100000,
       "stoneFee": 0,
       "totalAmount": 11500000,
-      "depositAmount": 0,
       "currency": "LAK",
       "paymentMethod": "CASH",
+      "cashAmount": null,
+      "bankAmount": null,
       "note": "Khách VIP",
       "transactedAt": "2026-06-09T08:30:00Z",
       "referenceInvoiceCode": null,
+      "cancelReason": null,
+      "cancelledAt": null,
       "customer": {
         "id": "...",
         "name": "Somchai Phommavong",
@@ -1514,28 +1736,49 @@ Xuất danh sách giao dịch ra file Excel (`.xlsx`). Áp dụng cùng bộ fil
 - Content-Type: `application/vnd.openxmlformats-officedocument.spreadsheetml.sheet`
 - Content-Disposition: `attachment; filename="giao-dich-YYYYMMDD-HHmmss.xlsx"`
 
-File Excel gồm các cột: Mã HĐ · Loại GD · Trạng thái · Chi nhánh · Quầy · Nhân viên · Khách hàng · SĐT KH · Tiền hàng · Phí GC · Phí đá · Tổng tiền · Đặt cọc · PT TT · Tiền tệ · Ghi chú · Thời gian.
+File Excel gồm các cột: Mã HĐ · Loại GD · Trạng thái · Chi nhánh · Quầy · Nhân viên · Khách hàng · SĐT KH · Tiền hàng · Phí GC · Phí đá · Tổng tiền · PT TT · Tiền tệ · Ghi chú · Thời gian · Lý do hủy.
 
 ---
 
-### `GET /api/transactions/{id}` / Approve / Reject / Complete
+### `GET /api/transactions/{id}`
 
-| Method | Endpoint | Policy | Mô tả |
-|---|---|---|---|
-| `GET` | `/{id}` | Auth | Chi tiết giao dịch (cấu trúc giống item trong danh sách) |
-| `POST` | `/{id}/approve` | `TransactionApprove` | Duyệt (`Pending → Approved`) |
-| `POST` | `/{id}/reject` | `TransactionApprove` | Từ chối (`Pending → Rejected`) |
-| `POST` | `/{id}/complete` | Auth | Hoàn thành (`Approved → Completed`) |
+Chi tiết giao dịch (cấu trúc giống item trong danh sách, bao gồm `items[]`).
 
-**Body `/complete`:** `{ "paymentMethod": "CASH" }`
+**Yêu cầu xác thực.** Response `404` kèm `TRANSACTION_NOT_FOUND` nếu không tìm thấy.
 
-**Lỗi phổ biến:**
+---
+
+### `POST /api/transactions/{id}/cancel`
+
+Hủy hóa đơn đã hoàn thành. Thao tác **không thể khôi phục**.
+
+**Nghiệp vụ khi hủy:**
+1. Kiểm tra hóa đơn chưa ở trạng thái `Cancelled` — lỗi `TRANSACTION_ALREADY_CANCELLED` nếu đã hủy.
+2. **Đảo kho**: mỗi `TransactionItem` tạo một `InventoryAdjustmentLog` với hướng ngược lại giao dịch gốc (hàng bán ra → nhập lại kho; hàng mua vào → xuất ra khỏi kho).
+3. **Sổ quỹ**: tự động tạo `ManualCashEntry` hoàn tiền:
+   - Giao dịch bán (SellGold, SellSilver, ExchangeGold, ExchangeFree, ExchangeCurrency): cửa hàng **trả tiền lại** khách → `direction = OUT`.
+   - Giao dịch mua (BuyGold, BuyMoreGold, ExchangeToMoney): cửa hàng **thu tiền lại** từ khách → `direction = IN`.
+   - Thanh toán `COMBINED` → tạo **2 bút toán** riêng: một `CASH` với `CashAmount`, một `BANK` với `BankAmount`.
+
+**Request body:**
+
+```json
+{ "reason": "Khách đổi ý" }
+```
+
+| Trường | Bắt buộc | Mô tả |
+|---|---|---|
+| `reason` | — | Lý do hủy (tối đa 500 ký tự, tuỳ chọn) |
+
+**Response `204 No Content`** khi thành công.
+
+**Lỗi:**
 
 | Mã lỗi | HTTP | Mô tả |
 |---|---|---|
-| `TRANSACTION_NOT_FOUND` | 404 | Giao dịch không tồn tại |
-| `TRANSACTION_INVALID_STATUS` | 422 | Trạng thái không cho phép thao tác này |
-| `TRANSACTION_ALREADY_COMPLETED` | 422 | Giao dịch đã hoàn thành, không thể sửa |
+| `TRANSACTION_NOT_FOUND` | 404 | Hóa đơn không tồn tại |
+| `TRANSACTION_ALREADY_CANCELLED` | 422 | Hóa đơn đã bị hủy trước đó |
+| `INVENTORY_INSUFFICIENT_STOCK` | 422 | Không đủ tồn kho để đảo hàng (trường hợp hàng đã bán lại được bán đi nơi khác) |
 
 ---
 
@@ -1766,9 +2009,11 @@ Lấy báo cáo chi tiết theo ngày.
 | | `INVENTORY_INSUFFICIENT_STOCK` | 422 | Không đủ số lượng trong kho |
 | | `INVENTORY_ITEM_NOT_AVAILABLE` | 422 | Sản phẩm không ở trạng thái trên quầy |
 | | `INVENTORY_INVALID_DIRECTION` | 422 | Direction phải là IN hoặc OUT |
-| **Transaction** | `TRANSACTION_NOT_FOUND` | 404 | Giao dịch không tồn tại |
-| | `TRANSACTION_ALREADY_COMPLETED` | 422 | Giao dịch đã hoàn thành |
-| | `TRANSACTION_INVALID_STATUS` | 422 | Trạng thái giao dịch không hợp lệ |
+| **Transaction** | `TRANSACTION_NOT_FOUND` | 404 | Hóa đơn không tồn tại |
+| | `TRANSACTION_ALREADY_CANCELLED` | 422 | Hóa đơn đã bị hủy trước đó |
+| | `PAYMENT_COMBINED_AMOUNTS_REQUIRED` | 422 | Thiếu `cashAmount` hoặc `bankAmount` khi `COMBINED` |
+| | `PAYMENT_COMBINED_AMOUNTS_INVALID` | 422 | `cashAmount` hoặc `bankAmount` là số âm |
+| | `PAYMENT_COMBINED_AMOUNTS_MISMATCH` | 422 | `cashAmount + bankAmount` ≠ `totalAmount` |
 | **Trade** | `TRADE_NOT_FOUND` | 404 | Giao dịch Trade không tồn tại |
 | | `TRADE_ITEM_NOT_QUAN` | 422 | Sản phẩm không phải của quán |
 | | `TRADE_FREE_EXCHANGE_EXPIRED` | 422 | Hết thời hạn đổi miễn phí (> 31 ngày) |

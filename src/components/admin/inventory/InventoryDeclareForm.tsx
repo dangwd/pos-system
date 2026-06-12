@@ -8,39 +8,54 @@ import { Field, FieldLabel } from '@/components/ui/field'
 import { Spinner } from '@/components/ui/spinner'
 import { ComboboxSelect } from '@/components/shared/ComboboxSelect'
 import { ArrowLeft, Info, PackagePlus } from 'lucide-react'
-import { InventoryPricePreview } from '@/components/admin/inventory/InventoryPricePreview'
 import { useCreateProduct, useCategories } from '@/hooks/useProducts'
-import { useGoldPurities, useConfigPrices, useExchangeRates } from '@/hooks/useConfig'
-import {
-  GRAM_PER_CHI, estimateProductSellPrice, findPriceItem, lakToForeign, findRate,
-} from '@/lib/inventory-valuation'
+import { useConfigPrices } from '@/hooks/useConfig'
+import type { PriceItem } from '@/types/config'
+import type { ProductCategory } from '@/types/product'
 
 interface Props {
   onBack: () => void
 }
 
-const EMPTY = { productName: '', productCode: '', categoryId: '', purityId: '', stdChi: '1', labor: '0', stone: '0' }
+const EMPTY = { productName: '', productCode: '', categoryId: '', priceKey: '' }
+
+// Tên đơn vị thân thiện từ mã (price item chỉ có weightUnitCode, không có tên hiển thị).
+const UNIT_NAMES: Record<string, string> = { chi: 'Chỉ', luong: 'Lượng', cay: 'Cây', bath: 'Bath', gram: 'Gram', oz: 'Oz' }
+const unitName = (code: string) => UNIT_NAMES[code] ?? code
+
+// Khóa duy nhất cho 1 dòng giá (hàm lượng × đơn vị) — price item không có id riêng.
+const keyOf = (it: PriceItem) => `${it.goldPurityId}__${it.weightUnitId}`
+
+// Map phân nhóm → kim loại để lọc "ăn theo" (best-effort: backend chưa có field nối
+// ProductCategory ↔ Gold/Silver). Bỏ dấu để khớp ổn định; không nhận diện được ⇒ hiện tất cả.
+function categoryMetal(cat: ProductCategory): 'Gold' | 'Silver' | null {
+  const s = `${cat.code} ${cat.name}`.normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase()
+  if (s.includes('bac') || s.includes('silver')) return 'Silver'
+  if (s.includes('vang') || s.includes('gold')) return 'Gold'
+  return null
+}
 
 export function InventoryDeclareForm({ onBack }: Props) {
   const t = useTranslations('admin.inventory.declare')
   const [form, setForm] = useState(EMPTY)
 
   const { data: categories = [] } = useCategories()
-  const { data: purities = [] } = useGoldPurities()
   const { data: priceConfig } = useConfigPrices()
-  const { data: rates } = useExchangeRates()
   const { mutate: create, isPending } = useCreateProduct()
 
   const set = (k: keyof typeof form, v: string) => setForm(f => ({ ...f, [k]: v }))
+  // Đổi phân nhóm → reset mã giá (danh sách hàm lượng đổi theo kim loại).
+  const changeCategory = (v: string | null) => setForm(f => ({ ...f, categoryId: v ?? '', priceKey: '' }))
 
-  const purity = purities.find(p => p.id === form.purityId)
-  const sellPerChi = purity ? findPriceItem(priceConfig, purity.ma, 'chi')?.sellPrice ?? 0 : 0
-  const chi = parseFloat(form.stdChi) || 0
-  const estimate = estimateProductSellPrice(chi, sellPerChi, parseInt(form.labor, 10) || 0, parseInt(form.stone, 10) || 0)
-  const thb = lakToForeign(estimate.total, findRate(rates, 'THB'))
-  const usd = lakToForeign(estimate.total, findRate(rates, 'USD'))
+  const priceItems = priceConfig?.items ?? []
+  const selectedCat = categories.find(c => c.id === form.categoryId)
+  const metal = selectedCat ? categoryMetal(selectedCat) : null
+  // Cascade "ăn theo": map chắc chắn → lọc theo kim loại; không chắc → hiện tất cả.
+  const priceOptions = metal ? priceItems.filter(it => it.category === metal) : priceItems
+  // Chọn 1 dòng giá ⇒ suy ra goldPurityId + weightUnitId (đi cùng nhau ⇒ hết 422).
+  const selectedPrice = priceItems.find(it => keyOf(it) === form.priceKey)
 
-  const disabled = !form.productName || !form.productCode || !form.categoryId || chi <= 0
+  const disabled = !form.productName || !form.productCode || !form.categoryId
 
   const handleSubmit = () => {
     if (disabled) return
@@ -49,8 +64,10 @@ export function InventoryDeclareForm({ onBack }: Props) {
         productCode: form.productCode.trim(),
         productName: form.productName.trim(),
         productCategoryId: form.categoryId,
-        goldPurityId: form.purityId || null,
-        weightGram: chi * GRAM_PER_CHI,
+        goldPurityId: selectedPrice?.goldPurityId ?? null,
+        weightUnitId: selectedPrice?.weightUnitId,
+        // Sản phẩm mới luôn tạo với tồn = 0; trọng lượng thực phát sinh khi nhập kho.
+        weightGram: 0,
         productType: 'NguyenKhoi',
       },
       { onSuccess: () => setForm(EMPTY) },
@@ -84,43 +101,27 @@ export function InventoryDeclareForm({ onBack }: Props) {
           <FieldLabel>{t('category')}</FieldLabel>
           <ComboboxSelect
             value={form.categoryId || null}
-            onChange={v => v && set('categoryId', v)}
+            onChange={changeCategory}
             options={categories.map(c => ({ value: c.id, label: c.name }))}
             placeholder={t('categoryPlaceholder')}
           />
         </Field>
       </div>
 
-      <div className="grid grid-cols-2 gap-3">
-        <Field>
-          <FieldLabel>{t('priceLink')}</FieldLabel>
-          <ComboboxSelect
-            value={form.purityId || null}
-            onChange={v => set('purityId', v ?? '')}
-            options={purities.map(p => ({ value: p.id, label: `${p.ma} · ${p.hamLuong}%` }))}
-            placeholder={t('priceLinkPlaceholder')}
-            clearable
-          />
-        </Field>
-        <Field>
-          <FieldLabel>{t('stdWeight')}</FieldLabel>
-          <Input type="number" min={0} step="0.01" value={form.stdChi} onChange={e => set('stdChi', e.target.value)} />
-          <p className="text-[10px] text-muted-foreground">{t('weightEquiv', { gram: (chi * GRAM_PER_CHI).toLocaleString('lo-LA', { maximumFractionDigits: 2 }) })}</p>
-        </Field>
-      </div>
-
-      <div className="grid grid-cols-2 gap-3">
-        <Field>
-          <FieldLabel>{t('labor')}</FieldLabel>
-          <Input type="number" min={0} step={1000} value={form.labor} onChange={e => set('labor', e.target.value)} />
-        </Field>
-        <Field>
-          <FieldLabel>{t('stone')}</FieldLabel>
-          <Input type="number" min={0} step={1000} value={form.stone} onChange={e => set('stone', e.target.value)} />
-        </Field>
-      </div>
-
-      <InventoryPricePreview estimate={estimate} thb={thb} usd={usd} />
+      <Field>
+        <FieldLabel>{t('priceLink')}</FieldLabel>
+        <ComboboxSelect
+          value={form.priceKey || null}
+          onChange={v => set('priceKey', v ?? '')}
+          options={priceOptions.map(it => ({
+            value: keyOf(it),
+            label: `${it.purityCode} · ${unitName(it.weightUnitCode)} · ${it.sellPrice.toLocaleString('lo-LA')} ₭`,
+          }))}
+          placeholder={t('priceLinkPlaceholder')}
+          clearable
+        />
+        <p className="text-[10px] text-muted-foreground">{t('priceLinkHint')}</p>
+      </Field>
 
       <p className="flex items-start gap-1.5 rounded-lg border border-primary/20 bg-primary/5 p-2.5 text-xs text-muted-foreground">
         <Info className="h-3.5 w-3.5 shrink-0 text-primary mt-0.5" />
