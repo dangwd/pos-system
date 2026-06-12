@@ -16,8 +16,10 @@ import { Button } from "antd";
 import { Input } from "@/components/ui/input";
 import { useActiveTab } from "@/hooks/useActiveTab";
 import { useCustomers } from "@/hooks/useCustomers";
+import { useTransactionLookup, useCancelTransaction } from "@/hooks/useTransactions";
 import type { Customer } from "@/types/customer";
 import {
+  AlertCircle,
   CreditCard,
   Loader2,
   Plus,
@@ -26,6 +28,7 @@ import {
   Search,
   User,
   X,
+  XCircle,
 } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { useEffect, useRef, useState } from "react";
@@ -75,10 +78,28 @@ function StoreHeader() {
 
 function OrderLookup() {
   const t = useTranslations("pos.payment.panel");
-  const [code, setCode] = useState("");
-  const scanRef = useRef<HTMLButtonElement>(null);
+  const { tab, setLinkedInvoice, clearLinkedInvoice } = useActiveTab();
+  const { result, linkedItems, isSearching, notFound, search, clear: clearSearch } = useTransactionLookup();
+  const { mutate: cancelTxn, isPending: isCancelling } = useCancelTransaction();
 
-  // F6 → focus order lookup input
+  const [code, setCode] = useState("");
+  const [localCancelled, setLocalCancelled] = useState(false);
+
+  // Reset search state khi switch tab
+  useEffect(() => {
+    clearSearch();
+    setCode("");
+    setLocalCancelled(false);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [tab?.id]);
+
+  // Fill items vào cart khi tìm thấy HĐ
+  useEffect(() => {
+    if (result) setLinkedInvoice(result.invoiceCode, linkedItems);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [result?.id]);
+
+  // F6 → focus input
   useEffect(() => {
     const handler = (e: KeyboardEvent) => {
       if (e.key === "F6") {
@@ -90,39 +111,161 @@ function OrderLookup() {
     return () => document.removeEventListener("keydown", handler);
   }, []);
 
+  const handleSearch = () => {
+    const trimmed = code.trim();
+    if (!trimmed) return;
+    setLocalCancelled(false);
+    search(trimmed);
+  };
+
+  const handleClear = () => {
+    clearSearch();
+    clearLinkedInvoice();
+    setCode("");
+    setLocalCancelled(false);
+  };
+
+  const handleCancel = () => {
+    if (!result) return;
+    cancelTxn({ id: result.id }, { onSuccess: () => setLocalCancelled(true) });
+  };
+
+  const isCancelledStatus = localCancelled || result?.status === "Cancelled";
+  const canCancel = result?.status === "Completed" && !localCancelled;
+  const linkedCode = tab?.linkedInvoiceCode;
+
   return (
     <div className="px-4 py-3 shrink-0">
       <SectionLabel
         action={
-          <button className="text-[10px] text-primary hover:underline flex items-center gap-0.5">
-            <Receipt className="h-2.5 w-2.5" />
-            {t("reprint")}
-          </button>
+          result ? (
+            <button className="text-[10px] text-primary hover:underline flex items-center gap-0.5">
+              <Receipt className="h-2.5 w-2.5" />
+              {t("reprint")}
+            </button>
+          ) : undefined
         }
       >
         {t("lookupLabel")}
       </SectionLabel>
-      <div className="flex gap-1.5">
-        <Input
-          id="pos-order-lookup"
-          placeholder={t("lookupPlaceholder")}
-          value={code}
-          onChange={(e) => setCode(e.target.value)}
-          onKeyDown={(e) => {
-            if (e.key === "Enter" && code.trim()) {
-              e.preventDefault();
-              scanRef.current?.click();
-            }
-          }}
-          className="h-8 text-xs flex-1"
-        />
-        <button
-          ref={scanRef}
-          className="h-8 w-8 shrink-0 flex items-center justify-center rounded-md border bg-muted hover:bg-accent transition-colors"
-        >
-          <ScanLine className="h-3.5 w-3.5 text-muted-foreground" />
-        </button>
-      </div>
+
+      {/* A: Input tìm kiếm */}
+      {!result && !linkedCode && (
+        <>
+          <div className="flex gap-1.5">
+            <Input
+              id="pos-order-lookup"
+              placeholder={t("lookupPlaceholder")}
+              value={code}
+              onChange={(e) => setCode(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === "Enter" && code.trim()) {
+                  e.preventDefault();
+                  handleSearch();
+                }
+              }}
+              className="h-8 text-xs flex-1"
+            />
+            <button
+              onClick={handleSearch}
+              disabled={isSearching || !code.trim()}
+              className="h-8 w-8 shrink-0 flex items-center justify-center rounded-md border bg-muted hover:bg-accent transition-colors disabled:opacity-50"
+            >
+              {isSearching ? (
+                <Loader2 className="h-3.5 w-3.5 animate-spin text-muted-foreground" />
+              ) : (
+                <ScanLine className="h-3.5 w-3.5 text-muted-foreground" />
+              )}
+            </button>
+          </div>
+          {notFound && (
+            <p className="mt-1.5 text-[10px] text-destructive flex items-center gap-1">
+              <AlertCircle className="h-3 w-3" />
+              Không tìm thấy hóa đơn
+            </p>
+          )}
+        </>
+      )}
+
+      {/* B: Mini badge — có linkedCode từ store nhưng chưa load card */}
+      {!result && linkedCode && (
+        <div className="flex items-center gap-2 bg-muted/50 rounded-md px-3 py-2">
+          <Receipt className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
+          <span className="flex-1 text-xs font-mono truncate">{linkedCode}</span>
+          <button
+            onClick={handleClear}
+            className="shrink-0 p-1 rounded-sm hover:bg-destructive/10 hover:text-destructive transition-colors"
+          >
+            <X className="h-3 w-3" />
+          </button>
+        </div>
+      )}
+
+      {/* C: Result card đầy đủ */}
+      {result && (
+        <div className="rounded-md border bg-muted/40 text-[11px] overflow-hidden">
+          {/* Header */}
+          <div className="flex items-center gap-1.5 px-2.5 py-1.5 border-b bg-muted/60">
+            <span className="flex-1 font-mono font-bold text-xs truncate">
+              {result.invoiceCode}
+            </span>
+            <span className={
+              "shrink-0 text-[10px] font-semibold px-1 py-0.5 rounded " +
+              (isCancelledStatus
+                ? "bg-destructive/10 text-destructive"
+                : "bg-green-100/80 dark:bg-green-950/40 text-green-700 dark:text-green-400")
+            }>
+              {isCancelledStatus ? "Đã hủy" : "Hoàn tất"}
+            </span>
+            <button
+              onClick={handleClear}
+              className="shrink-0 p-0.5 rounded hover:bg-destructive/10 hover:text-destructive transition-colors"
+            >
+              <X className="h-3 w-3" />
+            </button>
+          </div>
+
+          {/* Body */}
+          <div className="px-2.5 py-2 space-y-1">
+            <div className="flex justify-between">
+              <span className="text-muted-foreground">Ngày GD</span>
+              <span className="tabular-nums">
+                {new Date(result.transactedAt).toLocaleDateString("lo-LA")}
+              </span>
+            </div>
+            {result.customer && (
+              <div className="flex gap-2 justify-between">
+                <span className="text-muted-foreground shrink-0">Khách</span>
+                <span className="font-medium truncate">{result.customer.name}</span>
+              </div>
+            )}
+            <div className="flex justify-between">
+              <span className="text-muted-foreground">Tổng tiền</span>
+              <span className="font-bold tabular-nums text-primary">
+                {result.totalAmount.toLocaleString("lo-LA")} ₭
+              </span>
+            </div>
+          </div>
+
+          {/* Hủy hóa đơn */}
+          {canCancel && (
+            <div className="px-2.5 pb-2.5">
+              <button
+                onClick={handleCancel}
+                disabled={isCancelling}
+                className="w-full h-7 text-[10px] font-semibold text-destructive border border-destructive/30 rounded-md hover:bg-destructive/10 transition-colors flex items-center justify-center gap-1 disabled:opacity-50"
+              >
+                {isCancelling ? (
+                  <Loader2 className="h-3 w-3 animate-spin" />
+                ) : (
+                  <XCircle className="h-3 w-3" />
+                )}
+                Hủy hóa đơn này
+              </button>
+            </div>
+          )}
+        </div>
+      )}
     </div>
   );
 }

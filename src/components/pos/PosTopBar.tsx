@@ -15,11 +15,7 @@
 "use client";
 
 import { LocaleSwitcher } from "@/components/shared/LocaleSwitcher";
-import { Button } from "antd";
-import {
-  Dialog,
-  DialogContent,
-} from "@/components/ui/dialog";
+import { Dialog, DialogContent } from "@/components/ui/dialog";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -37,6 +33,7 @@ import { useInvoiceTabStore } from "@/stores/invoice-tab.store";
 import type { InvoiceTab } from "@/types/invoice-tab";
 import type { Product } from "@/types/product";
 import type { TransactionType } from "@/types/transaction";
+import { Button } from "antd";
 import {
   ArrowLeftRight,
   Banknote,
@@ -52,7 +49,6 @@ import {
   Plus,
   Search,
   Sparkles,
-  User,
   X,
 } from "lucide-react";
 import { motion } from "motion/react";
@@ -143,7 +139,8 @@ function ProductSearch({ onSelect }: ProductSearchProps) {
             setFocusedIndex((prev) => Math.max(prev - 1, -1));
           }
           if (e.key === "Enter") {
-            const target = focusedIndex >= 0 ? results[focusedIndex] : results[0];
+            const target =
+              focusedIndex >= 0 ? results[focusedIndex] : results[0];
             if (target) handleSelect(target);
           }
         }}
@@ -216,18 +213,18 @@ function InlineTabChip({
       onClick={onSwitch}
       className={cn(
         "group relative flex items-center gap-1.5 px-3 h-full cursor-pointer select-none shrink-0",
-        "min-w-28 max-w-48 border-r border-border/50 last:border-r-0",
+        "min-w-28 max-w-48 border-r border-primary/10 last:border-r-0",
         "transition-colors duration-150",
         isActive
           ? "bg-background text-foreground"
           : "text-muted-foreground hover:text-foreground hover:bg-background/60",
       )}
     >
-      {/* Indicator bottom — 3px, dùng layoutId để animate khi chuyển tab */}
+      {/* Indicator bottom — chỉ hiện khi active để "kết nối" với nội dung */}
       {isActive && (
         <motion.div
           layoutId="pos-tab-indicator"
-          className="absolute bottom-0 inset-x-0 h-0.75 bg-primary rounded-t-sm"
+          className="absolute bottom-0 inset-x-0 h-0.5 bg-primary"
           transition={{ type: "spring", stiffness: 500, damping: 40 }}
         />
       )}
@@ -251,20 +248,26 @@ function InlineTabChip({
         className={cn(
           "shrink-0 text-[9px] font-bold leading-none px-1.5 py-0.5 rounded",
           isActive
-            ? "bg-primary/15 text-primary"
-            : "bg-muted text-muted-foreground",
+            ? "bg-primary/10 text-primary"
+            : "bg-primary/10 text-primary/70",
         )}
       >
         {abbr}
       </span>
 
       {/* Label */}
-      <span className={cn("truncate text-xs", isActive && "font-medium", tab.customerName ? "flex-none" : "flex-1")}>
+      <span
+        className={cn(
+          "truncate text-xs",
+          isActive && "font-medium",
+          tab.customerName ? "flex-none" : "flex-1",
+        )}
+      >
         {tab.label}
       </span>
 
       {/* Customer chip — khi có khách hàng */}
-      {tab.customerName && (
+      {/* {tab.customerName && (
         <span
           className={cn(
             "flex items-center gap-0.5 shrink min-w-0 text-[10px] rounded px-1 py-0.5 truncate",
@@ -276,7 +279,7 @@ function InlineTabChip({
           <User className="h-2.5 w-2.5 shrink-0" />
           <span className="truncate max-w-16">{tab.customerName.split(" ").pop()}</span>
         </span>
-      )}
+      )} */}
 
       {/* Spacer khi không có customer */}
       {!tab.customerName && <span className="flex-1" />}
@@ -288,7 +291,7 @@ function InlineTabChip({
             "shrink-0 text-[10px] font-bold leading-none rounded px-1.5 py-0.5 tabular-nums",
             isActive
               ? "bg-primary text-primary-foreground"
-              : "bg-muted text-muted-foreground",
+              : "bg-primary/15 text-primary/80",
           )}
         >
           {totalQty}
@@ -299,14 +302,20 @@ function InlineTabChip({
       {isActive && (
         <div className="flex items-center gap-0.5 opacity-0 group-hover:opacity-100 shrink-0 transition-opacity">
           <button
-            onClick={(e) => { e.stopPropagation(); onHold(); }}
+            onClick={(e) => {
+              e.stopPropagation();
+              onHold();
+            }}
             className="p-0.5 rounded hover:bg-amber-100 hover:text-amber-600 text-muted-foreground"
             title={t("holdTooltip")}
           >
             <PauseCircle className="h-3 w-3" />
           </button>
           <button
-            onClick={(e) => { e.stopPropagation(); onDuplicate(); }}
+            onClick={(e) => {
+              e.stopPropagation();
+              onDuplicate();
+            }}
             className="p-0.5 rounded hover:bg-muted text-muted-foreground"
             title={t("duplicateTooltip")}
           >
@@ -318,7 +327,10 @@ function InlineTabChip({
       {/* Đóng tab */}
       {showClose && (
         <button
-          onClick={(e) => { e.stopPropagation(); onClose(); }}
+          onClick={(e) => {
+            e.stopPropagation();
+            onClose();
+          }}
           className={cn(
             "shrink-0 p-0.5 rounded transition-all hover:text-destructive hover:bg-destructive/10",
             isActive
@@ -400,7 +412,9 @@ function CloseConfirmDialog({ tab, onConfirm, onCancel }: CloseConfirmProps) {
         footer={
           <>
             <Button onClick={onCancel}>{t("keep")}</Button>
-            <Button danger type="primary" onClick={onConfirm}>{t("close")}</Button>
+            <Button danger type="primary" onClick={onConfirm}>
+              {t("close")}
+            </Button>
           </>
         }
       >
@@ -473,7 +487,7 @@ export function PosTopBar({ onAddProduct }: PosTopBarProps) {
 
         {/* ── Center: Invoice tabs ────────────────────────────────────────── */}
         <div
-          className="flex-1 flex items-stretch overflow-x-auto min-w-0 bg-muted/40"
+          className="flex-1 flex items-stretch overflow-x-auto min-w-0 bg-primary/8"
           role="tablist"
           aria-label={t("tabListLabel")}
         >

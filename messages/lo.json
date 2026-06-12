@@ -96,13 +96,26 @@
     },
     "receipt": {
       "title": "ຊຳລະເງິນສຳເລັດ",
+      "cancelledTitle": "ໃບບິນຖືກຍົກເລີກແລ້ວ",
       "storeName": "Khamphuvong Jewelry",
       "columnProduct": "ສິນຄ້າ",
       "columnQty": "ຈຳນວນ",
       "columnTotal": "ລວມ",
       "totalLabel": "ຍອດລວມ",
       "printButton": "ພິມໃບບິນ",
-      "closeButton": "ປິດ & ເປີດໃໝ່"
+      "closeButton": "ປິດ & ເປີດໃໝ່",
+      "cancelInvoiceButton": "ຍົກເລີກໃບບິນ",
+      "cancelledBadge": "ຍົກເລີກແລ້ວ"
+    },
+    "cancelInvoice": {
+      "title": "ຍົກເລີກໃບບິນ",
+      "description": "ທ່ານກຳລັງຈະຍົກເລີກໃບບິນ {code}. ການດຳເນີນການນີ້ບໍ່ສາມາດຄືນໄດ້.",
+      "warning": "ສາງສິນຄ້າ ແລະ ສໝຸດລາຍຮັບ-ຈ່າຍ ຈະຖືກດັດແກ້ໂດຍອັດຕະໂນມັດ.",
+      "reasonLabel": "ເຫດຜົນໃນການຍົກເລີກ (ບໍ່ບັງຄັບ)",
+      "reasonPlaceholder": "ຕົວຢ່າງ: ລູກຄ້າປ່ຽນໃຈ, ປ້ອນຂໍ້ມູນຜິດ...",
+      "backButton": "ກັບຄືນ",
+      "confirmButton": "ຢືນຢັນຍົກເລີກ",
+      "cancellingButton": "ກຳລັງຍົກເລີກ..."
     },
     "errors": {
       "emptyCart": "ໃບຮຽກຫວ່າງ — ກະລຸນາເພີ່ມສິນຄ້າ",
@@ -189,28 +202,19 @@
         "SellGold": "ຂາຍທອງ",
         "SellSilver": "ຂາຍເງິນ",
         "BuyGold": "ຊື້ທອງ",
+        "BuyMoreGold": "ຊື້ເພີ່ມ",
         "ExchangeGold": "ປ່ຽນສິນຄ້າ",
+        "ExchangeFree": "ປ່ຽນຟຣີ",
+        "ExchangeToMoney": "ປ່ຽນເປັນເງິນ",
         "ExchangeCurrency": "ປ່ຽນເງິນຕ່າງປະເທດ"
       },
       "transactionStatuses": {
-        "DRAFT": {
-          "label": "ຮ່າງ",
-          "variant": "secondary"
-        },
-        "PENDING": {
-          "label": "ລໍຖ້າ",
-          "variant": "outline"
-        },
-        "APPROVED": {
-          "label": "ອະນຸມັດ",
-          "variant": "default"
-        },
-        "COMPLETED": {
+        "Completed": {
           "label": "ສຳເລັດ",
           "variant": "default"
         },
-        "REJECTED": {
-          "label": "ປະຕິເສດ",
+        "Cancelled": {
+          "label": "ຍົກເລີກ",
           "variant": "destructive"
         }
       }
