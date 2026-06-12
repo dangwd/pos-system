@@ -9,6 +9,8 @@ import { Spinner } from '@/components/ui/spinner'
 import { Badge } from '@/components/ui/badge'
 import { TablePageSkeleton } from '@/components/shared/PageSkeleton'
 import { useConfigPrices, useUpdatePrices } from '@/hooks/useConfig'
+import { useUser } from '@/hooks/useUsers'
+import { useAuthStore } from '@/stores/auth.store'
 import type { PriceItemDto, PriceItem } from '@/types/config'
 
 function formatKip(n: number) {
@@ -46,6 +48,17 @@ export default function PricesPage() {
 
   const { data: prices, isLoading } = useConfigPrices()
   const { mutate: update, isPending } = useUpdatePrices()
+
+  // "Cập nhật bởi" backend trả về GUID → resolve sang tên. Chính mình thì lấy từ
+  // session (khỏi gọi API); người khác thì GET /api/users/{id} (fallback ID nếu
+  // không có quyền UserManage hoặc không tìm thấy).
+  const currentUser = useAuthStore((s) => s.user)
+  const updaterId = prices?.updatedBy ?? ''
+  const isSelfUpdater = !!updaterId && currentUser?.userId === updaterId
+  const { data: updaterUser } = useUser(isSelfUpdater ? '' : updaterId)
+  const updatedByName = isSelfUpdater
+    ? (currentUser?.fullName ?? updaterId)
+    : (updaterUser?.fullName ?? updaterId)
 
   const currentRows = useMemo(
     () => buildFormRows(prices?.items ?? []),
@@ -91,12 +104,19 @@ export default function PricesPage() {
           {prices && (
             <p className="text-xs text-muted-foreground">
               {t('effectiveFrom')}: {new Date(prices.effectiveFrom).toLocaleString('lo-LA')}
-              {' · '}{t('updatedBy')}: {prices.updatedBy}
+              {' · '}{t('updatedBy')}: {updatedByName}
             </p>
           )}
 
           <div className="rounded-md border overflow-hidden">
-            <table className="w-full text-sm">
+            <table className="w-full text-sm table-fixed">
+              <colgroup>
+                <col className="w-[16%]" />
+                <col className="w-[13%]" />
+                <col className="w-[23%]" />
+                <col className="w-[24%]" />
+                <col className="w-[24%]" />
+              </colgroup>
               <thead className="border-b bg-muted/40">
                 <tr>
                   <th className="px-4 py-3 text-left font-medium text-muted-foreground">{t('columns.purityCode')}</th>
@@ -111,7 +131,15 @@ export default function PricesPage() {
                   <tr key={`${row.goldPurityId}:${row.weightUnitId}`} className="border-b last:border-0 hover:bg-muted/10">
                     <td className="px-4 py-3 font-mono font-bold">{row.purityCode}</td>
                     <td className="px-4 py-3">
-                      <Badge variant={row.category === 'Gold' ? 'default' : 'secondary'}>
+                      {/* Màu theo kim loại: Vàng (Au) → vàng kim, Bạc (Ag) → ánh bạc.
+                          Hardcode amber/zinc vì không có token chủ đề cho kim loại. */}
+                      <Badge
+                        className={
+                          row.category === 'Gold'
+                            ? 'bg-amber-400 text-amber-950 border-amber-500/60'
+                            : 'bg-zinc-300 text-zinc-800 border-zinc-400/70'
+                        }
+                      >
                         {row.category === 'Gold' ? t('categoryGold') : t('categorySilver')}
                       </Badge>
                     </td>
@@ -127,7 +155,7 @@ export default function PricesPage() {
                             min="0"
                             value={row.buyPrice}
                             onChange={(e) => setCell(idx, 'buyPrice', e.target.value)}
-                            className="h-7 text-right text-xs w-44 ml-auto"
+                            className="h-7 text-right text-xs w-full"
                           />
                         </td>
                         <td className="px-4 py-2">
@@ -136,17 +164,17 @@ export default function PricesPage() {
                             min="0"
                             value={row.sellPrice}
                             onChange={(e) => setCell(idx, 'sellPrice', e.target.value)}
-                            className="h-7 text-right text-xs w-44 ml-auto"
+                            className="h-7 text-right text-xs w-full"
                           />
                         </td>
                       </>
                     ) : (
                       <>
-                        <td className="px-4 py-3 text-right">
+                        <td className="px-4 py-3 text-right whitespace-nowrap tabular-nums">
                           <span className="font-semibold">{formatKip(Number(row.buyPrice))}</span>
                           <span className="text-xs text-muted-foreground ml-1">/{row.weightUnitCode}</span>
                         </td>
-                        <td className="px-4 py-3 text-right">
+                        <td className="px-4 py-3 text-right whitespace-nowrap tabular-nums">
                           <span className="font-semibold">{formatKip(Number(row.sellPrice))}</span>
                           <span className="text-xs text-muted-foreground ml-1">/{row.weightUnitCode}</span>
                         </td>
