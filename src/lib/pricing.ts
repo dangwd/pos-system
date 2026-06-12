@@ -14,6 +14,8 @@
 
 import type { StonePriceRule } from '@/types/config'
 import type { CartItem } from '@/types/cart'
+import { lineTotal } from '@/types/cart'
+import type { TransactionType } from '@/types/transaction'
 
 // ─── Helper ────────────────────────────────────────────────────────────────────
 
@@ -162,8 +164,8 @@ export function calcCurrencyExchange(
 // ─── Cart totals ───────────────────────────────────────────────────────────────
 
 /**
- * Tính subtotal từ danh sách CartItem.
- * subtotal = Σ (totalGram × unitPriceLakPerGram) — chưa bao gồm fees và discount.
+ * Gross value tất cả items (weight × price, không gồm fees và discount).
+ * Dùng cho hiển thị "Tổng hàng" trong SummaryBar.
  */
 export function calcSubtotal(items: CartItem[]): number {
   return items.reduce((sum, item) => {
@@ -173,17 +175,49 @@ export function calcSubtotal(items: CartItem[]): number {
   }, 0)
 }
 
+/** Tổng Normal items (hàng bán ra) — dùng cho ExchangeGold/SellGold */
+export function calcTotalA(items: CartItem[]): number {
+  return items
+    .filter(i => i.itemRole === 'Normal')
+    .reduce((sum, i) => sum + lineTotal(i), 0)
+}
+
+/** Tổng ExchangeIn items (vàng cũ đổi vào, sau khi trừ PHÍ KHÒ/LAO SUT) */
+export function calcTotalB(items: CartItem[]): number {
+  return items
+    .filter(i => i.itemRole === 'ExchangeIn')
+    .reduce((sum, i) => sum + lineTotal(i), 0)
+}
+
 /**
- * Tính total từ danh sách CartItem sau khi trừ discount.
- * total = Σ (totalGram × unitPriceLakPerGram + laborFee + stoneFee) - discount
+ * Chênh lệch thanh toán (có dấu).
+ *  BuyGold:      âm  → tiệm chi trả khách
+ *  ExchangeGold: dương → khách trả thêm; âm → tiệm trả lại khách
+ *  SellGold:     luôn dương → khách trả tiệm
  */
-export function calcTotal(items: CartItem[], discountAmount: number): number {
-  const gross = items.reduce((sum, item) => {
-    const totalGram = item.weightGramOverride !== null
-      ? item.weightGramOverride : item.qty * item.weightGram
-    return sum + Math.round(totalGram * item.unitPriceLakPerGram) + item.laborFee + item.stoneFee
-  }, 0)
-  return Math.max(0, gross - discountAmount)
+export function calcNetTotal(
+  items: CartItem[],
+  txnType: TransactionType,
+  discountAmount: number,
+): number {
+  const a = calcTotalA(items)
+  const b = calcTotalB(items)
+  if (txnType === 'BuyGold') return -(a - discountAmount)
+  return a - b - discountAmount
+}
+
+/**
+ * Số tiền thanh toán thực tế (luôn dương).
+ * BuyGold:      tiệm trả khách = |netTotal|
+ * ExchangeGold: chênh lệch = |netTotal|
+ * Các loại còn lại: khách trả tiệm, floor ở 0
+ */
+export function calcTotal(items: CartItem[], discountAmount: number, txnType?: TransactionType): number {
+  if (txnType === 'BuyGold' || txnType === 'ExchangeGold') {
+    return Math.abs(calcNetTotal(items, txnType, discountAmount))
+  }
+  // SellGold / SellSilver / ExchangeCurrency
+  return Math.max(0, calcTotalA(items) - discountAmount)
 }
 
 /**

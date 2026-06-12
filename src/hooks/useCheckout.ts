@@ -2,33 +2,40 @@
  * useCheckout — Strategy consumer hook
  *
  * Kết hợp PaymentStrategy + TransactionRepository để hoàn thành giao dịch.
- * Luồng 2 bước theo API thực:
- *   1. create()   → POST /api/transactions         → trả về Transaction (Pending/Approved)
- *   2. complete() → POST /api/transactions/{id}/complete → Completed
+ * Luồng theo API thực:
+ *   1. create() → POST /api/transactions → trả về GUID string
+ *   2. getById() → GET /api/transactions/{id} → Transaction với status thực tế
+ *   3. Nếu status === 'Approved' → complete() → COMPLETED
  *
  * Sau khi thanh toán thành công:
  *  - clearActiveCart() xóa giỏ hàng của tab active
- *  - Tab giữ nguyên (không đóng) để phục vụ khách tiếp theo
  *  - ['transactions'] cache bị invalidate
+ *  - Toast thành công / chờ duyệt được hiển thị từ đây (không phải từ page)
  */
 
 import { useMutation, useQueryClient } from '@tanstack/react-query'
+import { useLocale, useTranslations } from 'next-intl'
+import { toast } from 'sonner'
 import { transactionRepository } from '@/lib/repositories/transaction.repository'
+import { getErrorMessage } from '@/lib/errors'
 import { useActiveTab } from './useActiveTab'
+import type { ApiError } from '@/lib/api-error'
+import type { AppLocale } from '@/lib/errors'
 import type { PaymentStrategy } from '@/lib/strategies/payment.strategy'
 import type { TransactionType } from '@/types/transaction'
 
 interface CheckoutParams {
   type: TransactionType
-  branchId: string
-  staffId: string
-  counterId: string
   customerId?: string
   note?: string
+  depositAmount?: number
+  referenceInvoiceCode?: string
 }
 
 export function useCheckout(strategy: PaymentStrategy) {
   const qc = useQueryClient()
+  const locale = useLocale() as AppLocale
+  const t = useTranslations('pos.errors')
   const { tab, total, clearCart } = useActiveTab()
 
   return useMutation({
@@ -37,47 +44,81 @@ export function useCheckout(strategy: PaymentStrategy) {
         throw new Error('Giỏ hàng trống')
       }
 
-      // Bước 1: chuẩn bị strategy (validate trước khi gọi API)
       await strategy.prepare(total)
 
-      // Bước 2: tạo giao dịch
-      const transaction = await transactionRepository.create({
+      // create() trả về GUID string
+      const transactionId = await transactionRepository.create({
         type: params.type,
-        branchId: params.branchId,
-        staffId: params.staffId,
-        counterId: params.counterId,
         customerId: params.customerId,
         paymentMethod: strategy.paymentMethod,
         note: params.note,
-        items: tab.items.map(item => ({
-          productId: item.productId,
-          productName: item.name,
-          quantity: item.qty,
-          weightUnitId: item.weightUnitId ?? '',
-          weightGramOverride: item.weightGramOverride,
-          unitPriceLakPerGram: item.unitPriceLakPerGram,
-          itemRole: 'Normal',
-          laborFee: item.laborFee,
-          stoneFee: item.stoneFee,
-        })),
+        depositAmount: params.depositAmount,
+        // Ưu tiên referenceInvoiceCode từ params; fallback về linkedInvoiceCode của tab
+        referenceInvoiceCode: params.referenceInvoiceCode ?? tab.linkedInvoiceCode ?? undefined,
+        items: tab.items.map(item => {
+          const isExchangeIn = item.itemRole === 'ExchangeIn'
+          const hasPhiKho = isExchangeIn && item.perItemDamage > 0
+          const hasLaoSut = isExchangeIn && item.perItemWearChi > 0
+
+          // ExchangeIn: weightGramOverride = trọng lượng thực sau LAO SUT
+          const effectiveWeightGram = isExchangeIn
+            ? (item.weightGramOverride ?? item.qty * item.weightGram) - item.perItemWearChi * 3.75
+            : item.weightGramOverride
+
+          // ExchangeIn: PHÍ KHÒ / LAO SUT encode vào productName để in phiếu
+          const productName = isExchangeIn && (hasPhiKho || hasLaoSut)
+            ? `${item.name} [PHÍ KHÒ: ${item.perItemDamage.toLocaleString('lo-LA')}₭ | LAO SUT: ${item.perItemWearChi} Chỉ]`
+            : item.name
+
+          return {
+            productId: item.productId,
+            productName,
+            quantity: item.qty,
+            weightUnitId: item.weightUnitId ?? '',
+            weightGramOverride: effectiveWeightGram,
+            unitPriceLak: item.unitPriceLakPerGram * item.weightGram,
+            itemRole: item.itemRole,
+            // ExchangeIn: PHÍ KHÒ encode vào laborFee
+            laborFee: isExchangeIn ? item.perItemDamage : item.laborFee,
+            stoneFee: isExchangeIn ? 0 : item.stoneFee,
+            // LAO SUT encode vào haoHutGram (gram)
+            haoHutGram: isExchangeIn ? item.perItemWearChi * 3.75 : 0,
+          }
+        }),
       })
 
-      // Bước 3: hoàn tất nếu đã Approved
+      // Lấy Transaction đầy đủ để UI biết status và hiển thị receipt
+      const transaction = await transactionRepository.getById(transactionId)
+
+      // Nếu transaction đã được duyệt (auto-approve hoặc cashier có quyền), hoàn tất ngay
       if (transaction.status === 'Approved') {
-        return transactionRepository.complete(transaction.id, {
-          paymentMethod: strategy.paymentMethod,
-        })
+        return transactionRepository.complete(transaction.id, { paymentMethod: strategy.paymentMethod })
       }
 
-      // status Pending → cần quản lý duyệt, trả về để UI hiển thị trạng thái chờ
       return transaction
     },
 
     onSuccess: (result) => {
-      if (result.status === 'Completed' || result.status === 'Pending') {
-        clearCart()
-      }
+      // Xóa giỏ hàng và làm mới danh sách giao dịch
+      clearCart()
       qc.invalidateQueries({ queryKey: ['transactions'] })
+
+      // Hiển thị thông báo dựa trên trạng thái giao dịch
+      if (result.status === 'Completed') {
+        toast.success(t('checkoutSuccess'))
+      } else {
+        // Pending, Approved hoặc trạng thái khác → chờ duyệt
+        toast.info(t('pendingApproval'))
+      }
+    },
+
+    onError: (err: unknown) => {
+      const apiErr = err as ApiError
+      if (apiErr?.code) {
+        toast.error(getErrorMessage(apiErr.code, locale))
+      } else {
+        toast.error(t('checkoutFailed'))
+      }
     },
   })
 }

@@ -11,6 +11,8 @@
  */
 
 import api from '@/lib/axios'
+import { handleAxiosError } from '@/lib/api-error'
+import { normalizePaged, type RawPagedResult } from '@/types/common'
 import type {
   Transaction,
   TransactionPage,
@@ -24,10 +26,14 @@ import type {
 export class TransactionRepository {
   private readonly base = '/api/transactions'
 
-  /** Tạo giao dịch mới ở trạng thái DRAFT */
-  async create(dto: CreateTransactionDto): Promise<Transaction> {
-    const { data } = await api.post<Transaction>(this.base, dto)
-    return data
+  /** Tạo giao dịch mới — API trả về GUID (string) */
+  async create(dto: CreateTransactionDto): Promise<string> {
+    try {
+      const { data } = await api.post<string>(this.base, dto)
+      return data
+    } catch (err) {
+      throw handleAxiosError(err)
+    }
   }
 
   /**
@@ -35,42 +41,53 @@ export class TransactionRepository {
    * Luôn truyền page (mặc định 1) để backend trả PagedResult thay vì mảng phẳng.
    */
   async getList(params?: TransactionListParams): Promise<TransactionPage> {
-    const queryParams = { page: 1, pageSize: 20, ...params }
-    const { data } = await api.get<TransactionPage>(this.base, { params: queryParams })
-    return data
+    try {
+      const queryParams = { page: 1, pageSize: 20, ...params }
+      const { data } = await api.get<RawPagedResult<Transaction>>(this.base, { params: queryParams })
+      return normalizePaged(data)
+    } catch (err) {
+      throw handleAxiosError(err)
+    }
   }
 
   /** Chi tiết giao dịch */
   async getById(id: string): Promise<Transaction> {
-    const { data } = await api.get<Transaction>(`${this.base}/${id}`)
-    return data
+    try {
+      const { data } = await api.get<Transaction>(`${this.base}/${id}`)
+      return data
+    } catch (err) {
+      throw handleAxiosError(err)
+    }
   }
 
-  /**
-   * Duyệt giao dịch PENDING → APPROVED
-   * Role: BRANCH_MANAGER hoặc HQ_ADMIN
-   */
+  /** Duyệt giao dịch PENDING → APPROVED */
   async approve(id: string, dto: ApproveTransactionDto): Promise<Transaction> {
-    const { data } = await api.post<Transaction>(`${this.base}/${id}/approve`, dto)
-    return data
+    try {
+      const { data } = await api.post<Transaction>(`${this.base}/${id}/approve`, dto)
+      return data
+    } catch (err) {
+      throw handleAxiosError(err)
+    }
   }
 
-  /**
-   * Từ chối giao dịch PENDING → REJECTED
-   * Role: BRANCH_MANAGER hoặc HQ_ADMIN
-   */
+  /** Từ chối giao dịch PENDING → REJECTED */
   async reject(id: string, dto: RejectTransactionDto): Promise<Transaction> {
-    const { data } = await api.post<Transaction>(`${this.base}/${id}/reject`, dto)
-    return data
+    try {
+      const { data } = await api.post<Transaction>(`${this.base}/${id}/reject`, dto)
+      return data
+    } catch (err) {
+      throw handleAxiosError(err)
+    }
   }
 
-  /**
-   * Hoàn tất giao dịch APPROVED → COMPLETED
-   * Phải cung cấp paymentMethod
-   */
+  /** Hoàn tất giao dịch APPROVED → COMPLETED */
   async complete(id: string, dto: CompleteTransactionDto): Promise<Transaction> {
-    const { data } = await api.post<Transaction>(`${this.base}/${id}/complete`, dto)
-    return data
+    try {
+      const { data } = await api.post<Transaction>(`${this.base}/${id}/complete`, dto)
+      return data
+    } catch (err) {
+      throw handleAxiosError(err)
+    }
   }
 }
 

@@ -10,6 +10,7 @@ import { UserCreateDialog } from '@/components/admin/users/UserCreateDialog'
 import { UserEditInfoDialog } from '@/components/admin/users/UserEditInfoDialog'
 import { UserEditRoleDialog } from '@/components/admin/users/UserEditRoleDialog'
 import { UserResetPasswordDialog } from '@/components/admin/users/UserResetPasswordDialog'
+import { UserAssignCounterDialog } from '@/components/admin/users/UserAssignCounterDialog'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import {
@@ -21,11 +22,13 @@ import {
   ComboboxList,
   ComboboxTrigger,
 } from '@/components/ui/combobox'
-import { useUsers, useActivateUser, useDeactivateUser } from '@/hooks/useUsers'
+import { useUsersPaged, useActivateUser, useDeactivateUser } from '@/hooks/useUsers'
 import { useBranches } from '@/hooks/useBranches'
 import type { AdminUser } from '@/types/admin-user'
 
 const TRIGGER = "inline-flex h-8 items-center justify-between gap-2 rounded-md border border-input bg-background px-3 text-sm font-normal hover:bg-accent hover:text-accent-foreground transition-colors w-full"
+
+const PAGE_SIZE = 20
 
 export default function UsersPage() {
   const t = useTranslations('admin.users')
@@ -37,13 +40,15 @@ export default function UsersPage() {
   const [editInfoUser, setEditInfoUser] = useState<AdminUser | null>(null)
   const [editRoleUser, setEditRoleUser] = useState<AdminUser | null>(null)
   const [resetPwUser, setResetPwUser] = useState<AdminUser | null>(null)
+  const [assignCounterUser, setAssignCounterUser] = useState<AdminUser | null>(null)
   const [filterBranchId, setFilterBranchId] = useState<string | null>(null)
   const [filterIsActive, setFilterIsActive] = useState<string | null>(null)
   const [searchInput, setSearchInput] = useState('')
   const [filterSearch, setFilterSearch] = useState('')
+  const [page, setPage] = useState(1)
 
   useEffect(() => {
-    const timer = setTimeout(() => setFilterSearch(searchInput), 400)
+    const timer = setTimeout(() => { setFilterSearch(searchInput); setPage(1) }, 400)
     return () => clearTimeout(timer)
   }, [searchInput])
 
@@ -55,11 +60,14 @@ export default function UsersPage() {
 
   const selectedBranch = branches.find(b => b.id === filterBranchId)
 
-  const { data: users = [], isLoading } = useUsers({
+  const { data, isLoading } = useUsersPaged({
     branchId: filterBranchId ?? undefined,
     search: filterSearch || undefined,
     isActive: filterIsActive !== null ? (filterIsActive === 'active') : undefined,
+    page,
+    pageSize: PAGE_SIZE,
   })
+  const users = data?.data ?? []
   const { mutate: activate } = useActivateUser()
   const { mutate: deactivate } = useDeactivateUser()
 
@@ -79,8 +87,9 @@ export default function UsersPage() {
       editRole:      t('columns.editRole'),
       activate:      t('columns.activate'),
       deactivate:    t('columns.deactivate'),
-      resetPassword: t('columns.resetPassword'),
-      active:        t('status.active'),
+      resetPassword:  t('columns.resetPassword'),
+      assignCounter:  t('columns.assignCounter'),
+      active:         t('status.active'),
       inactive:      t('status.inactive'),
       branchMap,
       roleLabels: {
@@ -95,6 +104,7 @@ export default function UsersPage() {
     (user) => activate(user.id),
     (user) => deactivate(user.id),
     (user) => setResetPwUser(user),
+    (user) => setAssignCounterUser(user),
   ), [t, branchMap, activate, deactivate])
 
   return (
@@ -103,7 +113,7 @@ export default function UsersPage() {
         <div>
           <h1 className="text-2xl font-bold">{t('title')}</h1>
           <p className="text-muted-foreground text-sm">
-            {t('subtitle', { count: users.length })}
+            {t('subtitle', { count: data?.total ?? 0 })}
           </p>
         </div>
         <Button size="sm" className="gap-1.5" onClick={() => setCreateOpen(true)}>
@@ -125,7 +135,7 @@ export default function UsersPage() {
         <div ref={branchAnchor} className="inline-flex min-w-48">
           <Combobox
             value={filterBranchId ?? ""}
-            onValueChange={setFilterBranchId}
+            onValueChange={v => { setFilterBranchId(v || null); setPage(1) }}
           >
             <ComboboxTrigger className={TRIGGER}>
               {selectedBranch
@@ -150,7 +160,7 @@ export default function UsersPage() {
         <div ref={activeAnchor} className="inline-flex min-w-36">
           <Combobox
             value={filterIsActive ?? ""}
-            onValueChange={setFilterIsActive}
+            onValueChange={v => { setFilterIsActive(v || null); setPage(1) }}
           >
             <ComboboxTrigger className={TRIGGER}>
               {filterIsActive === 'active'
@@ -176,6 +186,12 @@ export default function UsersPage() {
           columns={columns}
           data={users}
           hideSearch
+          serverPagination={data ? {
+            total: data.total,
+            page: data.page,
+            pageSize: data.pageSize,
+            onPageChange: setPage,
+          } : undefined}
         />
       )}
 
@@ -183,6 +199,7 @@ export default function UsersPage() {
       <UserEditInfoDialog user={editInfoUser} onClose={() => setEditInfoUser(null)} />
       <UserEditRoleDialog user={editRoleUser} onClose={() => setEditRoleUser(null)} />
       <UserResetPasswordDialog user={resetPwUser} onClose={() => setResetPwUser(null)} />
+      <UserAssignCounterDialog user={assignCounterUser} onClose={() => setAssignCounterUser(null)} />
     </div>
   )
 }

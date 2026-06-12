@@ -7,7 +7,7 @@ import { ChevronDown, ChevronUp } from 'lucide-react'
 import { rolesRepository } from '@/lib/repositories/roles.repository'
 import { useAuthStore } from '@/stores/auth.store'
 import { useCreateUser } from '@/hooks/useUsers'
-import { useBranches } from '@/hooks/useBranches'
+import { useBranches, useCounters } from '@/hooks/useBranches'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import {
@@ -36,6 +36,7 @@ const EMPTY_FORM = {
   password: '',
   roleId: '',
   branchId: '',
+  counterId: '',
   email: '',
   address: '',
   dateOfBirth: '',
@@ -51,6 +52,7 @@ export function UserCreateDialog({ open, onClose }: Props) {
     setForm(f => ({ ...f, [k]: e.target.value }))
 
   const { data: branches = [] } = useBranches()
+  const { data: counters = [] } = useCounters(form.branchId || null)
 
   const { data: roles = [] } = useQuery({
     queryKey: ['roles'],
@@ -71,6 +73,7 @@ export function UserCreateDialog({ open, onClose }: Props) {
       password: form.password,
       roleId: form.roleId,
       branchId: form.branchId,
+      ...(form.counterId && { counterId: form.counterId }),
       ...(form.email && { email: form.email }),
       ...(form.address && { address: form.address }),
       ...(form.dateOfBirth && { dateOfBirth: form.dateOfBirth }),
@@ -158,6 +161,28 @@ export function UserCreateDialog({ open, onClose }: Props) {
 
           {showOptional && (
             <>
+              <Field>
+                <FieldLabel>{t('counter')}</FieldLabel>
+                <Combobox
+                  value={form.counterId || null}
+                  onValueChange={v => setForm(f => ({ ...f, counterId: v ?? '' }))}
+                >
+                  <ComboboxInput
+                    placeholder={t('counterPlaceholder')}
+                    className="h-9 w-full"
+                    disabled={!form.branchId}
+                  />
+                  <ComboboxContent>
+                    <ComboboxList>
+                      {counters.filter(c => c.isActive).map(c => (
+                        <ComboboxItem key={c.id} value={c.id}>{c.counterName}</ComboboxItem>
+                      ))}
+                    </ComboboxList>
+                    <ComboboxEmpty>—</ComboboxEmpty>
+                  </ComboboxContent>
+                </Combobox>
+              </Field>
+
               {(['email', 'address'] as const).map(field => (
                 <Field key={field}>
                   <FieldLabel htmlFor={field}>{t(field)}</FieldLabel>

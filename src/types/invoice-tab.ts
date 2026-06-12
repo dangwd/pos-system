@@ -6,34 +6,32 @@
  */
 
 import type { CartItem } from './cart'
-
-// ─── Trạng thái hóa đơn ──────────────────────────────────────────────────────
+import type { TransactionType } from './transaction'
 
 /** draft: đang soạn | holding: tạm giữ | paying: đang trong flow thanh toán */
 export type InvoiceStatus = 'draft' | 'holding' | 'paying'
 
-// ─── Entity ───────────────────────────────────────────────────────────────────
-
 export interface InvoiceTab {
-  /** uuid — dùng làm key, KHÔNG dùng array index (index thay đổi khi đóng tab giữa) */
   id: string
-  /** Label hiển thị: "HĐ-001", "HĐ-002", tự tăng */
   label: string
   status: InvoiceStatus
-  /** ISO string để persist tốt qua JSON (Date không serialize đúng) */
   createdAt: string
+  txnType: TransactionType
 
-  // ── Cart state — MỖI tab có cart riêng, không share với tab khác ──────────
   items: CartItem[]
   customerId: string | null
   customerName: string | null
+  customerPhone: string | null
   couponCode: string | null
-  /** Số tiền giảm giá tuyệt đối (đã tính từ %) — compute khi apply coupon */
   discountAmount: number
   note: string
-}
 
-// ─── Store interface ──────────────────────────────────────────────────────────
+  // ── ExchangeGold: hóa đơn liên kết ──────────────────────────────────────────
+  /** Mã HĐ bán vàng cũ đã liên kết (ExchangeGold) */
+  linkedInvoiceCode: string | null
+  /** productId của các CartItem ExchangeIn được load từ HĐ liên kết */
+  linkedInvoiceItemKeys: string[]
+}
 
 export interface InvoiceTabStore {
   tabs: InvoiceTab[]
@@ -41,7 +39,8 @@ export interface InvoiceTabStore {
 
   // Tab lifecycle
   openTab: () => void
-  closeTab: (id: string) => void                   // giữ ít nhất 1 tab; block nếu 'paying'
+  openTabWithType: (type: TransactionType) => void
+  closeTab: (id: string) => void
   switchTab: (id: string) => void
   duplicateTab: (id: string) => void
   holdTab: (id: string) => void
@@ -49,11 +48,18 @@ export interface InvoiceTabStore {
 
   // Cart mutations — luôn tác động lên active tab
   addItemToActive: (item: CartItem) => void
-  removeItemFromActive: (productId: string) => void  // giảm qty 1; xóa nếu qty = 0
-  deleteItemFromActive: (productId: string) => void  // xóa hoàn toàn
+  removeItemFromActive: (productId: string) => void
+  deleteItemFromActive: (productId: string) => void
   setItemQtyInActive: (productId: string, qty: number) => void
   clearActiveCart: () => void
 
-  /** Trả về tab đang active (fallback tab[0] nếu activeTabId null) */
+  /** Cập nhật một số trường của CartItem trong active tab (dùng cho PHÍ KHÒ / LAO SUT) */
+  updateCartItemInActive: (productId: string, patch: Partial<CartItem>) => void
+
+  /** Load items từ HĐ cũ vào active tab dưới dạng ExchangeIn */
+  setLinkedInvoice: (code: string, items: CartItem[]) => void
+  /** Xóa HĐ liên kết và các ExchangeIn items tương ứng */
+  clearLinkedInvoice: () => void
+
   getActiveTab: () => InvoiceTab | undefined
 }
