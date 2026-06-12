@@ -54,11 +54,9 @@ export type UpdateCustomerDto = CreateCustomerDto
 export interface CustomerSearchParams {
   search?: string  // Tìm theo tên hoặc SĐT
   q?: string       // Alias cũ của search (tương thích ngược)
-  limit?: number   // Chỉ có hiệu lực khi không truyền page (chọn nhanh)
+  limit?: number   // Chỉ có hiệu lực khi không truyền page (chọn nhanh); mặc định 10 ở lookup mode
   page?: number    // Khi truyền → kích hoạt phân trang
   pageSize?: number
-  q?: string     // Tìm theo tên hoặc SĐT (lookup/array mode)
-  limit?: number // Mặc định 10 (lookup/array mode)
 }
 
 /**
