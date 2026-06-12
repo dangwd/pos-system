@@ -12,9 +12,8 @@
 "use client";
 
 import { CustomerCreateDialog } from "@/components/admin/customers/CustomerCreateDialog";
-import { Button } from "@/components/ui/button";
+import { Button } from "antd";
 import { Input } from "@/components/ui/input";
-import { Spinner } from "@/components/ui/spinner";
 import { useActiveTab } from "@/hooks/useActiveTab";
 import { useCustomers } from "@/hooks/useCustomers";
 import type { Customer } from "@/types/customer";
@@ -411,8 +410,7 @@ function PaymentBreakdown({
               min={0}
             />
             <Button
-              size="sm"
-              variant="outline"
+              size="small"
               onClick={handleApply}
               disabled={!discountInput.trim()}
               className="h-8 text-xs px-3 shrink-0"
@@ -503,30 +501,31 @@ export function PaymentPanel({
       <div className="px-4 pb-4 pt-2 shrink-0">
         {isFx ? (
           <Button
-            className="w-full h-11 font-bold text-sm gap-2"
+            type="primary"
+            block
+            size="large"
+            icon={<CreditCard size={16} />}
+            loading={isCheckingOut}
             disabled={fxDisabled || isCheckingOut}
             onClick={onDirectCheckout}
+            style={{ fontWeight: 700 }}
           >
-            {isCheckingOut ? (
-              <><Spinner className="mr-1" />{t("processing")}</>
-            ) : (
-              <><CreditCard className="h-4 w-4" />LẬP KHAI &amp; PHÁT HÀNH PHIẾU FX</>
-            )}
+            {isCheckingOut ? t("processing") : "LẬP KHAI & PHÁT HÀNH PHIẾU FX"}
           </Button>
         ) : (
           <Button
-            className="w-full h-11 font-bold text-sm gap-2"
+            type="primary"
+            block
+            size="large"
+            icon={<CreditCard size={16} />}
+            loading={isCheckingOut}
             disabled={cartEmpty || isCheckingOut}
             onClick={onOpenPayment}
+            style={{ fontWeight: 700 }}
           >
-            {isCheckingOut ? (
-              <><Spinner className="mr-1" />{t("processing")}</>
-            ) : (
-              <><CreditCard className="h-4 w-4" />{t("checkout")}</>
-            )}
+            {isCheckingOut ? t("processing") : t("checkout")}
           </Button>
         )}
-
       </div>
     </aside>
   );
