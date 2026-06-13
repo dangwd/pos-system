@@ -14,6 +14,7 @@
 "use client";
 
 import { CustomerCreateDialog } from "@/components/admin/customers/CustomerCreateDialog";
+import { ExchangeInvoiceLookup } from "@/components/pos/ExchangeInvoiceLookup";
 import { Input } from "@/components/ui/input";
 import { NumberInput } from "@/components/ui/number-input";
 import { Label } from "@/components/ui/label";
@@ -152,6 +153,10 @@ function OrderLookup() {
               placeholder={t("lookupPlaceholder")}
               value={code}
               onChange={(e) => setCode(e.target.value)}
+              onPaste={(e) => {
+                const pasted = e.clipboardData.getData("text").trim();
+                if (pasted) { e.preventDefault(); setCode(pasted); search(pasted); }
+              }}
               onKeyDown={(e) => { if (e.key === "Enter" && code.trim()) { e.preventDefault(); search(code.trim()); } }}
               className="h-8 text-xs flex-1"
             />
@@ -633,12 +638,13 @@ export function PaymentPanel({
   const [cashInput, setCashInput] = useState("");
   const [bankInput, setBankInput] = useState("");
   const [customerError, setCustomerError] = useState(false);
+  const [linkedError, setLinkedError] = useState(false);
 
   const isFx = tab?.txnType === "ExchangeCurrency";
-  const isExchangeType = isFx
-    || tab?.txnType === "ExchangeGold"
+  const isExchangeGold = tab?.txnType === "ExchangeGold"
     || tab?.txnType === "ExchangeFree"
     || tab?.txnType === "ExchangeToMoney";
+  const isExchangeType = isFx || isExchangeGold;
   const isCancelMode = !!tab?.cancelTransactionId;
   const fxDisabled = isFx && (!tab?.fxFromAmount || tab.fxFromAmount <= 0);
 
@@ -648,8 +654,11 @@ export function PaymentPanel({
   const combinedValid = isCombined ? (cashAmt + bankAmt === total && cashAmt > 0 && bankAmt > 0) : true;
 
   // Reset khi đổi tab hoặc khi khách hàng được chọn
-  useEffect(() => { setCashInput(""); setBankInput(""); setCustomerError(false); }, [tab?.id]);
+  useEffect(() => { setCashInput(""); setBankInput(""); setCustomerError(false); setLinkedError(false); }, [tab?.id]);
   useEffect(() => { if (tab?.customerId) setCustomerError(false); }, [tab?.customerId]);
+  useEffect(() => { if (tab?.linkedInvoiceCode) setLinkedError(false); }, [tab?.linkedInvoiceCode]);
+  // Reset payment inputs sau khi checkout (clearActiveCart → items về 0, cùng tab)
+  useEffect(() => { if (!tab?.items.length) { setCashInput(""); setBankInput(""); } }, [tab?.items.length]);
 
   // Auto-fill bank khi nhập tiền mặt, và ngược lại
   const handleCashChange = (val: string) => {
@@ -699,7 +708,17 @@ export function PaymentPanel({
     return true;
   };
 
+  const requireLinkedInvoice = () => {
+    if (isExchangeGold && !tab?.linkedInvoiceCode) {
+      setLinkedError(true);
+      document.getElementById("pos-exchange-lookup")?.focus();
+      return false;
+    }
+    return true;
+  };
+
   const handleCheckout = () => {
+    if (!requireLinkedInvoice()) return;
     if (!requireCustomer()) return;
     isCombined
       ? onCheckout({ cashAmount: cashAmt, bankAmount: bankAmt })
@@ -707,6 +726,7 @@ export function PaymentPanel({
   };
 
   const handleDirectCheckout = () => {
+    if (!requireLinkedInvoice()) return;
     if (!requireCustomer()) return;
     onDirectCheckout();
   };
@@ -717,6 +737,13 @@ export function PaymentPanel({
 
       {/* Scrollable body */}
       <div className="flex-1 overflow-y-auto">
+        {isExchangeGold && (
+          <>
+            <ExchangeInvoiceLookup showError={linkedError} />
+            <div className="mx-4 border-t border-border/50" />
+          </>
+        )}
+
         {!isExchangeType && (
           <>
             <OrderLookup />

@@ -37,7 +37,6 @@ import {
 } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { CurrencyExchangeForm } from "./CurrencyExchangeForm";
-import { ExchangeInvoiceLookup } from "./ExchangeInvoiceLookup";
 
 function fmt(n: number) {
   return n.toLocaleString("lo-LA") + " ₭";
@@ -906,8 +905,6 @@ function ExchangeGoldTable({
   return (
     <div className="flex flex-col min-h-0">
       {/* PANEL A: Vàng cũ đổi vào */}
-      <ExchangeInvoiceLookup />
-
       <SectionHeader
         icon={ArrowDownToLine}
         label="Vàng cũ đổi vào"

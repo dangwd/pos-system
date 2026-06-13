@@ -311,6 +311,11 @@ const ERROR_MESSAGES: Record<string, ErrorMap> = {
   },
 
   // ── CUSTOMER ──────────────────────────────────────────────────────────────
+  CUSTOMER_REQUIRED: {
+    lo: "ກະລຸນາເລືອກລູກຄ້າກ່ອນລ້າງໃບບິນ",
+    vi: "Vui lòng chọn khách hàng trước khi lập hóa đơn",
+    en: "Please select a customer before creating an invoice",
+  },
   CUSTOMER_NOT_FOUND: {
     lo: "ບໍ່ພົບລູກຄ້າ",
     vi: "Không tìm thấy khách hàng",

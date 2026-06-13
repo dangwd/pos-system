@@ -36,8 +36,11 @@ api.interceptors.response.use(
   async (error) => {
     const original = error.config as typeof error.config & { _retry?: boolean }
 
+    // Bỏ qua interceptor khi chính endpoint auth/login trả 401 (sai mật khẩu)
+    const isAuthLogin = original.url?.includes('/api/auth/login')
+
     // Chỉ retry một lần để tránh vòng lặp vô tận
-    if (error.response?.status === 401 && !original._retry) {
+    if (error.response?.status === 401 && !original._retry && !isAuthLogin) {
       original._retry = true
       try {
         const refreshToken = localStorage.getItem('refreshToken')

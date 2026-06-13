@@ -97,8 +97,8 @@ export function StockInCreateModal({ open, branchId, onClose, onSuccess }: Props
         open={open}
         title={t('title')}
         width={780}
-        maskClosable={false}
-        destroyOnClose
+        mask={{ closable: false }}
+        destroyOnHidden
         onCancel={handleClose}
         footer={[
           <Button key="close" icon={<CloseOutlined />} onClick={handleClose}>{t('closeBtn')}</Button>,

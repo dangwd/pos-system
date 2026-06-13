@@ -1,6 +1,6 @@
 import { useState, useCallback, useEffect } from 'react'
 import { useQuery, useMutation, useQueryClient, keepPreviousData } from '@tanstack/react-query'
-import { message } from 'antd'
+import { toast } from 'sonner'
 import { transactionRepository } from '@/lib/repositories/transaction.repository'
 import { extractErrorMessage } from '@/lib/errors'
 import type { Transaction, TransactionItem, TransactionListParams, CancelTransactionDto } from '@/types/transaction'
@@ -19,7 +19,7 @@ export function useTransactions(params?: TransactionListParams) {
 
   useEffect(() => {
     if (query.error) {
-      message.error((query.error as Error).message || 'Lỗi tải dữ liệu giao dịch')
+      toast.error(extractErrorMessage(query.error, 'vi'))
     }
   }, [query.error])
 
@@ -113,7 +113,7 @@ export function useCancelTransaction() {
       queryClient.invalidateQueries({ queryKey: TRANSACTIONS_KEY })
     },
     onError: (err: unknown) => {
-      message.error(extractErrorMessage(err, 'vi'))
+      toast.error(extractErrorMessage(err, 'vi'))
     },
   })
 }

@@ -131,8 +131,8 @@ export function StockInProductPickerModal({ open, branchId, counterId, selectedI
       width={1200}
       style={{ top: 30 }}
       zIndex={1010}
-      maskClosable={false}
-      destroyOnClose={false}
+      mask={{ closable: false }}
+      destroyOnHidden={false}
       onCancel={onCancel}
       okText={t('confirmBtn')}
       cancelText={t('cancelBtn')}

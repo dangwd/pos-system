@@ -1082,6 +1082,8 @@
         "BRANCH_MANAGE": "Manage Branches",
         "USER_MANAGE": "Manage Users & Permissions"
       },
+      "sectionSystem": "System Roles",
+      "sectionCustom": "Custom Roles",
       "createButton": "Create Role",
       "editInfoButton": "Edit Info",
       "deleteButton": "Delete",

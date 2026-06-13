@@ -25,6 +25,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Input } from "@/components/ui/input";
 import { Spinner } from "@/components/ui/spinner";
+import { useActiveTab } from "@/hooks/useActiveTab";
 import { useLogout } from "@/hooks/useAuth";
 import { useProductsWithStock } from "@/hooks/useProducts";
 import { cn } from "@/lib/utils";
@@ -74,6 +75,13 @@ function ProductSearch({ onSelect }: ProductSearchProps) {
     const timer = setTimeout(() => setDebouncedSearch(search.trim()), 400);
     return () => clearTimeout(timer);
   }, [search]);
+
+  const { tab } = useActiveTab();
+  const txnType = tab?.txnType ?? "SellGold";
+  const stockCheckEnabled =
+    txnType === "SellGold" ||
+    txnType === "SellSilver" ||
+    txnType === "ExchangeGold";
 
   const { user } = useAuthStore();
   const { data: searchResults = [], isFetching } = useProductsWithStock(
@@ -144,7 +152,8 @@ function ProductSearch({ onSelect }: ProductSearchProps) {
           if (e.key === "Enter") {
             const target =
               focusedIndex >= 0 ? results[focusedIndex] : results[0];
-            if (target) handleSelect(target);
+            if (target && !(stockCheckEnabled && target.stockQuantity === 0))
+              handleSelect(target);
           }
         }}
       />
@@ -152,31 +161,47 @@ function ProductSearch({ onSelect }: ProductSearchProps) {
       {open && (results.length > 0 || (debouncedSearch && !isFetching)) && (
         <div className="absolute top-full left-0 z-50 mt-1 w-full rounded-lg border bg-popover shadow-xl overflow-hidden">
           {results.length > 0 ? (
-            results.map((p, i) => (
-              <button
-                key={p.id}
-                type="button"
-                onClick={() => handleSelect(p)}
-                className={cn(
-                  "w-full flex items-center justify-between px-3 py-2.5 text-left hover:bg-accent hover:text-accent-foreground transition-colors border-b last:border-0",
-                  focusedIndex === i && "bg-accent text-accent-foreground",
-                )}
-              >
-                <div className="min-w-0 flex-1">
-                  <p className="text-xs font-medium truncate">
-                    {p.productName}
-                  </p>
-                  <p className="text-[10px] text-muted-foreground font-mono mt-0.5">
-                    {p.categoryName} · {p.purity ?? "—"} · {p.productCode}
-                    {p.stockQuantity === 0 && (
-                      <span className="ml-1.5 text-destructive font-semibold">
-                        (hết hàng)
-                      </span>
+            results.map((p, i) => {
+              const outOfStock = stockCheckEnabled && p.stockQuantity === 0;
+              return (
+                <button
+                  key={p.id}
+                  type="button"
+                  disabled={outOfStock}
+                  onClick={() => !outOfStock && handleSelect(p)}
+                  className={cn(
+                    "w-full flex items-center justify-between px-3 py-2.5 text-left transition-colors border-b last:border-0",
+                    outOfStock
+                      ? "opacity-50 cursor-not-allowed"
+                      : "hover:bg-accent hover:text-accent-foreground",
+                    !outOfStock &&
+                      focusedIndex === i &&
+                      "bg-accent text-accent-foreground",
+                  )}
+                >
+                  <div className="min-w-0 flex-1">
+                    <p className="text-xs font-medium truncate">
+                      {p.productName}
+                    </p>
+                    <p className="text-[10px] text-muted-foreground font-mono mt-0.5">
+                      {p.categoryName} · {p.purity ?? "—"} · {p.productCode}
+                    </p>
+                  </div>
+                  <span
+                    className={cn(
+                      "ml-3 shrink-0 text-[10px] font-semibold font-mono",
+                      p.stockQuantity === 0
+                        ? "text-destructive"
+                        : "text-muted-foreground",
                     )}
-                  </p>
-                </div>
-              </button>
-            ))
+                  >
+                    {p.stockQuantity === 0
+                      ? "Hết hàng"
+                      : `Tồn: ${p.stockQuantity}`}
+                  </span>
+                </button>
+              );
+            })
           ) : (
             <div className="px-3 py-5 text-center text-xs text-muted-foreground">
               {t("notFound", { query: search })}

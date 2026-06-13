@@ -114,7 +114,7 @@ export interface CreateTransactionItemDto {
 export interface CreateTransactionDto {
   type: TransactionType;
   // branchId / staffId / counterId KHÔNG gửi — backend lấy từ JWT
-  customerId?: string;
+  customerId: string; // bắt buộc kể từ 2026-06-13
   items: CreateTransactionItemDto[];
   paymentMethod: PaymentMethod;
   cashAmount?: number | null; // Bắt buộc khi COMBINED

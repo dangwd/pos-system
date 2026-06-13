@@ -8,6 +8,7 @@
 "use client";
 
 import { PaymentPanel } from "@/components/pos/PaymentPanel";
+import { PrintInvoiceModal } from "@/components/pos/PrintInvoiceModal";
 import { PosTopBar } from "@/components/pos/PosTopBar";
 import { Receipt } from "@/components/pos/Receipt";
 import { TransactionTable } from "@/components/pos/TransactionTable";
@@ -38,7 +39,7 @@ export default function PosPage() {
     try {
       const transaction = await pos.checkout({
         type: pos.txnType,
-        customerId: undefined,
+        customerId: pos.customerId ?? '',
         note: pos.note || undefined,
         cashAmount: combined?.cashAmount,
         bankAmount: combined?.bankAmount,
@@ -53,7 +54,7 @@ export default function PosPage() {
   const handleDirectCheckout = async () => {
     pos.setTabPaying();
     try {
-      const transaction = await pos.checkout({ type: "ExchangeCurrency" });
+      const transaction = await pos.checkout({ type: "ExchangeCurrency", customerId: pos.customerId ?? '' });
       pos.resetTabStatus();
       if (transaction) setReceiptTransaction(transaction);
     } catch {
@@ -87,6 +88,8 @@ export default function PosPage() {
         transaction={receiptTransaction}
         onClose={() => setReceiptTransaction(null)}
       />
+
+      <PrintInvoiceModal />
     </div>
   );
 }

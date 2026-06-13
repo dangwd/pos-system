@@ -192,6 +192,8 @@ export const useInvoiceTabStore = create<InvoiceTabStore>()(
               linkedInvoiceItemKeys: [],
               cancelTransactionId: null,
               cancelInvoiceCode: null,
+              customerId: null,
+              customerName: null,
             },
           ),
         });

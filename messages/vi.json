@@ -1078,6 +1078,8 @@
         "BRANCH_MANAGE": "Quản lý chi nhánh",
         "USER_MANAGE": "Quản lý người dùng & phân quyền"
       },
+      "sectionSystem": "Vai trò hệ thống",
+      "sectionCustom": "Vai trò tùy chỉnh",
       "createButton": "Tạo vai trò",
       "editInfoButton": "Sửa thông tin",
       "deleteButton": "Xóa",

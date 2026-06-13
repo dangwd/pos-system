@@ -39,7 +39,7 @@ export function useExchangeInvoiceLookup() {
     staleTime: 60_000,
   })
 
-  const { tab, setLinkedInvoice, clearLinkedInvoice } = useActiveTab()
+  const { tab, setLinkedInvoice, clearLinkedInvoice, setCustomer } = useActiveTab()
 
   // limit mode → Transaction[]; paged mode → { data: Transaction[] }
   const results: Transaction[] = Array.isArray(searchResult)
@@ -84,6 +84,12 @@ export function useExchangeInvoiceLookup() {
     })
 
     setLinkedInvoice(detail.invoiceCode, exchangeItems)
+
+    // Tự động điền khách hàng từ hóa đơn gốc
+    if (detail.customer) {
+      setCustomer(detail.customer.id, detail.customer.name, detail.customer.phoneNumber)
+    }
+
     setQuery('')
     } finally {
       setIsSelecting(false)

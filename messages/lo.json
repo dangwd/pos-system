@@ -1080,6 +1080,8 @@
         "BRANCH_MANAGE": "ຈັດການສາຂາ",
         "USER_MANAGE": "ຈັດການຜູ້ໃຊ້ & ສິດທິ"
       },
+      "sectionSystem": "ບົດບາດລະບົບ",
+      "sectionCustom": "ບົດບາດກຳນົດເອງ",
       "createButton": "ສ້າງບົດບາດ",
       "editInfoButton": "ແກ້ໄຂຂໍ້ມູນ",
       "deleteButton": "ລຶບ",
