@@ -155,7 +155,14 @@ function OrderLookup() {
               onChange={(e) => setCode(e.target.value)}
               onPaste={(e) => {
                 const pasted = e.clipboardData.getData("text").trim();
-                if (pasted) { e.preventDefault(); setCode(pasted); search(pasted); }
+                if (pasted) {
+                  e.preventDefault();
+                  setCode(pasted);
+                  search(pasted).then(found => {
+                    if (found) toast.success(t("lookupFound", { code: pasted }));
+                    else toast.error(t("lookupNotFound", { code: pasted }));
+                  });
+                }
               }}
               onKeyDown={(e) => { if (e.key === "Enter" && code.trim()) { e.preventDefault(); search(code.trim()); } }}
               className="h-8 text-xs flex-1"

@@ -59,6 +59,8 @@
         "storeAddress": "Vientiane Main · Chanthabouly",
         "lookupLabel": "Tra cứu hóa đơn (F6)",
         "lookupPlaceholder": "Mã TX-xxxx...",
+        "lookupFound": "Tìm thấy hóa đơn {code}",
+        "lookupNotFound": "Không tìm thấy hóa đơn {code}",
         "reprint": "In lại",
         "customerLabel": "Khách hàng (F4)",
         "customerSearch": "Tìm khách hàng...",

@@ -59,6 +59,8 @@
         "storeAddress": "Vientiane Main · Chanthabouly",
         "lookupLabel": "ຄົ້ນຫາໃບຮຽກ (F6)",
         "lookupPlaceholder": "ລະຫັດ TX-xxxx...",
+        "lookupFound": "ພົບໃບຮຽກ {code}",
+        "lookupNotFound": "ບໍ່ພົບໃບຮຽກ {code}",
         "reprint": "ພິມຄືນ",
         "customerLabel": "ລູກຄ້າ (F4)",
         "customerSearch": "ຄົ້ນຫາລູກຄ້າ...",

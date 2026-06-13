@@ -59,6 +59,8 @@
         "storeAddress": "Vientiane Main · Chanthabouly",
         "lookupLabel": "Invoice lookup (F6)",
         "lookupPlaceholder": "Code TX-xxxx...",
+        "lookupFound": "Found invoice {code}",
+        "lookupNotFound": "Invoice {code} not found",
         "reprint": "Reprint",
         "customerLabel": "Customer (F4)",
         "customerSearch": "Search customer...",

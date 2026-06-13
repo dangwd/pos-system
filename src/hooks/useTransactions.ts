@@ -62,7 +62,7 @@ export function useTransactionLookup() {
   const [isSearching, setIsSearching] = useState(false)
   const [notFound, setNotFound] = useState(false)
 
-  const search = async (invoiceCode: string) => {
+  const search = async (invoiceCode: string): Promise<boolean> => {
     setIsSearching(true)
     setNotFound(false)
     setResult(null)
@@ -76,8 +76,10 @@ export function useTransactionLookup() {
       setLinkedItems(validItems.map(txItemToCartItem))
       setCancelItems(validItems.map(txItemToNormalItem))
       setNotFound(!tx)
+      return !!tx
     } catch {
       setNotFound(true)
+      return false
     } finally {
       setIsSearching(false)
     }
