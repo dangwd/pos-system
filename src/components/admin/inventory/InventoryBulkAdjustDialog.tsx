@@ -8,6 +8,7 @@ import { cn } from '@/lib/utils'
 import { Dialog, DialogContent, DialogFooter } from '@/components/ui/dialog'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
+import { NumberInput } from '@/components/ui/number-input'
 import { Badge } from '@/components/ui/badge'
 import { Spinner } from '@/components/ui/spinner'
 import { Empty, EmptyTitle } from '@/components/ui/empty'
@@ -178,9 +179,9 @@ export function InventoryBulkAdjustDialog({ open, direction, branchId, onClose }
                         <div className="text-[11px] text-muted-foreground">{t('rowStock', { qty: l.stock })}</div>
                       </TableCell>
                       <TableCell>
-                        <Input
-                          type="number" min={1} step={1} value={l.quantity}
-                          onChange={e => patchLine(l.id, { quantity: e.target.value })}
+                        <NumberInput
+                          min={1} value={l.quantity}
+                          onChange={v => patchLine(l.id, { quantity: v })}
                           placeholder="0"
                           className={cn('h-8 w-20', exceeds(l) && 'border-destructive')}
                         />
@@ -188,9 +189,9 @@ export function InventoryBulkAdjustDialog({ open, direction, branchId, onClose }
                       </TableCell>
                       {isIn && (
                         <TableCell>
-                          <Input
-                            type="number" min={0} step={1000} value={l.actualValue}
-                            onChange={e => patchLine(l.id, { actualValue: e.target.value })}
+                          <NumberInput
+                            min={0} value={l.actualValue}
+                            onChange={v => patchLine(l.id, { actualValue: v })}
                             placeholder="0"
                             className="h-8 w-32"
                           />

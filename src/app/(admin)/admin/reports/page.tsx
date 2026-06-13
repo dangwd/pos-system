@@ -5,7 +5,8 @@ import { useDashboardReport, useDailyReport } from '@/hooks/useReports'
 import { useAuthStore } from '@/stores/auth.store'
 import { useTranslations } from 'next-intl'
 import { Skeleton } from '@/components/ui/skeleton'
-import { Input } from '@/components/ui/input'
+import { DatePicker } from 'antd'
+import dayjs from 'dayjs'
 
 // ── Helpers ──────────────────────────────────────────────────────────────────
 
@@ -105,11 +106,12 @@ export default function ReportsPage() {
 
       {/* ── Date picker (shared) ── */}
       <div>
-        <Input
-          type="date"
-          value={date}
-          onChange={(e) => setDate(e.target.value)}
-          className="w-40 h-8 text-sm"
+        <DatePicker
+          value={date ? dayjs(date) : null}
+          onChange={d => setDate(d ? d.format('YYYY-MM-DD') : '')}
+          format="DD/MM/YYYY"
+          allowClear={false}
+          className="h-8 w-40"
         />
       </div>
 

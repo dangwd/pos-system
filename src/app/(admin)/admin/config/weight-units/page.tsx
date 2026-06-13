@@ -5,6 +5,7 @@ import { useTranslations } from 'next-intl'
 import { Plus, Pencil, Check, X, Trash2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
+import { NumberInput } from '@/components/ui/number-input'
 import { Badge } from '@/components/ui/badge'
 import { Spinner } from '@/components/ui/spinner'
 import { Dialog, DialogContent, DialogFooter } from '@/components/ui/dialog'
@@ -98,15 +99,13 @@ export default function WeightUnitsPage() {
                   </td>
                   <td className="px-4 py-3 text-right">
                     {editing?.id === unit.id ? (
-                      <Input
-                        type="number"
-                        min="0"
-                        step="0.001"
+                      <NumberInput
+                        decimals={4}
+                        min={0}
                         value={editing.gramPerUnit}
-                        onChange={(e) => setEditing((s) => s ? { ...s, gramPerUnit: e.target.value } : s)}
+                        onChange={(v) => setEditing((s) => s ? { ...s, gramPerUnit: v } : s)}
                         className="h-7 w-24 text-right ml-auto text-xs"
-                      />
-                    ) : (
+                      />                    ) : (
                       <span className="font-semibold">{unit.gramPerUnit}</span>
                     )}
                   </td>
@@ -165,7 +164,7 @@ export default function WeightUnitsPage() {
             </Field>
             <Field>
               <FieldLabel>{t('form.gramPerUnit')}</FieldLabel>
-              <Input type="number" min="0" step="0.001" value={createForm.gramPerUnit} onChange={(e) => setCreateForm((f) => ({ ...f, gramPerUnit: e.target.value }))} placeholder="37.799" />
+              <NumberInput decimals={4} min={0} value={createForm.gramPerUnit} onChange={(v) => setCreateForm((f) => ({ ...f, gramPerUnit: v }))} placeholder="37.799" />
             </Field>
           </div>
         </DialogContent>

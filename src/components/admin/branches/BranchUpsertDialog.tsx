@@ -1,16 +1,29 @@
 'use client'
 
-import { useRef, useState } from 'react'
+import { useEffect } from 'react'
+import { useForm } from 'react-hook-form'
+import { zodResolver } from '@hookform/resolvers/zod'
+import { z } from 'zod'
 import { useTranslations } from 'next-intl'
 import { useCreateBranch, useUpdateBranch } from '@/hooks/useBranches'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
+import { FieldError } from '@/components/ui/field'
 import {
   Dialog, DialogContent, DialogFooter,
 } from '@/components/ui/dialog'
-import { Field, FieldGroup, FieldLabel } from '@/components/ui/field'
 import { Spinner } from '@/components/ui/spinner'
 import type { Branch } from '@/types/branch'
+
+const schema = z.object({
+  name:    z.string().min(1, 'Vui lòng nhập tên chi nhánh'),
+  address: z.string().min(1, 'Vui lòng nhập địa chỉ'),
+  phone:   z.string().min(1, 'Vui lòng nhập số điện thoại'),
+  isHeadquarters: z.boolean(),
+})
+
+type FormValues = z.infer<typeof schema>
 
 interface Props {
   open: boolean
@@ -18,67 +31,8 @@ interface Props {
   onClose: () => void
 }
 
-const EMPTY = { name: '', address: '', phone: '' }
-
-type FormData = typeof EMPTY
-
-// Keyed inner component — remounts when `branch` or `open` changes so
-// useState initializers always reflect the current entity.
-// submitRef is populated so the outer footer button can trigger submission.
-function BranchFormBody({
-  branch,
-  isEdit,
-  submitRef,
-}: {
-  branch?: Branch | null
-  isEdit: boolean
-  submitRef: React.MutableRefObject<(() => { form: FormData; isHQ: boolean } | null)>
-}) {
-  const tCreate = useTranslations('admin.branches.createDialog')
-  const tEdit   = useTranslations('admin.branches.editDialog')
-  const t       = isEdit ? tEdit : tCreate
-
-  const [form, setForm] = useState<FormData>(
-    () => branch ? { name: branch.name, address: branch.address, phone: branch.phone } : EMPTY
-  )
-  const [isHQ, setIsHQ] = useState(() => branch?.isHeadquarters ?? false)
-
-  const set = (k: keyof FormData) => (e: React.ChangeEvent<HTMLInputElement>) =>
-    setForm(f => ({ ...f, [k]: e.target.value }))
-
-  submitRef.current = () => (form.name && form.address && form.phone ? { form, isHQ } : null)
-
-  return (
-    <FieldGroup className="py-1 gap-3">
-      <Field>
-        <FieldLabel htmlFor="b-name">{t('name')}</FieldLabel>
-        <Input id="b-name" className="h-9" value={form.name} onChange={set('name')} />
-      </Field>
-      <Field>
-        <FieldLabel htmlFor="b-address">{t('address')}</FieldLabel>
-        <Input id="b-address" className="h-9" value={form.address} onChange={set('address')} />
-      </Field>
-      <Field>
-        <FieldLabel htmlFor="b-phone">{t('phone')}</FieldLabel>
-        <Input id="b-phone" className="h-9" value={form.phone} onChange={set('phone')} />
-      </Field>
-      {!isEdit && (
-        <label className="flex items-center gap-2 text-sm cursor-pointer select-none">
-          <input
-            type="checkbox"
-            checked={isHQ}
-            onChange={e => setIsHQ(e.target.checked)}
-            className="h-4 w-4 rounded border"
-          />
-          {tCreate('isHeadquarters')}
-        </label>
-      )}
-    </FieldGroup>
-  )
-}
-
 export function BranchUpsertDialog({ open, branch, onClose }: Props) {
-  const isEdit = !!branch
+  const isEdit  = !!branch
   const tCreate = useTranslations('admin.branches.createDialog')
   const tEdit   = useTranslations('admin.branches.editDialog')
   const t       = isEdit ? tEdit : tCreate
@@ -86,15 +40,36 @@ export function BranchUpsertDialog({ open, branch, onClose }: Props) {
   const { mutate: create, isPending: creating } = useCreateBranch()
   const { mutate: update, isPending: updating } = useUpdateBranch()
   const isPending = creating || updating
-  const submitRef = useRef<() => { form: FormData; isHQ: boolean } | null>(() => null)
 
-  function handleSubmit() {
-    const data = submitRef.current()
-    if (!data) return
+  const form = useForm<FormValues>({
+    resolver: zodResolver(schema),
+    defaultValues: { name: '', address: '', phone: '', isHeadquarters: false },
+  })
+  const { errors } = form.formState
+
+  useEffect(() => {
+    if (open) {
+      form.reset({
+        name:           branch?.name    ?? '',
+        address:        branch?.address ?? '',
+        phone:          branch?.phone   ?? '',
+        isHeadquarters: branch?.isHeadquarters ?? false,
+      })
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [open, branch])
+
+  function handleSubmit(values: FormValues) {
     if (isEdit && branch) {
-      update({ id: branch.id, dto: data.form }, { onSuccess: onClose })
+      update(
+        { id: branch.id, dto: { name: values.name, address: values.address, phone: values.phone } },
+        { onSuccess: onClose },
+      )
     } else {
-      create({ ...data.form, isHeadquarters: data.isHQ }, { onSuccess: onClose })
+      create(
+        { name: values.name, address: values.address, phone: values.phone, isHeadquarters: values.isHeadquarters },
+        { onSuccess: onClose },
+      )
     }
   }
 
@@ -106,19 +81,51 @@ export function BranchUpsertDialog({ open, branch, onClose }: Props) {
         footer={
           <DialogFooter>
             <Button variant="outline" onClick={onClose} disabled={isPending}>{t('cancel')}</Button>
-            <Button onClick={handleSubmit} disabled={isPending}>
+            <Button onClick={form.handleSubmit(handleSubmit)} disabled={isPending}>
               {isPending && <Spinner className="mr-2" />}
               {t('submit')}
             </Button>
           </DialogFooter>
         }
       >
-        <BranchFormBody
-          key={`${branch?.id ?? 'new'}-${open ? '1' : '0'}`}
-          branch={branch}
-          isEdit={isEdit}
-          submitRef={submitRef}
-        />
+        <div className="flex flex-col gap-4 py-1">
+
+          <div className="flex flex-col gap-1.5">
+            <Label htmlFor="b-name" className="text-sm font-medium">
+              {t('name')} <span className="text-destructive ml-0.5">*</span>
+            </Label>
+            <Input id="b-name" className="h-9" status={errors.name ? 'error' : undefined} {...form.register('name')} />
+            <FieldError errors={[errors.name]} />
+          </div>
+
+          <div className="flex flex-col gap-1.5">
+            <Label htmlFor="b-address" className="text-sm font-medium">
+              {t('address')} <span className="text-destructive ml-0.5">*</span>
+            </Label>
+            <Input id="b-address" className="h-9" status={errors.address ? 'error' : undefined} {...form.register('address')} />
+            <FieldError errors={[errors.address]} />
+          </div>
+
+          <div className="flex flex-col gap-1.5">
+            <Label htmlFor="b-phone" className="text-sm font-medium">
+              {t('phone')} <span className="text-destructive ml-0.5">*</span>
+            </Label>
+            <Input id="b-phone" className="h-9" status={errors.phone ? 'error' : undefined} {...form.register('phone')} />
+            <FieldError errors={[errors.phone]} />
+          </div>
+
+          {!isEdit && (
+            <label className="flex items-center gap-2 text-sm cursor-pointer select-none">
+              <input
+                type="checkbox"
+                className="h-4 w-4 rounded border"
+                {...form.register('isHeadquarters')}
+              />
+              {tCreate('isHeadquarters')}
+            </label>
+          )}
+
+        </div>
       </DialogContent>
     </Dialog>
   )

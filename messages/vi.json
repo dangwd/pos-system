@@ -63,6 +63,7 @@
         "customerLabel": "Khách hàng (F4)",
         "customerSearch": "Tìm khách hàng...",
         "customerNotFound": "Không tìm thấy khách hàng",
+        "customerRequired": "Vui lòng chọn khách hàng để lập đơn",
         "subtotalLabel": "Tổng hàng (A)",
         "discountLabel": "Giảm giá (B)",
         "discountInput": "Nhập giảm giá ₭...",

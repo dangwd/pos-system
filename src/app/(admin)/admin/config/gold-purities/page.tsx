@@ -6,6 +6,7 @@ import { Plus, Pencil, Trash2 } from 'lucide-react'
 import { Select } from 'antd'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
+import { NumberInput } from '@/components/ui/number-input'
 import { Badge } from '@/components/ui/badge'
 import { Spinner } from '@/components/ui/spinner'
 import { Dialog, DialogContent, DialogFooter } from '@/components/ui/dialog'
@@ -132,7 +133,7 @@ export default function GoldPuritiesPage() {
             <div className="grid grid-cols-2 gap-3">
               <Field>
                 <FieldLabel>{t('form.hamLuong')}</FieldLabel>
-                <Input type="number" min="0" max="100" step="0.01" value={form.hamLuong} onChange={(e) => setForm((f) => ({ ...f, hamLuong: e.target.value }))} placeholder="99.99" />
+                <NumberInput decimals={2} min={0} max={100} value={form.hamLuong} onChange={(v) => setForm((f) => ({ ...f, hamLuong: v }))} placeholder="99.99" />
               </Field>
               <Field>
                 <FieldLabel>{t('form.category')}</FieldLabel>

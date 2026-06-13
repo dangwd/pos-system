@@ -1,12 +1,17 @@
 'use client'
 
-import { useState } from 'react'
+import { useEffect } from 'react'
+import { useForm, Controller } from 'react-hook-form'
+import { zodResolver } from '@hookform/resolvers/zod'
+import { z } from 'zod'
 import { useTranslations } from 'next-intl'
 import { Select } from 'antd'
 import { Dialog, DialogContent, DialogFooter } from '@/components/ui/dialog'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
-import { Field, FieldGroup, FieldLabel } from '@/components/ui/field'
+import { Label } from '@/components/ui/label'
+import { NumberInput } from '@/components/ui/number-input'
+import { FieldError } from '@/components/ui/field'
 import { Spinner } from '@/components/ui/spinner'
 import { useCreateProduct, useCategories } from '@/hooks/useProducts'
 import { useGoldPurities } from '@/hooks/useConfig'
@@ -14,23 +19,18 @@ import type { ProductType } from '@/types/product'
 
 const PRODUCT_TYPE_OPTIONS: ProductType[] = ['NguyenKhoi', 'GiaDinh']
 
-interface FormState {
-  productCode: string
-  productName: string
-  productCategoryId: string
-  goldPurityId: string
-  weightGram: string
-  productType: ProductType
-}
+const schema = z.object({
+  productCode:       z.string().min(1, 'Vui lòng nhập mã sản phẩm'),
+  productName:       z.string().min(1, 'Vui lòng nhập tên sản phẩm'),
+  productCategoryId: z.string().min(1, 'Vui lòng chọn danh mục'),
+  goldPurityId:      z.string().optional(),
+  weightGram:        z.string()
+    .min(1, 'Vui lòng nhập trọng lượng')
+    .refine(val => !isNaN(parseFloat(val)) && parseFloat(val) > 0, 'Trọng lượng phải lớn hơn 0'),
+  productType: z.enum(['NguyenKhoi', 'GiaDinh']),
+})
 
-const EMPTY: FormState = {
-  productCode: '',
-  productName: '',
-  productCategoryId: '',
-  goldPurityId: '',
-  weightGram: '',
-  productType: 'NguyenKhoi',
-}
+type FormValues = z.infer<typeof schema>
 
 interface Props {
   open: boolean
@@ -39,130 +39,173 @@ interface Props {
 
 export function ProductCreateDialog({ open, onClose }: Props) {
   const t = useTranslations('admin.products')
-  const [form, setForm] = useState<FormState>(EMPTY)
   const { mutate: create, isPending } = useCreateProduct()
   const { data: categories = [] } = useCategories()
   const { data: purities = [] } = useGoldPurities()
 
-  const set = (key: keyof FormState, value: string) =>
-    setForm((f) => ({ ...f, [key]: value }))
+  const form = useForm<FormValues>({
+    resolver: zodResolver(schema),
+    defaultValues: {
+      productCode: '', productName: '', productCategoryId: '',
+      goldPurityId: '', weightGram: '', productType: 'NguyenKhoi',
+    },
+  })
+  const { errors } = form.formState
 
-  const disabled =
-    !form.productCode || !form.productName || !form.productCategoryId ||
-    !form.weightGram || isNaN(parseFloat(form.weightGram))
+  useEffect(() => {
+    if (open) {
+      form.reset({
+        productCode: '', productName: '', productCategoryId: '',
+        goldPurityId: '', weightGram: '', productType: 'NguyenKhoi',
+      })
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [open])
 
-  function handleSubmit() {
-    if (disabled) return
+  function handleSubmit(values: FormValues) {
     create(
       {
-        productCode: form.productCode.trim(),
-        productName: form.productName.trim(),
-        productCategoryId: form.productCategoryId,
-        goldPurityId: form.goldPurityId || null,
-        weightGram: parseFloat(form.weightGram),
-        productType: form.productType,
+        productCode:       values.productCode.trim(),
+        productName:       values.productName.trim(),
+        productCategoryId: values.productCategoryId,
+        goldPurityId:      values.goldPurityId || null,
+        weightGram:        parseFloat(values.weightGram),
+        productType:       values.productType,
       },
-      {
-        onSuccess: () => {
-          setForm(EMPTY)
-          onClose()
-        },
-      },
+      { onSuccess: onClose },
     )
   }
 
   return (
-    <Dialog open={open} onOpenChange={(o) => !o && onClose()}>
+    <Dialog open={open} onOpenChange={o => !o && onClose()}>
       <DialogContent
         className="sm:max-w-2xl"
         title={t('createDialog.title')}
         footer={
           <DialogFooter>
             <Button variant="outline" onClick={onClose} disabled={isPending}>{t('createDialog.cancel')}</Button>
-            <Button onClick={handleSubmit} disabled={isPending || disabled}>
+            <Button onClick={form.handleSubmit(handleSubmit)} disabled={isPending}>
               {isPending && <Spinner className="mr-2" />}
               {t('createDialog.submit')}
             </Button>
           </DialogFooter>
         }
       >
-        <FieldGroup className="py-1 gap-3">
+        <div className="flex flex-col gap-4 py-1">
+
           <div className="grid grid-cols-2 gap-3">
-            <Field>
-              <FieldLabel>{t('form.productCode')}</FieldLabel>
+            <div className="flex flex-col gap-1.5">
+              <Label className="text-sm font-medium">
+                {t('form.productCode')} <span className="text-destructive ml-0.5">*</span>
+              </Label>
               <Input
-                value={form.productCode}
-                onChange={(e) => set('productCode', e.target.value)}
                 placeholder="VANG-24K-NHAN"
                 className="h-9 font-mono uppercase"
+                status={errors.productCode ? 'error' : undefined}
+                {...form.register('productCode')}
               />
-            </Field>
-            <Field>
-              <FieldLabel>{t('form.purity')}</FieldLabel>
-              <Select
-                value={form.goldPurityId || undefined}
-                onChange={v => set('goldPurityId', v ?? '')}
-                placeholder={t('form.purityPlaceholder')}
-                options={purities.map(p => ({ value: p.id, label: p.ma }))}
-                allowClear
-                notFoundContent="Không tìm thấy"
-                className="w-full"
-                popupMatchSelectWidth={false}
+              <FieldError errors={[errors.productCode]} />
+            </div>
+
+            <div className="flex flex-col gap-1.5">
+              <Label className="text-sm font-medium text-muted-foreground">
+                {t('form.purity')}
+              </Label>
+              <Controller
+                control={form.control}
+                name="goldPurityId"
+                render={({ field }) => (
+                  <Select
+                    value={field.value || undefined}
+                    onChange={v => field.onChange(v ?? '')}
+                    placeholder={t('form.purityPlaceholder')}
+                    options={purities.map(p => ({ value: p.id, label: p.ma }))}
+                    allowClear
+                    notFoundContent="Không tìm thấy"
+                    className="w-full"
+                    popupMatchSelectWidth={false}
+                  />
+                )}
               />
-            </Field>
+            </div>
           </div>
 
-          <Field>
-            <FieldLabel>{t('form.productName')}</FieldLabel>
-            <Input
-              value={form.productName}
-              onChange={(e) => set('productName', e.target.value)}
-              placeholder="Nhẫn Vàng 24K Trơn"
-              className="h-9"
-            />
-          </Field>
+          <div className="flex flex-col gap-1.5">
+            <Label className="text-sm font-medium">
+              {t('form.productName')} <span className="text-destructive ml-0.5">*</span>
+            </Label>
+            <Input placeholder="Nhẫn Vàng 24K Trơn" className="h-9" status={errors.productName ? 'error' : undefined} {...form.register('productName')} />
+            <FieldError errors={[errors.productName]} />
+          </div>
 
           <div className="grid grid-cols-2 gap-3">
-            <Field>
-              <FieldLabel>{t('form.category')}</FieldLabel>
-              <Select
-                value={form.productCategoryId || undefined}
-                onChange={v => v && set('productCategoryId', v)}
-                placeholder={t('form.categoryPlaceholder')}
-                options={categories.map(c => ({ value: c.id, label: c.name }))}
-                showSearch
-                filterOption={(input, opt) => (opt?.label as string ?? '').toLowerCase().includes(input.toLowerCase())}
-                notFoundContent="Không tìm thấy"
-                className="w-full"
-                popupMatchSelectWidth={false}
+            <div className="flex flex-col gap-1.5">
+              <Label className="text-sm font-medium">
+                {t('form.category')} <span className="text-destructive ml-0.5">*</span>
+              </Label>
+              <Controller
+                control={form.control}
+                name="productCategoryId"
+                render={({ field }) => (
+                  <Select
+                    value={field.value || undefined}
+                    onChange={v => field.onChange(v ?? '')}
+                    placeholder={t('form.categoryPlaceholder')}
+                    options={categories.map(c => ({ value: c.id, label: c.name }))}
+                    showSearch={{ filterOption: (input, opt) =>
+                      (opt?.label as string ?? '').toLowerCase().includes(input.toLowerCase())
+                    }}
+                    notFoundContent="Không tìm thấy"
+                    className="w-full"
+                    popupMatchSelectWidth={false}
+                  />
+                )}
               />
-            </Field>
-            <Field>
-              <FieldLabel>{t('form.productType')}</FieldLabel>
-              <Select
-                value={form.productType}
-                onChange={v => v && set('productType', v)}
-                options={PRODUCT_TYPE_OPTIONS.map(pt => ({ value: pt, label: t(`productTypes.${pt}`) }))}
-                className="w-full"
-                popupMatchSelectWidth={false}
+              <FieldError errors={[errors.productCategoryId]} />
+            </div>
+
+            <div className="flex flex-col gap-1.5">
+              <Label className="text-sm font-medium">
+                {t('form.productType')} <span className="text-destructive ml-0.5">*</span>
+              </Label>
+              <Controller
+                control={form.control}
+                name="productType"
+                render={({ field }) => (
+                  <Select
+                    value={field.value}
+                    onChange={v => field.onChange(v)}
+                    options={PRODUCT_TYPE_OPTIONS.map(pt => ({ value: pt, label: t(`productTypes.${pt}`) }))}
+                    className="w-full"
+                    popupMatchSelectWidth={false}
+                  />
+                )}
               />
-            </Field>
+            </div>
           </div>
 
-          <Field>
-            <FieldLabel>{t('form.weight')}</FieldLabel>
-            <Input
-              type="number"
-              min={0}
-              step="0.01"
-              value={form.weightGram}
-              onChange={(e) => set('weightGram', e.target.value)}
-              placeholder="3.75"
-              className="h-9"
+          <div className="flex flex-col gap-1.5">
+            <Label className="text-sm font-medium">
+              {t('form.weight')} <span className="text-destructive ml-0.5">*</span>
+            </Label>
+            <Controller
+              control={form.control}
+              name="weightGram"
+              render={({ field }) => (
+                <NumberInput
+                  decimals={2}
+                  min={0}
+                  value={field.value}
+                  onChange={field.onChange}
+                  placeholder="3.75"
+                  className="h-9"
+                />
+              )}
             />
-          </Field>
-        </FieldGroup>
+            <FieldError errors={[errors.weightGram]} />
+          </div>
 
+        </div>
       </DialogContent>
     </Dialog>
   )

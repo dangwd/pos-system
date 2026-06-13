@@ -63,6 +63,7 @@
         "customerLabel": "ລູກຄ້າ (F4)",
         "customerSearch": "ຄົ້ນຫາລູກຄ້າ...",
         "customerNotFound": "ບໍ່ພົບລູກຄ້າ",
+        "customerRequired": "ກະລຸນາເລືອກລູກຄ້າເພື່ອສ້າງໃບບິນ",
         "subtotalLabel": "ລວມສິນຄ້າ (A)",
         "discountLabel": "ສ່ວນຫຼຸດ (B)",
         "discountInput": "ໃສ່ສ່ວນຫຼຸດ ₭...",

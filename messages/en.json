@@ -63,6 +63,7 @@
         "customerLabel": "Customer (F4)",
         "customerSearch": "Search customer...",
         "customerNotFound": "No customer found",
+        "customerRequired": "Please select a customer to proceed",
         "subtotalLabel": "Subtotal (A)",
         "discountLabel": "Discount (B)",
         "discountInput": "Enter discount ₭...",

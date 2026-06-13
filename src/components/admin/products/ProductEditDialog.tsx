@@ -1,12 +1,17 @@
 'use client'
 
-import { useMemo, useRef, useState } from 'react'
+import { useEffect, useMemo } from 'react'
+import { useForm, Controller } from 'react-hook-form'
+import { zodResolver } from '@hookform/resolvers/zod'
+import { z } from 'zod'
 import { useTranslations } from 'next-intl'
 import { Select } from 'antd'
 import { Dialog, DialogContent, DialogFooter } from '@/components/ui/dialog'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
-import { Field, FieldLabel } from '@/components/ui/field'
+import { Label } from '@/components/ui/label'
+import { NumberInput } from '@/components/ui/number-input'
+import { FieldError } from '@/components/ui/field'
 import { Spinner } from '@/components/ui/spinner'
 import { useUpdateProduct, useCategories } from '@/hooks/useProducts'
 import { useGoldPurities } from '@/hooks/useConfig'
@@ -14,141 +19,68 @@ import type { Product, ProductType } from '@/types/product'
 
 const PRODUCT_TYPE_OPTIONS: ProductType[] = ['NguyenKhoi', 'GiaDinh']
 
+const schema = z.object({
+  productName:  z.string().min(1, 'Vui lòng nhập tên sản phẩm'),
+  categoryId:   z.string().min(1, 'Vui lòng chọn danh mục'),
+  goldPurityId: z.string().nullable().optional(),
+  weightGram:   z.string()
+    .min(1, 'Vui lòng nhập trọng lượng')
+    .refine(val => !isNaN(parseFloat(val)) && parseFloat(val) > 0, 'Trọng lượng phải lớn hơn 0'),
+  productType: z.enum(['NguyenKhoi', 'GiaDinh']),
+})
+
+type FormValues = z.infer<typeof schema>
+
 interface Props {
   product: Product | null
   onClose: () => void
-}
-
-type FormData = {
-  productName: string
-  categoryId: string
-  goldPurityId: string | null
-  weightGram: string
-  productType: ProductType
-}
-
-type CategoryOption = { id: string; name: string }
-
-function ProductFormBody({
-  product,
-  categoryOptions,
-  submitRef,
-}: {
-  product: Product
-  categoryOptions: CategoryOption[]
-  submitRef: React.MutableRefObject<(() => FormData | null)>
-}) {
-  const t = useTranslations('admin.products')
-  const { data: purities = [] } = useGoldPurities()
-
-  const [productName, setProductName] = useState(() => product.productName)
-  const [categoryId, setCategoryId]   = useState(() => product.category.id)
-  const [goldPurityId, setGoldPurityId] = useState<string | null>(() => product.goldPurityId)
-  const [weightGram, setWeightGram]   = useState(() => String(product.weightGram))
-  const [productType, setProductType] = useState<ProductType>(() => product.productType)
-
-  submitRef.current = () => {
-    if (!productName || !categoryId || !weightGram || isNaN(parseFloat(weightGram))) return null
-    return { productName, categoryId, goldPurityId, weightGram, productType }
-  }
-
-  return (
-    <div className="space-y-3 py-1">
-      <Field>
-        <FieldLabel>{t('form.productCode')}</FieldLabel>
-        <Input value={product.productCode} disabled className="h-9 font-mono bg-muted/50" />
-      </Field>
-
-      <Field>
-        <FieldLabel>{t('form.productName')}</FieldLabel>
-        <Input value={productName} onChange={e => setProductName(e.target.value)} className="h-9" />
-      </Field>
-
-      <div className="grid grid-cols-2 gap-3">
-        <Field>
-          <FieldLabel>{t('form.category')}</FieldLabel>
-          <Select
-            value={categoryId || undefined}
-            onChange={v => v && setCategoryId(v)}
-            placeholder={t('form.categoryPlaceholder')}
-            options={categoryOptions.map(c => ({ value: c.id, label: c.name }))}
-            showSearch
-            filterOption={(input, opt) => (opt?.label as string ?? '').toLowerCase().includes(input.toLowerCase())}
-            notFoundContent="Không tìm thấy"
-            className="w-full"
-            popupMatchSelectWidth={false}
-          />
-        </Field>
-        <Field>
-          <FieldLabel>{t('form.purity')}</FieldLabel>
-          <Select
-            value={goldPurityId || undefined}
-            onChange={v => setGoldPurityId(v ?? null)}
-            placeholder={t('form.purityPlaceholder')}
-            options={purities.map(p => ({ value: p.id, label: p.ma }))}
-            showSearch
-            filterOption={(input, opt) => (opt?.label as string ?? '').toLowerCase().includes(input.toLowerCase())}
-            allowClear
-            notFoundContent="Không tìm thấy"
-            className="w-full"
-            popupMatchSelectWidth={false}
-          />
-        </Field>
-      </div>
-
-      <div className="grid grid-cols-2 gap-3">
-        <Field>
-          <FieldLabel>{t('form.weight')}</FieldLabel>
-          <Input
-            type="number"
-            min={0}
-            step="0.01"
-            value={weightGram}
-            onChange={e => setWeightGram(e.target.value)}
-            placeholder="3.75"
-            className="h-9"
-          />
-        </Field>
-        <Field>
-          <FieldLabel>{t('form.productType')}</FieldLabel>
-          <Select
-            value={productType}
-            onChange={v => v && setProductType(v as ProductType)}
-            options={PRODUCT_TYPE_OPTIONS.map(pt => ({ value: pt, label: t(`productTypes.${pt}`) }))}
-            className="w-full"
-            popupMatchSelectWidth={false}
-          />
-        </Field>
-      </div>
-    </div>
-  )
 }
 
 export function ProductEditDialog({ product, onClose }: Props) {
   const t = useTranslations('admin.products')
   const { mutate: update, isPending } = useUpdateProduct()
   const { data: categories = [] } = useCategories()
-  const submitRef = useRef<() => FormData | null>(() => null)
+  const { data: purities = [] } = useGoldPurities()
 
   const categoryOptions = useMemo(() => {
     if (!product) return categories
-    const included = categories.some(c => c.id === product.category.id)
-    return included ? categories : [product.category, ...categories]
+    return categories.some(c => c.id === product.category.id)
+      ? categories
+      : [product.category, ...categories]
   }, [categories, product])
 
-  function handleSubmit() {
+  const form = useForm<FormValues>({
+    resolver: zodResolver(schema),
+    defaultValues: {
+      productName: '', categoryId: '', goldPurityId: null, weightGram: '', productType: 'NguyenKhoi',
+    },
+  })
+  const { errors } = form.formState
+
+  useEffect(() => {
+    if (product) {
+      form.reset({
+        productName:  product.productName,
+        categoryId:   product.category.id,
+        goldPurityId: product.goldPurityId ?? null,
+        weightGram:   String(product.weightGram),
+        productType:  product.productType,
+      })
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [product])
+
+  function handleSubmit(values: FormValues) {
     if (!product) return
-    const data = submitRef.current()
-    if (!data) return
     update(
       {
         id: product.id,
         dto: {
-          productName: data.productName.trim(),
-          productCategoryId: data.categoryId,
-          goldPurityId: data.goldPurityId,
-          weightGram: parseFloat(data.weightGram),
-          productType: data.productType,
+          productName:       values.productName.trim(),
+          productCategoryId: values.categoryId,
+          goldPurityId:      values.goldPurityId ?? null,
+          weightGram:        parseFloat(values.weightGram),
+          productType:       values.productType,
         },
       },
       { onSuccess: onClose },
@@ -162,24 +94,126 @@ export function ProductEditDialog({ product, onClose }: Props) {
         title={t('editDialog.title')}
         footer={
           <DialogFooter>
-            <Button variant="outline" onClick={onClose} disabled={isPending}>
-              {t('editDialog.cancel')}
-            </Button>
-            <Button onClick={handleSubmit} disabled={isPending}>
+            <Button variant="outline" onClick={onClose} disabled={isPending}>{t('editDialog.cancel')}</Button>
+            <Button onClick={form.handleSubmit(handleSubmit)} disabled={isPending}>
               {isPending && <Spinner className="mr-2" />}
               {t('editDialog.submit')}
             </Button>
           </DialogFooter>
         }
       >
-        {product && (
-          <ProductFormBody
-            key={product.id}
-            product={product}
-            categoryOptions={categoryOptions}
-            submitRef={submitRef}
-          />
-        )}
+        <div className="flex flex-col gap-4 py-1">
+
+          <div className="flex flex-col gap-1.5">
+            <Label className="text-sm font-medium text-muted-foreground">
+              {t('form.productCode')}
+            </Label>
+            <Input value={product?.productCode ?? ''} disabled className="h-9 font-mono bg-muted/50" />
+          </div>
+
+          <div className="flex flex-col gap-1.5">
+            <Label className="text-sm font-medium">
+              {t('form.productName')} <span className="text-destructive ml-0.5">*</span>
+            </Label>
+            <Input className="h-9" status={errors.productName ? 'error' : undefined} {...form.register('productName')} />
+            <FieldError errors={[errors.productName]} />
+          </div>
+
+          <div className="grid grid-cols-2 gap-3">
+            <div className="flex flex-col gap-1.5">
+              <Label className="text-sm font-medium">
+                {t('form.category')} <span className="text-destructive ml-0.5">*</span>
+              </Label>
+              <Controller
+                control={form.control}
+                name="categoryId"
+                render={({ field }) => (
+                  <Select
+                    value={field.value || undefined}
+                    onChange={v => field.onChange(v ?? '')}
+                    placeholder={t('form.categoryPlaceholder')}
+                    options={categoryOptions.map(c => ({ value: c.id, label: c.name }))}
+                    showSearch={{ filterOption: (input, opt) =>
+                      (opt?.label as string ?? '').toLowerCase().includes(input.toLowerCase())
+                    }}
+                    notFoundContent="Không tìm thấy"
+                    className="w-full"
+                    popupMatchSelectWidth={false}
+                  />
+                )}
+              />
+              <FieldError errors={[errors.categoryId]} />
+            </div>
+
+            <div className="flex flex-col gap-1.5">
+              <Label className="text-sm font-medium text-muted-foreground">
+                {t('form.purity')}
+              </Label>
+              <Controller
+                control={form.control}
+                name="goldPurityId"
+                render={({ field }) => (
+                  <Select
+                    value={field.value || undefined}
+                    onChange={v => field.onChange(v ?? null)}
+                    placeholder={t('form.purityPlaceholder')}
+                    options={purities.map(p => ({ value: p.id, label: p.ma }))}
+                    showSearch={{ filterOption: (input, opt) =>
+                      (opt?.label as string ?? '').toLowerCase().includes(input.toLowerCase())
+                    }}
+                    allowClear
+                    notFoundContent="Không tìm thấy"
+                    className="w-full"
+                    popupMatchSelectWidth={false}
+                  />
+                )}
+              />
+            </div>
+          </div>
+
+          <div className="grid grid-cols-2 gap-3">
+            <div className="flex flex-col gap-1.5">
+              <Label className="text-sm font-medium">
+                {t('form.weight')} <span className="text-destructive ml-0.5">*</span>
+              </Label>
+              <Controller
+                control={form.control}
+                name="weightGram"
+                render={({ field }) => (
+                  <NumberInput
+                    decimals={2}
+                    min={0}
+                    value={field.value}
+                    onChange={field.onChange}
+                    placeholder="3.75"
+                    className="h-9"
+                  />
+                )}
+              />
+              <FieldError errors={[errors.weightGram]} />
+            </div>
+
+            <div className="flex flex-col gap-1.5">
+              <Label className="text-sm font-medium">
+                {t('form.productType')} <span className="text-destructive ml-0.5">*</span>
+              </Label>
+              <Controller
+                control={form.control}
+                name="productType"
+                render={({ field }) => (
+                  <Select
+                    value={field.value}
+                    onChange={v => field.onChange(v)}
+                    options={PRODUCT_TYPE_OPTIONS.map(pt => ({ value: pt, label: t(`productTypes.${pt}`) }))}
+                    className="w-full"
+                    popupMatchSelectWidth={false}
+                  />
+                )}
+              />
+            </div>
+          </div>
+
+        </div>
       </DialogContent>
     </Dialog>
   )

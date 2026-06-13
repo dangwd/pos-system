@@ -5,7 +5,8 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { cashLedgerRepository } from '@/lib/repositories/cash-ledger.repository'
 import { useAuthStore } from '@/stores/auth.store'
 import { Plus } from 'lucide-react'
-import { Form } from 'antd'
+import { Form, DatePicker } from 'antd'
+import dayjs from 'dayjs'
 import { TablePageSkeleton } from '@/components/shared/PageSkeleton'
 import { Spinner } from '@/components/ui/spinner'
 import { useTranslations } from 'next-intl'
@@ -17,6 +18,7 @@ import {
   DialogFooter,
 } from '@/components/ui/dialog'
 import { Input } from '@/components/ui/input'
+import { NumberInput } from '@/components/ui/number-input'
 import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from '@/components/ui/select'
@@ -119,11 +121,10 @@ function AddEntryDialog({ branchId, open, onClose }: { branchId: string; open: b
           </div>
           <div className="grid grid-cols-2 gap-3">
             <Form.Item label={t('columns.amount')}>
-              <Input
-                type="number"
-                min="0"
+              <NumberInput
+                min={0}
                 value={form.originalAmount}
-                onChange={(e) => setForm(p => ({ ...p, originalAmount: e.target.value }))}
+                onChange={(v) => setForm(p => ({ ...p, originalAmount: v }))}
               />
             </Form.Item>
             <Form.Item label={t('columns.currency')} style={{ marginBottom: 0 }}>
@@ -178,11 +179,12 @@ export default function CashLedgerPage() {
           </p>
         </div>
         <div className="flex items-center gap-2">
-          <Input
-            type="date"
-            value={date}
-            onChange={(e) => setDate(e.target.value)}
-            className="w-40 h-8 text-sm"
+          <DatePicker
+            value={date ? dayjs(date) : null}
+            onChange={d => setDate(d ? d.format('YYYY-MM-DD') : '')}
+            format="DD/MM/YYYY"
+            allowClear={false}
+            className="h-8 w-40"
           />
           <Button size="sm" onClick={() => setAddOpen(true)}>
             <Plus className="h-4 w-4 mr-1" />

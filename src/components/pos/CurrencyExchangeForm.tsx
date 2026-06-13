@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react'
 import { useActiveTab } from '@/hooks/useActiveTab'
 import { useExchangeRates } from '@/hooks/useExchangeRates'
 import { Input } from '@/components/ui/input'
+import { NumberInput } from '@/components/ui/number-input'
 import { cn } from '@/lib/utils'
 import { Select } from 'antd'
 import type { ExchangeRate } from '@/types/config'
@@ -97,12 +98,12 @@ export function CurrencyExchangeForm() {
               Tiền khách đưa
             </p>
             <div className="flex gap-1.5">
-              <Input
-                type="number"
+              <NumberInput
+                decimals={2}
                 min={0}
                 placeholder="0"
                 value={fromInput}
-                onChange={e => setFromInput(e.target.value)}
+                onChange={v => setFromInput(v)}
                 className="h-9 text-right font-mono font-bold tabular-nums text-sm flex-1 min-w-0"
                 autoFocus
               />

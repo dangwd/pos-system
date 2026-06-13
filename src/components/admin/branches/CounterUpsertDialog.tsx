@@ -1,111 +1,91 @@
-"use client";
+'use client'
 
-import { Button } from "@/components/ui/button";
-import { Dialog, DialogContent, DialogFooter } from "@/components/ui/dialog";
-import { Field, FieldGroup, FieldLabel } from "@/components/ui/field";
-import { Input } from "@/components/ui/input";
-import { Spinner } from "@/components/ui/spinner";
-import { useCreateCounter, useUpdateCounter } from "@/hooks/useBranches";
-import type { Counter } from "@/types/branch";
-import { useTranslations } from "next-intl";
-import { useRef, useState } from "react";
+import { useEffect } from 'react'
+import { useForm } from 'react-hook-form'
+import { zodResolver } from '@hookform/resolvers/zod'
+import { z } from 'zod'
+import { useTranslations } from 'next-intl'
+import { useCreateCounter, useUpdateCounter } from '@/hooks/useBranches'
+import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
+import { FieldError } from '@/components/ui/field'
+import { Dialog, DialogContent, DialogFooter } from '@/components/ui/dialog'
+import { Spinner } from '@/components/ui/spinner'
+import type { Counter } from '@/types/branch'
+
+const schema = z.object({
+  counterName: z.string().min(1, 'Vui lòng nhập tên quầy'),
+})
+
+type FormValues = z.infer<typeof schema>
 
 interface Props {
-  open: boolean;
-  branchId: string;
-  branchName: string;
-  counter?: Counter | null;
-  onClose: () => void;
+  open: boolean
+  branchId: string
+  branchName: string
+  counter?: Counter | null
+  onClose: () => void
 }
 
-// Keyed inner component — remounts when `counter` or `open` changes.
-// submitRef is populated so the outer footer button can trigger submission.
-function CounterFormBody({
-  counter,
-  submitRef,
-}: {
-  counter?: Counter | null;
-  submitRef: React.MutableRefObject<() => string | null>;
-}) {
-  const [counterName, setCounterName] = useState(
-    () => counter?.counterName ?? "",
-  );
+export function CounterUpsertDialog({ open, branchId, branchName, counter, onClose }: Props) {
+  const isEdit  = !!counter
+  const tCreate = useTranslations('admin.branches.counterCreateDialog')
+  const tEdit   = useTranslations('admin.branches.counterEditDialog')
+  const t       = isEdit ? tEdit : tCreate
 
-  submitRef.current = () => counterName.trim() || null;
-  const isEdit = !!counter;
-  const tCreate = useTranslations("admin.branches.counterCreateDialog");
-  const tEdit = useTranslations("admin.branches.counterEditDialog");
-  const t = isEdit ? tEdit : tCreate;
-  return (
-    <FieldGroup className="py-1">
-      <Field>
-        <FieldLabel htmlFor="counter-name">{t("counterName")}</FieldLabel>
-        <Input
-          id="counter-name"
-          className="h-9"
-          value={counterName}
-          onChange={(e) => setCounterName(e.target.value)}
-        />
-      </Field>
-    </FieldGroup>
-  );
-}
+  const { mutate: create, isPending: creating } = useCreateCounter()
+  const { mutate: update, isPending: updating } = useUpdateCounter()
+  const isPending = creating || updating
 
-export function CounterUpsertDialog({
-  open,
-  branchId,
-  branchName,
-  counter,
-  onClose,
-}: Props) {
-  const isEdit = !!counter;
-  const tCreate = useTranslations("admin.branches.counterCreateDialog");
-  const tEdit = useTranslations("admin.branches.counterEditDialog");
-  const t = isEdit ? tEdit : tCreate;
+  const form = useForm<FormValues>({
+    resolver: zodResolver(schema),
+    defaultValues: { counterName: '' },
+  })
+  const { errors } = form.formState
 
-  const { mutate: create, isPending: creating } = useCreateCounter();
-  const { mutate: update, isPending: updating } = useUpdateCounter();
-  const isPending = creating || updating;
-  const submitRef = useRef<() => string | null>(() => null);
+  useEffect(() => {
+    if (open) form.reset({ counterName: counter?.counterName ?? '' })
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [open, counter])
 
-  function handleSubmit() {
-    const counterName = submitRef.current();
-    if (!counterName) return;
+  function handleSubmit(values: FormValues) {
     if (isEdit && counter) {
       update(
-        { branchId, counterId: counter.id, dto: { counterName } },
+        { branchId, counterId: counter.id, dto: { counterName: values.counterName } },
         { onSuccess: onClose },
-      );
+      )
     } else {
-      create({ branchId, dto: { counterName } }, { onSuccess: onClose });
+      create(
+        { branchId, dto: { counterName: values.counterName } },
+        { onSuccess: onClose },
+      )
     }
   }
 
-  const title = isEdit ? tEdit("title") : tCreate("title", { branchName });
-
   return (
-    <Dialog open={open} onOpenChange={(o) => !o && onClose()}>
+    <Dialog open={open} onOpenChange={o => !o && onClose()}>
       <DialogContent
         className="sm:max-w-sm"
-        title={title}
+        title={isEdit ? tEdit('title') : tCreate('title', { branchName })}
         footer={
           <DialogFooter>
-            <Button variant="outline" onClick={onClose} disabled={isPending}>
-              {t("cancel")}
-            </Button>
-            <Button onClick={handleSubmit} disabled={isPending}>
+            <Button variant="outline" onClick={onClose} disabled={isPending}>{t('cancel')}</Button>
+            <Button onClick={form.handleSubmit(handleSubmit)} disabled={isPending}>
               {isPending && <Spinner className="mr-2" />}
-              {t("submit")}
+              {t('submit')}
             </Button>
           </DialogFooter>
         }
       >
-        <CounterFormBody
-          key={`${counter?.id ?? "new"}-${open ? "1" : "0"}`}
-          counter={counter}
-          submitRef={submitRef}
-        />
+        <div className="flex flex-col gap-1.5 py-1">
+          <Label htmlFor="counter-name" className="text-sm font-medium">
+            {t('counterName')} <span className="text-destructive ml-0.5">*</span>
+          </Label>
+          <Input id="counter-name" className="h-9" status={errors.counterName ? 'error' : undefined} {...form.register('counterName')} />
+          <FieldError errors={[errors.counterName]} />
+        </div>
       </DialogContent>
     </Dialog>
-  );
+  )
 }

@@ -10,7 +10,7 @@
 "use client";
 
 import { Badge } from "@/components/ui/badge";
-import { Input } from "@/components/ui/input";
+import { NumberInput } from "@/components/ui/number-input";
 import { useActiveTab } from "@/hooks/useActiveTab";
 import { useConfigPrices, useWeightUnits } from "@/hooks/useConfig";
 import { cn } from "@/lib/utils";
@@ -430,14 +430,17 @@ function SellTable({
                 ) : (
                   <input
                     key={item.weightUnitId ?? "default"}
-                    type="number"
+                    type="text"
+                    inputMode="numeric"
                     min={0}
-                    defaultValue={unitPrice}
-                    onFocus={(e) => e.target.select()}
+                    defaultValue={unitPrice.toLocaleString('en')}
+                    onFocus={(e) => {
+                      e.target.value = e.target.value.replace(/,/g, '')
+                      e.target.select()
+                    }}
                     onBlur={(e) => {
-                      const newPrice = Math.round(
-                        Number(e.currentTarget.value) || 0,
-                      );
+                      const newPrice = Math.round(Number(e.currentTarget.value.replace(/,/g, '')) || 0)
+                      e.currentTarget.value = newPrice ? newPrice.toLocaleString('en') : ''
                       if (newPrice !== unitPrice) {
                         onUpdate(item.productId, {
                           unitPriceLakPerGram:
@@ -450,7 +453,7 @@ function SellTable({
                     onKeyDown={(e) => {
                       if (e.key === "Enter") e.currentTarget.blur();
                       if (e.key === "Escape") {
-                        e.currentTarget.value = String(unitPrice);
+                        e.currentTarget.value = unitPrice.toLocaleString('en')
                         e.currentTarget.blur();
                       }
                     }}
@@ -549,14 +552,17 @@ function BuyGoldRow({
       <td className="px-2 py-2 w-24">
         <input
           key={item.weightUnitId ?? "default"}
-          type="number"
-          min={0.001}
-          step={0.001}
+          type="text"
+          inputMode="decimal"
           disabled={item.isReadOnly}
-          defaultValue={effectiveUnits}
-          onFocus={(e) => e.target.select()}
+          defaultValue={effectiveUnits.toLocaleString('en', { maximumFractionDigits: 3 })}
+          onFocus={(e) => {
+            e.target.value = e.target.value.replace(/,/g, '')
+            e.target.select()
+          }}
           onBlur={(e) => {
-            const newUnits = Number(e.currentTarget.value);
+            const newUnits = Number(e.currentTarget.value.replace(/,/g, ''))
+            if (newUnits > 0) e.currentTarget.value = newUnits.toLocaleString('en', { maximumFractionDigits: 3 })
             if (newUnits > 0 && newUnits !== effectiveUnits) {
               onUpdate(item.productId, {
                 weightGramOverride: newUnits * item.weightGram,
@@ -566,7 +572,7 @@ function BuyGoldRow({
           onKeyDown={(e) => {
             if (e.key === "Enter") e.currentTarget.blur();
             if (e.key === "Escape") {
-              e.currentTarget.value = String(effectiveUnits);
+              e.currentTarget.value = effectiveUnits.toLocaleString('en', { maximumFractionDigits: 3 })
               e.currentTarget.blur();
             }
           }}
@@ -583,12 +589,16 @@ function BuyGoldRow({
         ) : (
           <input
             key={`price-${item.weightUnitId ?? "default"}`}
-            type="number"
-            min={0}
-            defaultValue={unitPrice}
-            onFocus={(e) => e.target.select()}
+            type="text"
+            inputMode="numeric"
+            defaultValue={unitPrice.toLocaleString('en')}
+            onFocus={(e) => {
+              e.target.value = e.target.value.replace(/,/g, '')
+              e.target.select()
+            }}
             onBlur={(e) => {
-              const newPrice = Math.round(Number(e.currentTarget.value) || 0);
+              const newPrice = Math.round(Number(e.currentTarget.value.replace(/,/g, '')) || 0)
+              e.currentTarget.value = newPrice ? newPrice.toLocaleString('en') : ''
               if (newPrice !== unitPrice) {
                 onUpdate(item.productId, {
                   unitPriceLakPerGram:
@@ -599,7 +609,7 @@ function BuyGoldRow({
             onKeyDown={(e) => {
               if (e.key === "Enter") e.currentTarget.blur();
               if (e.key === "Escape") {
-                e.currentTarget.value = String(unitPrice);
+                e.currentTarget.value = unitPrice.toLocaleString('en')
                 e.currentTarget.blur();
               }
             }}
@@ -630,15 +640,14 @@ function BuyGoldRow({
             {item.isDamaged && <AlertTriangle className="h-2.5 w-2.5" />}
           </button>
           {item.isDamaged && (
-            <Input
-              type="number"
+            <NumberInput
               min={0}
               placeholder="0"
               disabled={item.isReadOnly}
               value={item.perItemDamage || ""}
-              onChange={(e) =>
+              onChange={(v) =>
                 onUpdate(item.productId, {
-                  perItemDamage: Number(e.target.value) || 0,
+                  perItemDamage: Number(v) || 0,
                 })
               }
               className="h-5 w-20 text-[10px] px-1.5 tabular-nums"
@@ -652,16 +661,15 @@ function BuyGoldRow({
 
       {/* LAO SUT (số chỉ hao mòn) */}
       <td className="px-2 py-2 w-24">
-        <Input
-          type="number"
+        <NumberInput
+          decimals={2}
           min={0}
-          step={0.01}
           placeholder="0"
           disabled={item.isReadOnly}
           value={item.perItemWearChi || ""}
-          onChange={(e) =>
+          onChange={(v) =>
             onUpdate(item.productId, {
-              perItemWearChi: Number(e.target.value) || 0,
+              perItemWearChi: Number(v) || 0,
             })
           }
           className="h-5 w-20 text-[10px] px-1.5 tabular-nums"
@@ -818,14 +826,13 @@ function ExchangeInRow({
             {item.isDamaged && <AlertTriangle className="h-2.5 w-2.5" />}
           </button>
           {item.isDamaged && (
-            <Input
-              type="number"
+            <NumberInput
               min={0}
               placeholder="0"
               value={item.perItemDamage || ""}
-              onChange={(e) =>
+              onChange={(v) =>
                 onUpdate(item.productId, {
-                  perItemDamage: Number(e.target.value) || 0,
+                  perItemDamage: Number(v) || 0,
                 })
               }
               className="h-5 w-20 text-[10px] px-1.5 tabular-nums"
@@ -839,15 +846,14 @@ function ExchangeInRow({
 
       {/* LAO SUT: số chỉ */}
       <td className="px-2 py-2 w-24">
-        <Input
-          type="number"
+        <NumberInput
+          decimals={2}
           min={0}
-          step={0.01}
           placeholder="0"
           value={item.perItemWearChi || ""}
-          onChange={(e) =>
+          onChange={(v) =>
             onUpdate(item.productId, {
-              perItemWearChi: Number(e.target.value) || 0,
+              perItemWearChi: Number(v) || 0,
             })
           }
           className="h-5 w-20 text-[10px] px-1.5 tabular-nums"
@@ -1120,7 +1126,7 @@ export function TransactionTable() {
   const isBuy = txnType === "BuyGold";
 
   return (
-    <div className="flex flex-col flex-1 min-h-0 overflow-hidden">
+    <div className="flex flex-col h-full overflow-hidden">
       <InfoBar
         label={tab?.label ?? "INV"}
         status={tab?.status ?? "draft"}
