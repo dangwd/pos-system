@@ -105,7 +105,8 @@ export default function InventoryPage() {
       statusLabels,
       updatedAt:   t('columns.updatedAt'),
     },
-  }), [t, statusLabels])
+    onView: item => router.push(`/admin/inventory/${item.id}`),
+  }), [t, statusLabels, router])
 
   return (
     <div className="p-6 space-y-4">
@@ -192,7 +193,6 @@ export default function InventoryPage() {
           columns={columns}
           data={rows}
           hideSearch
-          onRowClick={item => router.push(`/admin/inventory/${item.id}`)}
           serverPagination={paged ? {
             total: paged.total,
             page: paged.page,

@@ -120,6 +120,4 @@ export function createProductColumns(
       ),
     },
   ]
-    },
-  ]
 }

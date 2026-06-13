@@ -1,6 +1,6 @@
 'use client'
 
-import type { ColumnDef } from '@tanstack/react-table'
+import type { TableColumnsType } from 'antd'
 import { Badge } from '@/components/ui/badge'
 import { ChevronRight } from 'lucide-react'
 import type { InventoryItem, InventoryStatus } from '@/types/inventory'
@@ -56,42 +56,48 @@ export interface InventoryListLabels {
 
 export function createInventoryListColumns({
   labels,
+  onView,
 }: {
   labels: InventoryListLabels
-}): ColumnDef<InventoryItem>[] {
+  onView: (item: InventoryItem) => void
+}): TableColumnsType<InventoryItem> {
   return [
     {
-      accessorKey: 'productCode',
-      header: labels.productCode,
-      cell: ({ row }) => (
-        <span className="font-mono text-xs text-muted-foreground">{row.original.productCode}</span>
+      title: labels.productCode,
+      dataIndex: 'productCode',
+      key: 'productCode',
+      render: (value: string) => (
+        <span className="font-mono text-xs text-muted-foreground">{value}</span>
       ),
     },
     {
-      accessorKey: 'productName',
-      header: labels.productName,
-      cell: ({ row }) => (
-        <span className="font-medium leading-snug">{row.original.productName}</span>
+      title: labels.productName,
+      dataIndex: 'productName',
+      key: 'productName',
+      render: (value: string) => (
+        <span className="font-medium leading-snug">{value}</span>
       ),
     },
     {
-      accessorKey: 'purity',
-      header: labels.purity,
-      cell: ({ row }) =>
-        row.original.purity
-          ? <Badge variant="secondary" className="text-[10px]">{row.original.purity}</Badge>
+      title: labels.purity,
+      dataIndex: 'purity',
+      key: 'purity',
+      render: (value: string | null) =>
+        value
+          ? <Badge variant="secondary" className="text-[10px]">{value}</Badge>
           : <span className="text-muted-foreground">—</span>,
     },
     {
-      accessorKey: 'counterName',
-      header: labels.counter,
-      cell: ({ row }) => <span className="text-sm">{row.original.counterName}</span>,
+      title: labels.counter,
+      dataIndex: 'counterName',
+      key: 'counterName',
+      render: (value: string) => <span className="text-sm">{value}</span>,
     },
     {
-      id: 'nguonGoc',
-      header: labels.source,
-      cell: ({ row }) => {
-        const isQuan = row.original.nguonGoc === 'Quan'
+      title: labels.source,
+      key: 'nguonGoc',
+      render: (_: unknown, record: InventoryItem) => {
+        const isQuan = record.nguonGoc === 'Quan'
         return (
           <Badge
             variant="outline"
@@ -103,47 +109,59 @@ export function createInventoryListColumns({
       },
     },
     {
-      accessorKey: 'quantity',
-      header: labels.qty,
-      cell: ({ row }) => (
-        <span className="tabular-nums font-semibold">{row.original.quantity}</span>
+      title: labels.qty,
+      dataIndex: 'quantity',
+      key: 'quantity',
+      render: (value: number) => (
+        <span className="tabular-nums font-semibold">{value}</span>
       ),
     },
     {
-      accessorKey: 'weightGram',
-      header: labels.weight,
-      cell: ({ row }) => (
+      title: labels.weight,
+      dataIndex: 'weightGram',
+      key: 'weightGram',
+      render: (value: number) => (
         <span className="tabular-nums text-sm">
-          {row.original.weightGram.toLocaleString('lo-LA', { maximumFractionDigits: 2 })} g
+          {value.toLocaleString('lo-LA', { maximumFractionDigits: 2 })} g
         </span>
       ),
     },
     {
-      id: 'trangThai',
-      header: labels.status,
-      cell: ({ row }) => {
-        const s = row.original.trangThai
-        const style = STATUS_STYLE[s]
+      title: labels.status,
+      key: 'trangThai',
+      render: (_: unknown, record: InventoryItem) => {
+        const style = STATUS_STYLE[record.trangThai]
         return (
           <Badge variant={style.variant} className={`text-[11px] ${style.className}`}>
-            {labels.statusLabels[s]}
+            {labels.statusLabels[record.trangThai]}
           </Badge>
         )
       },
     },
     {
-      accessorKey: 'lastUpdatedAt',
-      header: labels.updatedAt,
-      cell: ({ row }) => (
+      title: labels.updatedAt,
+      dataIndex: 'lastUpdatedAt',
+      key: 'lastUpdatedAt',
+      render: (value: string) => (
         <span className="whitespace-nowrap text-xs text-muted-foreground">
-          {new Date(row.original.lastUpdatedAt).toLocaleString('lo-LA')}
+          {new Date(value).toLocaleString('lo-LA')}
         </span>
       ),
     },
     {
-      id: 'chevron',
-      header: '',
-      cell: () => <ChevronRight className="h-4 w-4 text-muted-foreground/50" />,
+      title: '',
+      key: 'chevron',
+      width: 48,
+      align: 'center' as const,
+      render: (_: unknown, record: InventoryItem) => (
+        <button
+          type="button"
+          onClick={() => onView(record)}
+          className="inline-flex h-7 w-7 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-accent hover:text-foreground"
+        >
+          <ChevronRight className="h-4 w-4" />
+        </button>
+      ),
     },
   ]
 }
