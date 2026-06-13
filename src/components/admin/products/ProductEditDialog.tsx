@@ -2,16 +2,17 @@
 
 import { useMemo, useRef, useState } from 'react'
 import { useTranslations } from 'next-intl'
-import { Select } from 'antd'
+import { Select, Tooltip } from 'antd'
+import { LockOutlined } from '@ant-design/icons'
 import { Dialog, DialogContent, DialogFooter } from '@/components/ui/dialog'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Field, FieldLabel } from '@/components/ui/field'
 import { Spinner } from '@/components/ui/spinner'
 import { useUpdateProduct, useCategories } from '@/hooks/useProducts'
-import { useGoldPurities } from '@/hooks/useConfig'
+import { useGoldPurities, useWeightUnits } from '@/hooks/useConfig'
 import type { Product } from '@/types/product'
-import type { GoldPurity } from '@/types/config'
+import type { GoldPurity, WeightUnit } from '@/types/config'
 
 // Lọc tuổi vàng/bạc theo danh mục đang chọn (đồng bộ với ProductCreateDialog)
 function resolvePurityCategory(categoryName: string): 'Gold' | 'Silver' | undefined {
@@ -37,6 +38,7 @@ type FormData = {
   productName: string
   categoryId: string
   goldPurityId: string
+  weightUnitId: string
 }
 
 type CategoryOption = { id: string; name: string }
@@ -48,11 +50,13 @@ function ProductFormBody({
   product,
   categoryOptions,
   allPurities,
+  allUnits,
   submitRef,
 }: {
   product: Product
   categoryOptions: CategoryOption[]
   allPurities: GoldPurity[]
+  allUnits: WeightUnit[]
   submitRef: React.MutableRefObject<(() => FormData | null)>
 }) {
   const t = useTranslations('admin.products')
@@ -60,13 +64,21 @@ function ProductFormBody({
   const [productName, setProductName]   = useState(() => product.productName)
   const [categoryId, setCategoryId]     = useState(() => product.category.id)
   const [goldPurityId, setGoldPurityId] = useState(() => product.goldPurityId ?? '')
+  const [weightUnitId, setWeightUnitId] = useState(() => product.weightUnitId ?? '')
+
+  // SP đã có giao dịch → khóa Hàm lượng + Đơn vị tính (BE chặn bằng 422)
+  const locked = product.hasTransactions
 
   const selectedCategory = categoryOptions.find(c => c.id === categoryId)
   const purityOptions = filterPurities(allPurities, selectedCategory?.name ?? '')
 
+  // Tên hiển thị khi khóa (read-only)
+  const purityName = allPurities.find(p => p.id === goldPurityId)?.ma ?? product.purity ?? '—'
+  const unitName = allUnits.find(u => u.id === weightUnitId)?.tenDonVi ?? '—'
+
   submitRef.current = () => {
     if (!productName || !categoryId) return null
-    return { productName, categoryId, goldPurityId }
+    return { productName, categoryId, goldPurityId, weightUnitId }
   }
 
   return (
@@ -81,35 +93,77 @@ function ProductFormBody({
         <Input value={productName} onChange={e => setProductName(e.target.value)} className="h-9" />
       </Field>
 
+      <Field>
+        <FieldLabel>{t('form.category')}</FieldLabel>
+        <Select
+          value={categoryId || undefined}
+          onChange={v => v && setCategoryId(v)}
+          placeholder={t('form.categoryPlaceholder')}
+          options={categoryOptions.map(c => ({ value: c.id, label: c.name }))}
+          showSearch
+          filterOption={(input, opt) => (opt?.label as string ?? '').toLowerCase().includes(input.toLowerCase())}
+          notFoundContent="Không tìm thấy"
+          className="w-full"
+          popupMatchSelectWidth={false}
+        />
+      </Field>
+
       <div className="grid grid-cols-2 gap-3">
         <Field>
-          <FieldLabel>{t('form.category')}</FieldLabel>
-          <Select
-            value={categoryId || undefined}
-            onChange={v => v && setCategoryId(v)}
-            placeholder={t('form.categoryPlaceholder')}
-            options={categoryOptions.map(c => ({ value: c.id, label: c.name }))}
-            showSearch
-            filterOption={(input, opt) => (opt?.label as string ?? '').toLowerCase().includes(input.toLowerCase())}
-            notFoundContent="Không tìm thấy"
-            className="w-full"
-            popupMatchSelectWidth={false}
-          />
+          <FieldLabel>{t('form.purity')}</FieldLabel>
+          {locked ? (
+            <Tooltip title={t('form.lockedTransactionHint')}>
+              <span className="block">
+                <Input
+                  value={purityName}
+                  disabled
+                  className="h-9 bg-muted/50"
+                  suffix={<LockOutlined className="text-muted-foreground" />}
+                />
+              </span>
+            </Tooltip>
+          ) : (
+            <Select
+              value={goldPurityId || undefined}
+              onChange={v => setGoldPurityId(v ?? '')}
+              placeholder={t('form.purityPlaceholder')}
+              options={purityOptions.map(p => ({ value: p.id, label: `${p.ma} (${p.hamLuong}%)` }))}
+              showSearch
+              allowClear
+              filterOption={(input, opt) => (opt?.label as string ?? '').toLowerCase().includes(input.toLowerCase())}
+              notFoundContent="Không tìm thấy"
+              className="w-full"
+              popupMatchSelectWidth={false}
+            />
+          )}
         </Field>
         <Field>
-          <FieldLabel>{t('form.purity')}</FieldLabel>
-          <Select
-            value={goldPurityId || undefined}
-            onChange={v => setGoldPurityId(v ?? '')}
-            placeholder={t('form.purityPlaceholder')}
-            options={purityOptions.map(p => ({ value: p.id, label: `${p.ma} (${p.hamLuong}%)` }))}
-            showSearch
-            allowClear
-            filterOption={(input, opt) => (opt?.label as string ?? '').toLowerCase().includes(input.toLowerCase())}
-            notFoundContent="Không tìm thấy"
-            className="w-full"
-            popupMatchSelectWidth={false}
-          />
+          <FieldLabel>{t('form.weightUnit')}</FieldLabel>
+          {locked ? (
+            <Tooltip title={t('form.lockedTransactionHint')}>
+              <span className="block">
+                <Input
+                  value={unitName}
+                  disabled
+                  className="h-9 bg-muted/50"
+                  suffix={<LockOutlined className="text-muted-foreground" />}
+                />
+              </span>
+            </Tooltip>
+          ) : (
+            <Select
+              value={weightUnitId || undefined}
+              onChange={v => setWeightUnitId(v ?? '')}
+              placeholder={t('form.weightUnitPlaceholder')}
+              options={allUnits.map(u => ({ value: u.id, label: u.tenDonVi }))}
+              showSearch
+              allowClear
+              filterOption={(input, opt) => (opt?.label as string ?? '').toLowerCase().includes(input.toLowerCase())}
+              notFoundContent="Không tìm thấy"
+              className="w-full"
+              popupMatchSelectWidth={false}
+            />
+          )}
         </Field>
       </div>
     </div>
@@ -121,6 +175,7 @@ export function ProductEditDialog({ product, onClose }: Props) {
   const { mutate: update, isPending } = useUpdateProduct()
   const { data: categories = [] } = useCategories()
   const { data: allPurities = [] } = useGoldPurities()
+  const { data: allUnits = [] } = useWeightUnits()
   const submitRef = useRef<() => FormData | null>(() => null)
 
   const categoryOptions = useMemo(() => {
@@ -140,6 +195,7 @@ export function ProductEditDialog({ product, onClose }: Props) {
           productName: data.productName.trim(),
           productCategoryId: data.categoryId,
           goldPurityId: data.goldPurityId || null,
+          weightUnitId: data.weightUnitId || undefined,
         },
       },
       { onSuccess: onClose },
@@ -169,6 +225,7 @@ export function ProductEditDialog({ product, onClose }: Props) {
             product={product}
             categoryOptions={categoryOptions}
             allPurities={allPurities}
+            allUnits={allUnits}
             submitRef={submitRef}
           />
         )}

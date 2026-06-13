@@ -266,6 +266,7 @@
         "productCode": "Code",
         "category": "Category",
         "purity": "Purity",
+        "unit": "Unit",
         "status": "Status",
         "active": "Active",
         "inactive": "Inactive",
@@ -319,6 +320,7 @@
         "weightUnit": "Unit",
         "weightUnitPlaceholder": "Select unit...",
         "lockedHint": "Fixed after saving — cannot be changed",
+        "lockedTransactionHint": "Product already has transactions — purity and unit cannot be changed",
         "duplicateChecking": "Checking...",
         "duplicateOk": "Name is available",
         "duplicateError": "Name already exists in this category"
@@ -822,6 +824,7 @@
         "emptyProd": "No items. Click 'Choose Items' to add.",
         "colCode": "Item Code",
         "colName": "Item Name",
+        "colUnit": "Unit",
         "colQty": "Out Qty",
         "colStock": "In Stock",
         "colDelete": "Delete",

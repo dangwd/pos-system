@@ -24,6 +24,7 @@ export interface Product {
   weightUnitId: string | null
   productType: ProductType
   isActive: boolean
+  hasTransactions: boolean   // true = đã phát sinh giao dịch → khóa sửa hàm lượng/đơn vị
 }
 
 // ─── Sản phẩm kèm tồn kho (GET /api/products/with-stock) ─────────────────────

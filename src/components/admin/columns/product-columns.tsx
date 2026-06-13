@@ -10,7 +10,7 @@ export interface ProductColumnLabels {
   productCode: string
   category: string
   purity: string
-  productType: string
+  unit: string
   status: string
   active: string
   inactive: string
@@ -19,11 +19,11 @@ export interface ProductColumnLabels {
   deactivate: string
   activate: string
   actions: string
-  productTypes: Record<string, string>
 }
 
 export function createProductColumns(
   labels: ProductColumnLabels,
+  unitMap: Map<string, string>,
   onEdit: (product: Product) => void,
   onDeactivate: (product: Product) => void,
   onActivate: (product: Product) => void,
@@ -63,12 +63,12 @@ export function createProductColumns(
       ),
     },
     {
-      key: 'productType',
-      dataIndex: 'productType',
-      title: labels.productType,
-      width: 130,
-      render: (v: string) => (
-        <span className="text-xs">{labels.productTypes[v] ?? v}</span>
+      key: 'weightUnitId',
+      dataIndex: 'weightUnitId',
+      title: labels.unit,
+      width: 100,
+      render: (v: string | null) => (
+        <span className="text-xs">{(v ? unitMap.get(v) : null) ?? '—'}</span>
       ),
     },
     {

@@ -266,6 +266,7 @@
         "productCode": "ລະຫັດ",
         "category": "ໝວດໝູ່",
         "purity": "ຄວາມບໍລິສຸດ",
+        "unit": "ໜ່ວຍ",
         "status": "ສະຖານະ",
         "active": "ໃຊ້ງານ",
         "inactive": "ຍົກເລີກ",
@@ -319,6 +320,7 @@
         "weightUnit": "ໜ່ວຍນັບ",
         "weightUnitPlaceholder": "ເລືອກໜ່ວຍນັບ...",
         "lockedHint": "ກຳນົດຄົງທີ່ຫຼັງຈາກບັນທຶກ — ບໍ່ສາມາດປ່ຽນແປງໄດ້",
+        "lockedTransactionHint": "ສິນຄ້າມີທຸລະກຳແລ້ວ — ບໍ່ສາມາດແກ້ໄຂຄວາມບໍລິສຸດ ແລະ ໜ່ວຍ",
         "duplicateChecking": "ກຳລັງກວດສອບ...",
         "duplicateOk": "ຊື່ຖືກຕ້ອງ",
         "duplicateError": "ຊື່ນີ້ມີຢູ່ໃນໝວດໝູ່ນີ້ແລ້ວ"
@@ -820,6 +822,7 @@
         "emptyProd": "ຍັງບໍ່ມີສິນຄ້າ. ກົດ 'ເລືອກສິນຄ້າ' ເພື່ອເພີ່ມ.",
         "colCode": "ລະຫັດ",
         "colName": "ຊື່ສິນຄ້າ",
+        "colUnit": "ໜ່ວຍ",
         "colQty": "ຈຳນວນ",
         "colStock": "ຄົງເຫຼືອ",
         "colDelete": "ລຶບ",

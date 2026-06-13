@@ -1,10 +1,12 @@
 // StockOutSelectedTable — bảng sản phẩm đã chọn trong phiếu xuất kho
 'use client'
 
+import { useMemo } from 'react'
 import { useTranslations } from 'next-intl'
 import { Table, InputNumber, Button, Empty, Tooltip } from 'antd'
 import { DeleteOutlined, WarningOutlined } from '@ant-design/icons'
 import type { TableColumnsType } from 'antd'
+import { useWeightUnits } from '@/hooks/useConfig'
 import type { InventoryItem } from '@/types/inventory'
 
 export interface SelectedOutLine {
@@ -21,6 +23,12 @@ interface Props {
 export function StockOutSelectedTable({ lines, onQtyChange, onRemove }: Props) {
   const t = useTranslations('admin.inventory.stockOutForm')
 
+  const { data: weightUnits = [] } = useWeightUnits()
+  const unitMap = useMemo(
+    () => new Map(weightUnits.map(u => [u.id, u.tenDonVi])),
+    [weightUnits],
+  )
+
   const columns: TableColumnsType<SelectedOutLine> = [
     { width: 32, render: () => null },
     { title: '#', width: 50, render: (_, __, i) => i + 1 },
@@ -36,6 +44,11 @@ export function StockOutSelectedTable({ lines, onQtyChange, onRemove }: Props) {
     {
       title: t('colName'),
       render: (_, r) => r.item.productName,
+    },
+    {
+      title: t('colUnit'),
+      width: 90,
+      render: (_, r) => (r.item.weightUnitId ? unitMap.get(r.item.weightUnitId) : null) ?? '—',
     },
     {
       title: t('colStock'),

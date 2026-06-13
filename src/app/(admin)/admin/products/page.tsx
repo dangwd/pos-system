@@ -12,6 +12,7 @@ import {
   useDeactivateProduct,
   useProductsPaged,
 } from "@/hooks/useProducts";
+import { useWeightUnits } from "@/hooks/useConfig";
 import type { Product } from "@/types/product";
 import { Select, Table } from "antd";
 import { Plus } from "lucide-react";
@@ -43,6 +44,11 @@ export default function ProductsPage() {
   }, [searchInput]);
 
   const { data: categories = [] } = useCategories();
+  const { data: weightUnits = [] } = useWeightUnits();
+  const unitMap = useMemo(
+    () => new Map(weightUnits.map((u) => [u.id, u.tenDonVi])),
+    [weightUnits],
+  );
   const { data, isLoading } = useProductsPaged({
     search: filterSearch || undefined,
     categoryCode: filterCategory ?? undefined,
@@ -72,7 +78,7 @@ export default function ProductsPage() {
           productCode: t("columns.productCode"),
           category: t("columns.category"),
           purity: t("columns.purity"),
-          productType: t("columns.productType"),
+          unit: t("columns.unit"),
           status: t("columns.status"),
           active: t("columns.active"),
           inactive: t("columns.inactive"),
@@ -81,16 +87,13 @@ export default function ProductsPage() {
           deactivate: t("columns.deactivate"),
           activate: t("columns.activate"),
           actions: t("columns.actions"),
-          productTypes: {
-            NguyenKhoi: t("productTypes.NguyenKhoi"),
-            CanThucTe: t("productTypes.CanThucTe"),
-          },
         },
+        unitMap,
         (product) => setEditProduct(product),
         (product) => setPendingAction({ type: "deactivate", product }),
         (product) => setPendingAction({ type: "activate", product }),
       ),
-    [t],
+    [t, unitMap],
   );
 
   return (

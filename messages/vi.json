@@ -266,6 +266,7 @@
         "productCode": "Mã SP",
         "category": "Danh mục",
         "purity": "Hàm lượng",
+        "unit": "Đơn vị tính",
         "status": "Trạng thái",
         "active": "Hoạt động",
         "inactive": "Vô hiệu",
@@ -319,6 +320,7 @@
         "weightUnit": "Đơn vị tính",
         "weightUnitPlaceholder": "Chọn đơn vị...",
         "lockedHint": "Cố định sau khi lưu — không thể thay đổi",
+        "lockedTransactionHint": "Sản phẩm đã phát sinh giao dịch — không thể sửa hàm lượng và đơn vị tính",
         "duplicateChecking": "Đang kiểm tra...",
         "duplicateOk": "Tên hợp lệ",
         "duplicateError": "Tên đã tồn tại trong danh mục này"
@@ -818,6 +820,7 @@
         "emptyProd": "Chưa có sản phẩm. Nhấn 'Chọn sản phẩm' để thêm.",
         "colCode": "Mã hàng",
         "colName": "Tên hàng",
+        "colUnit": "Đơn vị",
         "colQty": "SL xuất",
         "colStock": "Tồn kho",
         "colDelete": "Xoá",
