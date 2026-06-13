@@ -9,7 +9,7 @@ export interface ProductCategory {
 
 // ─── Enum ─────────────────────────────────────────────────────────────────────
 
-export type ProductType = 'NguyenKhoi' | 'GiaDinh'
+export type ProductType = 'NguyenKhoi' | 'CanThucTe'
 
 // ─── Sản phẩm (GET /api/products) ─────────────────────────────────────────────
 
@@ -48,12 +48,17 @@ export interface ProductWithStock {
 
 // ─── DTOs ─────────────────────────────────────────────────────────────────────
 
+export interface CheckDuplicateResponse {
+  trung: boolean
+  sanPhamTrung?: { maSanPham: string; tenHang: string }
+}
+
 export interface CreateProductDto {
-  productCode: string
+  productCode?: string
   productName: string
   productCategoryId: string
   goldPurityId: string | null
-  weightGram: number
+  weightGram?: number
   weightUnitId?: string
   productType?: ProductType
 }
@@ -62,7 +67,7 @@ export interface UpdateProductDto {
   productName: string
   productCategoryId: string
   goldPurityId: string | null
-  weightGram: number
+  weightGram?: number
   weightUnitId?: string
   productType?: ProductType
 }

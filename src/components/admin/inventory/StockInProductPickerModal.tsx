@@ -6,6 +6,7 @@ import { useTranslations } from 'next-intl'
 import { Modal, Table, Input, Select, Tag, Spin } from 'antd'
 import type { TableColumnsType } from 'antd'
 import { useInventoryInfinite } from '@/hooks/useInventory'
+import { useWeightUnits } from '@/hooks/useConfig'
 import type { InventoryItem } from '@/types/inventory'
 
 interface Props {
@@ -27,6 +28,13 @@ export function StockInProductPickerModal({ open, branchId, counterId, selectedI
   const [search, setSearch]                 = useState('')
   const [categoryFilter, setCategoryFilter] = useState<string | null>(null)
   const [draftKeys, setDraftKeys]           = useState<string[]>([])
+
+  // Map weightUnitId → tên đơn vị ("Chỉ", "Lượng"...)
+  const { data: weightUnits = [] } = useWeightUnits()
+  const unitMap = useMemo(
+    () => new Map(weightUnits.map(u => [u.id, u.tenDonVi])),
+    [weightUnits],
+  )
 
   // ── Data — useInfiniteQuery tự tích lũy trang ──────────
   const {
@@ -89,8 +97,13 @@ export function StockInProductPickerModal({ open, branchId, counterId, selectedI
     { title: '#', width: 50, render: (_v: unknown, _r: InventoryItem, i: number) => i + 1 },
     { title: t('colCode'), dataIndex: 'productCode', width: 110 },
     { title: t('colName'), dataIndex: 'productName' },
+    { title: t('colCounter'), dataIndex: 'counterName', width: 130 },
     { title: t('colCategory'), dataIndex: 'category', width: 140 },
     { title: t('colPurity'), dataIndex: 'purity', width: 90, render: (v: string | null) => v ?? '—' },
+    {
+      title: t('colUnit'), dataIndex: 'weightUnitId', width: 90,
+      render: (v: string | null) => (v ? unitMap.get(v) : null) ?? '—',
+    },
     {
       title: t('colStatus'), width: 120,
       render: () => <Tag color="green">{t('statusActive')}</Tag>,
@@ -115,7 +128,7 @@ export function StockInProductPickerModal({ open, branchId, counterId, selectedI
           )}
         </span>
       }
-      width={900}
+      width={1200}
       style={{ top: 30 }}
       zIndex={1010}
       maskClosable={false}

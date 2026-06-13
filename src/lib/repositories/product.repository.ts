@@ -9,6 +9,7 @@ import type {
   UpdateProductDto,
   CreateProductCategoryDto,
   UpdateProductCategoryDto,
+  CheckDuplicateResponse,
 } from '@/types/product'
 
 export interface ProductListParams {
@@ -90,9 +91,29 @@ export class ProductRepository {
     }
   }
 
+  async activate(id: string): Promise<void> {
+    try {
+      await api.patch(`${this.base}/${id}/activate`)
+    } catch (err) {
+      throw handleAxiosError(err)
+    }
+  }
+
   async deactivate(id: string): Promise<void> {
     try {
-      await api.delete(`${this.base}/${id}`)
+      await api.patch(`${this.base}/${id}/deactivate`)
+    } catch (err) {
+      throw handleAxiosError(err)
+    }
+  }
+
+  // TODO: thay endpoint thực tế nếu BE dùng tên khác
+  async checkDuplicate(productName: string, categoryId?: string): Promise<CheckDuplicateResponse> {
+    try {
+      const { data } = await api.get<CheckDuplicateResponse>(`${this.base}/check-duplicate`, {
+        params: { productName, categoryId },
+      })
+      return data
     } catch (err) {
       throw handleAxiosError(err)
     }

@@ -3,17 +3,17 @@
 import { createProductColumns } from "@/components/admin/columns/product-columns";
 import { ProductCreateDialog } from "@/components/admin/products/ProductCreateDialog";
 import { ProductEditDialog } from "@/components/admin/products/ProductEditDialog";
-import { DataTable } from "@/components/shared/DataTable";
-import { TablePageSkeleton } from "@/components/shared/PageSkeleton";
+import { ConfirmDialog } from "@/components/shared/ConfirmDialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
+  useActivateProduct,
   useCategories,
   useDeactivateProduct,
   useProductsPaged,
 } from "@/hooks/useProducts";
 import type { Product } from "@/types/product";
-import { Select } from "antd";
+import { Select, Table } from "antd";
 import { Plus } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { useEffect, useMemo, useState } from "react";
@@ -25,6 +25,10 @@ export default function ProductsPage() {
 
   const [createOpen, setCreateOpen] = useState(false);
   const [editProduct, setEditProduct] = useState<Product | null>(null);
+  const [pendingAction, setPendingAction] = useState<{
+    type: "deactivate" | "activate";
+    product: Product;
+  } | null>(null);
   const [page, setPage] = useState(1);
   const [filterCategory, setFilterCategory] = useState<string | null>(null);
   const [searchInput, setSearchInput] = useState("");
@@ -45,9 +49,20 @@ export default function ProductsPage() {
     page,
     pageSize: PAGE_SIZE,
   });
-  const { mutate: deactivate } = useDeactivateProduct();
+  const { mutate: deactivate, isPending: deactivating } = useDeactivateProduct();
+  const { mutate: activate, isPending: activating } = useActivateProduct();
 
   const products = data?.data ?? [];
+
+  const handleConfirmAction = () => {
+    if (!pendingAction) return;
+    const opts = { onSuccess: () => setPendingAction(null) };
+    if (pendingAction.type === "deactivate") {
+      deactivate(pendingAction.product.id, opts);
+    } else {
+      activate(pendingAction.product.id, opts);
+    }
+  };
 
   const columns = useMemo(
     () =>
@@ -64,15 +79,18 @@ export default function ProductsPage() {
           openMenu: t("columns.openMenu"),
           edit: t("columns.edit"),
           deactivate: t("columns.deactivate"),
+          activate: t("columns.activate"),
+          actions: t("columns.actions"),
           productTypes: {
             NguyenKhoi: t("productTypes.NguyenKhoi"),
             CanThucTe: t("productTypes.CanThucTe"),
           },
         },
         (product) => setEditProduct(product),
-        (product) => deactivate(product.id),
+        (product) => setPendingAction({ type: "deactivate", product }),
+        (product) => setPendingAction({ type: "activate", product }),
       ),
-    [t, deactivate],
+    [t],
   );
 
   return (
@@ -94,7 +112,6 @@ export default function ProductsPage() {
         </Button>
       </div>
 
-      {/* Filter bar */}
       <div className="flex flex-wrap items-center gap-2">
         <Input
           placeholder={t("searchPlaceholder")}
@@ -102,22 +119,15 @@ export default function ProductsPage() {
           onChange={(e) => setSearchInput(e.target.value)}
           className="w-56 text-sm"
         />
-
-        {/* Category */}
         <Select
           value={filterCategory || undefined}
-          onChange={(v) => {
-            setFilterCategory(v ?? null);
-            setPage(1);
-          }}
+          onChange={(v) => { setFilterCategory(v ?? null); setPage(1); }}
           placeholder={t("filterAll")}
           options={categories.map((c) => ({ value: c.code, label: c.name }))}
           showSearch
           allowClear
           filterOption={(input, opt) =>
-            ((opt?.label as string) ?? "")
-              .toLowerCase()
-              .includes(input.toLowerCase())
+            ((opt?.label as string) ?? "").toLowerCase().includes(input.toLowerCase())
           }
           notFoundContent="Không tìm thấy"
           className="min-w-44"
@@ -125,25 +135,26 @@ export default function ProductsPage() {
         />
       </div>
 
-      {isLoading ? (
-        <TablePageSkeleton />
-      ) : (
-        <DataTable
+      <div className="rounded-lg border bg-background shadow-sm">
+        <Table<Product>
           columns={columns}
-          data={products}
-          hideSearch
-          serverPagination={
-            data
-              ? {
-                  total: data.total,
-                  page: data.page,
-                  pageSize: data.pageSize,
-                  onPageChange: setPage,
-                }
-              : undefined
-          }
+          dataSource={products}
+          rowKey="id"
+          size="small"
+          loading={isLoading}
+          scroll={{ x: 900 }}
+          pagination={{
+            current: page,
+            pageSize: PAGE_SIZE,
+            total: data?.total ?? 0,
+            onChange: (p) => setPage(p),
+            showSizeChanger: false,
+            showTotal: (total, range) =>
+              `Hiển thị ${range[0]}–${range[1]} / ${total}`,
+            className: "px-4",
+          }}
         />
-      )}
+      </div>
 
       <ProductCreateDialog
         open={createOpen}
@@ -152,6 +163,36 @@ export default function ProductsPage() {
       <ProductEditDialog
         product={editProduct}
         onClose={() => setEditProduct(null)}
+      />
+
+      <ConfirmDialog
+        open={!!pendingAction}
+        title={
+          pendingAction?.type === "activate"
+            ? t("confirm.activateTitle")
+            : t("confirm.deactivateTitle")
+        }
+        description={
+          pendingAction?.type === "activate"
+            ? t("confirm.activateDesc", {
+                name: pendingAction.product.productName,
+              })
+            : pendingAction
+              ? t("confirm.deactivateDesc", {
+                  name: pendingAction.product.productName,
+                })
+              : undefined
+        }
+        confirmText={
+          pendingAction?.type === "activate"
+            ? t("columns.activate")
+            : t("columns.deactivate")
+        }
+        cancelText={t("confirm.cancel")}
+        variant={pendingAction?.type === "activate" ? "default" : "destructive"}
+        loading={deactivating || activating}
+        onConfirm={handleConfirmAction}
+        onCancel={() => setPendingAction(null)}
       />
     </div>
   );

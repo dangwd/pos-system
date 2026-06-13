@@ -1,19 +1,9 @@
 'use client'
 
-import { createColumnHelper, type ColumnDef } from '@tanstack/react-table'
 import { Badge } from '@/components/ui/badge'
-import { Button } from '@/components/ui/button'
-import {
-  DropdownMenu,
-  DropdownMenuTrigger,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuSeparator,
-} from '@/components/ui/dropdown-menu'
-import { ArrowUpDown, MoreHorizontal } from 'lucide-react'
+import { CheckCircleOutlined, EditOutlined, StopOutlined } from '@ant-design/icons'
+import type { ColumnsType } from 'antd/es/table'
 import type { Product } from '@/types/product'
-
-// ─── Column labels (i18n) ─────────────────────────────────────────────────────
 
 export interface ProductColumnLabels {
   product: string
@@ -27,101 +17,107 @@ export interface ProductColumnLabels {
   openMenu: string
   edit: string
   deactivate: string
+  activate: string
+  actions: string
   productTypes: Record<string, string>
 }
-
-// ─── Column definitions ───────────────────────────────────────────────────────
-
-const columnHelper = createColumnHelper<Product>()
 
 export function createProductColumns(
   labels: ProductColumnLabels,
   onEdit: (product: Product) => void,
   onDeactivate: (product: Product) => void,
-): ColumnDef<Product>[] {
+  onActivate: (product: Product) => void,
+): ColumnsType<Product> {
   return [
-    columnHelper.accessor('productName', {
-      header: ({ column }) => (
-        <Button
-          variant="ghost"
-          size="sm"
-          className="-ml-3 h-8"
-          onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}
-        >
-          {labels.product}
-          <ArrowUpDown className="ml-1 h-3.5 w-3.5 text-muted-foreground" />
-        </Button>
+    {
+      key: 'productName',
+      dataIndex: 'productName',
+      title: labels.product,
+      ellipsis: true,
+      sorter: true,
+      render: (v: string) => <span className="font-medium">{v}</span>,
+    },
+    {
+      key: 'productCode',
+      dataIndex: 'productCode',
+      title: labels.productCode,
+      width: 140,
+      render: (v: string) => (
+        <span className="font-mono text-xs text-muted-foreground">{v}</span>
       ),
-      cell: ({ getValue }) => (
-        <span className="font-medium">{getValue()}</span>
+    },
+    {
+      key: 'category',
+      dataIndex: 'category',
+      title: labels.category,
+      width: 110,
+      render: (v: Product['category']) => <Badge variant="secondary">{v.name}</Badge>,
+    },
+    {
+      key: 'purity',
+      dataIndex: 'purity',
+      title: labels.purity,
+      width: 100,
+      render: (v: string | null) => (
+        <span className="text-xs font-medium">{v ?? '—'}</span>
       ),
-    }),
-
-    columnHelper.accessor('productCode', {
-      header: labels.productCode,
-      cell: ({ getValue }) => (
-        <span className="font-mono text-xs text-muted-foreground">{getValue()}</span>
+    },
+    {
+      key: 'productType',
+      dataIndex: 'productType',
+      title: labels.productType,
+      width: 130,
+      render: (v: string) => (
+        <span className="text-xs">{labels.productTypes[v] ?? v}</span>
       ),
-    }),
-
-    columnHelper.accessor('category', {
-      header: labels.category,
-      cell: ({ getValue }) => (
-        <Badge variant="secondary">{getValue().name}</Badge>
-      ),
-    }),
-
-    columnHelper.accessor('purity', {
-      header: labels.purity,
-      cell: ({ getValue }) => (
-        <span className="text-xs font-medium">{getValue()}</span>
-      ),
-    }),
-
-    columnHelper.accessor('productType', {
-      header: labels.productType,
-      cell: ({ getValue }) => (
-        <span className="text-xs">{labels.productTypes[getValue()] ?? getValue()}</span>
-      ),
-    }),
-
-    columnHelper.accessor('isActive', {
-      header: labels.status,
-      cell: ({ getValue }) => (
-        <Badge variant={getValue() ? 'default' : 'outline'}>
-          {getValue() ? labels.active : labels.inactive}
+    },
+    {
+      key: 'isActive',
+      dataIndex: 'isActive',
+      title: labels.status,
+      width: 110,
+      render: (v: boolean) => (
+        <Badge variant={v ? 'default' : 'secondary'}>
+          {v ? labels.active : labels.inactive}
         </Badge>
       ),
-    }),
-
-    // ─── Actions (display column — no data accessor) ──────────────────────────
-    columnHelper.display({
-      id: 'actions',
-      header: '',
-      cell: ({ row }) => (
-        <DropdownMenu>
-          <DropdownMenuTrigger className="inline-flex h-7 w-7 items-center justify-center rounded-md hover:bg-accent">
-            <MoreHorizontal className="h-4 w-4" />
-            <span className="sr-only">{labels.openMenu}</span>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="end">
-            <DropdownMenuItem onClick={() => onEdit(row.original)}>
-              {labels.edit}
-            </DropdownMenuItem>
-            {row.original.isActive && (
-              <>
-                <DropdownMenuSeparator />
-                <DropdownMenuItem
-                  className="text-destructive focus:text-destructive"
-                  onClick={() => onDeactivate(row.original)}
-                >
-                  {labels.deactivate}
-                </DropdownMenuItem>
-              </>
-            )}
-          </DropdownMenuContent>
-        </DropdownMenu>
+    },
+    {
+      key: 'actions',
+      title: labels.actions,
+      width: 100,
+      align: 'center' as const,
+      render: (_: unknown, record: Product) => (
+        <div className="flex items-center justify-center gap-1">
+          <button
+            type="button"
+            onClick={() => onEdit(record)}
+            title={labels.edit}
+            className="inline-flex h-7 w-7 items-center justify-center rounded-md text-base text-muted-foreground transition-colors hover:bg-accent hover:text-foreground"
+          >
+            <EditOutlined />
+          </button>
+          {record.isActive ? (
+            <button
+              type="button"
+              onClick={() => onDeactivate(record)}
+              title={labels.deactivate}
+              className="inline-flex h-7 w-7 items-center justify-center rounded-md text-base text-destructive transition-colors hover:bg-destructive/10"
+            >
+              <StopOutlined />
+            </button>
+          ) : (
+            <button
+              type="button"
+              onClick={() => onActivate(record)}
+              title={labels.activate}
+              className="inline-flex h-7 w-7 items-center justify-center rounded-md text-base text-primary transition-colors hover:bg-primary/10"
+            >
+              <CheckCircleOutlined />
+            </button>
+          )}
+        </div>
       ),
-    }),
-  ] as ColumnDef<Product>[]
+    },
+  ]
 }

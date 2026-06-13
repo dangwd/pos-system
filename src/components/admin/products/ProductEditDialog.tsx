@@ -9,10 +9,24 @@ import { Input } from '@/components/ui/input'
 import { Field, FieldLabel } from '@/components/ui/field'
 import { Spinner } from '@/components/ui/spinner'
 import { useUpdateProduct, useCategories } from '@/hooks/useProducts'
-import type { Product, ProductType } from '@/types/product'
+import { useGoldPurities } from '@/hooks/useConfig'
+import type { Product } from '@/types/product'
+import type { GoldPurity } from '@/types/config'
 
-const PURITY_OPTIONS = ['9999', '24K', '18K', '14K', '10K', '925', 'Bạc ròng']
-const PRODUCT_TYPE_OPTIONS: ProductType[] = ['NguyenKhoi', 'CanThucTe']
+// Lọc tuổi vàng/bạc theo danh mục đang chọn (đồng bộ với ProductCreateDialog)
+function resolvePurityCategory(categoryName: string): 'Gold' | 'Silver' | undefined {
+  const lower = categoryName.toLowerCase()
+  if (lower.includes('vàng') || lower.includes('vang') || lower.includes('gold')) return 'Gold'
+  if (lower.includes('bạc') || lower.includes('bac') || lower.includes('silver')) return 'Silver'
+  return undefined
+}
+
+function filterPurities(purities: GoldPurity[], categoryName: string): GoldPurity[] {
+  const target = resolvePurityCategory(categoryName)
+  if (!target) return purities
+  const withCategory = purities.filter((p) => p.category === target)
+  return withCategory.length > 0 ? withCategory : purities
+}
 
 interface Props {
   product: Product | null
@@ -22,9 +36,7 @@ interface Props {
 type FormData = {
   productName: string
   categoryId: string
-  purity: string
-  weightGram: string
-  productType: ProductType
+  goldPurityId: string
 }
 
 type CategoryOption = { id: string; name: string }
@@ -35,23 +47,26 @@ type CategoryOption = { id: string; name: string }
 function ProductFormBody({
   product,
   categoryOptions,
+  allPurities,
   submitRef,
 }: {
   product: Product
   categoryOptions: CategoryOption[]
+  allPurities: GoldPurity[]
   submitRef: React.MutableRefObject<(() => FormData | null)>
 }) {
   const t = useTranslations('admin.products')
 
-  const [productName, setProductName] = useState(() => product.productName)
-  const [categoryId, setCategoryId]   = useState(() => product.category.id)
-  const [purity, setPurity]           = useState(() => product.purity)
-  const [weightGram, setWeightGram]   = useState(() => String(product.weightGram))
-  const [productType, setProductType] = useState<ProductType>(() => product.productType)
+  const [productName, setProductName]   = useState(() => product.productName)
+  const [categoryId, setCategoryId]     = useState(() => product.category.id)
+  const [goldPurityId, setGoldPurityId] = useState(() => product.goldPurityId ?? '')
+
+  const selectedCategory = categoryOptions.find(c => c.id === categoryId)
+  const purityOptions = filterPurities(allPurities, selectedCategory?.name ?? '')
 
   submitRef.current = () => {
-    if (!productName || !categoryId || !purity || !weightGram || isNaN(parseFloat(weightGram))) return null
-    return { productName, categoryId, purity, weightGram, productType }
+    if (!productName || !categoryId) return null
+    return { productName, categoryId, goldPurityId }
   }
 
   return (
@@ -84,38 +99,14 @@ function ProductFormBody({
         <Field>
           <FieldLabel>{t('form.purity')}</FieldLabel>
           <Select
-            value={purity || undefined}
-            onChange={v => v && setPurity(v)}
+            value={goldPurityId || undefined}
+            onChange={v => setGoldPurityId(v ?? '')}
             placeholder={t('form.purityPlaceholder')}
-            options={PURITY_OPTIONS.map(p => ({ value: p, label: p }))}
+            options={purityOptions.map(p => ({ value: p.id, label: `${p.ma} (${p.hamLuong}%)` }))}
             showSearch
+            allowClear
             filterOption={(input, opt) => (opt?.label as string ?? '').toLowerCase().includes(input.toLowerCase())}
             notFoundContent="Không tìm thấy"
-            className="w-full"
-            popupMatchSelectWidth={false}
-          />
-        </Field>
-      </div>
-
-      <div className="grid grid-cols-2 gap-3">
-        <Field>
-          <FieldLabel>{t('form.weight')}</FieldLabel>
-          <Input
-            type="number"
-            min={0}
-            step="0.01"
-            value={weightGram}
-            onChange={e => setWeightGram(e.target.value)}
-            placeholder="3.75"
-            className="h-9"
-          />
-        </Field>
-        <Field>
-          <FieldLabel>{t('form.productType')}</FieldLabel>
-          <Select
-            value={productType}
-            onChange={v => v && setProductType(v as ProductType)}
-            options={PRODUCT_TYPE_OPTIONS.map(pt => ({ value: pt, label: t(`productTypes.${pt}`) }))}
             className="w-full"
             popupMatchSelectWidth={false}
           />
@@ -129,6 +120,7 @@ export function ProductEditDialog({ product, onClose }: Props) {
   const t = useTranslations('admin.products')
   const { mutate: update, isPending } = useUpdateProduct()
   const { data: categories = [] } = useCategories()
+  const { data: allPurities = [] } = useGoldPurities()
   const submitRef = useRef<() => FormData | null>(() => null)
 
   const categoryOptions = useMemo(() => {
@@ -147,9 +139,7 @@ export function ProductEditDialog({ product, onClose }: Props) {
         dto: {
           productName: data.productName.trim(),
           productCategoryId: data.categoryId,
-          purity: data.purity,
-          weightGram: parseFloat(data.weightGram),
-          productType: data.productType,
+          goldPurityId: data.goldPurityId || null,
         },
       },
       { onSuccess: onClose },
@@ -178,6 +168,7 @@ export function ProductEditDialog({ product, onClose }: Props) {
             key={product.id}
             product={product}
             categoryOptions={categoryOptions}
+            allPurities={allPurities}
             submitRef={submitRef}
           />
         )}

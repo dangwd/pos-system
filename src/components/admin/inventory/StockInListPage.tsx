@@ -1,4 +1,4 @@
-// StockInListPage — Danh mục nhập kho: list phiếu IN + modal tạo mới + drawer chi tiết
+// StockInListPage — Danh mục nhập kho
 'use client'
 
 import { useMemo, useState } from 'react'
@@ -10,7 +10,7 @@ import { useInventoryAdjustments } from '@/hooks/useInventory'
 import { useBranches, useCounters } from '@/hooks/useBranches'
 import { useAuthStore } from '@/stores/auth.store'
 import { StockInCreateModal } from './StockInCreateModal'
-import { StockInDetailDrawer } from './StockInDetailDrawer'
+import { StockInExpandedRow } from './StockInExpandedRow'
 import type { InventoryAdjustment } from '@/types/inventory'
 
 const PAGE_SIZE = 20
@@ -22,7 +22,7 @@ function formatDate(iso: string) {
   })
 }
 
-const PAGE_STYLE: React.CSSProperties = { padding: '24px 24px 32px' }
+const PAGE_STYLE: React.CSSProperties  = { padding: '24px 24px 32px' }
 const FILTER_STYLE: React.CSSProperties = {
   display: 'flex', gap: 8, padding: '14px 16px',
   borderBottom: '1px solid #f0f0f0', background: '#fafafa',
@@ -36,13 +36,13 @@ export function StockInListPage() {
   const t = useTranslations('admin.inventory.stockInList')
   const user = useAuthStore(s => s.user)
 
-  const [page, setPage] = useState(1)
-  const [keyword, setKeyword] = useState('')
-  const [branchId, setBranchId] = useState<string | null>(null)
-  const [counterId, setCounterId] = useState<string | null>(null)
+  const [page, setPage]                   = useState(1)
+  const [keyword, setKeyword]             = useState('')
+  const [branchId, setBranchId]           = useState<string | null>(null)
+  const [counterId, setCounterId]         = useState<string | null>(null)
   const [selectedRowKeys, setSelectedRowKeys] = useState<string[]>([])
-  const [createOpen, setCreateOpen] = useState(false)
-  const [detailRecord, setDetailRecord] = useState<InventoryAdjustment | null>(null)
+  const [expandedKeys, setExpandedKeys]   = useState<string[]>([])
+  const [createOpen, setCreateOpen]       = useState(false)
 
   const effectiveBranchId = branchId ?? user?.branchId ?? null
   const { data: branches = [] } = useBranches()
@@ -88,22 +88,10 @@ export function StockInListPage() {
       render: (v: string | null) => v ?? <span style={{ color: '#d1d5db' }}>—</span>,
     },
     {
-      title: t('colStatus'), width: 125, align: 'center' as const,
-      render: () => (
-        <Tag color="success" style={{ borderRadius: 20, padding: '1px 10px', fontWeight: 500 }}>
-          {t('statusDone')}
-        </Tag>
-      ),
-    },
-    {
       title: t('colNote'), dataIndex: 'reason', ellipsis: true,
       render: (v: string) => v
         ? <Tooltip title={v}><span style={{ color: '#6b7280', fontSize: 13 }}>{v}</span></Tooltip>
         : <span style={{ color: '#d1d5db' }}>—</span>,
-    },
-    {
-      title: t('colSapCode'), dataIndex: 'documentRef', width: 120,
-      render: (v: string | null) => v ?? <span style={{ color: '#d1d5db' }}>—</span>,
     },
     {
       title: t('colSource'), dataIndex: 'nguonGocLo', width: 110,
@@ -122,7 +110,7 @@ export function StockInListPage() {
 
   return (
     <div style={PAGE_STYLE}>
-      {/* ── Tiêu đề + actions ────────────────────────────────── */}
+      {/* ── Tiêu đề + actions ── */}
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 18 }}>
         <div>
           <h2 style={{ margin: 0, fontSize: 22, fontWeight: 700, color: '#111827' }}>{t('title')}</h2>
@@ -132,41 +120,30 @@ export function StockInListPage() {
         </div>
         <div style={{ display: 'flex', gap: 8 }}>
           <Input.Search
-            placeholder={t('searchPlaceholder')}
-            allowClear style={{ width: 230 }}
+            placeholder={t('searchPlaceholder')} allowClear style={{ width: 230 }}
             onSearch={v => { setKeyword(v); setPage(1) }}
             onChange={e => { if (!e.target.value) { setKeyword(''); setPage(1) } }}
           />
-          <Button
-            danger icon={<DeleteOutlined />}
-            disabled={selectedRowKeys.length === 0}
-            onClick={() => console.log('delete:', selectedRowKeys)}
-          >
+          <Button danger icon={<DeleteOutlined />} disabled={selectedRowKeys.length === 0}
+            onClick={() => console.log('delete:', selectedRowKeys)}>
             {t('deleteBtn')}
           </Button>
-          <Button type="primary" onClick={() => setCreateOpen(true)}>
-            {t('addNew')}
-          </Button>
+          <Button type="primary" onClick={() => setCreateOpen(true)}>{t('addNew')}</Button>
         </div>
       </div>
 
-      {/* ── Card bảng ──────────────────────────────────────────── */}
+      {/* ── Bảng ── */}
       <Card
         style={{ borderRadius: 10, boxShadow: '0 1px 4px rgba(0,0,0,0.07), 0 4px 12px rgba(0,0,0,0.04)', border: '1px solid #e5e7eb' }}
         styles={{ body: { padding: 0 } }}
       >
-        {/* Filter bar nằm trong card */}
         <div style={FILTER_STYLE}>
-          <Select
-            allowClear placeholder={t('filterBranch')} style={{ width: 180 }}
+          <Select allowClear placeholder={t('filterBranch')} style={{ width: 180 }}
             options={branches.map(b => ({ value: b.id, label: b.name }))}
-            value={effectiveBranchId} onChange={v => setBranchId(v ?? null)}
-          />
-          <Select
-            allowClear placeholder={t('filterCounter')} style={{ width: 160 }}
+            value={effectiveBranchId} onChange={v => setBranchId(v ?? null)} />
+          <Select allowClear placeholder={t('filterCounter')} style={{ width: 160 }}
             options={counters.map(c => ({ value: c.id, label: c.counterName }))}
-            value={counterId} onChange={v => setCounterId(v ?? null)}
-          />
+            value={counterId} onChange={v => setCounterId(v ?? null)} />
         </div>
 
         <Table<InventoryAdjustment>
@@ -177,12 +154,17 @@ export function StockInListPage() {
           rowSelection={rowSelection}
           bordered
           size="middle"
-          scroll={{ x: 1200 }}
-          onRow={record => ({
-            onClick: () => setDetailRecord(record),
-            style: { cursor: 'pointer' },
-          })}
+          scroll={{ x: 1000 }}
           rowClassName={(_, i) => i % 2 !== 0 ? 'stock-in-row-alt' : ''}
+          expandable={{
+            expandedRowKeys: expandedKeys,
+            onExpand: (expanded, record) =>
+              setExpandedKeys(expanded
+                ? [...expandedKeys, record.id]
+                : expandedKeys.filter(k => k !== record.id),
+              ),
+            expandedRowRender: record => <StockInExpandedRow record={record} />,
+          }}
           pagination={{
             total: paged?.total, current: page, pageSize: PAGE_SIZE,
             onChange: p => setPage(p),
@@ -193,7 +175,6 @@ export function StockInListPage() {
         />
       </Card>
 
-      {/* Alternating row CSS */}
       <style>{`.stock-in-row-alt > td { background: #fafafa !important; }`}</style>
 
       <StockInCreateModal
@@ -202,7 +183,6 @@ export function StockInListPage() {
         onClose={() => setCreateOpen(false)}
         onSuccess={() => { refetch(); setCreateOpen(false) }}
       />
-      <StockInDetailDrawer record={detailRecord} onClose={() => setDetailRecord(null)} />
     </div>
   )
 }

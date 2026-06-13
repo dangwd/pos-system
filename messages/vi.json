@@ -272,7 +272,9 @@
         "openMenu": "Mở menu",
         "edit": "Chỉnh sửa",
         "deactivate": "Vô hiệu hóa",
-        "productType": "Loại sản phẩm"
+        "activate": "Kích hoạt",
+        "productType": "Loại sản phẩm",
+        "actions": "Tác vụ"
       },
       "productTypes": {
         "NguyenKhoi": "Nguyên khối",
@@ -281,12 +283,21 @@
       "toasts": {
         "createSuccess": "Thêm sản phẩm thành công",
         "updateSuccess": "Cập nhật sản phẩm thành công",
-        "deactivateSuccess": "Vô hiệu hóa sản phẩm thành công"
+        "deactivateSuccess": "Vô hiệu hóa sản phẩm thành công",
+        "activateSuccess": "Kích hoạt sản phẩm thành công"
+      },
+      "confirm": {
+        "deactivateTitle": "Vô hiệu hóa sản phẩm?",
+        "deactivateDesc": "\"{name}\" sẽ bị ẩn khỏi giao dịch. Bạn có thể kích hoạt lại sau.",
+        "activateTitle": "Kích hoạt sản phẩm?",
+        "activateDesc": "\"{name}\" sẽ hoạt động trở lại và dùng được trong giao dịch.",
+        "cancel": "Hủy"
       },
       "createDialog": {
         "title": "Thêm sản phẩm mới",
-        "submit": "Thêm sản phẩm",
-        "cancel": "Hủy"
+        "submit": "Lưu sản phẩm",
+        "cancel": "Hủy",
+        "stockNote": "Tồn ban đầu = 0 · nhập kho sau"
       },
       "editDialog": {
         "title": "Chỉnh sửa sản phẩm",
@@ -296,13 +307,25 @@
       "form": {
         "productCode": "Mã sản phẩm",
         "productName": "Tên sản phẩm",
+        "productNamePlaceholder": "Nhập tên hàng...",
         "category": "Danh mục",
-        "purity": "Hàm lượng vàng",
+        "purity": "Hàm lượng",
         "weight": "Trọng lượng (gram)",
         "productType": "Loại sản phẩm",
         "productTypePlaceholder": "Chọn loại",
         "categoryPlaceholder": "Chọn danh mục",
-        "purityPlaceholder": "Chọn / nhập giá trị"
+        "purityPlaceholder": "Chọn hàm lượng...",
+        "purityDisabledPlaceholder": "Chọn danh mục trước",
+        "weightUnit": "Đơn vị tính",
+        "weightUnitPlaceholder": "Chọn đơn vị...",
+        "lockedHint": "Cố định sau khi lưu — không thể thay đổi",
+        "duplicateChecking": "Đang kiểm tra...",
+        "duplicateOk": "Tên hợp lệ",
+        "duplicateError": "Tên đã tồn tại trong danh mục này"
+      },
+      "warnings": {
+        "lockedFields": "Hàm lượng và đơn vị tính không thể thay đổi sau khi lưu. Kiểm tra kỹ trước khi xác nhận.",
+        "duplicate": "Sản phẩm \"{name}\" đã tồn tại trong danh mục này."
       }
     },
     "customers": {
@@ -723,6 +746,7 @@
         "emptyProd": "Chưa có sản phẩm. Nhấn 'Chọn sản phẩm' để thêm.",
         "colCode": "Mã hàng",
         "colName": "Tên hàng",
+        "colUnit": "Đơn vị",
         "colQty": "Số lượng",
         "colDelete": "Xoá",
         "closeBtn": "Đóng",
@@ -743,10 +767,66 @@
         "colName": "Tên sản phẩm",
         "colCategory": "Danh mục",
         "colPurity": "Hàm lượng",
+        "colUnit": "Đơn vị",
+        "colCounter": "Quầy",
         "colStatus": "Trạng thái",
         "statusActive": "Đang hoạt động",
         "cancelBtn": "Bỏ qua",
         "confirmBtn": "Xác nhận"
+      },
+      "stockOutList": {
+        "title": "Danh mục xuất kho",
+        "subtitle": "{count} phiếu",
+        "addNew": "+ Thêm mới",
+        "deleteBtn": "Xoá",
+        "searchPlaceholder": "Tìm kiếm nhanh...",
+        "filterBranch": "Chi nhánh",
+        "filterCounter": "Quầy",
+        "colStt": "#",
+        "colCode": "Mã phiếu xuất",
+        "colBranch": "Chi nhánh",
+        "colCounter": "Quầy",
+        "colCreatedAt": "Thời gian tạo",
+        "colTotalQty": "SL xuất",
+        "colStatus": "Trạng thái",
+        "colNote": "Lý do",
+        "statusDone": "Hoàn thành",
+        "detailTitle": "Chi tiết phiếu xuất #{code}",
+        "sectionInfo": "Thông tin phiếu",
+        "sectionProducts": "Sản phẩm xuất",
+        "labelBranch": "Chi nhánh",
+        "labelCounter": "Quầy",
+        "labelCreatedAt": "Thời gian tạo",
+        "labelReason": "Lý do",
+        "colProductName": "Tên sản phẩm",
+        "colQtyDetail": "Số lượng",
+        "colWeightDetail": "KL (g)"
+      },
+      "stockOutForm": {
+        "title": "Tạo phiếu xuất kho",
+        "counterLabel": "Quầy",
+        "counterPlaceholder": "Chọn quầy...",
+        "counterRequired": "Vui lòng chọn quầy",
+        "reasonLabel": "Lý do xuất",
+        "reasonPlaceholder": "Lý do xuất kho...",
+        "reasonRequired": "Vui lòng nhập lý do",
+        "ghiChuLabel": "Ghi chú",
+        "ghiChuPlaceholder": "Ghi chú thêm...",
+        "chooseProd": "Chọn sản phẩm",
+        "totalQty": "Tổng số lượng:",
+        "importExcel": "Import Excel",
+        "emptyProd": "Chưa có sản phẩm. Nhấn 'Chọn sản phẩm' để thêm.",
+        "colCode": "Mã hàng",
+        "colName": "Tên hàng",
+        "colQty": "SL xuất",
+        "colStock": "Tồn kho",
+        "colDelete": "Xoá",
+        "closeBtn": "Đóng",
+        "saveBtn": "Lưu",
+        "errNoProducts": "Chưa có sản phẩm nào trong phiếu xuất",
+        "errNoQty": "Vui lòng nhập số lượng cho ít nhất một sản phẩm",
+        "errOverStock": "Số lượng xuất vượt quá tồn kho",
+        "saveSuccess": "Tạo phiếu xuất kho thành công"
       }
     },
     "trade": {

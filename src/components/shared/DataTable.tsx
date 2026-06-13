@@ -234,14 +234,21 @@ export function DataTable<TData>({
             <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
           </div>
         )}
-        <table className="w-full text-sm">
+        <table className="min-w-full text-sm table-fixed">
+          {/* colgroup is the only reliable way to enforce column widths in HTML tables */}
+          <colgroup>
+            {table.getAllLeafColumns().map(col => (
+              <col key={col.id} style={{ width: col.getSize() }} />
+            ))}
+          </colgroup>
+
           <thead className="sticky top-0 z-10">
             {table.getHeaderGroups().map(hg => (
-              <tr key={hg.id} className="border-b bg-muted/50">
+              <tr key={hg.id} className="border-b">
                 {hg.headers.map(header => (
                   <th
                     key={header.id}
-                    className="px-4 py-2 text-left font-medium text-muted-foreground bg-muted/50"
+                    className="px-4 py-2 text-left font-medium text-muted-foreground bg-muted"
                   >
                     {header.isPlaceholder
                       ? null

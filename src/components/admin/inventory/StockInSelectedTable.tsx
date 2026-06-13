@@ -1,10 +1,12 @@
 // StockInSelectedTable — bảng sản phẩm đã chọn trong phiếu nhập kho
 'use client'
 
+import { useMemo } from 'react'
 import { useTranslations } from 'next-intl'
 import { Table, InputNumber, Button, Empty } from 'antd'
 import { DeleteOutlined } from '@ant-design/icons'
 import type { TableColumnsType } from 'antd'
+import { useWeightUnits } from '@/hooks/useConfig'
 import type { InventoryItem } from '@/types/inventory'
 
 export interface SelectedLine {
@@ -20,6 +22,12 @@ interface Props {
 
 export function StockInSelectedTable({ lines, onQtyChange, onRemove }: Props) {
   const t = useTranslations('admin.inventory.stockInForm')
+
+  const { data: weightUnits = [] } = useWeightUnits()
+  const unitMap = useMemo(
+    () => new Map(weightUnits.map(u => [u.id, u.tenDonVi])),
+    [weightUnits],
+  )
 
   const columns: TableColumnsType<SelectedLine> = [
     {
@@ -44,6 +52,11 @@ export function StockInSelectedTable({ lines, onQtyChange, onRemove }: Props) {
     {
       title: t('colName'),
       render: (_, r) => r.item.productName,
+    },
+    {
+      title: t('colUnit'),
+      width: 90,
+      render: (_, r) => (r.item.weightUnitId ? unitMap.get(r.item.weightUnitId) : null) ?? '—',
     },
     {
       title: t('colQty'),

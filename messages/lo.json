@@ -272,7 +272,9 @@
         "openMenu": "ເປີດເມນູ",
         "edit": "ແກ້ໄຂ",
         "deactivate": "ຍົກເລີກ",
-        "productType": "ປະເພດສິນຄ້າ"
+        "activate": "ເປີດໃຊ້ງານ",
+        "productType": "ປະເພດສິນຄ້າ",
+        "actions": "ຈັດການ"
       },
       "productTypes": {
         "NguyenKhoi": "ທອງຄຳຊີ້ນ",
@@ -281,12 +283,21 @@
       "toasts": {
         "createSuccess": "ເພີ່ມສິນຄ້າສຳເລັດ",
         "updateSuccess": "ອັບເດດສິນຄ້າສຳເລັດ",
-        "deactivateSuccess": "ຍົກເລີກສິນຄ້າສຳເລັດ"
+        "deactivateSuccess": "ຍົກເລີກສິນຄ້າສຳເລັດ",
+        "activateSuccess": "ເປີດໃຊ້ງານສິນຄ້າສຳເລັດ"
+      },
+      "confirm": {
+        "deactivateTitle": "ຍົກເລີກສິນຄ້າ?",
+        "deactivateDesc": "\"{name}\" ຈະຖືກເຊື່ອງຈາກການເຮັດທຸລະກຳ. ທ່ານສາມາດເປີດໃຊ້ງານຄືນພາຍຫຼັງ.",
+        "activateTitle": "ເປີດໃຊ້ງານສິນຄ້າ?",
+        "activateDesc": "\"{name}\" ຈະກັບມາໃຊ້ງານ ແລະ ໃຊ້ໃນການເຮັດທຸລະກຳໄດ້ອີກ.",
+        "cancel": "ຍົກເລີກ"
       },
       "createDialog": {
         "title": "ເພີ່ມສິນຄ້າໃໝ່",
-        "submit": "ເພີ່ມສິນຄ້າ",
-        "cancel": "ຍົກເລີກ"
+        "submit": "ບັນທຶກສິນຄ້າ",
+        "cancel": "ຍົກເລີກ",
+        "stockNote": "ສິນຄ້າຄົງຄັງເລີ່ມຕົ້ນ = 0 · ນຳເຂົ້າຄັງພາຍຫຼັງ"
       },
       "editDialog": {
         "title": "ແກ້ໄຂສິນຄ້າ",
@@ -296,13 +307,25 @@
       "form": {
         "productCode": "ລະຫັດສິນຄ້າ",
         "productName": "ຊື່ສິນຄ້າ",
+        "productNamePlaceholder": "ໃສ່ຊື່ສິນຄ້າ...",
         "category": "ໝວດໝູ່",
         "purity": "ຄວາມບໍລິສຸດ",
         "weight": "ນ້ຳໜັກ (gram)",
         "productType": "ປະເພດສິນຄ້າ",
         "productTypePlaceholder": "ເລືອກປະເພດ",
         "categoryPlaceholder": "ເລືອກໝວດໝູ່",
-        "purityPlaceholder": "ເລືອກ / ໃສ່ຄ່າ"
+        "purityPlaceholder": "ເລືອກຄວາມບໍລິສຸດ...",
+        "purityDisabledPlaceholder": "ເລືອກໝວດໝູ່ກ່ອນ",
+        "weightUnit": "ໜ່ວຍນັບ",
+        "weightUnitPlaceholder": "ເລືອກໜ່ວຍນັບ...",
+        "lockedHint": "ກຳນົດຄົງທີ່ຫຼັງຈາກບັນທຶກ — ບໍ່ສາມາດປ່ຽນແປງໄດ້",
+        "duplicateChecking": "ກຳລັງກວດສອບ...",
+        "duplicateOk": "ຊື່ຖືກຕ້ອງ",
+        "duplicateError": "ຊື່ນີ້ມີຢູ່ໃນໝວດໝູ່ນີ້ແລ້ວ"
+      },
+      "warnings": {
+        "lockedFields": "ຄວາມບໍລິສຸດ ແລະ ໜ່ວຍນັບ ບໍ່ສາມາດປ່ຽນແປງໄດ້ຫຼັງຈາກບັນທຶກ. ກວດສອບໃຫ້ດີກ່ອນຢືນຢັນ.",
+        "duplicate": "ສິນຄ້າ \"{name}\" ມີຢູ່ໃນໝວດໝູ່ນີ້ແລ້ວ."
       }
     },
     "customers": {
@@ -725,6 +748,7 @@
         "emptyProd": "ຍັງບໍ່ມີສິນຄ້າ. ກົດ 'ເລືອກສິນຄ້າ' ເພື່ອເພີ່ມ.",
         "colCode": "ລະຫັດ",
         "colName": "ຊື່ສິນຄ້າ",
+        "colUnit": "ໜ່ວຍ",
         "colQty": "ຈຳນວນ",
         "colDelete": "ລຶບ",
         "closeBtn": "ປິດ",
@@ -745,10 +769,66 @@
         "colName": "ຊື່ສິນຄ້າ",
         "colCategory": "ໝວດ",
         "colPurity": "ຄຸນນະພາບ",
+        "colUnit": "ໜ່ວຍ",
+        "colCounter": "ຕູ້",
         "colStatus": "ສະຖານະ",
         "statusActive": "ກຳລັງໃຊ້ງານ",
         "cancelBtn": "ຂ້າມ",
         "confirmBtn": "ຢືນຢັນ"
+      },
+      "stockOutList": {
+        "title": "ລາຍການນຳອອກສາງ",
+        "subtitle": "{count} ໃບ",
+        "addNew": "+ ເພີ່ມໃໝ່",
+        "deleteBtn": "ລຶບ",
+        "searchPlaceholder": "ຄົ້ນຫາ...",
+        "filterBranch": "ສາຂາ",
+        "filterCounter": "ຕູ້",
+        "colStt": "#",
+        "colCode": "ລະຫັດໃບນຳອອກ",
+        "colBranch": "ສາຂາ",
+        "colCounter": "ຕູ້",
+        "colCreatedAt": "ວັນທີສ້າງ",
+        "colTotalQty": "ຈຳນວນອອກ",
+        "colStatus": "ສະຖານະ",
+        "colNote": "ເຫດຜົນ",
+        "statusDone": "ສຳເລັດ",
+        "detailTitle": "ລາຍລະອຽດໃບນຳອອກ #{code}",
+        "sectionInfo": "ຂໍ້ມູນໃບ",
+        "sectionProducts": "ສິນຄ້ານຳອອກ",
+        "labelBranch": "ສາຂາ",
+        "labelCounter": "ຕູ້",
+        "labelCreatedAt": "ວັນທີສ້າງ",
+        "labelReason": "ເຫດຜົນ",
+        "colProductName": "ຊື່ສິນຄ້າ",
+        "colQtyDetail": "ຈຳນວນ",
+        "colWeightDetail": "ນ.ໜ (g)"
+      },
+      "stockOutForm": {
+        "title": "ສ້າງໃບນຳອອກສາງ",
+        "counterLabel": "ຕູ້",
+        "counterPlaceholder": "ເລືອກຕູ້...",
+        "counterRequired": "ກະລຸນາເລືອກຕູ້",
+        "reasonLabel": "ເຫດຜົນ",
+        "reasonPlaceholder": "ເຫດຜົນນຳອອກ...",
+        "reasonRequired": "ກະລຸນາລະບຸເຫດຜົນ",
+        "ghiChuLabel": "ໝາຍເຫດ",
+        "ghiChuPlaceholder": "ໝາຍເຫດເພີ່ມເຕີມ...",
+        "chooseProd": "ເລືອກສິນຄ້າ",
+        "totalQty": "ລວມຈຳນວນ:",
+        "importExcel": "ນຳເຂົ້າ Excel",
+        "emptyProd": "ຍັງບໍ່ມີສິນຄ້າ. ກົດ 'ເລືອກສິນຄ້າ' ເພື່ອເພີ່ມ.",
+        "colCode": "ລະຫັດ",
+        "colName": "ຊື່ສິນຄ້າ",
+        "colQty": "ຈຳນວນ",
+        "colStock": "ຄົງເຫຼືອ",
+        "colDelete": "ລຶບ",
+        "closeBtn": "ປິດ",
+        "saveBtn": "ບັນທຶກ",
+        "errNoProducts": "ຍັງບໍ່ມີສິນຄ້າໃນໃບ",
+        "errNoQty": "ກະລຸນາໃສ່ຈຳນວນຢ່າງໜ້ອຍໜຶ່ງລາຍການ",
+        "errOverStock": "ຈຳນວນເກີນສາງ",
+        "saveSuccess": "ສ້າງໃບນຳອອກສຳເລັດ"
       }
     },
     "trade": {

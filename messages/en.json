@@ -272,7 +272,9 @@
         "openMenu": "Open menu",
         "edit": "Edit",
         "deactivate": "Deactivate",
-        "productType": "Product type"
+        "activate": "Activate",
+        "productType": "Product type",
+        "actions": "Actions"
       },
       "productTypes": {
         "NguyenKhoi": "Fixed weight",
@@ -281,12 +283,21 @@
       "toasts": {
         "createSuccess": "Product added successfully",
         "updateSuccess": "Product updated successfully",
-        "deactivateSuccess": "Product deactivated successfully"
+        "deactivateSuccess": "Product deactivated successfully",
+        "activateSuccess": "Product activated successfully"
+      },
+      "confirm": {
+        "deactivateTitle": "Deactivate product?",
+        "deactivateDesc": "\"{name}\" will be hidden from transactions. You can activate it again later.",
+        "activateTitle": "Activate product?",
+        "activateDesc": "\"{name}\" will become active and usable in transactions again.",
+        "cancel": "Cancel"
       },
       "createDialog": {
         "title": "Add new product",
-        "submit": "Add product",
-        "cancel": "Cancel"
+        "submit": "Save product",
+        "cancel": "Cancel",
+        "stockNote": "Initial stock = 0 · add inventory later"
       },
       "editDialog": {
         "title": "Edit product",
@@ -296,13 +307,25 @@
       "form": {
         "productCode": "Product code",
         "productName": "Product name",
+        "productNamePlaceholder": "Enter product name...",
         "category": "Category",
-        "purity": "Gold purity",
+        "purity": "Purity",
         "weight": "Weight (gram)",
         "productType": "Product type",
         "productTypePlaceholder": "Select type",
         "categoryPlaceholder": "Select category",
-        "purityPlaceholder": "Select / enter value"
+        "purityPlaceholder": "Select purity...",
+        "purityDisabledPlaceholder": "Select a category first",
+        "weightUnit": "Unit",
+        "weightUnitPlaceholder": "Select unit...",
+        "lockedHint": "Fixed after saving — cannot be changed",
+        "duplicateChecking": "Checking...",
+        "duplicateOk": "Name is available",
+        "duplicateError": "Name already exists in this category"
+      },
+      "warnings": {
+        "lockedFields": "Purity and unit cannot be changed after saving. Please verify before confirming.",
+        "duplicate": "Product \"{name}\" already exists in this category."
       }
     },
     "customers": {
@@ -727,6 +750,7 @@
         "emptyProd": "No items. Click 'Choose Items' to add.",
         "colCode": "Item Code",
         "colName": "Item Name",
+        "colUnit": "Unit",
         "colQty": "Qty",
         "colDelete": "Delete",
         "closeBtn": "Close",
@@ -747,10 +771,66 @@
         "colName": "Name",
         "colCategory": "Category",
         "colPurity": "Purity",
+        "colUnit": "Unit",
+        "colCounter": "Counter",
         "colStatus": "Status",
         "statusActive": "Active",
         "cancelBtn": "Cancel",
         "confirmBtn": "Confirm"
+      },
+      "stockOutList": {
+        "title": "Stock Out Records",
+        "subtitle": "{count} receipts",
+        "addNew": "+ Add New",
+        "deleteBtn": "Delete",
+        "searchPlaceholder": "Quick search...",
+        "filterBranch": "Branch",
+        "filterCounter": "Counter",
+        "colStt": "#",
+        "colCode": "Receipt No.",
+        "colBranch": "Branch",
+        "colCounter": "Counter",
+        "colCreatedAt": "Created At",
+        "colTotalQty": "Qty Out",
+        "colStatus": "Status",
+        "colNote": "Reason",
+        "statusDone": "Completed",
+        "detailTitle": "Stock-Out Detail #{code}",
+        "sectionInfo": "Receipt Info",
+        "sectionProducts": "Items Removed",
+        "labelBranch": "Branch",
+        "labelCounter": "Counter",
+        "labelCreatedAt": "Created At",
+        "labelReason": "Reason",
+        "colProductName": "Product Name",
+        "colQtyDetail": "Qty",
+        "colWeightDetail": "Weight (g)"
+      },
+      "stockOutForm": {
+        "title": "Create Stock-Out Receipt",
+        "counterLabel": "Counter",
+        "counterPlaceholder": "Select counter...",
+        "counterRequired": "Please select a counter",
+        "reasonLabel": "Reason",
+        "reasonPlaceholder": "Reason for removal...",
+        "reasonRequired": "Please enter a reason",
+        "ghiChuLabel": "Note",
+        "ghiChuPlaceholder": "Additional note...",
+        "chooseProd": "Choose Items",
+        "totalQty": "Total qty:",
+        "importExcel": "Import Excel",
+        "emptyProd": "No items. Click 'Choose Items' to add.",
+        "colCode": "Item Code",
+        "colName": "Item Name",
+        "colQty": "Out Qty",
+        "colStock": "In Stock",
+        "colDelete": "Delete",
+        "closeBtn": "Close",
+        "saveBtn": "Save",
+        "errNoProducts": "No items in this receipt",
+        "errNoQty": "Please enter quantity for at least one item",
+        "errOverStock": "Qty exceeds available stock for some items",
+        "saveSuccess": "Stock-out receipt created successfully"
       }
     },
     "trade": {

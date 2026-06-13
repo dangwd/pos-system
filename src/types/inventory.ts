@@ -47,6 +47,7 @@ export interface InventoryItem {
   trayId: string             // Mã khay trưng bày (ví dụ: "KHAY-A1")
   quantity: number           // Số lượng hiện tại
   weightGram: number         // Tổng trọng lượng lô (gram) — = mỗi món × quantity
+  weightUnitId: string | null // FK → WeightUnit; null với đá/ngoại tệ
   trangThai: InventoryStatus
   nguonGoc: InventorySource
   lastUpdatedAt: string      // ISO 8601
