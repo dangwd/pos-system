@@ -16,12 +16,13 @@ import type { InvoiceTab, InvoiceTabStore } from "@/types/invoice-tab";
 import type { TransactionType } from "@/types/transaction";
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
+import { genId } from "@/lib/utils";
 
 let _tabCounter = 1;
 
 function makeNewTab(type: TransactionType = "SellGold"): InvoiceTab {
   return {
-    id: crypto.randomUUID(),
+    id: genId(),
     label: `INV-${String(_tabCounter++).padStart(3, "0")}`,
     status: "draft",
     createdAt: new Date().toISOString(),
