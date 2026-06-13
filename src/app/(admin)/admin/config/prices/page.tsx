@@ -4,7 +4,7 @@ import { useMemo, useState } from 'react'
 import { useTranslations } from 'next-intl'
 import { Pencil, Plus, History } from 'lucide-react'
 import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
+import { NumberInput } from '@/components/ui/number-input'
 import { Spinner } from '@/components/ui/spinner'
 import { Badge } from '@/components/ui/badge'
 import { TablePageSkeleton } from '@/components/shared/PageSkeleton'
@@ -219,20 +219,18 @@ export default function PricesPage() {
                     {editing ? (
                       <>
                         <td className="px-4 py-2">
-                          <Input
-                            type="number"
-                            min="0"
+                          <NumberInput
+                            min={0}
                             value={row.buyPrice}
-                            onChange={(e) => setCell(idx, 'buyPrice', e.target.value)}
+                            onChange={(v) => setCell(idx, 'buyPrice', v)}
                             className="h-7 text-right text-xs w-full"
                           />
                         </td>
                         <td className="px-4 py-2">
-                          <Input
-                            type="number"
-                            min="0"
+                          <NumberInput
+                            min={0}
                             value={row.sellPrice}
-                            onChange={(e) => setCell(idx, 'sellPrice', e.target.value)}
+                            onChange={(v) => setCell(idx, 'sellPrice', v)}
                             className="h-7 text-right text-xs w-full"
                           />
                         </td>

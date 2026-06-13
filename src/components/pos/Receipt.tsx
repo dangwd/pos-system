@@ -23,6 +23,13 @@ function formatKip(amount: number) {
   return amount.toLocaleString("lo-LA") + " ₭";
 }
 
+function parseFxNote(note: string | null) {
+  if (!note) return null;
+  const m = note.match(/FX:\s*([\d,\.]+)\s+(\w+)\s+→\s+([\d,\.]+)\s+(\w+)/);
+  if (!m) return null;
+  return { fromAmt: m[1], fromCurr: m[2], toAmt: m[3], toCurr: m[4] };
+}
+
 interface ReceiptProps {
   open: boolean;
   transaction: Transaction | null;
@@ -50,6 +57,8 @@ export function Receipt({ open, transaction, onClose }: ReceiptProps) {
     : (transaction.paymentMethod ?? "—");
 
   const isCompleted = !isCancelled && transaction.status === "Completed";
+  const isFx = transaction.type === "ExchangeCurrency";
+  const fxParsed = isFx ? parseFxNote(transaction.note) : null;
 
   const handleClose = () => {
     setIsCancelled(false);
@@ -116,40 +125,83 @@ export function Receipt({ open, transaction, onClose }: ReceiptProps) {
 
             <Separator />
 
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>{t("columnProduct")}</TableHead>
-                  <TableHead className="text-center">
-                    {t("columnQty")}
-                  </TableHead>
-                  <TableHead className="text-right">
-                    {t("columnTotal")}
-                  </TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {transaction.items?.map((item) => (
-                  <TableRow key={item.id}>
-                    <TableCell className="text-sm">
-                      {item.productSnapshotName}
-                    </TableCell>
-                    <TableCell className="text-center text-sm">
-                      {item.quantity}
-                    </TableCell>
-                    <TableCell className="text-right text-sm">
-                      {formatKip(item.lineTotal)}
-                    </TableCell>
+            {isFx ? (
+              <div className="space-y-4">
+                {/* FX: hiển thị chiều đổi */}
+                <div className="rounded-lg border border-primary/20 bg-primary/5 px-4 py-5 text-center space-y-1">
+                  {fxParsed ? (
+                    <>
+                      <p className="text-2xl font-black tabular-nums tracking-tight">
+                        {fxParsed.fromAmt}{" "}
+                        <span className="text-primary">{fxParsed.fromCurr}</span>
+                      </p>
+                      <p className="text-muted-foreground text-sm">↓</p>
+                      <p className="text-2xl font-black tabular-nums tracking-tight">
+                        {fxParsed.toCurr === "LAK"
+                          ? transaction.totalAmount.toLocaleString("lo-LA") + " ₭"
+                          : fxParsed.toAmt + " " + fxParsed.toCurr}
+                      </p>
+                    </>
+                  ) : (
+                    <p className="text-sm text-muted-foreground">
+                      {transaction.note}
+                    </p>
+                  )}
+                </div>
+
+                {/* Tỷ giá */}
+                {transaction.exchangeRate && transaction.currency && (
+                  <p className="text-xs text-center text-muted-foreground">
+                    1{" "}
+                    <span className="font-semibold text-foreground">
+                      {transaction.currency}
+                    </span>{" "}
+                    ={" "}
+                    <span className="font-semibold text-foreground tabular-nums">
+                      {transaction.exchangeRate.toLocaleString("lo-LA")}
+                    </span>{" "}
+                    ₭
+                  </p>
+                )}
+              </div>
+            ) : (
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>{t("columnProduct")}</TableHead>
+                    <TableHead className="text-center">
+                      {t("columnQty")}
+                    </TableHead>
+                    <TableHead className="text-right">
+                      {t("columnTotal")}
+                    </TableHead>
                   </TableRow>
-                ))}
-              </TableBody>
-            </Table>
+                </TableHeader>
+                <TableBody>
+                  {transaction.items?.map((item) => (
+                    <TableRow key={item.id}>
+                      <TableCell className="text-sm">
+                        {item.productSnapshotName}
+                      </TableCell>
+                      <TableCell className="text-center text-sm">
+                        {item.quantity}
+                      </TableCell>
+                      <TableCell className="text-right text-sm">
+                        {formatKip(item.lineTotal)}
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            )}
 
             <Separator />
 
             <div className="space-y-1 text-sm">
               <div className="flex justify-between font-bold text-base pt-1">
-                <span>{t("totalLabel")}</span>
+                <span>
+                  {isFx ? "TỔNG QUY ĐỔI TIỀN TỆ LAK" : t("totalLabel")}
+                </span>
                 <span className="text-primary">
                   {formatKip(transaction.totalAmount)}
                 </span>

@@ -5,6 +5,7 @@ import { useTranslations } from 'next-intl'
 import { Plus, Pencil, Trash2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
+import { NumberInput } from '@/components/ui/number-input'
 import { Spinner } from '@/components/ui/spinner'
 import { Dialog, DialogContent, DialogFooter } from '@/components/ui/dialog'
 import { Field, FieldLabel } from '@/components/ui/field'
@@ -125,16 +126,16 @@ export default function StonePricesPage() {
             <div className="grid grid-cols-2 gap-3">
               <Field>
                 <FieldLabel>{t('columns.weightFrom')}</FieldLabel>
-                <Input type="number" min="0" step="0.1" value={form.tuSoChi} onChange={(e) => setForm((f) => ({ ...f, tuSoChi: e.target.value }))} />
+                <NumberInput decimals={2} min={0} value={form.tuSoChi} onChange={(v) => setForm((f) => ({ ...f, tuSoChi: v }))} />
               </Field>
               <Field>
                 <FieldLabel>{t('columns.weightTo')}</FieldLabel>
-                <Input type="number" min="0" step="0.1" value={form.denSoChi} onChange={(e) => setForm((f) => ({ ...f, denSoChi: e.target.value }))} />
+                <NumberInput decimals={2} min={0} value={form.denSoChi} onChange={(v) => setForm((f) => ({ ...f, denSoChi: v }))} />
               </Field>
             </div>
             <Field>
               <FieldLabel>{t('columns.fee')}</FieldLabel>
-              <Input type="number" min="0" value={form.giaDa} onChange={(e) => setForm((f) => ({ ...f, giaDa: e.target.value }))} />
+              <NumberInput min={0} value={form.giaDa} onChange={(v) => setForm((f) => ({ ...f, giaDa: v }))} />
             </Field>
           </div>
         </DialogContent>

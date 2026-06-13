@@ -35,11 +35,15 @@ function makeNewTab(type: TransactionType = "SellGold"): InvoiceTab {
     note: "",
     linkedInvoiceCode: null,
     linkedInvoiceItemKeys: [],
+    cancelTransactionId: null,
+    cancelInvoiceCode: null,
     fxFromCurrency: 'USD',
     fxToCurrency: 'LAK',
     fxFromAmount: 0,
     fxToAmount: 0,
     fxLakAmount: 0,
+    fxFromRate: 1,
+    fxToRate: 1,
   };
 }
 
@@ -114,9 +118,9 @@ export const useInvoiceTabStore = create<InvoiceTabStore>()(
         set({
           tabs: tabs.map((t) => {
             if (t.id !== activeId) return t;
-            // Dedup: productId + itemRole (same product can appear as both Normal & ExchangeIn)
+            // Dedup: productId + itemRole, nhưng KHÔNG tính isReadOnly items (cancel mode)
             const existing = t.items.find(
-              (i) => i.productId === item.productId && i.itemRole === item.itemRole,
+              (i) => i.productId === item.productId && i.itemRole === item.itemRole && !i.isReadOnly,
             );
             const items = existing
               ? t.items.map((i) =>
@@ -185,6 +189,8 @@ export const useInvoiceTabStore = create<InvoiceTabStore>()(
               note: "",
               linkedInvoiceCode: null,
               linkedInvoiceItemKeys: [],
+              cancelTransactionId: null,
+              cancelInvoiceCode: null,
             },
           ),
         });
@@ -245,7 +251,52 @@ export const useInvoiceTabStore = create<InvoiceTabStore>()(
         return tabs.find((t) => t.id === activeId);
       },
 
-      setFxDataInActive(fromCurrency, toCurrency, fromAmount, toAmount, lakAmount) {
+      enterCancelMode(transactionId, invoiceCode, items, customerId, customerName, customerPhone) {
+        const { tabs } = get();
+        const activeId = resolveActiveId(tabs, get().activeTabId);
+        if (!activeId) return;
+        set({
+          tabs: tabs.map((t) => {
+            if (t.id !== activeId) return t;
+            return {
+              ...t,
+              items,
+              customerId,
+              customerName,
+              customerPhone,
+              couponCode: null,
+              discountAmount: 0,
+              note: '',
+              linkedInvoiceCode: null,
+              linkedInvoiceItemKeys: [],
+              cancelTransactionId: transactionId,
+              cancelInvoiceCode: invoiceCode,
+            };
+          }),
+        });
+      },
+
+      exitCancelMode() {
+        const { tabs } = get();
+        const activeId = resolveActiveId(tabs, get().activeTabId);
+        if (!activeId) return;
+        set({
+          tabs: tabs.map((t) => {
+            if (t.id !== activeId) return t;
+            return {
+              ...t,
+              items: [],
+              customerId: null,
+              customerName: null,
+              customerPhone: null,
+              cancelTransactionId: null,
+              cancelInvoiceCode: null,
+            };
+          }),
+        });
+      },
+
+      setFxDataInActive(fromCurrency, toCurrency, fromAmount, toAmount, lakAmount, fromRate, toRate) {
         const { tabs } = get();
         const activeId = resolveActiveId(tabs, get().activeTabId);
         if (!activeId) return;
@@ -258,6 +309,8 @@ export const useInvoiceTabStore = create<InvoiceTabStore>()(
               fxFromAmount: fromAmount,
               fxToAmount: toAmount,
               fxLakAmount: lakAmount,
+              fxFromRate: fromRate,
+              fxToRate: toRate,
             },
           ),
         });
@@ -282,6 +335,10 @@ export const useInvoiceTabStore = create<InvoiceTabStore>()(
           fxFromAmount: t.fxFromAmount ?? 0,
           fxToAmount: t.fxToAmount ?? 0,
           fxLakAmount: t.fxLakAmount ?? 0,
+          fxFromRate: t.fxFromRate ?? 1,
+          fxToRate: t.fxToRate ?? 1,
+          cancelTransactionId: t.cancelTransactionId ?? null,
+          cancelInvoiceCode: t.cancelInvoiceCode ?? null,
           items: t.items
             .filter((i) => "productId" in i && !!i.productId)
             .map((i) => ({

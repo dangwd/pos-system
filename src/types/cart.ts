@@ -33,9 +33,9 @@ export interface CartItem {
   // ── Vai trò & trường ExchangeGold / BuyGold ───────────────────────────────────
   /** Normal = hàng bán ra (SellGold/BuyGold) | ExchangeIn = vàng cũ đổi vào */
   itemRole: "Normal" | "ExchangeIn";
-  /** Tiền công(₭) — chi phí đúc lại khi vàng cũ bị hỏng; chỉ áp dụng ExchangeIn */
+  /** PHÍ KHÒ (₭) — chi phí đúc lại khi vàng bị hỏng; áp dụng ExchangeIn & BuyGold */
   perItemDamage: number;
-  /** LAO SUT (chỉ) — hao hụt trọng lượng do mài mòn; chỉ áp dụng ExchangeIn */
+  /** LAO SUT (chỉ) — hao hụt trọng lượng do mài mòn; áp dụng ExchangeIn & BuyGold */
   perItemWearChi: number;
   /** true = kích hoạt ô nhập Tiền công*/
   isDamaged: boolean;
@@ -46,8 +46,10 @@ export interface CartItem {
 /**
  * Tính thành tiền một dòng hàng.
  *
- * Normal:     totalGram × unitPrice + laborFee + stoneFee
- * ExchangeIn: totalGram × unitPrice − Tiền công− LAO SUT (chỉ → ₭)
+ * Normal (SellGold):  totalGram × unitPrice + laborFee + stoneFee
+ * Normal (BuyGold):   totalGram × unitPrice − perItemDamage − laoSutLak
+ *   (perItemDamage và perItemWearChi = 0 với SellGold nên công thức tương thích)
+ * ExchangeIn:         totalGram × unitPrice − perItemDamage − laoSutLak
  */
 export function lineTotal(item: CartItem): number {
   const totalGram =
@@ -55,19 +57,26 @@ export function lineTotal(item: CartItem): number {
       ? item.weightGramOverride
       : item.qty * item.weightGram;
 
+  // 1 chỉ = 3.75 gram; LAO SUT tính bằng chỉ → đổi sang ₭
+  const laoSutLak = Math.round(
+    item.perItemWearChi * 3.75 * item.unitPriceLakPerGram,
+  );
+
   if (item.itemRole === "ExchangeIn") {
-    const goldValue = Math.round(totalGram * item.unitPriceLakPerGram);
-    // 1 chỉ = 3.75 gram; LAO SUT tính bằng chỉ → đổi sang ₭
-    const laoSutLak = Math.round(
-      item.perItemWearChi * 3.75 * item.unitPriceLakPerGram,
+    return (
+      Math.round(totalGram * item.unitPriceLakPerGram) -
+      item.perItemDamage -
+      laoSutLak
     );
-    return goldValue - item.perItemDamage - laoSutLak;
   }
 
+  // Normal: BuyGold trừ PHÍ KHÒ / LAO SUT; SellGold hai trường này luôn = 0
   return (
     Math.round(totalGram * item.unitPriceLakPerGram) +
     item.laborFee +
-    item.stoneFee
+    item.stoneFee -
+    item.perItemDamage -
+    laoSutLak
   );
 }
 

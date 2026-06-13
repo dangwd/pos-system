@@ -10,7 +10,8 @@ import {
   useTransactions,
 } from "@/hooks/useTransactions";
 import type { TransactionStatus, TransactionType } from "@/types/transaction";
-import { Select } from "antd";
+import { Select, DatePicker } from "antd";
+import dayjs from "dayjs";
 import { useTranslations } from "next-intl";
 import { useEffect, useMemo, useState } from "react";
 
@@ -160,25 +161,19 @@ export default function OrdersPage() {
         />
 
         {/* Date range */}
-        <Input
-          type="date"
-          value={filterFrom}
-          onChange={(e) => {
-            setFilterFrom(e.target.value);
+        <DatePicker.RangePicker
+          value={[
+            filterFrom ? dayjs(filterFrom) : null,
+            filterTo ? dayjs(filterTo) : null,
+          ]}
+          onChange={range => {
+            setFilterFrom(range?.[0] ? range[0].format('YYYY-MM-DD') : '');
+            setFilterTo(range?.[1] ? range[1].format('YYYY-MM-DD') : '');
             setPage(1);
           }}
-          className="h-8 w-36 text-sm"
-          title={t("filterFrom")}
-        />
-        <Input
-          type="date"
-          value={filterTo}
-          onChange={(e) => {
-            setFilterTo(e.target.value);
-            setPage(1);
-          }}
-          className="h-8 w-36 text-sm"
-          title={t("filterTo")}
+          format="DD/MM/YYYY"
+          allowEmpty={[true, true]}
+          className="h-8"
         />
       </div>
 
@@ -189,7 +184,6 @@ export default function OrdersPage() {
           columns={columns}
           data={transactions}
           hideSearch
-          maxHeight={false}
           loading={isFetching}
           serverPagination={
             data

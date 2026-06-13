@@ -1,29 +1,20 @@
-/**
- * order-columns — Column definitions cho bảng nhật ký giao dịch (TanStack Table)
- *
- * Dùng factory function createOrderColumns(labels) để nhận text đã dịch từ page.
- * Page gọi useTranslations() rồi truyền vào — columns không tự dùng hook.
- */
-
 'use client'
 
-import type { ColumnDef } from '@tanstack/react-table'
+import type { TableColumnsType } from 'antd'
 import { Badge } from '@/components/ui/badge'
-import { Button } from '@/components/ui/button'
 import {
   DropdownMenu,
   DropdownMenuTrigger,
   DropdownMenuContent,
   DropdownMenuItem,
 } from '@/components/ui/dropdown-menu'
-import { ArrowUpDown, Eye, MoreHorizontal } from 'lucide-react'
+import { Eye, MoreHorizontal } from 'lucide-react'
 import type { Transaction, TransactionStatus, TransactionType } from '@/types/transaction'
 
 function formatKip(n: number) {
   return n.toLocaleString('lo-LA') + ' ₭'
 }
 
-// Màu badge theo loại nghiệp vụ
 const TYPE_STYLE: Record<string, string> = {
   SellGold:        'bg-green-100/80 text-green-700 dark:bg-green-950/40 dark:text-green-400',
   SellSilver:      'bg-teal-100/80 text-teal-700 dark:bg-teal-950/40 dark:text-teal-400',
@@ -49,46 +40,36 @@ export interface OrderColumnLabels {
   onViewDetail?: (tx: Transaction) => void
 }
 
-export function createOrderColumns(labels: OrderColumnLabels): ColumnDef<Transaction>[] {
+export function createOrderColumns(labels: OrderColumnLabels): TableColumnsType<Transaction> {
   return [
     {
-      accessorKey: 'invoiceCode',
-      header: labels.invoiceCode,
-      cell: ({ getValue, row }) => (
+      title: labels.invoiceCode,
+      dataIndex: 'invoiceCode',
+      key: 'invoiceCode',
+      render: (value: string | null, record: Transaction) => (
         <span className="font-mono text-xs font-medium">
-          {(getValue() as string) ?? `#${row.original.id.slice(0, 8).toUpperCase()}`}
+          {value ?? `#${record.id.slice(0, 8).toUpperCase()}`}
         </span>
       ),
     },
-
     {
-      accessorKey: 'transactedAt',
-      header: ({ column }) => (
-        <Button
-          variant="ghost"
-          size="sm"
-          className="-ml-3 h-8"
-          onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}
-        >
-          {labels.time}
-          <ArrowUpDown className="ml-1 h-3.5 w-3.5 text-muted-foreground" />
-        </Button>
-      ),
-      cell: ({ getValue }) =>
-        new Date(getValue() as string).toLocaleString('lo-LA', {
+      title: labels.time,
+      dataIndex: 'transactedAt',
+      key: 'transactedAt',
+      sorter: true,
+      render: (value: string) =>
+        new Date(value).toLocaleString('lo-LA', {
           dateStyle: 'short',
           timeStyle: 'short',
         }),
-      sortingFn: 'datetime',
     },
-
     {
-      accessorKey: 'type',
-      header: labels.type,
-      cell: ({ getValue }) => {
-        const type = getValue() as TransactionType
-        const label = labels.transactionTypes[type] ?? type
-        const cls = TYPE_STYLE[type] ?? 'bg-secondary text-secondary-foreground'
+      title: labels.type,
+      dataIndex: 'type',
+      key: 'type',
+      render: (value: TransactionType) => {
+        const label = labels.transactionTypes[value] ?? value
+        const cls = TYPE_STYLE[value] ?? 'bg-secondary text-secondary-foreground'
         return (
           <span className={`inline-flex items-center text-[11px] font-semibold px-1.5 py-0.5 rounded ${cls}`}>
             {label}
@@ -96,55 +77,44 @@ export function createOrderColumns(labels: OrderColumnLabels): ColumnDef<Transac
         )
       },
     },
-
     {
-      accessorKey: 'paymentMethod',
-      header: labels.payment,
-      cell: ({ getValue }) => (
-        <span className="text-xs text-muted-foreground tabular-nums">{getValue() as string}</span>
+      title: labels.payment,
+      dataIndex: 'paymentMethod',
+      key: 'paymentMethod',
+      render: (value: string) => (
+        <span className="text-xs text-muted-foreground tabular-nums">{value}</span>
       ),
     },
-
     {
-      accessorKey: 'totalAmount',
-      header: ({ column }) => (
-        <Button
-          variant="ghost"
-          size="sm"
-          className="-ml-3 h-8"
-          onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}
-        >
-          {labels.amount}
-          <ArrowUpDown className="ml-1 h-3.5 w-3.5 text-muted-foreground" />
-        </Button>
-      ),
-      cell: ({ getValue }) => (
-        <span className="font-semibold tabular-nums">{formatKip(getValue() as number)}</span>
+      title: labels.amount,
+      dataIndex: 'totalAmount',
+      key: 'totalAmount',
+      sorter: true,
+      render: (value: number) => (
+        <span className="font-semibold tabular-nums">{formatKip(value)}</span>
       ),
     },
-
     {
-      accessorKey: 'status',
-      header: labels.status,
-      cell: ({ getValue }) => {
-        const val = getValue() as TransactionStatus
-        const cfg = labels.transactionStatuses[val]
-          ?? { label: val, variant: 'secondary' as const }
+      title: labels.status,
+      dataIndex: 'status',
+      key: 'status',
+      render: (value: TransactionStatus) => {
+        const cfg = labels.transactionStatuses[value] ?? { label: value, variant: 'secondary' as const }
         return <Badge variant={cfg.variant}>{cfg.label}</Badge>
       },
     },
-
     {
-      id: 'actions',
-      header: '',
-      cell: ({ row }) => (
+      title: '',
+      key: 'actions',
+      width: 48,
+      render: (_: unknown, record: Transaction) => (
         <DropdownMenu>
           <DropdownMenuTrigger className="inline-flex h-7 w-7 items-center justify-center rounded-md hover:bg-accent">
             <MoreHorizontal className="h-4 w-4" />
             <span className="sr-only">{labels.openMenu}</span>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end">
-            <DropdownMenuItem onClick={() => labels.onViewDetail?.(row.original)}>
+            <DropdownMenuItem onClick={() => labels.onViewDetail?.(record)}>
               <Eye className="h-3.5 w-3.5 mr-2 text-muted-foreground" />
               {labels.viewDetail}
             </DropdownMenuItem>

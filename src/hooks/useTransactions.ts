@@ -50,10 +50,15 @@ function txItemToCartItem(item: TransactionItem): CartItem {
   }
 }
 
+function txItemToNormalItem(item: TransactionItem): CartItem {
+  return { ...txItemToCartItem(item), itemRole: 'Normal' }
+}
+
 /** Tìm kiếm giao dịch theo mã hóa đơn — one-shot imperative search */
 export function useTransactionLookup() {
   const [result, setResult] = useState<Transaction | null>(null)
   const [linkedItems, setLinkedItems] = useState<CartItem[]>([])
+  const [cancelItems, setCancelItems] = useState<CartItem[]>([])
   const [isSearching, setIsSearching] = useState(false)
   const [notFound, setNotFound] = useState(false)
 
@@ -62,11 +67,14 @@ export function useTransactionLookup() {
     setNotFound(false)
     setResult(null)
     setLinkedItems([])
+    setCancelItems([])
     try {
       const list = await transactionRepository.getList({ invoiceCode, limit: 1 })
       const tx = list[0] ?? null
       setResult(tx)
-      setLinkedItems(tx?.items.filter(i => !!i.productId).map(txItemToCartItem) ?? [])
+      const validItems = tx?.items.filter(i => !!i.productId) ?? []
+      setLinkedItems(validItems.map(txItemToCartItem))
+      setCancelItems(validItems.map(txItemToNormalItem))
       setNotFound(!tx)
     } catch {
       setNotFound(true)
@@ -78,11 +86,12 @@ export function useTransactionLookup() {
   const clear = useCallback(() => {
     setResult(null)
     setLinkedItems([])
+    setCancelItems([])
     setIsSearching(false)
     setNotFound(false)
   }, [])
 
-  return { result, linkedItems, isSearching, notFound, search, clear }
+  return { result, linkedItems, cancelItems, isSearching, notFound, search, clear }
 }
 
 export function useTransactionById(id?: string) {

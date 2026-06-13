@@ -63,6 +63,7 @@
         "customerLabel": "ລູກຄ້າ (F4)",
         "customerSearch": "ຄົ້ນຫາລູກຄ້າ...",
         "customerNotFound": "ບໍ່ພົບລູກຄ້າ",
+        "customerRequired": "ກະລຸນາເລືອກລູກຄ້າເພື່ອສ້າງໃບບິນ",
         "subtotalLabel": "ລວມສິນຄ້າ (A)",
         "discountLabel": "ສ່ວນຫຼຸດ (B)",
         "discountInput": "ໃສ່ສ່ວນຫຼຸດ ₭...",
@@ -168,15 +169,16 @@
   "admin": {
     "dashboard": {
       "title": "ພາບລວມ",
-      "subtitle": "ສະຖິຕິການຂາຍ",
+      "subtitle": "ສະຖິຕິການຂາຍມື້ນີ້",
       "stats": {
-        "totalTransactions": "ກິດຈະກຳທັງໝົດ",
-        "revenue": "ລາຍຮັບ",
-        "avgTransaction": "ກິດຈະກຳສະເລ່ຍ",
-        "products": "ສິນຄ້າ"
+        "totalRevenue": "ລາຍຮັບຂາຍ",
+        "totalPurchase": "ຄ່າໃຊ້ຈ່າຍຊື້ເຂົ້າ",
+        "grossProfit": "ກຳໄລລວມ",
+        "cancelledCount": "ຍົກເລີກ"
       },
-      "recentTitle": "ກິດຈະກຳຫຼ້າສຸດ",
-      "empty": "ຍັງບໍ່ມີກິດຈະກຳ"
+      "recentTitle": "ໃບເກັບເງິນຫຼ້າສຸດ",
+      "viewAll": "ເບິ່ງທັງໝົດ",
+      "empty": "ຍັງບໍ່ມີໃບເກັບເງິນ"
     },
     "orders": {
       "title": "ປະຫວັດກິດຈະກຳ",
@@ -279,7 +281,7 @@
       },
       "productTypes": {
         "NguyenKhoi": "ທອງຄຳຊີ້ນ",
-        "CanThucTe": "ຊັ່ງຕາມຈິງ"
+        "GiaDinh": "ສົມມຸດ"
       },
       "toasts": {
         "createSuccess": "ເພີ່ມສິນຄ້າສຳເລັດ",
@@ -877,7 +879,10 @@
       },
       "method": {
         "Cash": "ເງິນສົດ",
+        "CASH": "ເງິນສົດ",
         "BankTransfer": "ໂອນເງິນ",
+        "BANK": "ໂອນເງິນ",
+        "BANK_TRANSFER": "ໂອນເງິນ",
         "QR": "QR",
         "COMBINED": "ລວມກັນ"
       },
@@ -897,27 +902,34 @@
     },
     "reports": {
       "title": "ລາຍງານ",
-      "selectDate": "ເລືອກວັນທີ",
-      "selectBranch": "ເລືອກສາຂາ",
       "dashboard": {
         "title": "ພາບລວມ",
-        "totalRevenue": "ລວມລາຍຮັບ",
-        "totalProfit": "ກຳໄລ",
-        "totalTransactions": "ກິດຈະກຳທັງໝົດ",
-        "topProducts": "ສິນຄ້າຂາຍດີ",
-        "columns": {
-          "product": "ສິນຄ້າ",
-          "count": "ກິດຈະກຳ"
-        }
+        "totalRevenue": "ລາຍຮັບຂາຍ",
+        "totalPurchase": "ຄ່າໃຊ້ຈ່າຍຊື້ເຂົ້າ",
+        "grossProfit": "ກຳໄລລວມ",
+        "cancelledCount": "ຍົກເລີກ"
       },
       "daily": {
         "title": "ລາຍງານລາຍວັນ",
-        "date": "ວັນທີ",
-        "branch": "ສາຂາ",
-        "opening": "ຍອດຕົ້ນ",
-        "revenue": "ລາຍຮັບ",
-        "purchase": "ຊື້ເຂົ້າ",
-        "closing": "ຍອດປາຍ"
+        "sections": {
+          "revenue": "ລາຍຮັບ & ກຳໄລ/ຂາດທຶນ",
+          "transactions": "ກິດຈະກຳ",
+          "inventory": "ສາງ",
+          "cash": "ເງິນສົດ (LAK)"
+        },
+        "doanhThuBan": "ລາຍຮັບຂາຍ",
+        "chiPhiMua": "ຄ່າໃຊ້ຈ່າຍຊື້ເຂົ້າ",
+        "doanhThuDoi": "ລາຍຮັບແລກປ່ຽນ",
+        "laiGopTamTinh": "ກຳໄລລວມ (ຄາດຄະເນ)",
+        "laiGopNote": "= ຂາຍ – ຊື້, ຍັງບໍ່ຫັກຄ່າໃຊ້ຈ່າຍ",
+        "tongHoaDon": "ໃບເກັບເງິນ Completed",
+        "tongGiaoDichTrade": "ກິດຈະກຳ Trade",
+        "itemsOnDisplay": "ສິນຄ້າໃນຕູ້",
+        "totalWeightGram": "ນ້ຳໜັກລວມ",
+        "openingLak": "ຍອດເງິນຕົ້ນ",
+        "collectedLak": "ຮັບເງິນ",
+        "paidLak": "ຈ່າຍເງິນ",
+        "closingLak": "ຍອດເງິນສຸດທ້າຍ"
       }
     },
     "config": {

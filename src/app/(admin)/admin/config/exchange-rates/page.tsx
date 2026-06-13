@@ -4,7 +4,7 @@ import { useState } from 'react'
 import { useTranslations } from 'next-intl'
 import { Pencil } from 'lucide-react'
 import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
+import { NumberInput } from '@/components/ui/number-input'
 import { Spinner } from '@/components/ui/spinner'
 import { Dialog, DialogContent, DialogFooter } from '@/components/ui/dialog'
 import { Field, FieldLabel } from '@/components/ui/field'
@@ -89,11 +89,11 @@ export default function ExchangeRatesPage() {
           <div className="space-y-4 py-2">
             <Field>
               <FieldLabel>{t('columns.rate')}</FieldLabel>
-              <Input type="number" min="0" value={form.rateToLak} onChange={(e) => setForm((f) => ({ ...f, rateToLak: e.target.value }))} />
+              <NumberInput min={0} value={form.rateToLak} onChange={(v) => setForm((f) => ({ ...f, rateToLak: v }))} />
             </Field>
             <Field>
               <FieldLabel>{t('columns.adjustment')}</FieldLabel>
-              <Input type="number" value={form.adjustment} onChange={(e) => setForm((f) => ({ ...f, adjustment: e.target.value }))} />
+              <NumberInput value={form.adjustment} onChange={(v) => setForm((f) => ({ ...f, adjustment: v }))} />
             </Field>
           </div>
         </DialogContent>

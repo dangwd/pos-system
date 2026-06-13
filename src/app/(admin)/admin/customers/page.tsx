@@ -8,7 +8,7 @@ import { TablePageSkeleton } from "@/components/shared/PageSkeleton";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useCustomerList } from "@/hooks/useCustomers";
-import type { Customer } from "@/types/customer";
+import type { CustomerDetail } from "@/types/customer";
 import { Plus } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { useEffect, useMemo, useState } from "react";
@@ -18,7 +18,7 @@ export default function CustomersPage() {
   const tStatus = useTranslations("admin.users");
 
   const [createOpen, setCreateOpen] = useState(false);
-  const [editCustomer, setEditCustomer] = useState<Customer | null>(null);
+  const [editCustomer, setEditCustomer] = useState<CustomerDetail | null>(null);
   const [searchInput, setSearchInput] = useState("");
   const [filterSearch, setFilterSearch] = useState("");
 
@@ -47,7 +47,7 @@ export default function CustomersPage() {
           active: tStatus("status.active"),
           inactive: tStatus("status.inactive"),
         },
-        (customer) => setEditCustomer(customer),
+        (customer) => setEditCustomer(customer as CustomerDetail),
       ),
     [t, tStatus],
   );

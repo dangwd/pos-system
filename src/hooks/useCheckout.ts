@@ -54,29 +54,8 @@ export function useCheckout(strategy: PaymentStrategy) {
         ? "CASH"
         : (params.paymentMethod ?? strategy.paymentMethod);
 
-      // FX: build 1 synthetic item — items thực tế không dùng
-      const fxItems = isFx
-        ? [
-            {
-              productId:
-                process.env.NEXT_PUBLIC_FX_PRODUCT_ID ??
-                "00000000-0000-0000-0000-000000000001",
-              productName: `Ngoại tệ ${tab.fxFromAmount.toLocaleString()} ${tab.fxFromCurrency} → ${tab.fxToCurrency}`,
-              quantity: 1,
-              weightUnitId: null as string | null,
-              weightGramOverride: tab.fxFromAmount,
-              unitPriceLak: tab.fxLakAmount,
-              itemRole: "Normal" as const,
-              laborFee: 0,
-              stoneFee: 0,
-              haoHutGram: 0,
-              phiHuHai: 0,
-            },
-          ]
-        : null;
-
       const fxNote = isFx
-        ? `FX: ${tab.fxFromAmount.toLocaleString()} ${tab.fxFromCurrency} → ${tab.fxToAmount.toLocaleString("en", { maximumFractionDigits: 4 })} ${tab.fxToCurrency}`
+        ? `FX: ${tab.fxFromAmount.toLocaleString("en", { maximumFractionDigits: 4 })} ${tab.fxFromCurrency} → ${tab.fxToAmount.toLocaleString("en", { maximumFractionDigits: 4 })} ${tab.fxToCurrency}`
         : params.note;
 
       // Tính cashAmount / bankAmount theo paymentMethod
@@ -105,30 +84,32 @@ export function useCheckout(strategy: PaymentStrategy) {
         cashAmount,
         bankAmount,
         note: fxNote,
-        currency:
-          isFx && tab.fxFromCurrency !== "LAK" ? tab.fxFromCurrency : undefined,
-        exchangeRate:
-          isFx && tab.fxFromAmount > 0
-            ? Math.round(tab.fxLakAmount / tab.fxFromAmount)
-            : undefined,
+        // FX fields — chỉ gửi khi ExchangeCurrency
+        currency: isFx ? tab.fxFromCurrency : undefined,
+        exchangeRate: isFx ? tab.fxFromRate : undefined,
+        foreignAmount: isFx ? tab.fxFromAmount : undefined,
+        targetCurrency: isFx ? tab.fxToCurrency : undefined,
+        targetRateToLak:
+          isFx && tab.fxToCurrency !== "LAK" ? tab.fxToRate : null,
         referenceInvoiceCode:
           params.referenceInvoiceCode ?? tab.linkedInvoiceCode ?? undefined,
-        items:
-          fxItems ??
-          tab.items.map((item) => {
+        // FX: không có items vật lý — luôn gửi []
+        items: isFx
+          ? []
+          : tab.items.map((item) => {
             const isExchangeIn = item.itemRole === "ExchangeIn";
-            const hasPhiKho = isExchangeIn && item.perItemDamage > 0;
-            const hasLaoSut = isExchangeIn && item.perItemWearChi > 0;
+            const hasPhiKho = item.perItemDamage > 0;
+            const hasLaoSut = item.perItemWearChi > 0;
 
-            // ExchangeIn: trọng lượng thực = tổng - hao hụt LAO SUT
-            const effectiveWeightGram = isExchangeIn
-              ? (item.weightGramOverride ?? item.qty * item.weightGram) -
-                item.perItemWearChi * 3.75
-              : item.weightGramOverride;
+            // Trọng lượng thực = tổng - hao hụt LAO SUT (ExchangeIn & BuyGold)
+            const totalGram =
+              item.weightGramOverride ?? item.qty * item.weightGram;
+            const effectiveWeightGram =
+              hasLaoSut ? totalGram - item.perItemWearChi * 3.75 : totalGram;
 
-            // ExchangeIn: Tiền công/ LAO SUT encode vào productName để in phiếu
+            // PHÍ KHÒ / LAO SUT encode vào productName để in phiếu
             const productName =
-              isExchangeIn && (hasPhiKho || hasLaoSut)
+              hasPhiKho || hasLaoSut
                 ? `${item.name} [PHÍ KHÒ: ${item.perItemDamage.toLocaleString("lo-LA")}₭ | LAO SUT: ${item.perItemWearChi} Chỉ]`
                 : item.name;
 
@@ -142,8 +123,8 @@ export function useCheckout(strategy: PaymentStrategy) {
               itemRole: item.itemRole,
               laborFee: isExchangeIn ? 0 : item.laborFee,
               stoneFee: isExchangeIn ? 0 : item.stoneFee,
-              haoHutGram: isExchangeIn ? item.perItemWearChi * 3.75 : 0,
-              phiHuHai: isExchangeIn ? item.perItemDamage : 0,
+              haoHutGram: item.perItemWearChi * 3.75,
+              phiHuHai: item.perItemDamage,
             };
           }),
       });

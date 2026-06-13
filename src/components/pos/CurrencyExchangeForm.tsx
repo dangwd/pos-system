@@ -4,24 +4,15 @@ import { useState, useEffect } from 'react'
 import { useActiveTab } from '@/hooks/useActiveTab'
 import { useExchangeRates } from '@/hooks/useExchangeRates'
 import { Input } from '@/components/ui/input'
-import { Button } from '@/components/ui/button'
-import {
-  Select,
-  SelectTrigger,
-  SelectContent,
-  SelectItem,
-  SelectValue,
-} from '@/components/ui/select'
+import { NumberInput } from '@/components/ui/number-input'
 import { cn } from '@/lib/utils'
+import { Select } from 'antd'
 import type { ExchangeRate } from '@/types/config'
-import { ArrowLeftRight, RefreshCw } from 'lucide-react'
-
-function effectiveRate(r: ExchangeRate) { return r.rateToLak + r.adjustment }
+import { ArrowDown, ArrowLeftRight, RefreshCw } from 'lucide-react'
 
 function getRateLak(currency: string, rates: ExchangeRate[]): number {
   if (currency === 'LAK') return 1
-  const r = rates.find(r => r.currencyCode === currency)
-  return r ? effectiveRate(r) : 1
+  return rates.find(r => r.currencyCode === currency)?.effectiveRate ?? 1
 }
 
 export function CurrencyExchangeForm() {
@@ -44,20 +35,22 @@ export function CurrencyExchangeForm() {
   const lakAmount = Math.round(fromAmount * fromRateLak)
 
   useEffect(() => {
-    setFxData(fromCurrency, toCurrency, fromAmount, toAmount, lakAmount)
+    setFxData(fromCurrency, toCurrency, fromAmount, toAmount, lakAmount, fromRateLak, toRateLak)
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [fromCurrency, toCurrency, fromAmount])
 
-  const handleFromCurrencyChange = (curr: string | null) => {
-    if (!curr) return
+  const handleFromCurrencyChange = (curr: string) => {
     setFromCurrency(curr)
-    if (curr === toCurrency) setToCurrency(curr === 'LAK' ? (rates[0]?.currencyCode ?? 'USD') : 'LAK')
+    if (curr === toCurrency) {
+      setToCurrency(curr === 'LAK' ? (rates[0]?.currencyCode ?? 'USD') : 'LAK')
+    }
   }
 
-  const handleToCurrencyChange = (curr: string | null) => {
-    if (!curr) return
+  const handleToCurrencyChange = (curr: string) => {
     setToCurrency(curr)
-    if (curr === fromCurrency) setFromCurrency(curr === 'LAK' ? (rates[0]?.currencyCode ?? 'USD') : 'LAK')
+    if (curr === fromCurrency) {
+      setFromCurrency(curr === 'LAK' ? (rates[0]?.currencyCode ?? 'USD') : 'LAK')
+    }
   }
 
   const swap = () => {
@@ -73,6 +66,11 @@ export function CurrencyExchangeForm() {
       : toAmount.toLocaleString('en', { maximumFractionDigits: 6 })
     : ''
 
+  const currencyOptions = (exclude: string) =>
+    currencies
+      .filter(c => c !== exclude)
+      .map(c => ({ value: c, label: c }))
+
   if (isLoading) {
     return (
       <div className="flex items-center justify-center h-full text-muted-foreground">
@@ -85,111 +83,134 @@ export function CurrencyExchangeForm() {
   return (
     <div className="flex flex-col h-full overflow-y-auto">
 
-      {/* ── Nhập số tiền ── */}
-      <div className="px-4 py-3 border-b shrink-0">
-        <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground mb-2.5">
+      {/* ── Header label ── */}
+      <div className="px-4 pt-4 pb-3 border-b shrink-0 space-y-3">
+        <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
           Thu đổi ngoại tệ
         </p>
 
-        <div className="grid grid-cols-[1fr_32px_1fr] gap-2 items-end">
+        {/* ── Amount row ── */}
+        <div className="flex items-end gap-2">
 
           {/* FROM */}
-          <div className="space-y-1">
-            <p className="text-[10px] text-muted-foreground uppercase tracking-wide">Tiền khách đưa</p>
-            <div className="flex gap-1">
-              <Input
-                type="number"
+          <div className="flex-1 space-y-1 min-w-0">
+            <p className="text-[10px] text-muted-foreground uppercase tracking-wide">
+              Tiền khách đưa
+            </p>
+            <div className="flex gap-1.5">
+              <NumberInput
+                decimals={2}
                 min={0}
                 placeholder="0"
                 value={fromInput}
-                onChange={e => setFromInput(e.target.value)}
-                className="text-right font-mono font-bold tabular-nums h-8 flex-1 text-sm"
+                onChange={v => setFromInput(v)}
+                className="h-9 text-right font-mono font-bold tabular-nums text-sm flex-1 min-w-0"
                 autoFocus
               />
-              <Select value={fromCurrency} onValueChange={handleFromCurrencyChange}>
-                <SelectTrigger size="sm" className="min-w-16 font-bold">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  {currencies.filter(c => c !== toCurrency).map(c => (
-                    <SelectItem key={c} value={c}>{c}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              <Select
+                value={fromCurrency}
+                onChange={handleFromCurrencyChange}
+                options={currencyOptions(toCurrency)}
+                style={{ width: 80 }}
+                size="middle"
+                className="shrink-0"
+                popupMatchSelectWidth={false}
+              />
             </div>
           </div>
 
-          {/* Swap */}
-          <div className="flex items-end">
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={swap}
-              title="Đổi chiều"
-              className="h-8 w-8"
-            >
-              <ArrowLeftRight className="h-3.5 w-3.5 text-muted-foreground" />
-            </Button>
-          </div>
+          {/* Swap button */}
+          <button
+            type="button"
+            onClick={swap}
+            title="Đổi chiều"
+            className="h-9 w-9 shrink-0 flex items-center justify-center rounded-md border hover:bg-accent hover:border-primary/40 text-muted-foreground hover:text-primary transition-colors mb-0"
+          >
+            <ArrowLeftRight className="h-3.5 w-3.5" />
+          </button>
 
-          {/* TO — readonly */}
-          <div className="space-y-1">
-            <p className="text-[10px] text-muted-foreground uppercase tracking-wide">Tiền trả khách</p>
-            <div className="flex gap-1">
+          {/* TO */}
+          <div className="flex-1 space-y-1 min-w-0">
+            <p className="text-[10px] text-muted-foreground uppercase tracking-wide">
+              Tiền trả khách
+            </p>
+            <div className="flex gap-1.5">
               <Input
                 readOnly
                 value={toDisplay}
                 placeholder="0"
-                className="text-right font-mono font-bold tabular-nums h-8 flex-1 text-sm bg-muted/30 cursor-default"
+                className="h-9 text-right font-mono font-bold tabular-nums text-sm flex-1 min-w-0 bg-muted/40 cursor-default"
               />
-              <Select value={toCurrency} onValueChange={handleToCurrencyChange}>
-                <SelectTrigger size="sm" className="min-w-16 font-bold">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  {currencies.filter(c => c !== fromCurrency).map(c => (
-                    <SelectItem key={c} value={c}>{c}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              <Select
+                value={toCurrency}
+                onChange={handleToCurrencyChange}
+                options={currencyOptions(fromCurrency)}
+                style={{ width: 80 }}
+                size="middle"
+                className="shrink-0"
+                popupMatchSelectWidth={false}
+              />
             </div>
           </div>
         </div>
 
-        {/* Tỷ giá chéo */}
-        {fromAmount > 0 && crossRate > 0 && (
-          <p className="text-[10px] text-muted-foreground text-center mt-2">
-            1 <span className="font-bold text-foreground">{fromCurrency}</span>
-            {' '}={' '}
-            <span className="font-bold text-foreground tabular-nums">
+        {/* ── Cross-rate label ── */}
+        {crossRate > 0 && (
+          <p className="text-[11px] text-muted-foreground text-center">
+            1{' '}
+            <span className="font-semibold text-foreground">{fromCurrency}</span>
+            {' = '}
+            <span className="font-semibold text-foreground tabular-nums">
               {crossRate.toLocaleString('en', { maximumFractionDigits: 6 })}
-            </span>{' '}
-            <span className="font-bold text-foreground">{toCurrency}</span>
+            </span>
+            {' '}
+            <span className="font-semibold text-foreground">{toCurrency}</span>
           </p>
         )}
       </div>
 
-      {/* ── Kết quả quy đổi ── */}
+      {/* ── Result card ── */}
       {fromAmount > 0 && (
-        <div className="px-4 py-3 border-b shrink-0">
-          <div className="rounded-lg border border-primary/20 bg-primary/5 px-4 py-3 text-center">
-            <p className="text-[10px] text-muted-foreground uppercase tracking-widest font-medium mb-1">
-              {fromAmount.toLocaleString('en', { maximumFractionDigits: 2 })} {fromCurrency} →
-            </p>
-            <p className="text-3xl font-black tabular-nums tracking-tight leading-none text-foreground">
-              {toDisplay}
-            </p>
-            <p className="text-xs text-muted-foreground mt-1">{toCurrency}</p>
+        <div className="px-4 py-4 border-b shrink-0">
+          <div className="rounded-xl border border-primary/20 bg-primary/5 px-4 py-4">
+            {/* From row */}
+            <div className="flex items-center justify-between text-sm">
+              <span className="text-muted-foreground">Khách đưa</span>
+              <span className="font-bold tabular-nums">
+                {fromAmount.toLocaleString('en', { maximumFractionDigits: 2 })}{' '}
+                <span className="text-primary">{fromCurrency}</span>
+              </span>
+            </div>
+
+            {/* Arrow */}
+            <div className="flex justify-center my-2">
+              <ArrowDown className="h-3.5 w-3.5 text-muted-foreground/50" />
+            </div>
+
+            {/* To row — big */}
+            <div className="text-center">
+              <p className="text-3xl font-black tabular-nums tracking-tight leading-none text-foreground">
+                {toDisplay}
+              </p>
+              <p className="text-xs text-muted-foreground mt-1">
+                {toCurrency === 'LAK' ? '₭ Kip Lào' : toCurrency}
+              </p>
+            </div>
+
+            {/* LAK equivalent (only when cross-rate, i.e. to != LAK) */}
             {toCurrency !== 'LAK' && lakAmount > 0 && (
-              <p className="text-[10px] text-muted-foreground mt-1.5">
-                Tương đương: <span className="font-semibold text-foreground">{lakAmount.toLocaleString('lo-LA')} ₭</span>
+              <p className="text-[10px] text-muted-foreground text-center mt-2.5 border-t border-primary/10 pt-2">
+                Tương đương:{' '}
+                <span className="font-semibold text-foreground">
+                  {lakAmount.toLocaleString('lo-LA')} ₭
+                </span>
               </p>
             )}
           </div>
         </div>
       )}
 
-      {/* ── Bảng tỷ giá ── */}
+      {/* ── Rate table ── */}
       {rates.length > 0 && (
         <div className="px-4 py-3">
           <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground mb-2">
@@ -197,18 +218,20 @@ export function CurrencyExchangeForm() {
           </p>
           <div className="space-y-1">
             {rates.map(r => {
-              const rate = effectiveRate(r)
               const isActive = fromCurrency === r.currencyCode || toCurrency === r.currencyCode
               return (
-                <div key={r.currencyCode}
+                <div
+                  key={r.currencyCode}
                   className={cn(
                     'flex justify-between items-center text-xs px-3 py-2 rounded-md border',
-                    isActive ? 'bg-primary/10 border-primary/30 font-semibold' : 'bg-background',
+                    isActive
+                      ? 'bg-primary/10 border-primary/30 font-semibold'
+                      : 'bg-background border-border',
                   )}
                 >
                   <span className="font-mono font-bold text-primary">{r.currencyCode}</span>
                   <span className="tabular-nums text-muted-foreground">
-                    1 {r.currencyCode} = {rate.toLocaleString('lo-LA')} ₭
+                    1 {r.currencyCode} = {r.effectiveRate.toLocaleString('lo-LA')} ₭
                   </span>
                 </div>
               )

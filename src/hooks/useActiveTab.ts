@@ -28,6 +28,8 @@ export function useActiveTab() {
     updateCartItemInActive,
     setLinkedInvoice,
     clearLinkedInvoice,
+    enterCancelMode,
+    exitCancelMode,
     setFxDataInActive,
   } = useInvoiceTabStore();
 
@@ -110,6 +112,8 @@ export function useActiveTab() {
     fromAmount: number,
     toAmount: number,
     lakAmount: number,
+    fromRate: number,
+    toRate: number,
   ) => {
     setFxDataInActive(
       fromCurrency,
@@ -117,6 +121,8 @@ export function useActiveTab() {
       fromAmount,
       toAmount,
       lakAmount,
+      fromRate,
+      toRate,
     );
   };
 
@@ -137,6 +143,8 @@ export function useActiveTab() {
     updateCartItem: updateCartItemInActive,
     setLinkedInvoice,
     clearLinkedInvoice,
+    enterCancelMode,
+    exitCancelMode,
 
     setCustomer,
     clearCustomer,
