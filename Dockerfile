@@ -8,11 +8,14 @@
 
 # node:24 bundles npm 11 — KHỚP với npm đã tạo package-lock.json (npm 11.x).
 # Dùng node:22 (npm 10) sẽ làm `npm ci` báo lockfile out-of-sync.
-FROM node:24-alpine AS base
+#
+# Dùng -slim (Debian/glibc), KHÔNG dùng -alpine: Next 16 `next build` mặc định
+# chạy Turbopack — đòi native SWC binding. Trên Alpine (musl) bản gnu không nạp
+# được (thiếu ld-linux-x86-64.so.2) và bản musl không được npm ci cài → build fail.
+FROM node:24-slim AS base
 
 # ── 1. Cài dependencies (cache theo lockfile) ────────────────────────────────
 FROM base AS deps
-RUN apk add --no-cache libc6-compat
 WORKDIR /app
 COPY package.json package-lock.json ./
 RUN npm ci
@@ -40,8 +43,8 @@ ENV NEXT_TELEMETRY_DISABLED=1
 ENV PORT=3000
 ENV HOSTNAME=0.0.0.0
 
-RUN addgroup --system --gid 1001 nodejs \
-  && adduser --system --uid 1001 nextjs
+RUN groupadd --system --gid 1001 nodejs \
+  && useradd --system --uid 1001 --gid nodejs nextjs
 
 # Standalone output: server.js + node_modules tối thiểu + static + public.
 COPY --from=builder /app/public ./public
