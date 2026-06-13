@@ -1,117 +1,206 @@
 'use client'
 
-import { useState } from 'react'
+import { useMemo, useState } from 'react'
 import { useTranslations } from 'next-intl'
-import { cn } from '@/lib/utils'
-import { Boxes, PackagePlus } from 'lucide-react'
+import { useRouter } from 'next/navigation'
+import { ClipboardList } from 'lucide-react'
+import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
+import { DataTable } from '@/components/shared/DataTable'
+import { TablePageSkeleton } from '@/components/shared/PageSkeleton'
 import { ComboboxSelect } from '@/components/shared/ComboboxSelect'
-import { InventoryCatalog } from '@/components/admin/inventory/InventoryCatalog'
-import { InventoryDeclareForm } from '@/components/admin/inventory/InventoryDeclareForm'
-import { InventoryActivityLog } from '@/components/admin/inventory/InventoryActivityLog'
-import { InventoryStatusDialog } from '@/components/admin/inventory/InventoryStatusDialog'
-import { useBranches } from '@/hooks/useBranches'
-import { useInventoryValuation } from '@/hooks/useInventory'
-import { lakToForeign, findRate } from '@/lib/inventory-valuation'
+import { createInventoryListColumns } from '@/components/admin/columns/inventory-list-columns'
+import { useBranches, useCounters } from '@/hooks/useBranches'
+import { useInventory } from '@/hooks/useInventory'
 import { useAuthStore } from '@/stores/auth.store'
-import type { InventoryItem } from '@/types/inventory'
+import type { InventoryStatus, InventorySource } from '@/types/inventory'
 
-type Tab = 'catalog' | 'declare'
+const PAGE_SIZE = 20
+
+const STATUS_FILTER_VALUES: InventoryStatus[] = [
+  'TiepNhan', 'DaDinhGia', 'TrenQuay', 'ChuyenXuong', 'DaBan', 'DoiRa',
+]
 
 export default function InventoryPage() {
   const t = useTranslations('admin.inventory')
+  const router = useRouter()
   const user = useAuthStore(s => s.user)
-
-  // Phân quyền (§14): INVENTORY_MANAGE để đổi trạng thái mục kho; PRODUCT_MANAGE để khai báo SP.
-  // Nhập/Xuất kho tách thành 2 màn riêng: /admin/inventory/stock-in · /stock-out.
   const canManage = !!user?.permissions.includes('INVENTORY_MANAGE')
-  const canDeclare = !!user?.permissions.includes('PRODUCT_MANAGE')
 
-  const [tab, setTab] = useState<Tab>('catalog')
+  // ─── Filter state ────────────────────────────────────────────────────────
   const [branchId, setBranchId] = useState<string | null>(null)
-  const [statusItem, setStatusItem] = useState<InventoryItem | null>(null)
+  const [counterId, setCounterId] = useState<string | null>(null)
+  const [status, setStatus] = useState<InventoryStatus | null>(null)
+  const [nguonGoc, setNguonGoc] = useState<InventorySource | null>(null)
+  const [category, setCategory] = useState<string | null>(null)
+  const [keyword, setKeyword] = useState('')
+  const [page, setPage] = useState(1)
 
+  // ─── Data ─────────────────────────────────────────────────────────────────
+  const effectiveBranchId = branchId ?? user?.branchId ?? null
   const { data: branches = [] } = useBranches()
-  // Mặc định theo chi nhánh của người dùng (§9.1 — tồn kho theo chi nhánh).
-  const effectiveBranchId = branchId ?? user?.branchId ?? branches[0]?.id ?? null
-  const branchName = branches.find(b => b.id === effectiveBranchId)?.name ?? '—'
-  const activeTab: Tab = tab === 'declare' && !canDeclare ? 'catalog' : tab
+  const { data: counters = [] } = useCounters(effectiveBranchId)
 
-  const { items, totals, rates } = useInventoryValuation(effectiveBranchId)
-  const totalAssetLak = totals.totalAssetLak.toLocaleString('lo-LA', { maximumFractionDigits: 0 })
-  const usdTotal = lakToForeign(totals.totalAssetLak, findRate(rates, 'USD'))
+  const [prevBranch, setPrevBranch] = useState(effectiveBranchId)
+  if (effectiveBranchId !== prevBranch) {
+    setPrevBranch(effectiveBranchId)
+    setCounterId(null)
+    setPage(1)
+  }
+
+  const [prevFilters, setPrevFilters] = useState({ status, nguonGoc, category, keyword })
+  const currentFilters = { status, nguonGoc, category, keyword }
+  const filtersChanged = JSON.stringify(currentFilters) !== JSON.stringify(prevFilters)
+  if (filtersChanged) {
+    setPrevFilters(currentFilters)
+    setPage(1)
+  }
+
+  const { data: paged, isLoading } = useInventory({
+    branchId: effectiveBranchId ?? undefined,
+    counterId: counterId ?? undefined,
+    status: status ?? undefined,
+    nguonGoc: nguonGoc ?? undefined,
+    category: category ?? undefined,
+    keyword: keyword.trim() || undefined,
+    page,
+    pageSize: PAGE_SIZE,
+  })
+  const rows = paged?.data ?? []
+
+  const categoryOptions = useMemo(() => {
+    const seen = new Set<string>()
+    const out: { value: string; label: string }[] = []
+    rows.forEach(r => {
+      if (r.category && !seen.has(r.category)) {
+        seen.add(r.category)
+        out.push({ value: r.category, label: r.category })
+      }
+    })
+    return out
+  }, [rows])
+
+  // ─── Columns ──────────────────────────────────────────────────────────────
+  const statusLabels = useMemo<Record<InventoryStatus, string>>(() => ({
+    TiepNhan:    t('statusTiepNhan'),
+    DaDinhGia:   t('statusDaDinhGia'),
+    TrenQuay:    t('statusTrenQuay'),
+    ChuyenXuong: t('statusChuyenXuong'),
+    DaBan:       t('statusDaBan'),
+    DoiRa:       t('statusDoiRa'),
+  }), [t])
+
+  const columns = useMemo(() => createInventoryListColumns({
+    labels: {
+      productCode: t('columns.productCode'),
+      productName: t('columns.productName'),
+      purity:      t('columns.purity'),
+      counter:     t('columns.counter'),
+      source:      t('columns.source'),
+      sourceQuan:  t('sourceQuan'),
+      sourceNgoai: t('sourceNgoai'),
+      qty:         t('columns.qty'),
+      weight:      t('columns.weight'),
+      status:      t('columns.status'),
+      statusLabels,
+      updatedAt:   t('columns.updatedAt'),
+    },
+  }), [t, statusLabels])
 
   return (
-    <div className="p-4 space-y-4">
-      {/* Top bar */}
-      <div className="flex flex-wrap items-center justify-between gap-3 rounded-xl border bg-card px-3 py-2">
-        <div className="flex items-center gap-1.5">
-          <TabButton active={activeTab === 'catalog'} onClick={() => setTab('catalog')} icon={<Boxes className="h-4 w-4" />}>
-            {t('tabs.catalog', { count: items.length })}
-          </TabButton>
-          {canDeclare && (
-            <TabButton active={activeTab === 'declare'} onClick={() => setTab('declare')} icon={<PackagePlus className="h-4 w-4" />}>
-              {t('tabs.declare')}
-            </TabButton>
-          )}
+    <div className="p-6 space-y-4">
+      {/* Header */}
+      <div className="flex flex-wrap items-start justify-between gap-3">
+        <div>
+          <h1 className="text-2xl font-bold">{t('list.title')}</h1>
+          <p className="text-sm text-muted-foreground">
+            {t('list.subtitle', { count: paged?.total ?? 0 })}
+          </p>
         </div>
-
-        <div className="flex items-center gap-4">
-          <ComboboxSelect
-            value={effectiveBranchId}
-            onChange={setBranchId}
-            options={branches.map(b => ({ value: b.id, label: b.name }))}
-            placeholder={t('filterBranch')}
-            className="w-48"
-          />
-          <div className="text-right">
-            <span className="text-xs text-muted-foreground">{t('totalAsset')}: </span>
-            <span className="font-bold text-primary tabular-nums">{totalAssetLak} ₭</span>
-            <span className="ml-1 text-xs text-muted-foreground">(~{usdTotal == null ? 'N/A' : usdTotal.toLocaleString('lo-LA', { maximumFractionDigits: 0 })} USD)</span>
-          </div>
-        </div>
+        {canManage && (
+          <Button
+            variant="outline"
+            size="sm"
+            className="gap-1.5"
+            onClick={() => router.push('/admin/inventory/adjustments')}
+          >
+            <ClipboardList className="h-4 w-4" />
+            {t('list.adjustmentsLink')}
+          </Button>
+        )}
       </div>
 
-      {/* Workspace */}
-      {activeTab === 'declare' ? (
-        <InventoryDeclareForm onBack={() => setTab('catalog')} />
+      {/* Filter bar */}
+      <div className="flex flex-wrap items-center gap-2">
+        <ComboboxSelect
+          value={effectiveBranchId}
+          onChange={v => setBranchId(v)}
+          options={branches.map(b => ({ value: b.id, label: b.name }))}
+          placeholder={t('filterBranch')}
+          className="w-44"
+        />
+        <ComboboxSelect
+          value={counterId}
+          onChange={v => setCounterId(v)}
+          options={counters.map(c => ({ value: c.id, label: c.counterName }))}
+          placeholder={t('filterCounter')}
+          className="w-40"
+          clearable
+        />
+        <ComboboxSelect
+          value={status}
+          onChange={v => setStatus((v as InventoryStatus) ?? null)}
+          options={STATUS_FILTER_VALUES.map(s => ({ value: s, label: statusLabels[s] }))}
+          placeholder={t('filterStatus')}
+          className="w-40"
+          clearable
+        />
+        <ComboboxSelect
+          value={nguonGoc}
+          onChange={v => setNguonGoc((v as InventorySource) ?? null)}
+          options={[
+            { value: 'Quan',  label: t('sourceQuan') },
+            { value: 'Ngoai', label: t('sourceNgoai') },
+          ]}
+          placeholder={t('filterSource')}
+          className="w-36"
+          clearable
+        />
+        {categoryOptions.length > 0 && (
+          <ComboboxSelect
+            value={category}
+            onChange={v => setCategory(v)}
+            options={categoryOptions}
+            placeholder={t('filterCategory')}
+            className="w-40"
+            clearable
+          />
+        )}
+        <Input
+          value={keyword}
+          onChange={e => setKeyword(e.target.value)}
+          placeholder={t('filterKeyword')}
+          className="w-56"
+        />
+      </div>
+
+      {/* Table */}
+      {isLoading ? (
+        <TablePageSkeleton cols={10} rows={8} />
       ) : (
-        <div className="grid grid-cols-1 gap-4 xl:grid-cols-[1fr_360px]">
-          <div className="min-w-0">
-            <InventoryCatalog
-              branchId={effectiveBranchId}
-              branchName={branchName}
-              onEditItem={canManage ? setStatusItem : undefined}
-            />
-          </div>
-          <aside>
-            <InventoryActivityLog branchId={effectiveBranchId} branchName={branchName} />
-          </aside>
-        </div>
+        <DataTable
+          columns={columns}
+          data={rows}
+          hideSearch
+          onRowClick={item => router.push(`/admin/inventory/${item.id}`)}
+          serverPagination={paged ? {
+            total: paged.total,
+            page: paged.page,
+            pageSize: paged.pageSize,
+            onPageChange: setPage,
+          } : undefined}
+        />
       )}
-
-      <InventoryStatusDialog item={statusItem} onClose={() => setStatusItem(null)} />
     </div>
-  )
-}
-
-function TabButton({
-  active, onClick, icon, children,
-}: {
-  active: boolean
-  onClick: () => void
-  icon: React.ReactNode
-  children: React.ReactNode
-}) {
-  return (
-    <button
-      onClick={onClick}
-      className={cn(
-        'inline-flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-sm font-medium transition-colors',
-        active ? 'bg-primary text-primary-foreground' : 'text-muted-foreground hover:bg-muted',
-      )}
-    >
-      {icon}
-      {children}
-    </button>
   )
 }

@@ -20,8 +20,9 @@ export type InventoryStatus =
   | 'TiepNhan'      // Vừa tiếp nhận, chưa định giá (mặc định khi nhập)
   | 'DaDinhGia'     // Đã định giá
   | 'TrenQuay'      // Đang trưng bày, có thể bán
-  | 'DaBan'         // Đã bán ra
   | 'ChuyenXuong'   // Chuyển xuống xưởng (vàng ngoài / lỗi / item cũ sau thu đổi)
+  | 'DaBan'         // Đã bán ra (set tự động qua giao dịch POS)
+  | 'DoiRa'         // Đã đổi ra / trade-out (set tự động qua giao dịch POS)
 
 /** Nguồn gốc hàng hóa */
 export type InventorySource =
@@ -57,10 +58,16 @@ export interface InventoryAdjustment {
   adjustmentCode: string          // ADJ-001, ADJ-002, ...
   branchId: string
   branchName: string
+  counterId: string
+  counterName: string             // Tên quầy (snapshot)
   inventoryItemId: string
   productName: string             // Tên sản phẩm (snapshot)
   direction: AdjustDirection
   quantity: number
+  weightGram: number              // Tổng trọng lượng điều chỉnh (gram)
+  nguonGocLo: InventorySource | null  // Nguồn gốc lô — chỉ có khi direction=IN
+  documentRef: string | null      // Số chứng từ
+  supplier: string | null         // Nhà cung cấp
   reason: string
   paymentMethod: 'CASH' | 'BANK' | null
   actualValue: number | null      // Giá trị thực tế lô hàng (LAK)
@@ -73,9 +80,13 @@ export interface InventoryAdjustment {
 export interface AdjustInventoryDto {
   direction: AdjustDirection
   quantity: number
+  weightGram: number                 // Tổng trọng lượng điều chỉnh (= quantity × perPieceGram)
   reason: string
+  nguonGoc?: InventorySource         // Bắt buộc khi direction=IN: "Quan" | "Ngoai"
   paymentMethod?: 'CASH' | 'BANK'   // Phương thức thanh toán (nếu có)
   actualValue?: number               // Giá trị thực tế lô hàng (LAK)
+  documentRef?: string | null        // Số chứng từ (lưu nhưng chưa validate — mở rộng sau)
+  supplier?: string | null           // Nhà cung cấp (lưu nhưng chưa validate — mở rộng sau)
 }
 
 /** Kết quả POST /api/inventory/{id}/adjust — backend trả `{ item, log }` */
@@ -105,7 +116,9 @@ export interface InventoryListParams {
 export interface InventoryAdjustmentParams {
   branchId?: string
   counterId?: string
-  keyword?: string           // Tìm theo mã điều chỉnh, tên SP, lý do, tên chi nhánh
+  inventoryItemId?: string     // Lọc theo mục kho cụ thể (dùng trong trang chi tiết)
+  direction?: AdjustDirection  // Lọc theo hướng IN | OUT
+  keyword?: string             // Tìm theo mã ADJ, tên SP, lý do, tên chi nhánh
   page?: number
   pageSize?: number
 }
@@ -139,6 +152,9 @@ export interface BulkAdjustInventoryItem {
   reason: string
   paymentMethod?: 'CASH' | 'BANK'   // Phương thức thanh toán (chỉ ý nghĩa với IN)
   actualValue?: number              // Giá trị thực lô hàng (LAK)
+  nguonGoc?: InventorySource        // Nguồn gốc lô — bắt buộc khi IN (mirror AdjustInventoryDto)
+  documentRef?: string | null       // Số chứng từ / mã phiếu SAP
+  supplier?: string | null          // Nhà cung cấp
 }
 
 /** Request body POST /api/inventory/bulk-adjust */

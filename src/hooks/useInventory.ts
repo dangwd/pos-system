@@ -1,5 +1,5 @@
 import { useMemo } from 'react'
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+import { useInfiniteQuery, useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useLocale, useTranslations } from 'next-intl'
 import { toast } from 'sonner'
 import { inventoryRepository } from '@/lib/repositories/inventory.repository'
@@ -26,6 +26,21 @@ export function useInventory(params?: InventoryListParams) {
   return useQuery({
     queryKey: [...INVENTORY_KEY, 'list', params],
     queryFn: () => inventoryRepository.getList(params),
+    staleTime: 60_000,
+  })
+}
+
+/** Infinite-scroll variant — dùng cho picker chọn sản phẩm, tự tích lũy trang. */
+export function useInventoryInfinite(params: Omit<InventoryListParams, 'page'>) {
+  return useInfiniteQuery({
+    queryKey: [...INVENTORY_KEY, 'infinite', params],
+    queryFn: ({ pageParam }) =>
+      inventoryRepository.getList({ ...params, page: pageParam as number }),
+    initialPageParam: 1,
+    getNextPageParam: (lastPage, allPages) => {
+      const loaded = allPages.reduce((s, p) => s + p.data.length, 0)
+      return loaded < lastPage.total ? allPages.length + 1 : undefined
+    },
     staleTime: 60_000,
   })
 }

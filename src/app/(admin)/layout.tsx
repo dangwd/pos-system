@@ -18,7 +18,6 @@ import {
   ArrowLeftRight,
   ArrowUpFromLine,
   BarChart3,
-  Boxes,
   Building2,
   ChevronDown,
   ClipboardList,
@@ -98,9 +97,8 @@ export default function AdminLayout({
       {
         label: t("nav.groupWarehouse"),
         items: [
-          { href: "/admin/inventory", label: t("nav.inventory"), icon: Boxes },
-          { href: "/admin/stock-in", label: t("nav.stockIn"), icon: ArrowDownToLine },
-          { href: "/admin/stock-out", label: t("nav.stockOut"), icon: ArrowUpFromLine },
+          { href: "/admin/inventory/stock-in", label: t("nav.stockIn"), icon: ArrowDownToLine },
+          { href: "/admin/inventory/stock-out", label: t("nav.stockOut"), icon: ArrowUpFromLine },
         ],
       },
       {

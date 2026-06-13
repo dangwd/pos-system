@@ -10,21 +10,24 @@ import { ComboboxSelect } from '@/components/shared/ComboboxSelect'
 import { ArrowLeft, Info, PackagePlus } from 'lucide-react'
 import { useCreateProduct, useCategories } from '@/hooks/useProducts'
 import { useConfigPrices } from '@/hooks/useConfig'
-import type { PriceItem } from '@/types/config'
 import type { ProductCategory } from '@/types/product'
 
 interface Props {
   onBack: () => void
 }
 
-const EMPTY = { productName: '', productCode: '', categoryId: '', priceKey: '' }
+const EMPTY = { productName: '', productCode: '', categoryId: '', goldPurityId: '', weightUnitId: '' }
 
 // Tên đơn vị thân thiện từ mã (price item chỉ có weightUnitCode, không có tên hiển thị).
 const UNIT_NAMES: Record<string, string> = { chi: 'Chỉ', luong: 'Lượng', cay: 'Cây', bath: 'Bath', gram: 'Gram', oz: 'Oz' }
 const unitName = (code: string) => UNIT_NAMES[code] ?? code
 
-// Khóa duy nhất cho 1 dòng giá (hàm lượng × đơn vị) — price item không có id riêng.
-const keyOf = (it: PriceItem) => `${it.goldPurityId}__${it.weightUnitId}`
+function uniqueBy<T>(arr: T[], key: (x: T) => string): T[] {
+  const seen = new Set<string>()
+  const out: T[] = []
+  for (const x of arr) { const k = key(x); if (!seen.has(k)) { seen.add(k); out.push(x) } }
+  return out
+}
 
 // Map phân nhóm → kim loại để lọc "ăn theo" (best-effort: backend chưa có field nối
 // ProductCategory ↔ Gold/Silver). Bỏ dấu để khớp ổn định; không nhận diện được ⇒ hiện tất cả.
@@ -44,18 +47,27 @@ export function InventoryDeclareForm({ onBack }: Props) {
   const { mutate: create, isPending } = useCreateProduct()
 
   const set = (k: keyof typeof form, v: string) => setForm(f => ({ ...f, [k]: v }))
-  // Đổi phân nhóm → reset mã giá (danh sách hàm lượng đổi theo kim loại).
-  const changeCategory = (v: string | null) => setForm(f => ({ ...f, categoryId: v ?? '', priceKey: '' }))
+  // Đổi phân nhóm → reset hàm lượng + đơn vị (danh sách đổi theo kim loại).
+  const changeCategory = (v: string | null) => setForm(f => ({ ...f, categoryId: v ?? '', goldPurityId: '', weightUnitId: '' }))
+  // Đổi hàm lượng → reset đơn vị (đơn vị "ăn theo" hàm lượng).
+  const changePurity = (v: string | null) => setForm(f => ({ ...f, goldPurityId: v ?? '', weightUnitId: '' }))
 
   const priceItems = priceConfig?.items ?? []
   const selectedCat = categories.find(c => c.id === form.categoryId)
   const metal = selectedCat ? categoryMetal(selectedCat) : null
-  // Cascade "ăn theo": map chắc chắn → lọc theo kim loại; không chắc → hiện tất cả.
-  const priceOptions = metal ? priceItems.filter(it => it.category === metal) : priceItems
-  // Chọn 1 dòng giá ⇒ suy ra goldPurityId + weightUnitId (đi cùng nhau ⇒ hết 422).
-  const selectedPrice = priceItems.find(it => keyOf(it) === form.priceKey)
+  // Cascade theo kim loại: map chắc chắn → lọc; không chắc → hiện tất cả.
+  const scoped = metal ? priceItems.filter(it => it.category === metal) : priceItems
 
-  const disabled = !form.productName || !form.productCode || !form.categoryId
+  // Hàm lượng: gom theo goldPurityId (1 hàm lượng có thể có nhiều đơn vị).
+  const purityOptions = uniqueBy(scoped, it => it.goldPurityId)
+    .map(it => ({ value: it.goldPurityId, label: `${it.purityCode} · ${it.hamLuong}%` }))
+  // Đơn vị: chỉ các đơn vị CÓ GIÁ cho hàm lượng đã chọn ("ăn theo").
+  const unitOptions = uniqueBy(scoped.filter(it => it.goldPurityId === form.goldPurityId), it => it.weightUnitId)
+    .map(it => ({ value: it.weightUnitId, label: `${unitName(it.weightUnitCode)} · ${it.sellPrice.toLocaleString('lo-LA')} ₭` }))
+
+  // 422: đã chọn hàm lượng thì BẮT BUỘC chọn đơn vị (gửi kèm goldPurityId + weightUnitId).
+  const needUnit = !!form.goldPurityId && !form.weightUnitId
+  const disabled = !form.productName || !form.productCode || !form.categoryId || needUnit
 
   const handleSubmit = () => {
     if (disabled) return
@@ -64,8 +76,8 @@ export function InventoryDeclareForm({ onBack }: Props) {
         productCode: form.productCode.trim(),
         productName: form.productName.trim(),
         productCategoryId: form.categoryId,
-        goldPurityId: selectedPrice?.goldPurityId ?? null,
-        weightUnitId: selectedPrice?.weightUnitId,
+        goldPurityId: form.goldPurityId || null,
+        weightUnitId: form.weightUnitId || undefined,
         // Sản phẩm mới luôn tạo với tồn = 0; trọng lượng thực phát sinh khi nhập kho.
         weightGram: 0,
         productType: 'NguyenKhoi',
@@ -108,20 +120,30 @@ export function InventoryDeclareForm({ onBack }: Props) {
         </Field>
       </div>
 
-      <Field>
-        <FieldLabel>{t('priceLink')}</FieldLabel>
-        <ComboboxSelect
-          value={form.priceKey || null}
-          onChange={v => set('priceKey', v ?? '')}
-          options={priceOptions.map(it => ({
-            value: keyOf(it),
-            label: `${it.purityCode} · ${unitName(it.weightUnitCode)} · ${it.sellPrice.toLocaleString('lo-LA')} ₭`,
-          }))}
-          placeholder={t('priceLinkPlaceholder')}
-          clearable
-        />
-        <p className="text-[10px] text-muted-foreground">{t('priceLinkHint')}</p>
-      </Field>
+      <div className="grid grid-cols-2 gap-3">
+        <Field>
+          <FieldLabel>{t('priceLink')}</FieldLabel>
+          <ComboboxSelect
+            value={form.goldPurityId || null}
+            onChange={changePurity}
+            options={purityOptions}
+            placeholder={t('priceLinkPlaceholder')}
+            clearable
+          />
+          <p className="text-[10px] text-muted-foreground">{t('priceLinkHint')}</p>
+        </Field>
+        <Field>
+          <FieldLabel>{t('unit')}</FieldLabel>
+          <ComboboxSelect
+            value={form.weightUnitId || null}
+            onChange={v => set('weightUnitId', v ?? '')}
+            options={unitOptions}
+            placeholder={t('unitPlaceholder')}
+            clearable
+          />
+          {needUnit && <p className="text-[10px] text-destructive">{t('unitRequired')}</p>}
+        </Field>
+      </div>
 
       <p className="flex items-start gap-1.5 rounded-lg border border-primary/20 bg-primary/5 p-2.5 text-xs text-muted-foreground">
         <Info className="h-3.5 w-3.5 shrink-0 text-primary mt-0.5" />

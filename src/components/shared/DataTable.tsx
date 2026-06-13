@@ -88,6 +88,8 @@ interface DataTableProps<TData> {
   maxHeight?: string | false
   /** Show loading overlay (use isFetching for background refetch) */
   loading?: boolean
+  /** Called when a data row is clicked — adds cursor-pointer to rows */
+  onRowClick?: (row: TData) => void
 }
 
 // ─── Component ────────────────────────────────────────────────────────────────
@@ -105,6 +107,7 @@ export function DataTable<TData>({
   serverPagination,
   maxHeight = '500px',
   loading,
+  onRowClick,
 }: DataTableProps<TData>) {
   const t = useTranslations('common.table')
   const [sorting, setSorting] = useState<SortingState>([])
@@ -252,7 +255,14 @@ export function DataTable<TData>({
           <tbody>
             {table.getRowModel().rows.length ? (
               table.getRowModel().rows.map(row => (
-                <tr key={row.id} className="border-b hover:bg-muted/30 transition-colors">
+                <tr
+                  key={row.id}
+                  className={cn(
+                    'border-b hover:bg-muted/30 transition-colors',
+                    onRowClick && 'cursor-pointer',
+                  )}
+                  onClick={() => onRowClick?.(row.original)}
+                >
                   {row.getVisibleCells().map(cell => (
                     <td key={cell.id} className="px-4 py-2">
                       {flexRender(cell.column.columnDef.cell, cell.getContext())}
