@@ -659,45 +659,25 @@ function BuyGoldRow({
         )}
       </td>
 
-      {/* PHÍ KHÒ — checkbox bật / tắt + input số tiền */}
+      {/* PHÍ KHÒ — nhập trực tiếp */}
       <td className="px-2 py-2 w-32">
-        <div className="flex items-center gap-1.5">
-          <button
-            disabled={item.isReadOnly}
-            onClick={() =>
+        {item.isReadOnly ? (
+          <span className="text-[10px] tabular-nums text-muted-foreground">
+            {item.perItemDamage > 0 ? item.perItemDamage.toLocaleString("lo-LA") : "—"}
+          </span>
+        ) : (
+          <NumberInput
+            min={0}
+            placeholder="0"
+            value={item.perItemDamage || ""}
+            onChange={(v) =>
               onUpdate(item.productId, {
-                isDamaged: !item.isDamaged,
-                perItemDamage: item.isDamaged ? 0 : item.perItemDamage,
+                perItemDamage: Number(v) || 0,
               })
             }
-            title={item.isDamaged ? "Bỏ PHÍ KHÒ" : "Bật PHÍ KHÒ"}
-            className={cn(
-              "shrink-0 w-4 h-4 rounded border-2 flex items-center justify-center transition-colors disabled:opacity-40",
-              item.isDamaged
-                ? "bg-orange-500 border-orange-500 text-white"
-                : "border-muted-foreground/30 hover:border-orange-400",
-            )}
-          >
-            {item.isDamaged && <AlertTriangle className="h-2.5 w-2.5" />}
-          </button>
-          {item.isDamaged && (
-            <NumberInput
-              min={0}
-              placeholder="0"
-              disabled={item.isReadOnly}
-              value={item.perItemDamage || ""}
-              onChange={(v) =>
-                onUpdate(item.productId, {
-                  perItemDamage: Number(v) || 0,
-                })
-              }
-              className="h-5 w-20 text-[10px] px-1.5 tabular-nums"
-            />
-          )}
-          {!item.isDamaged && (
-            <span className="text-[10px] text-muted-foreground/40">—</span>
-          )}
-        </div>
+            className="h-5 w-24 text-[10px] px-1.5 tabular-nums"
+          />
+        )}
       </td>
 
       {/* LAO SUT (số chỉ hao mòn) */}
