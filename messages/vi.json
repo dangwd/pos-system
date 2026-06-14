@@ -57,7 +57,7 @@
     },
     "payment": {
       "panel": {
-        "storeName": "Khamphuvong Jewelry",
+        "storeName": "Khamphouvong Jewelry",
         "storeAddress": "Vientiane Main · Chanthabouly",
         "lookupLabel": "Tra cứu hóa đơn (F6)",
         "lookupPlaceholder": "Mã TX-xxxx...",
@@ -104,7 +104,7 @@
     "receipt": {
       "title": "Thanh toán thành công",
       "cancelledTitle": "Hóa đơn đã hủy",
-      "storeName": "Khamphuvong Jewelry",
+      "storeName": "Khamphouvong Jewelry",
       "columnProduct": "Sản phẩm",
       "columnQty": "Số lượng",
       "columnTotal": "Thành tiền",
@@ -154,7 +154,7 @@
         "label": "Lập đơn Thu Đổi Vàng Cũ",
         "short": "Thu Đổi",
         "abbr": "ĐV",
-        "desc": "Đổi vàng Khamphuvong cũ sang hàng mới"
+        "desc": "Đổi vàng Khamphouvong cũ sang hàng mới"
       },
       "ExchangeCurrency": {
         "label": "Quầy Đổi Ngoại Tệ",
@@ -1321,7 +1321,7 @@
   "auth": {
     "login": {
       "title": "Đăng nhập",
-      "subtitle": "Quản lý cửa hàng Khamphuvong",
+      "subtitle": "Quản lý cửa hàng Khamphouvong",
       "usernameLabel": "Mã nhân viên",
       "usernamePlaceholder": "Ví dụ: NV001",
       "passwordLabel": "Mật khẩu",

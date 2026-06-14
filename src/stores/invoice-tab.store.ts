@@ -170,7 +170,11 @@ export const useInvoiceTabStore = create<InvoiceTabStore>()(
             if (t.id !== activeId) return t;
             const items = qty <= 0
               ? t.items.filter((i) => i.productId !== productId)
-              : t.items.map((i) => i.productId === productId && i.itemRole === 'Normal' ? { ...i, qty } : i);
+              : t.items.map((i) =>
+                  i.productId === productId && i.itemRole === 'Normal'
+                    ? { ...i, qty, weightGramOverride: null }
+                    : i,
+                );
             return { ...t, items };
           }),
         });

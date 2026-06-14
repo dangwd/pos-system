@@ -34,7 +34,7 @@ Content-Type: application/json
 ```jsonc
 {
   // ── THAY ĐỔI MỚI: customerId BẮT BUỘC ──────────────────────────────
-  "customerId": "3fa85f64-5717-4562-b3fc-2c963f66afa6",  // ✅ bắt buộc, không được null/rỗng
+  "customerId": "3fa85f64-5717-4562-b3fc-2c963f66afa6", // ✅ bắt buộc, không được null/rỗng
 
   // ── Loại giao dịch ──────────────────────────────────────────────────
   // Giá trị hợp lệ:
@@ -52,27 +52,27 @@ Content-Type: application/json
   "items": [
     {
       "productId": "uuid",
-      "productName": "Nhẫn vàng 9999 1 chỉ",  // tên snapshot, FE tự điền
+      "productName": "Nhẫn vàng 9999 1 chỉ", // tên snapshot, FE tự điền
       "quantity": 2,
-      "weightUnitId": "uuid",                   // lấy từ API /api/config/weight-units
-      "weightGramOverride": null,               // null = tự tính (qty × unit.gramPerUnit); số thực = cân thực tế (CanThucTe)
-      "unitPriceLak": 1914000,                  // giá nhân viên đã xác nhận trên màn hình (snapshot)
-      "itemRole": 0,                            // 0=Normal | 1=ExchangeIn (vàng đổi vào)
-      "laborFee": 50000,                        // phí gia công (0 nếu không có)
-      "stoneFee": 0,                            // phí đá
-      "haoHutGram": 0,                          // hao hụt (gram)
-      "phiHuHai": 0                             // phí hủy hại
-    }
+      "weightUnitId": "uuid", // lấy từ API /api/config/weight-units
+      "weightGramOverride": null, // null = tự tính (qty × unit.gramPerUnit); số thực = cân thực tế (CanThucTe)
+      "unitPriceLak": 1914000, // giá nhân viên đã xác nhận trên màn hình (snapshot)
+      "itemRole": 0, // 0=Normal | 1=ExchangeIn (vàng đổi vào)
+      "laborFee": 50000, // phí gia công (0 nếu không có)
+      "stoneFee": 0, // phí đá
+      "haoHutGram": 0, // hao hụt (gram)
+      "phiHuHai": 0, // phí hủy hại
+    },
   ],
 
   // ── Thanh toán ───────────────────────────────────────────────────────
-  "paymentMethod": "CASH",  // "CASH" | "BANK" | "COMBINED"
-  "cashAmount": null,       // bắt buộc khi paymentMethod = "COMBINED"
-  "bankAmount": null,       // bắt buộc khi paymentMethod = "COMBINED"
+  "paymentMethod": "CASH", // "CASH" | "BANK" | "COMBINED"
+  "cashAmount": null, // bắt buộc khi paymentMethod = "COMBINED"
+  "bankAmount": null, // bắt buộc khi paymentMethod = "COMBINED"
 
   // ── Ngoại tệ (tuỳ chọn, dùng khi khách trả bằng ngoại tệ) ──────────
-  "currency": null,         // "USD" | "THB" | "LAK" (null = LAK)
-  "exchangeRate": null,     // tỷ giá ngoại tệ → LAK; bắt buộc khi currency != null
+  "currency": null, // "USD" | "THB" | "LAK" (null = LAK)
+  "exchangeRate": null, // tỷ giá ngoại tệ → LAK; bắt buộc khi currency != null
 
   // ── ExchangeCurrency riêng (chỉ dùng khi type=7) ────────────────────
   // Xem doc riêng: "API — Đổi Ngoại Tệ (ExchangeCurrency).md"
@@ -82,23 +82,23 @@ Content-Type: application/json
 
   // ── Tùy chọn ─────────────────────────────────────────────────────────
   "note": "Ghi chú tùy ý",
-  "referenceInvoiceCode": null  // bắt buộc khi type = ExchangeFree (5)
+  "referenceInvoiceCode": null, // bắt buộc khi type = ExchangeFree (5)
 }
 ```
 
 ### Các trường bắt buộc theo từng loại giao dịch
 
-| Trường | SellGold/Silver | BuyGold | ExchangeGold | ExchangeFree | ExchangeCurrency |
-|---|---|---|---|---|---|
-| `customerId` | **bắt buộc** | **bắt buộc** | **bắt buộc** | **bắt buộc** | **bắt buộc** |
-| `items` | bắt buộc | bắt buộc | bắt buộc | bắt buộc | **không dùng** |
-| `paymentMethod` | bắt buộc | bắt buộc | bắt buộc | bắt buộc | bắt buộc |
+| Trường                      | SellGold/Silver  | BuyGold          | ExchangeGold     | ExchangeFree     | ExchangeCurrency |
+| --------------------------- | ---------------- | ---------------- | ---------------- | ---------------- | ---------------- |
+| `customerId`                | **bắt buộc**     | **bắt buộc**     | **bắt buộc**     | **bắt buộc**     | **bắt buộc**     |
+| `items`                     | bắt buộc         | bắt buộc         | bắt buộc         | bắt buộc         | **không dùng**   |
+| `paymentMethod`             | bắt buộc         | bắt buộc         | bắt buộc         | bắt buộc         | bắt buộc         |
 | `cashAmount` + `bankAmount` | chỉ khi COMBINED | chỉ khi COMBINED | chỉ khi COMBINED | chỉ khi COMBINED | chỉ khi COMBINED |
-| `currency` + `exchangeRate` | tùy chọn | tùy chọn | tùy chọn | tùy chọn | — |
-| `referenceInvoiceCode` | — | — | — | **bắt buộc** | — |
-| `foreignAmount` | — | — | — | — | **bắt buộc** |
-| `currency` (nguồn) | — | — | — | — | **bắt buộc** |
-| `exchangeRate` | — | — | — | — | **bắt buộc** |
+| `currency` + `exchangeRate` | tùy chọn         | tùy chọn         | tùy chọn         | tùy chọn         | —                |
+| `referenceInvoiceCode`      | —                | —                | —                | **bắt buộc**     | —                |
+| `foreignAmount`             | —                | —                | —                | —                | **bắt buộc**     |
+| `currency` (nguồn)          | —                | —                | —                | —                | **bắt buộc**     |
+| `exchangeRate`              | —                | —                | —                | —                | **bắt buộc**     |
 
 ### Response thành công
 
@@ -121,10 +121,10 @@ HTTP 201 Created
 
 ### Hai trường per-item trong request
 
-| Trường | Kiểu | Bắt buộc | Mô tả |
-|---|---|---|---|
+| Trường     | Kiểu            | Bắt buộc            | Mô tả                                                         |
+| ---------- | --------------- | ------------------- | ------------------------------------------------------------- |
 | `laborFee` | `decimal` (LAK) | Không, mặc định `0` | Phí gia công thợ kim hoàn (tiền công chế tác, đánh bóng, ...) |
-| `stoneFee` | `decimal` (LAK) | Không, mặc định `0` | Phí đá (đá quý, đá trang trí đính kèm sản phẩm) |
+| `stoneFee` | `decimal` (LAK) | Không, mặc định `0` | Phí đá (đá quý, đá trang trí đính kèm sản phẩm)               |
 
 **Ràng buộc**: cả hai phải `>= 0` — nếu âm server trả `VALIDATION_FAILED`.
 
@@ -141,6 +141,7 @@ TotalAmount = SubtotalAmount - ExchangeCredit + LaborFee + StoneFee
 ```
 
 **Ví dụ**: Bán 2 nhẫn vàng, mỗi nhẫn giá 1.914.000 ₭, phí gia công 50.000/nhẫn, không có phí đá:
+
 ```
 SubtotalAmount = 2 × 1.914.000 = 3.828.000 ₭
 LaborFee       = 50.000 + 50.000 = 100.000 ₭
@@ -196,6 +197,7 @@ POST /api/transactions
 ### Response — phí gia công & đá xuất hiện ở 2 cấp
 
 **Cấp hóa đơn** (tổng hợp từ tất cả items):
+
 ```jsonc
 {
   "subtotalAmount": 5114000,  // tổng tiền hàng (không gồm phí)
@@ -207,6 +209,7 @@ POST /api/transactions
 ```
 
 **Cấp từng item** (chi tiết):
+
 ```jsonc
 {
   "items": [
@@ -253,6 +256,7 @@ POST /api/transactions
 ```
 
 **Lưu ý UI**:
+
 - Mặc định `laborFee = 0` và `stoneFee = 0` — nhân viên chỉ nhập khi có phụ thu
 - Hiển thị dòng phí gia công / phí đá trong bảng tổng kết **chỉ khi > 0** để tránh rối
 - Phí gia công và phí đá **không được âm** — validate tại FE trước khi submit
@@ -272,7 +276,7 @@ Content-Type: application/json
 
 ```jsonc
 {
-  "reason": "Khách đổi ý"  // tùy chọn, có thể null
+  "reason": "Khách đổi ý", // tùy chọn, có thể null
 }
 ```
 
@@ -300,8 +304,8 @@ Authorization: Bearer <accessToken>
 {
   "id": "uuid",
   "invoiceCode": "HD-20260613-0042",
-  "type": 0,                    // enum TransactionType
-  "status": 2,                  // 0=Draft | 1=Pending | 2=Completed | 3=Cancelled
+  "type": 0, // enum TransactionType
+  "status": 2, // 0=Draft | 1=Pending | 2=Completed | 3=Cancelled
   "branchId": "uuid",
   "counterId": "uuid",
   "subtotalAmount": 3828000,
@@ -322,13 +326,13 @@ Authorization: Bearer <accessToken>
       "weightUnitName": "Chỉ",
       "weightGram": 7.5,
       "unitPriceLak": 1914000,
-      "tableUnitPriceLak": 1914000,  // giá bảng tại thời điểm giao dịch
+      "tableUnitPriceLak": 1914000, // giá bảng tại thời điểm giao dịch
       "lineTotal": 3828000,
       "itemRole": 0,
       "laborFee": 50000,
-      "stoneFee": 0
-    }
-  ]
+      "stoneFee": 0,
+    },
+  ],
 }
 ```
 
@@ -345,18 +349,18 @@ Authorization: Bearer <accessToken>
 
 ### Query Parameters
 
-| Tham số | Kiểu | Mô tả |
-|---|---|---|
-| `branchId` | `guid` | Lọc theo chi nhánh |
-| `status` | `int` | 0=Draft \| 1=Pending \| 2=Completed \| 3=Cancelled |
-| `type` | `int` | Loại giao dịch (0–7) |
-| `from` | `datetime` | Từ ngày (ISO 8601) |
-| `to` | `datetime` | Đến ngày (ISO 8601) |
-| `invoiceCode` | `string` | Tìm theo mã hóa đơn |
-| `q` | `string` | Tìm theo tên/SĐT khách hoặc tên sản phẩm |
-| `page` | `int` | Số trang (có → phân trang; không → dùng `limit`) |
-| `pageSize` | `int` | Mặc định `20` |
-| `limit` | `int` | Lấy N bản ghi gần nhất (dùng thay cho phân trang) |
+| Tham số       | Kiểu       | Mô tả                                              |
+| ------------- | ---------- | -------------------------------------------------- |
+| `branchId`    | `guid`     | Lọc theo chi nhánh                                 |
+| `status`      | `int`      | 0=Draft \| 1=Pending \| 2=Completed \| 3=Cancelled |
+| `type`        | `int`      | Loại giao dịch (0–7)                               |
+| `from`        | `datetime` | Từ ngày (ISO 8601)                                 |
+| `to`          | `datetime` | Đến ngày (ISO 8601)                                |
+| `invoiceCode` | `string`   | Tìm theo mã hóa đơn                                |
+| `q`           | `string`   | Tìm theo tên/SĐT khách hoặc tên sản phẩm           |
+| `page`        | `int`      | Số trang (có → phân trang; không → dùng `limit`)   |
+| `pageSize`    | `int`      | Mặc định `20`                                      |
+| `limit`       | `int`      | Lấy N bản ghi gần nhất (dùng thay cho phân trang)  |
 
 ### Response — phân trang (có `page`)
 
@@ -383,7 +387,7 @@ Authorization: Bearer <accessToken>
       "transactedAt": "2026-06-13T08:30:00Z",
       "customer": {              // null nếu không có khách hàng (legacy)
         "id": "uuid",
-        "name": "Somphanh Khamphuvong",
+        "name": "Somphanh Khamphouvong",
         "phoneNumber": "020-1234-5678"
       },
       "items": [...],
@@ -420,11 +424,11 @@ Authorization: Bearer <accessToken>
 
 ### Query Parameters
 
-| Tham số | Mô tả |
-|---|---|
-| `search` hoặc `q` | Tìm theo tên hoặc số điện thoại |
-| `isActive` | `true` = chỉ KH đang hoạt động (khuyến nghị dùng tại POS) |
-| `limit` | Số lượng kết quả tối đa (mặc định `10`) |
+| Tham số           | Mô tả                                                     |
+| ----------------- | --------------------------------------------------------- |
+| `search` hoặc `q` | Tìm theo tên hoặc số điện thoại                           |
+| `isActive`        | `true` = chỉ KH đang hoạt động (khuyến nghị dùng tại POS) |
+| `limit`           | Số lượng kết quả tối đa (mặc định `10`)                   |
 
 ### Response
 
@@ -432,14 +436,14 @@ Authorization: Bearer <accessToken>
 [
   {
     "id": "uuid",
-    "name": "Somphanh Khamphuvong",
+    "name": "Somphanh Khamphouvong",
     "phoneNumber": "020-1234-5678",
     "email": null,
     "loyaltyTier": "Gold",
     "accumulatedPoints": 1500,
     "isActive": true,
-    "createdAt": "2025-01-15T00:00:00Z"
-  }
+    "createdAt": "2025-01-15T00:00:00Z",
+  },
 ]
 ```
 
@@ -451,12 +455,12 @@ POST /api/customers
 
 ```jsonc
 {
-  "name": "Tên khách hàng",       // bắt buộc
+  "name": "Tên khách hàng", // bắt buộc
   "phoneNumber": "020-5678-9012", // khuyến nghị, dùng để tra cứu sau
   "loyaltyTier": null,
   "email": null,
   "address": null,
-  "dateOfBirth": null
+  "dateOfBirth": null,
 }
 ```
 
@@ -483,13 +487,17 @@ POST /api/customers
 function canSubmit(state: POSState): boolean {
   // customerId BẮT BUỘC kể từ commit a51c38b
   if (!state.customerId) return false;
-  if (state.type !== TransactionType.ExchangeCurrency && state.items.length === 0) return false;
+  if (
+    state.type !== TransactionType.ExchangeCurrency &&
+    state.items.length === 0
+  )
+    return false;
   return true;
 }
 
 // Tạo request
 const payload: CreateTransactionRequest = {
-  customerId: state.customerId,  // ← KHÔNG được bỏ qua
+  customerId: state.customerId, // ← KHÔNG được bỏ qua
   type: state.type,
   items: state.items,
   paymentMethod: state.paymentMethod,
@@ -512,25 +520,25 @@ HTTP 422
 
 ## 8. Mã lỗi liên quan
 
-| Mã lỗi | HTTP | Nguyên nhân |
-|---|---|---|
-| `CUSTOMER_REQUIRED` | 422 | `customerId` null hoặc rỗng khi tạo hóa đơn |
-| `CUSTOMER_NOT_FOUND` | 404 | `customerId` không tồn tại trong DB |
-| `VALIDATION_FAILED` | 422 | Các trường khác không hợp lệ (FluentValidation); xem field `errors` trong response |
-| `TRANSACTION_NOT_FOUND` | 404 | UUID hóa đơn không tồn tại |
-| `TRANSACTION_ALREADY_CANCELLED` | 422 | Hóa đơn đã bị hủy, không hủy lại được |
-| `COUNTER_NOT_FOUND` | 422 | Nhân viên chưa được gán quầy |
-| `USER_NOT_FOUND` | 404 | Token hợp lệ nhưng user không còn trong DB |
-| `PRODUCT_NOT_FOUND` | 404 | `productId` không tồn tại |
-| `PRODUCT_WEIGHT_UNIT_REQUIRED` | 422 | Sản phẩm vàng cần `weightUnitId` |
-| `PRODUCT_PRICE_NOT_CONFIGURED` | 422 | Chưa có giá cho độ tinh khiết của sản phẩm |
-| `CONFIG_PRICE_NOT_FOUND` | 422 | Chưa cấu hình bảng giá vàng |
-| `CONFIG_WEIGHT_UNIT_NOT_FOUND` | 404 | Đơn vị trọng lượng không tồn tại |
-| `INVENTORY_NOT_FOUND` | 422 | Quầy không có sản phẩm trong kho để bán |
-| `INVENTORY_INSUFFICIENT_STOCK` | 422 | Số lượng tồn kho không đủ |
-| `EXCHANGE_FREE_REFERENCE_REQUIRED` | 422 | Đổi miễn phí cần `referenceInvoiceCode` |
-| `EXCHANGE_FREE_REFERENCE_NOT_FOUND` | 422 | Mã hóa đơn gốc không tồn tại |
-| `EXCHANGE_FREE_REFERENCE_EXPIRED` | 422 | Hóa đơn gốc quá 30 ngày |
+| Mã lỗi                              | HTTP | Nguyên nhân                                                                        |
+| ----------------------------------- | ---- | ---------------------------------------------------------------------------------- |
+| `CUSTOMER_REQUIRED`                 | 422  | `customerId` null hoặc rỗng khi tạo hóa đơn                                        |
+| `CUSTOMER_NOT_FOUND`                | 404  | `customerId` không tồn tại trong DB                                                |
+| `VALIDATION_FAILED`                 | 422  | Các trường khác không hợp lệ (FluentValidation); xem field `errors` trong response |
+| `TRANSACTION_NOT_FOUND`             | 404  | UUID hóa đơn không tồn tại                                                         |
+| `TRANSACTION_ALREADY_CANCELLED`     | 422  | Hóa đơn đã bị hủy, không hủy lại được                                              |
+| `COUNTER_NOT_FOUND`                 | 422  | Nhân viên chưa được gán quầy                                                       |
+| `USER_NOT_FOUND`                    | 404  | Token hợp lệ nhưng user không còn trong DB                                         |
+| `PRODUCT_NOT_FOUND`                 | 404  | `productId` không tồn tại                                                          |
+| `PRODUCT_WEIGHT_UNIT_REQUIRED`      | 422  | Sản phẩm vàng cần `weightUnitId`                                                   |
+| `PRODUCT_PRICE_NOT_CONFIGURED`      | 422  | Chưa có giá cho độ tinh khiết của sản phẩm                                         |
+| `CONFIG_PRICE_NOT_FOUND`            | 422  | Chưa cấu hình bảng giá vàng                                                        |
+| `CONFIG_WEIGHT_UNIT_NOT_FOUND`      | 404  | Đơn vị trọng lượng không tồn tại                                                   |
+| `INVENTORY_NOT_FOUND`               | 422  | Quầy không có sản phẩm trong kho để bán                                            |
+| `INVENTORY_INSUFFICIENT_STOCK`      | 422  | Số lượng tồn kho không đủ                                                          |
+| `EXCHANGE_FREE_REFERENCE_REQUIRED`  | 422  | Đổi miễn phí cần `referenceInvoiceCode`                                            |
+| `EXCHANGE_FREE_REFERENCE_NOT_FOUND` | 422  | Mã hóa đơn gốc không tồn tại                                                       |
+| `EXCHANGE_FREE_REFERENCE_EXPIRED`   | 422  | Hóa đơn gốc quá 30 ngày                                                            |
 
 ### Cấu trúc response lỗi (VALIDATION_FAILED)
 
@@ -540,8 +548,10 @@ HTTP 422
   "errorCode": "VALIDATION_FAILED",
   "errors": {
     "items": ["Giao dịch phải có ít nhất 1 mặt hàng."],
-    "paymentMethod": ["Phương thức thanh toán phải là CASH, BANK hoặc COMBINED."]
-  }
+    "paymentMethod": [
+      "Phương thức thanh toán phải là CASH, BANK hoặc COMBINED.",
+    ],
+  },
 }
 ```
 

@@ -57,7 +57,7 @@
     },
     "payment": {
       "panel": {
-        "storeName": "Khamphuvong Jewelry",
+        "storeName": "Khamphouvong Jewelry",
         "storeAddress": "Vientiane Main · Chanthabouly",
         "lookupLabel": "Invoice lookup (F6)",
         "lookupPlaceholder": "Code TX-xxxx...",
@@ -104,7 +104,7 @@
     "receipt": {
       "title": "Payment successful",
       "cancelledTitle": "Invoice cancelled",
-      "storeName": "Khamphuvong Jewelry",
+      "storeName": "Khamphouvong Jewelry",
       "columnProduct": "Product",
       "columnQty": "Qty",
       "columnTotal": "Total",
@@ -154,7 +154,7 @@
         "label": "Exchange Old Gold",
         "short": "Exchange",
         "abbr": "XG",
-        "desc": "Exchange Khamphuvong gold for new items"
+        "desc": "Exchange Khamphouvong gold for new items"
       },
       "ExchangeCurrency": {
         "label": "Currency Exchange",
@@ -1325,7 +1325,7 @@
   "auth": {
     "login": {
       "title": "Sign in",
-      "subtitle": "Khamphuvong Jewelry Management",
+      "subtitle": "Khamphouvong Jewelry Management",
       "usernameLabel": "Employee code",
       "usernamePlaceholder": "e.g. NV001",
       "passwordLabel": "Password",

@@ -1,41 +1,57 @@
-"use client"
+"use client";
 
-import { Button } from "@/components/ui/button"
-import { Dialog, DialogContent, DialogFooter } from "@/components/ui/dialog"
-import { INVOICE_TITLE, usePrintStore } from "@/stores/print.store"
-import type { PrintInvoice, PrintItem } from "@/stores/print.store"
-import { Printer, X } from "lucide-react"
+import { Button } from "@/components/ui/button";
+import { Dialog, DialogContent, DialogFooter } from "@/components/ui/dialog";
+import type { PrintInvoice, PrintItem } from "@/stores/print.store";
+import { INVOICE_TITLE, usePrintStore } from "@/stores/print.store";
+import { Printer, X } from "lucide-react";
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 
 function kip(amount: number) {
-  return amount.toLocaleString("lo-LA") + " ₭"
+  return amount.toLocaleString("lo-LA") + " ₭";
 }
 
 function fmtDate(iso: string) {
-  const d = new Date(iso)
-  const dd = d.getDate().toString().padStart(2, "0")
-  const mm = (d.getMonth() + 1).toString().padStart(2, "0")
-  const yyyy = d.getFullYear()
-  return `${dd}/${mm}/${yyyy}`
+  const d = new Date(iso);
+  const dd = d.getDate().toString().padStart(2, "0");
+  const mm = (d.getMonth() + 1).toString().padStart(2, "0");
+  const yyyy = d.getFullYear();
+  return `${dd}/${mm}/${yyyy}`;
 }
 
 function fmtTime(iso: string) {
-  const d = new Date(iso)
-  return `${d.getHours().toString().padStart(2, "0")}:${d.getMinutes().toString().padStart(2, "0")}`
+  const d = new Date(iso);
+  return `${d.getHours().toString().padStart(2, "0")}:${d.getMinutes().toString().padStart(2, "0")}`;
 }
 
 // ─── Sub-components ──────────────────────────────────────────────────────────
 
-function InvoiceRow({ item, amber = false }: { item: PrintItem; amber?: boolean }) {
+function InvoiceRow({
+  item,
+  amber = false,
+}: {
+  item: PrintItem;
+  amber?: boolean;
+}) {
   return (
     <tr className={amber ? "bg-amber-50" : undefined}>
-      <td className="border border-gray-400 px-1 py-[2px] text-center">{item.stt}</td>
-      <td className="border border-gray-400 px-2 py-[2px]">{item.productName}</td>
-      <td className="border border-gray-400 px-1 py-[2px] text-center">{item.unitName || "—"}</td>
-      <td className="border border-gray-400 px-1 py-[2px] text-center">{item.quantity}</td>
+      <td className="border border-gray-400 px-1 py-[2px] text-center">
+        {item.stt}
+      </td>
+      <td className="border border-gray-400 px-2 py-[2px]">
+        {item.productName}
+      </td>
+      <td className="border border-gray-400 px-1 py-[2px] text-center">
+        {item.unitName || "—"}
+      </td>
+      <td className="border border-gray-400 px-1 py-[2px] text-center">
+        {item.quantity}
+      </td>
       <td className="border border-gray-400 px-2 py-[2px] text-right tabular-nums">
-        {item.unitPriceLak > 0 ? item.unitPriceLak.toLocaleString("lo-LA") : "—"}
+        {item.unitPriceLak > 0
+          ? item.unitPriceLak.toLocaleString("lo-LA")
+          : "—"}
       </td>
       <td className="border border-gray-400 px-2 py-[2px] text-right tabular-nums">
         {item.laborFee > 0 ? item.laborFee.toLocaleString("lo-LA") : "—"}
@@ -43,20 +59,22 @@ function InvoiceRow({ item, amber = false }: { item: PrintItem; amber?: boolean 
       <td className="border border-gray-400 px-2 py-[2px] text-right tabular-nums">
         {item.stoneFee > 0 ? item.stoneFee.toLocaleString("lo-LA") : "—"}
       </td>
-      <td className={`border border-gray-400 px-2 py-[2px] text-right font-semibold tabular-nums ${amber ? "text-amber-700" : ""}`}>
+      <td
+        className={`border border-gray-400 px-2 py-[2px] text-right font-semibold tabular-nums ${amber ? "text-amber-700" : ""}`}
+      >
         {amber
           ? `(${item.lineTotal.toLocaleString("lo-LA")})`
           : item.lineTotal.toLocaleString("lo-LA")}
       </td>
     </tr>
-  )
+  );
 }
 
 // ─── Print template ──────────────────────────────────────────────────────────
 
 function InvoiceTemplate({ inv }: { inv: PrintInvoice }) {
-  const title = INVOICE_TITLE[inv.txnType]
-  const isFx = inv.txnType === "ExchangeCurrency"
+  const title = INVOICE_TITLE[inv.txnType];
+  const isFx = inv.txnType === "ExchangeCurrency";
 
   return (
     <div
@@ -65,13 +83,19 @@ function InvoiceTemplate({ inv }: { inv: PrintInvoice }) {
     >
       {/* ── Store header ─────────────────────────────────── */}
       <div className="text-center mb-3">
-        <p className="font-black text-base uppercase tracking-wide">ຮ້ານຄຳຂາມພຸວົງ · Khamphuvong Jewelry</p>
-        <p className="text-[11px]">ບ. ດົງໂດກ, ເມືອງໄຊເສດຖາ, ນະຄອນຫຼວງວຽງຈັນ · (021) 000-000</p>
+        <p className="font-black text-base uppercase tracking-wide">
+          ຮ້ານຄຳຂາມພຸວົງ · Khamphouvong Jewelry
+        </p>
+        <p className="text-[11px]">
+          ບ. ດົງໂດກ, ເມືອງໄຊເສດຖາ, ນະຄອນຫຼວງວຽງຈັນ · (021) 000-000
+        </p>
       </div>
 
       {/* ── Invoice title ─────────────────────────────────── */}
       <div className="text-center border-y-2 border-black py-2 mb-3">
-        <p className="font-black text-lg tracking-widest uppercase">{title.vi}</p>
+        <p className="font-black text-lg tracking-widest uppercase">
+          {title.vi}
+        </p>
         <p className="text-[13px]">{title.lo}</p>
       </div>
 
@@ -107,7 +131,9 @@ function InvoiceTemplate({ inv }: { inv: PrintInvoice }) {
         <div className="border border-gray-400 rounded p-3 mb-3 text-center space-y-1">
           <div className="flex justify-center items-center gap-6">
             <div>
-              <p className="text-[10px] text-gray-500">Ngoại tệ / ເງິນຕ່າງປະເທດ</p>
+              <p className="text-[10px] text-gray-500">
+                Ngoại tệ / ເງິນຕ່າງປະເທດ
+              </p>
               <p className="font-black text-base tabular-nums">
                 {(inv.cashAmount ?? 0).toLocaleString("lo-LA")} {inv.currency}
               </p>
@@ -115,12 +141,15 @@ function InvoiceTemplate({ inv }: { inv: PrintInvoice }) {
             <p className="text-xl font-bold">→</p>
             <div>
               <p className="text-[10px] text-gray-500">Tiền LAK / ເງິນກີບ</p>
-              <p className="font-black text-base tabular-nums">{kip(inv.totalAmount)}</p>
+              <p className="font-black text-base tabular-nums">
+                {kip(inv.totalAmount)}
+              </p>
             </div>
           </div>
           {inv.exchangeRate && inv.currency && (
             <p className="text-[10px] text-gray-500">
-              Tỷ giá: 1 {inv.currency} = {inv.exchangeRate.toLocaleString("lo-LA")} ₭
+              Tỷ giá: 1 {inv.currency} ={" "}
+              {inv.exchangeRate.toLocaleString("lo-LA")} ₭
             </p>
           )}
         </div>
@@ -131,14 +160,30 @@ function InvoiceTemplate({ inv }: { inv: PrintInvoice }) {
         <table className="w-full text-[11px] border-collapse mb-3">
           <thead>
             <tr className="bg-gray-100">
-              <th className="border border-gray-400 px-1 py-1 text-center w-7">STT</th>
-              <th className="border border-gray-400 px-2 py-1 text-left">Tên hàng / ຊື່ສິນຄ້າ</th>
-              <th className="border border-gray-400 px-1 py-1 text-center w-12">ĐVT</th>
-              <th className="border border-gray-400 px-1 py-1 text-center w-8">SL</th>
-              <th className="border border-gray-400 px-2 py-1 text-right w-24">Đơn giá ₭</th>
-              <th className="border border-gray-400 px-2 py-1 text-right w-20">T. công ₭</th>
-              <th className="border border-gray-400 px-2 py-1 text-right w-16">Đá ₭</th>
-              <th className="border border-gray-400 px-2 py-1 text-right w-24">Thành tiền ₭</th>
+              <th className="border border-gray-400 px-1 py-1 text-center w-7">
+                STT
+              </th>
+              <th className="border border-gray-400 px-2 py-1 text-left">
+                Tên hàng / ຊື່ສິນຄ້າ
+              </th>
+              <th className="border border-gray-400 px-1 py-1 text-center w-12">
+                ĐVT
+              </th>
+              <th className="border border-gray-400 px-1 py-1 text-center w-8">
+                SL
+              </th>
+              <th className="border border-gray-400 px-2 py-1 text-right w-24">
+                Đơn giá ₭
+              </th>
+              <th className="border border-gray-400 px-2 py-1 text-right w-20">
+                T. công ₭
+              </th>
+              <th className="border border-gray-400 px-2 py-1 text-right w-16">
+                Đá ₭
+              </th>
+              <th className="border border-gray-400 px-2 py-1 text-right w-24">
+                Thành tiền ₭
+              </th>
             </tr>
           </thead>
           <tbody>
@@ -233,24 +278,24 @@ function InvoiceTemplate({ inv }: { inv: PrintInvoice }) {
 
       {/* ── Signatures ────────────────────────────────────── */}
       <div className="grid grid-cols-3 gap-4 text-[11px] text-center mt-8">
-        {(["Khách hàng", "Thu ngân / NV bán", "Quản lý / ຜູ້ຈັດການ"] as const).map(
-          (role, i) => (
-            <div key={role}>
-              <p className="font-semibold">{role}</p>
-              <div className="h-14 border-b border-black mt-8" />
-              <p className="mt-1">
-                {i === 0
-                  ? (inv.customerName ?? "...............................")
-                  : i === 1
+        {(
+          ["Khách hàng", "Thu ngân / NV bán", "Quản lý / ຜູ້ຈັດການ"] as const
+        ).map((role, i) => (
+          <div key={role}>
+            <p className="font-semibold">{role}</p>
+            <div className="h-14 border-b border-black mt-8" />
+            <p className="mt-1">
+              {i === 0
+                ? (inv.customerName ?? "...............................")
+                : i === 1
                   ? inv.cashierName
                   : "..............................."}
-              </p>
-            </div>
-          )
-        )}
+            </p>
+          </div>
+        ))}
       </div>
     </div>
-  )
+  );
 }
 
 function Row({ label, value }: { label: string; value: string }) {
@@ -259,13 +304,13 @@ function Row({ label, value }: { label: string; value: string }) {
       <span className="font-semibold w-40 shrink-0">{label}:</span>
       <span>{value}</span>
     </div>
-  )
+  );
 }
 
 // ─── Modal ───────────────────────────────────────────────────────────────────
 
 export function PrintInvoiceModal() {
-  const { isOpen, invoice, closePrint, triggerPrint } = usePrintStore()
+  const { isOpen, invoice, closePrint, triggerPrint } = usePrintStore();
 
   return (
     <>
@@ -310,11 +355,14 @@ export function PrintInvoiceModal() {
             </DialogFooter>
           }
         >
-          <div className="overflow-y-auto pr-1" style={{ maxHeight: "calc(90vh - 130px)" }}>
+          <div
+            className="overflow-y-auto pr-1"
+            style={{ maxHeight: "calc(90vh - 130px)" }}
+          >
             {invoice && <InvoiceTemplate inv={invoice} />}
           </div>
         </DialogContent>
       </Dialog>
     </>
-  )
+  );
 }

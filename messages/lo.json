@@ -57,7 +57,7 @@
     },
     "payment": {
       "panel": {
-        "storeName": "Khamphuvong Jewelry",
+        "storeName": "Khamphouvong Jewelry",
         "storeAddress": "Vientiane Main · Chanthabouly",
         "lookupLabel": "ຄົ້ນຫາໃບບິນ (F6)",
         "lookupPlaceholder": "ລະຫັດ TX-xxxx...",
@@ -104,7 +104,7 @@
     "receipt": {
       "title": "ຊຳລະສຳເລັດ",
       "cancelledTitle": "ໃບບິນຖືກຍົກເລີກ",
-      "storeName": "Khamphuvong Jewelry",
+      "storeName": "Khamphouvong Jewelry",
       "columnProduct": "ສິນຄ້າ",
       "columnQty": "ຈຳນວນ",
       "columnTotal": "ລວມ",
@@ -154,7 +154,7 @@
         "label": "ແລກປ່ຽນທອງເກົ່າ",
         "short": "ແລກທອງ",
         "abbr": "ແທ",
-        "desc": "ແລກທອງ Khamphuvong ເກົ່າເປັນສິນຄ້າໃໝ່"
+        "desc": "ແລກທອງ Khamphouvong ເກົ່າເປັນສິນຄ້າໃໝ່"
       },
       "ExchangeCurrency": {
         "label": "ແລກປ່ຽນເງິນຕ່າງປະເທດ",
@@ -1321,7 +1321,7 @@
   "auth": {
     "login": {
       "title": "ເຂົ້າສູ່ລະບົບ",
-      "subtitle": "ຈັດການຮ້ານ Khamphuvong",
+      "subtitle": "ຈັດການຮ້ານ Khamphouvong",
       "usernameLabel": "ລະຫັດພະນັກງານ",
       "usernamePlaceholder": "ຕົວຢ່າງ: NV001",
       "passwordLabel": "ລະຫັດຜ່ານ",

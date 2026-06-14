@@ -1,6 +1,6 @@
 # Nghiệp vụ — Mua Vàng & Thu Đổi Vàng Cũ
 
-> Tài liệu chi tiết end-to-end cho 2 màn hình: **Lập đơn Mua Vàng** (`BuyGold`) và **Thu Đổi Vàng Cũ** (`ExchangeGold`).  
+> Tài liệu chi tiết end-to-end cho 2 màn hình: **Lập đơn Mua Vàng** (`BuyGold`) và **Thu Đổi Vàng Cũ** (`ExchangeGold`).
 > Bao gồm luồng UI, state management, công thức tính toán, request/response API và xử lý backend.
 
 ---
@@ -34,17 +34,17 @@
 
 ## 1. So sánh tổng quan 2 nghiệp vụ
 
-| Tiêu chí | Mua Vàng (`BuyGold`) | Thu Đổi Vàng Cũ (`ExchangeGold`) |
-|---|---|---|
-| **Mã hóa đơn** | `MV-YYYYMMDD-NNNN` | `DV-YYYYMMDD-NNNN` |
-| **Ai trả tiền** | Tiệm trả tiền cho khách | Tính chênh lệch; khách trả thêm hoặc tiệm trả lại |
-| **Hướng kho** | IN — nhập kho | IN (vàng cũ) + OUT (vàng mới) |
-| **Giá áp dụng** | `goldSellPricePerChi` (giá mua vào) | ExchangeIn: `goldSellPricePerChi`; Normal: `goldBuyPricePerChi` |
-| **ItemRole** | `Normal` | `ExchangeIn` (hàng cũ) + `Normal` (hàng mới) |
-| **Hóa đơn liên kết** | ❌ Không | ✅ Tùy chọn — liên kết HĐ bán vàng cũ |
-| **PHÍ KHÒ / LAO SUT** | ❌ Không | ✅ Có — nhập tay per item |
-| **Layout POS** | Cột đơn tiêu chuẩn | **2 panel dọc** (hàng cũ + hàng mới) |
-| **Tổng tiền hiển thị** | "TIỆM PHẢI CHI" | Có thể dương (thu thêm) hoặc âm (chi trả) |
+| Tiêu chí               | Mua Vàng (`BuyGold`)                | Thu Đổi Vàng Cũ (`ExchangeGold`)                                |
+| ---------------------- | ----------------------------------- | --------------------------------------------------------------- |
+| **Mã hóa đơn**         | `MV-YYYYMMDD-NNNN`                  | `DV-YYYYMMDD-NNNN`                                              |
+| **Ai trả tiền**        | Tiệm trả tiền cho khách             | Tính chênh lệch; khách trả thêm hoặc tiệm trả lại               |
+| **Hướng kho**          | IN — nhập kho                       | IN (vàng cũ) + OUT (vàng mới)                                   |
+| **Giá áp dụng**        | `goldSellPricePerChi` (giá mua vào) | ExchangeIn: `goldSellPricePerChi`; Normal: `goldBuyPricePerChi` |
+| **ItemRole**           | `Normal`                            | `ExchangeIn` (hàng cũ) + `Normal` (hàng mới)                    |
+| **Hóa đơn liên kết**   | ❌ Không                            | ✅ Tùy chọn — liên kết HĐ bán vàng cũ                           |
+| **PHÍ KHÒ / LAO SUT**  | ❌ Không                            | ✅ Có — nhập tay per item                                       |
+| **Layout POS**         | Cột đơn tiêu chuẩn                  | **2 panel dọc** (hàng cũ + hàng mới)                            |
+| **Tổng tiền hiển thị** | "TIỆM PHẢI CHI"                     | Có thể dương (thu thêm) hoặc âm (chi trả)                       |
 
 ---
 
@@ -252,8 +252,9 @@ Component: `components/pos/ExchangeInvoiceLookup.tsx`
 ```
 
 **Khi xóa liên kết:**
+
 ```typescript
-pos.clearLinkedInvoice()
+pos.clearLinkedInvoice();
 // → Xóa toàn bộ items có key nằm trong linkedInvoiceItemKeys
 // → Reset linkedInvoiceCode, linkedInvoiceTotalAmount
 ```
@@ -340,7 +341,7 @@ netTotal = totalA - totalB - voucher
 ```
 Khách đổi nhẫn vàng cũ 2 chỉ (có LAO SUT 0.2 chỉ, PHÍ KHÒ 50,000₭)
   goldSellPricePerChi = 3,700,000 ₭/chỉ
-  
+
   itemLineTotal (ExchangeIn) =
     2 × 3,700,000
     - 50,000                           ← PHÍ KHÒ
@@ -350,7 +351,7 @@ Khách đổi nhẫn vàng cũ 2 chỉ (có LAO SUT 0.2 chỉ, PHÍ KHÒ 50,000�
 
 Khách lấy vòng vàng mới 2 chỉ, công thợ 100,000₭
   goldBuyPricePerChi = 3,800,000 ₭/chỉ
-  
+
   itemLineTotal (Normal) =
     2 × 3,800,000 + 100,000
     = 7,700,000 ₭
@@ -361,7 +362,7 @@ netTotal = 7,700,000 - 6,610,000 = 1,090,000 ₭
 
 ### 3.5 Encoding PHÍ KHÒ / LAO SUT lên backend
 
-`TransactionItemRequest` không có trường riêng cho PHÍ KHÒ và LAO SUT của ExchangeGold.  
+`TransactionItemRequest` không có trường riêng cho PHÍ KHÒ và LAO SUT của ExchangeGold.
 Frontend encode như sau trong `posStore.toBackendItems()`:
 
 ```typescript
@@ -388,7 +389,7 @@ Frontend encode như sau trong `posStore.toBackendItems()`:
 }
 ```
 
-> **Backend** lưu `haoHutGram` và `phiHuHai` vào `TransactionItem` entity (dùng cho báo cáo).  
+> **Backend** lưu `haoHutGram` và `phiHuHai` vào `TransactionItem` entity (dùng cho báo cáo).
 > **ReceiptModal** parse lại chuỗi `[PHÍ KHÒ: ... | LAO SUT: ...]` để hiển thị đẹp trên phiếu.
 
 ### 3.6 Request gửi lên API
@@ -440,17 +441,17 @@ Frontend encode như sau trong `posStore.toBackendItems()`:
 
 File: `Application/Validators/CreateTransactionValidator.cs`
 
-| Rule | Điều kiện | Lỗi trả về |
-|---|---|---|
-| `Items.NotEmpty` | Phải có ít nhất 1 item | `VALIDATION_FAILED` |
-| `Items.Count <= 50` | Tối đa 50 dòng | `VALIDATION_FAILED` |
-| `PaymentMethod` | Phải là `"CASH"` hoặc `"BANK"` | `VALIDATION_FAILED` |
-| `ProductId.NotEmpty` | Mỗi item có ProductId | `VALIDATION_FAILED` |
-| `ProductName.MaxLength(200)` | Tên SP tối đa 200 ký tự | `VALIDATION_FAILED` |
-| `Quantity > 0` | Số lượng dương | `VALIDATION_FAILED` |
-| `UnitPriceLak >= 0` | Đơn giá không âm | `VALIDATION_FAILED` |
-| `LaborFee >= 0` | Phí công không âm | `VALIDATION_FAILED` |
-| `StoneFee >= 0` | Phí đá không âm | `VALIDATION_FAILED` |
+| Rule                         | Điều kiện                      | Lỗi trả về          |
+| ---------------------------- | ------------------------------ | ------------------- |
+| `Items.NotEmpty`             | Phải có ít nhất 1 item         | `VALIDATION_FAILED` |
+| `Items.Count <= 50`          | Tối đa 50 dòng                 | `VALIDATION_FAILED` |
+| `PaymentMethod`              | Phải là `"CASH"` hoặc `"BANK"` | `VALIDATION_FAILED` |
+| `ProductId.NotEmpty`         | Mỗi item có ProductId          | `VALIDATION_FAILED` |
+| `ProductName.MaxLength(200)` | Tên SP tối đa 200 ký tự        | `VALIDATION_FAILED` |
+| `Quantity > 0`               | Số lượng dương                 | `VALIDATION_FAILED` |
+| `UnitPriceLak >= 0`          | Đơn giá không âm               | `VALIDATION_FAILED` |
+| `LaborFee >= 0`              | Phí công không âm              | `VALIDATION_FAILED` |
+| `StoneFee >= 0`              | Phí đá không âm                | `VALIDATION_FAILED` |
 
 > Validation chạy **trước** handler qua `ValidationBehavior` (MediatR pipeline).
 
@@ -600,36 +601,36 @@ TotalAmount = SubtotalAmount - exchangeInTotal + LaborFee + StoneFee;
 
 File: `Domain/Entities/Transaction.cs`
 
-| Property | Kiểu | Ghi chú |
-|---|---|---|
-| `Id` | `Guid` | PK |
-| `InvoiceCode` | `string` | Auto: `MV-YYYYMMDD-NNNN` (BuyGold), `DV-...` (ExchangeGold) |
-| `Type` | `TransactionType` | `BuyGold` hoặc `ExchangeGold` |
-| `Status` | `TransactionStatus` | `Draft` → `Pending` → `Approved` → `Completed` |
-| `BranchId` | `Guid` | Lấy từ nhân viên đăng nhập |
-| `CounterId` | `Guid` | Lấy từ nhân viên đăng nhập |
-| `CashierId` | `Guid` | JWT `sub` |
-| `SubtotalAmount` | `decimal` | Tổng Normal items |
-| `TotalAmount` | `decimal` | Số tiền thực thu/chi sau cấn trừ |
-| `ReferenceInvoiceCode` | `string?` | Mã HĐ gốc (ExchangeGold tùy chọn) |
-| `DepositAmount` | `decimal` | Đặt cọc (nếu có) |
-| `CustomerId` | `Guid?` | Khách hàng (tùy chọn nhưng khuyến nghị) |
-| `TransactedAt` | `DateTime` | UTC, set khi Create |
+| Property               | Kiểu                | Ghi chú                                                     |
+| ---------------------- | ------------------- | ----------------------------------------------------------- |
+| `Id`                   | `Guid`              | PK                                                          |
+| `InvoiceCode`          | `string`            | Auto: `MV-YYYYMMDD-NNNN` (BuyGold), `DV-...` (ExchangeGold) |
+| `Type`                 | `TransactionType`   | `BuyGold` hoặc `ExchangeGold`                               |
+| `Status`               | `TransactionStatus` | `Draft` → `Pending` → `Approved` → `Completed`              |
+| `BranchId`             | `Guid`              | Lấy từ nhân viên đăng nhập                                  |
+| `CounterId`            | `Guid`              | Lấy từ nhân viên đăng nhập                                  |
+| `CashierId`            | `Guid`              | JWT `sub`                                                   |
+| `SubtotalAmount`       | `decimal`           | Tổng Normal items                                           |
+| `TotalAmount`          | `decimal`           | Số tiền thực thu/chi sau cấn trừ                            |
+| `ReferenceInvoiceCode` | `string?`           | Mã HĐ gốc (ExchangeGold tùy chọn)                           |
+| `DepositAmount`        | `decimal`           | Đặt cọc (nếu có)                                            |
+| `CustomerId`           | `Guid?`             | Khách hàng (tùy chọn nhưng khuyến nghị)                     |
+| `TransactedAt`         | `DateTime`          | UTC, set khi Create                                         |
 
 ### TransactionItem
 
 File: `Domain/Entities/TransactionItem.cs`
 
-| Property | Kiểu | Ghi chú |
-|---|---|---|
-| `ItemRole` | `ItemRole` | `Normal` hoặc `ExchangeIn` |
-| `UnitPriceLak` | `decimal` | Giá cashier nhập — **snapshot tại thời điểm GD** |
-| `TableUnitPriceLak` | `decimal` | Giá bảng reference (không tính tiền) |
-| `WeightGram` | `decimal` | Trọng lượng thực (sau LAO SUT) |
-| `LineTotal` | `decimal` | `Quantity × UnitPriceLak` |
-| `HaoHutGram` | `decimal` | LAO SUT (gram) — ExchangeGold |
-| `PhiHuHai` | `decimal` | PHÍ KHÒ (kip) — ExchangeGold |
-| `PriceConfigItemId` | `Guid?` | FK → dòng bảng giá (nullable) |
+| Property            | Kiểu       | Ghi chú                                          |
+| ------------------- | ---------- | ------------------------------------------------ |
+| `ItemRole`          | `ItemRole` | `Normal` hoặc `ExchangeIn`                       |
+| `UnitPriceLak`      | `decimal`  | Giá cashier nhập — **snapshot tại thời điểm GD** |
+| `TableUnitPriceLak` | `decimal`  | Giá bảng reference (không tính tiền)             |
+| `WeightGram`        | `decimal`  | Trọng lượng thực (sau LAO SUT)                   |
+| `LineTotal`         | `decimal`  | `Quantity × UnitPriceLak`                        |
+| `HaoHutGram`        | `decimal`  | LAO SUT (gram) — ExchangeGold                    |
+| `PhiHuHai`          | `decimal`  | PHÍ KHÒ (kip) — ExchangeGold                     |
+| `PriceConfigItemId` | `Guid?`    | FK → dòng bảng giá (nullable)                    |
 
 ---
 
@@ -704,7 +705,7 @@ Component: `components/pos/ReceiptModal.tsx`
 
 ```
 ┌─────────────────────────────────────────┐
-│  [LOGO]  KHAMPHUVONG GOLD & SILVER      │
+│  [LOGO]  Khamphouvong GOLD & SILVER      │
 │  PHIẾU MUA VÀNG                         │
 │  MV-20250615-0023    15/06/2025 14:30   │
 │─────────────────────────────────────────│
@@ -745,29 +746,27 @@ Component: `components/pos/ReceiptModal.tsx`
 
 ```typescript
 // ReceiptModal.tsx
-if (transaction.totalAmount >= 0)
-  label = "★ KHÁCH THANH TOÁN TIỆM (THU IN):"
-else
-  label = "💵 TIỆM THANH TOÁN KHÁCH (CHI OUT):"
+if (transaction.totalAmount >= 0) label = "★ KHÁCH THANH TOÁN TIỆM (THU IN):";
+else label = "💵 TIỆM THANH TOÁN KHÁCH (CHI OUT):";
 
-displayAmount = Math.abs(transaction.totalAmount)
+displayAmount = Math.abs(transaction.totalAmount);
 ```
 
 ---
 
 ## 9. Mã lỗi & xử lý ngoại lệ
 
-| Mã lỗi | HTTP | Nguyên nhân | Cách sửa |
-|---|---|---|---|
-| `USER_NOT_FOUND` | 404 | JWT `sub` không khớp user trong DB | Đăng xuất & đăng nhập lại |
-| `COUNTER_NOT_FOUND` | 422 | Nhân viên chưa được phân công quầy | Admin phân công quầy qua `PATCH /api/users/{id}/counter` |
-| `PRODUCT_NOT_FOUND` | 404 | ProductId không tồn tại | Kiểm tra lại ID sản phẩm |
-| `PRODUCT_PRICE_NOT_CONFIGURED` | 422 | Thiếu `weightUnitId` hoặc không có dòng bảng giá khớp (GoldPurityId + WeightUnitId) | Gửi đúng `weightUnitId`; kiểm tra bảng giá đã cấu hình đủ đơn vị chưa |
-| `CONFIG_PRICE_NOT_FOUND` | 422 | Chưa có bảng giá vàng nào | Manager tạo bảng giá qua `PUT /api/config/prices` |
-| `CONFIG_WEIGHT_UNIT_NOT_FOUND` | 404 | Đơn vị "Chỉ" chưa được seed | Seed lại dữ liệu |
-| `INVENTORY_NOT_FOUND` | 422 | Sản phẩm không tồn tại trong kho quầy (chỉ khi OUT) | Kiểm tra tồn kho quầy |
-| `INVENTORY_INSUFFICIENT_STOCK` | 422 | Tồn kho không đủ số lượng | Kiểm tra & nhập thêm hàng |
-| `VALIDATION_FAILED` | 422 | Dữ liệu request không hợp lệ | Xem `errors[]` trong response |
+| Mã lỗi                         | HTTP | Nguyên nhân                                                                         | Cách sửa                                                              |
+| ------------------------------ | ---- | ----------------------------------------------------------------------------------- | --------------------------------------------------------------------- |
+| `USER_NOT_FOUND`               | 404  | JWT `sub` không khớp user trong DB                                                  | Đăng xuất & đăng nhập lại                                             |
+| `COUNTER_NOT_FOUND`            | 422  | Nhân viên chưa được phân công quầy                                                  | Admin phân công quầy qua `PATCH /api/users/{id}/counter`              |
+| `PRODUCT_NOT_FOUND`            | 404  | ProductId không tồn tại                                                             | Kiểm tra lại ID sản phẩm                                              |
+| `PRODUCT_PRICE_NOT_CONFIGURED` | 422  | Thiếu `weightUnitId` hoặc không có dòng bảng giá khớp (GoldPurityId + WeightUnitId) | Gửi đúng `weightUnitId`; kiểm tra bảng giá đã cấu hình đủ đơn vị chưa |
+| `CONFIG_PRICE_NOT_FOUND`       | 422  | Chưa có bảng giá vàng nào                                                           | Manager tạo bảng giá qua `PUT /api/config/prices`                     |
+| `CONFIG_WEIGHT_UNIT_NOT_FOUND` | 404  | Đơn vị "Chỉ" chưa được seed                                                         | Seed lại dữ liệu                                                      |
+| `INVENTORY_NOT_FOUND`          | 422  | Sản phẩm không tồn tại trong kho quầy (chỉ khi OUT)                                 | Kiểm tra tồn kho quầy                                                 |
+| `INVENTORY_INSUFFICIENT_STOCK` | 422  | Tồn kho không đủ số lượng                                                           | Kiểm tra & nhập thêm hàng                                             |
+| `VALIDATION_FAILED`            | 422  | Dữ liệu request không hợp lệ                                                        | Xem `errors[]` trong response                                         |
 
 **Format response lỗi:**
 

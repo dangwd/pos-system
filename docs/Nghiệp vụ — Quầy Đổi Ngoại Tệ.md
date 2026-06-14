@@ -31,16 +31,16 @@
 
 ## 1. Tổng quan nghiệp vụ
 
-| Tiêu chí | Giá trị |
-|---|---|
-| `TransactionType` | `ExchangeCurrency` |
-| Mã phiếu | `NT-YYYYMMDD-NNNN` |
-| Hướng kho | **Không ảnh hưởng** — bỏ qua hoàn toàn |
-| Giá trị lưu | Quy đổi về LAK (`fxLakAmount`) |
-| Số item trong đơn | **Luôn 1** — synthetic item mã hóa thông tin FX |
-| Phí gia công / đá | Không áp dụng |
-| Phân quyền tạo | `TRANSACTION_CREATE` (Cashier trở lên) |
-| Phân quyền cập nhật tỷ giá | `CONFIG_PRICE` (Manager trở lên) |
+| Tiêu chí                   | Giá trị                                         |
+| -------------------------- | ----------------------------------------------- |
+| `TransactionType`          | `ExchangeCurrency`                              |
+| Mã phiếu                   | `NT-YYYYMMDD-NNNN`                              |
+| Hướng kho                  | **Không ảnh hưởng** — bỏ qua hoàn toàn          |
+| Giá trị lưu                | Quy đổi về LAK (`fxLakAmount`)                  |
+| Số item trong đơn          | **Luôn 1** — synthetic item mã hóa thông tin FX |
+| Phí gia công / đá          | Không áp dụng                                   |
+| Phân quyền tạo             | `TRANSACTION_CREATE` (Cashier trở lên)          |
+| Phân quyền cập nhật tỷ giá | `CONFIG_PRICE` (Manager trở lên)                |
 
 **Luồng tóm tắt:**
 
@@ -91,6 +91,7 @@ public class ExchangeRate
 ```
 
 **Ví dụ:**
+
 ```
 RateToLak  = 14,200  (tỷ giá thị trường: 1 USD = 14,200 ₭)
 Adjustment =    100  (spread tiệm thu thêm)
@@ -107,6 +108,7 @@ Authorization: Bearer <token>
 ```
 
 Response `200 OK`:
+
 ```json
 [
   {
@@ -136,6 +138,7 @@ Authorization: Bearer <token>  (policy: CONFIG_PRICE — Manager trở lên)
 ```
 
 Request body:
+
 ```json
 {
   "currencyCode": "USD",
@@ -146,7 +149,7 @@ Request body:
 
 Response `200 OK`: Trả về bản ghi `ExchangeRate` vừa tạo.
 
-> Mỗi lần gọi endpoint này đều **tạo bản ghi mới** (append-only) — không ghi đè bản ghi cũ.  
+> Mỗi lần gọi endpoint này đều **tạo bản ghi mới** (append-only) — không ghi đè bản ghi cũ.
 > Backend tự lấy bản ghi mới nhất theo `effectiveFrom` khi cashier dùng POS.
 
 ### 2.3 Lịch sử tỷ giá — append-only
@@ -198,6 +201,7 @@ POS Page (khi defaultType = "ExchangeCurrency")
 ```
 
 Điều kiện render FX form:
+
 ```typescript
 // page.tsx
 const hasExchangeCurrency =
@@ -228,10 +232,12 @@ File: `components/pos/CurrencyExchangeForm.tsx`
 ```
 
 **Dropdown tiền tệ:**
+
 - Lấy từ `rates[]` + luôn có `LAK` dù không có trong bảng tỷ giá
 - `toCurrency` tự động loại trừ `fromCurrency` (không cho chọn giống nhau)
 
 **Ô nhập:**
+
 - Cashier nhập số → format có dấu phẩy ngàn (controlled input)
 - Ô kết quả: readonly, tự tính lại mỗi khi thay đổi
 
@@ -241,30 +247,30 @@ File: `components/pos/CurrencyExchangeForm.tsx`
 // CurrencyExchangeForm.tsx
 function getRateLak(currency: string): number {
   if (currency === "LAK") return 1;
-  return rates.find(r => r.currencyCode === currency)?.effectiveRate ?? 1;
+  return rates.find((r) => r.currencyCode === currency)?.effectiveRate ?? 1;
 }
 
-const fromRateLak = getRateLak(fromCurrency);  // 1 USD = 14,300 ₭
-const toRateLak   = getRateLak(toCurrency);    // 1 LAK = 1 ₭  (hoặc 1 THB = 400 ₭)
+const fromRateLak = getRateLak(fromCurrency); // 1 USD = 14,300 ₭
+const toRateLak = getRateLak(toCurrency); // 1 LAK = 1 ₭  (hoặc 1 THB = 400 ₭)
 
 const crossRate = fromRateLak / toRateLak;
 // USD→LAK:  14,300 / 1      = 14,300
 // USD→THB:  14,300 / 400    = 35.75
 // THB→USD:  400    / 14,300 = 0.027972...
 
-const toAmount  = fromAmount * crossRate;   // tiền khách nhận
+const toAmount = fromAmount * crossRate; // tiền khách nhận
 const lakAmount = fromAmount * fromRateLak; // giá trị quy LAK (dùng ghi sổ)
 ```
 
 **Các trường hợp:**
 
-| From | To | crossRate | toAmount | lakAmount |
-|---|---|---|---|---|
-| USD | LAK | 14,300 | fromAmt × 14,300 | fromAmt × 14,300 |
-| USD | THB | 35.75 | fromAmt × 35.75 | fromAmt × 14,300 |
-| THB | LAK | 400 | fromAmt × 400 | fromAmt × 400 |
-| THB | USD | 0.02797 | fromAmt × 0.02797 | fromAmt × 400 |
-| LAK | USD | 0.00007 | fromAmt × 0.00007 | fromAmt × 1 |
+| From | To  | crossRate | toAmount          | lakAmount        |
+| ---- | --- | --------- | ----------------- | ---------------- |
+| USD  | LAK | 14,300    | fromAmt × 14,300  | fromAmt × 14,300 |
+| USD  | THB | 35.75     | fromAmt × 35.75   | fromAmt × 14,300 |
+| THB  | LAK | 400       | fromAmt × 400     | fromAmt × 400    |
+| THB  | USD | 0.02797   | fromAmt × 0.02797 | fromAmt × 400    |
+| LAK  | USD | 0.00007   | fromAmt × 0.00007 | fromAmt × 1      |
 
 > `lakAmount` luôn = `fromAmount × fromRateLak` — dùng để ghi `TotalAmount` trong DB (đơn vị kế toán là LAK).
 
@@ -275,11 +281,11 @@ File: `stores/posStore.ts`
 **FX fields trong `InvoiceSession`:**
 
 ```typescript
-fxFromCurrency: string;   // mặc định "USD"
-fxToCurrency:   string;   // mặc định "LAK"
-fxFromAmount:   number;   // số tiền khách đưa
-fxToAmount:     number;   // số tiền khách nhận
-fxLakAmount:    number;   // giá trị quy LAK
+fxFromCurrency: string; // mặc định "USD"
+fxToCurrency: string; // mặc định "LAK"
+fxFromAmount: number; // số tiền khách đưa
+fxToAmount: number; // số tiền khách nhận
+fxLakAmount: number; // giá trị quy LAK
 ```
 
 **Cập nhật khi cashier thao tác (useEffect trong form):**
@@ -287,7 +293,7 @@ fxLakAmount:    number;   // giá trị quy LAK
 ```typescript
 // mỗi khi fromCurrency, toCurrency, fromAmount thay đổi
 pos.setFxData(fromCurrency, toCurrency, fromAmount, toAmount, lakAmount);
-pos.setCurrency(fromCurrency, fromRateLak);  // lưu currency + exchangeRate vào session
+pos.setCurrency(fromCurrency, fromRateLak); // lưu currency + exchangeRate vào session
 ```
 
 **netTotal trong FX mode:**
@@ -299,7 +305,7 @@ netTotal: () => {
   if (inv.defaultType === "ExchangeCurrency") return inv.fxLakAmount;
   // Normal: totalA - totalB - voucher
   return get().totalA() - get().totalB() - inv.voucher;
-}
+};
 ```
 
 > `toBackendItems()` **không tạo item nào** cho FX — item được tạo thủ công trong `PaymentDetailPanel`.
@@ -328,6 +334,7 @@ const isFxMode = inv.defaultType === "ExchangeCurrency";
 ```
 
 Trong FX mode:
+
 - Ẩn dropdown phương thức thanh toán (mặc định CASH)
 - Ẩn ô "Tiền mặt khách đưa" và "Tiền thối"
 - Nút submit đổi thành **"LẬP KHAI & PHÁT HÀNH PHIẾU FX (F9)"** màu teal `#00897B`
@@ -351,46 +358,46 @@ Vì `TransactionItemRequest` không có trường riêng cho FX, frontend **mã 
 ```typescript
 // PaymentDetailPanel.tsx — handleSubmit
 const fxItem = {
-  productId:   fxProductId,   // UUID của product có code "FX-EXCHANGE" (seed sẵn)
+  productId: fxProductId, // UUID của product có code "FX-EXCHANGE" (seed sẵn)
   productName: `Ngoại tệ ${fromAmount.toLocaleString()} ${fromCurrency} → ${toCurrency}`,
-  quantity:    1,
-  weightUnitId: chiUnitId,    // đơn vị fallback (Chỉ)
+  quantity: 1,
+  weightUnitId: chiUnitId, // đơn vị fallback (Chỉ)
 
   // Backend bỏ qua weightGramOverride cho ExchangeCurrency (đặt về 0)
   weightGramOverride: null,
 
   // LineTotal = Quantity × UnitPriceLak = 1 × lakAmount = lakAmount ✓
-  unitPriceLak: lakAmount,   // = fromAmount × fromRateLak (giá trị LAK đầy đủ, VD: 1,430,000)
+  unitPriceLak: lakAmount, // = fromAmount × fromRateLak (giá trị LAK đầy đủ, VD: 1,430,000)
 
-  itemRole:  "Normal",
-  laborFee:  0,
-  stoneFee:  0,
+  itemRole: "Normal",
+  laborFee: 0,
+  stoneFee: 0,
   haoHutGram: 0,
-  phiHuHai:   0,
+  phiHuHai: 0,
 };
 
 transactionApi.create({
-  type:         "ExchangeCurrency",
-  items:        [fxItem],
-  currency:     fromCurrency !== "LAK" ? fromCurrency : undefined,
-  exchangeRate: fromCurrency !== "LAK" ? fromRateLak : undefined,  // lưu tỷ giá để hiển thị
-  note:         `FX: ${fromAmount.toLocaleString()} ${fromCurrency} → ${toAmount.toLocaleString("en", { maximumFractionDigits: 2 })} ${toCurrency}`,
-  customerId:   inv.customerId,
-  paymentMethod: "CASH",  // hoặc "BANK" nếu khách thanh toán qua tài khoản
+  type: "ExchangeCurrency",
+  items: [fxItem],
+  currency: fromCurrency !== "LAK" ? fromCurrency : undefined,
+  exchangeRate: fromCurrency !== "LAK" ? fromRateLak : undefined, // lưu tỷ giá để hiển thị
+  note: `FX: ${fromAmount.toLocaleString()} ${fromCurrency} → ${toAmount.toLocaleString("en", { maximumFractionDigits: 2 })} ${toCurrency}`,
+  customerId: inv.customerId,
+  paymentMethod: "CASH", // hoặc "BANK" nếu khách thanh toán qua tài khoản
 });
 ```
 
 **Bảng mã hoá:**
 
-| Trường | Giá trị thực | Cách mã hoá |
-|---|---|---|
-| Số tiền khách đưa | `fromAmount` | Mã hóa trong `productName` và `note` |
-| Giá trị quy LAK | `lakAmount` = `fromAmount × fromRateLak` | **`unitPriceLak = lakAmount`** |
-| `LineTotal` (tự tính) | `lakAmount` | `Quantity(1) × UnitPriceLak(lakAmount)` |
-| `TotalAmount` trong DB | `lakAmount` | Bằng `LineTotal` của item duy nhất |
-| Tỷ giá tham chiếu | `fromRateLak` (VD: 14,300) | `exchangeRate` field của transaction |
-| Loại tiền khách đưa | `"USD"`, `"THB"` | `currency` field của transaction |
-| Mô tả giao dịch | `"100 USD → 1,430,000 ₭"` | `note` — parse lại khi in phiếu |
+| Trường                 | Giá trị thực                             | Cách mã hoá                             |
+| ---------------------- | ---------------------------------------- | --------------------------------------- |
+| Số tiền khách đưa      | `fromAmount`                             | Mã hóa trong `productName` và `note`    |
+| Giá trị quy LAK        | `lakAmount` = `fromAmount × fromRateLak` | **`unitPriceLak = lakAmount`**          |
+| `LineTotal` (tự tính)  | `lakAmount`                              | `Quantity(1) × UnitPriceLak(lakAmount)` |
+| `TotalAmount` trong DB | `lakAmount`                              | Bằng `LineTotal` của item duy nhất      |
+| Tỷ giá tham chiếu      | `fromRateLak` (VD: 14,300)               | `exchangeRate` field của transaction    |
+| Loại tiền khách đưa    | `"USD"`, `"THB"`                         | `currency` field của transaction        |
+| Mô tả giao dịch        | `"100 USD → 1,430,000 ₭"`                | `note` — parse lại khi in phiếu         |
 
 ---
 
@@ -426,7 +433,7 @@ transactionApi.create({
 }
 ```
 
-> `unitPriceLak = 1,430,000` = `100 × 14,300` — **toàn bộ giá trị LAK**, không phải tỷ giá.  
+> `unitPriceLak = 1,430,000` = `100 × 14,300` — **toàn bộ giá trị LAK**, không phải tỷ giá.
 > Backend sẽ tính `LineTotal = 1 × 1,430,000 = 1,430,000`, và `TotalAmount = 1,430,000 ✓`
 
 **Ví dụ: Khách đổi 1,000 THB lấy USD (cross-rate)**
@@ -459,7 +466,7 @@ transactionApi.create({
 
 > `unitPriceLak = 400,000` = `1,000 × 400` — giá trị LAK tương đương 1,000 THB.
 
-> `branchId`, `staffId`, `counterId` không gửi — backend lấy từ JWT `sub`.  
+> `branchId`, `staffId`, `counterId` không gửi — backend lấy từ JWT `sub`.
 > `paymentMethod` nhận `"CASH"` hoặc `"BANK"` (không dùng `COMBINED` cho FX vì thường là 1 chiều).
 
 ---
@@ -534,6 +541,7 @@ private async Task ApplyInventoryChangesAsync(Transaction transaction, Cancellat
 ```
 
 Khi hủy phiếu FX — phần đảo kho cũng bỏ qua:
+
 ```csharp
 private async Task ReverseInventoryChangesAsync(Transaction transaction, ...)
 {
@@ -561,6 +569,7 @@ POST /api/transactions/{id}/cancel
 ### 6.3 Tổng tiền lưu DB
 
 `Transaction.RecalculateTotals()`:
+
 ```csharp
 // Backend luôn đặt weightGram = 0 cho ExchangeCurrency:
 // var weightGram = req.Type == TransactionType.ExchangeCurrency ? 0m : ...
@@ -575,6 +584,7 @@ POST /api/transactions/{id}/cancel
 ```
 
 **Quan trọng**: `unitPriceLak` trong request phải bằng **giá trị LAK đầy đủ** (`fromAmount × fromRateLak`), không phải tỷ giá đơn thuần (`fromRateLak`). Ví dụ:
+
 - ✅ Đúng: `unitPriceLak = 1,430,000` → `TotalAmount = 1,430,000 ₭`
 - ❌ Sai: `unitPriceLak = 14,300` → `TotalAmount = 14,300 ₭` (chỉ bằng tỷ giá)
 
@@ -585,6 +595,7 @@ POST /api/transactions/{id}/cancel
 File: `components/pos/ReceiptModal.tsx`
 
 **Header phiếu:**
+
 ```
 CURRENCY EXCHANGE BILL / PHIẾU ĐỔI NGOẠI TỆ
 NT-20250615-0018        15/06/2025 14:45
@@ -603,12 +614,13 @@ function parseFxNote(note: string) {
 }
 
 // Hiển thị:
-"100 USD  →  1,430,000 ₭"
+("100 USD  →  1,430,000 ₭");
 // hoặc cross-rate:
-"1,000 THB  →  27.97 USD"
+("1,000 THB  →  27.97 USD");
 ```
 
 **Tổng tiền:**
+
 ```
 TỔNG QUY ĐỔI TIỀN TỆ LAK:    1,430,000 ₭
 ```
@@ -617,7 +629,7 @@ TỔNG QUY ĐỔI TIỀN TỆ LAK:    1,430,000 ₭
 
 ```
 ┌─────────────────────────────────────────┐
-│  [LOGO]  KHAMPHUVONG GOLD & SILVER      │
+│  [LOGO]  Khamphouvong GOLD & SILVER      │
 │  ══════ PHIẾU ĐỔI NGOẠI TỆ ══════     │
 │  NT-20250615-0018    15/06/2025 14:45  │
 │─────────────────────────────────────────│
@@ -661,42 +673,42 @@ CREATE INDEX IX_exchange_rates_CurrencyCode_EffectiveFrom
 
 **Ví dụ dữ liệu:**
 
-| currency_code | rate_to_lak | adjustment | effective_rate | effective_from |
-|---|---|---|---|---|
-| USD | 14,200 | 100 | 14,300 | 2025-06-10 08:00 |
-| THB | 395 | 5 | 400 | 2025-06-10 08:00 |
-| USD | 14,250 | 150 | 14,400 | 2025-06-11 09:30 |
+| currency_code | rate_to_lak | adjustment | effective_rate | effective_from   |
+| ------------- | ----------- | ---------- | -------------- | ---------------- |
+| USD           | 14,200      | 100        | 14,300         | 2025-06-10 08:00 |
+| THB           | 395         | 5          | 400            | 2025-06-10 08:00 |
+| USD           | 14,250      | 150        | 14,400         | 2025-06-11 09:30 |
 
 > Query lấy tỷ giá hiện hành: lấy bản ghi mới nhất (theo `effective_from`) của mỗi `currency_code`.
 
 ### Bảng `transactions` — fields liên quan FX
 
-| Column | Giá trị khi FX |
-|---|---|
-| `type` | `'ExchangeCurrency'` |
-| `invoice_code` | `NT-YYYYMMDD-NNNN` |
-| `currency` | `'USD'`, `'THB'`, ... |
-| `exchange_rate` | Tỷ giá (VD: 14300) |
-| `total_amount` | Giá trị quy LAK |
-| `labor_fee` | `0` |
-| `stone_fee` | `0` |
-| `note` | `"FX: 100 USD → 1,430,000 LAK"` |
-| `reference_invoice_code` | `NULL` |
+| Column                   | Giá trị khi FX                  |
+| ------------------------ | ------------------------------- |
+| `type`                   | `'ExchangeCurrency'`            |
+| `invoice_code`           | `NT-YYYYMMDD-NNNN`              |
+| `currency`               | `'USD'`, `'THB'`, ...           |
+| `exchange_rate`          | Tỷ giá (VD: 14300)              |
+| `total_amount`           | Giá trị quy LAK                 |
+| `labor_fee`              | `0`                             |
+| `stone_fee`              | `0`                             |
+| `note`                   | `"FX: 100 USD → 1,430,000 LAK"` |
+| `reference_invoice_code` | `NULL`                          |
 
 ---
 
 ## 9. Mã lỗi & xử lý ngoại lệ
 
-| Mã lỗi | HTTP | Nguyên nhân | Cách sửa |
-|---|---|---|---|
-| `USER_NOT_FOUND` | 404 | JWT `sub` không tồn tại | Đăng xuất & đăng nhập lại |
-| `COUNTER_NOT_FOUND` | 422 | Cashier chưa được phân công quầy | Admin phân công qua `PATCH /api/users/{id}/counter` |
-| `PRODUCT_NOT_FOUND` | 404 | Product `FX-EXCHANGE` chưa được seed | Chạy lại DbSeeder |
-| `CONFIG_RATE_NOT_FOUND` | 404 | Không có tỷ giá nào cho loại tiền này | Manager tạo tỷ giá qua `POST /api/config/exchange-rates` |
-| `VALIDATION_FAILED` | 422 | `fxFromAmount <= 0` hoặc thiếu customer | Nhập đủ thông tin trước khi submit |
-| `AUTH_FORBIDDEN` | 403 | Không có quyền `CONFIG_PRICE` khi cập nhật tỷ giá | Dùng tài khoản Manager trở lên |
+| Mã lỗi                  | HTTP | Nguyên nhân                                       | Cách sửa                                                 |
+| ----------------------- | ---- | ------------------------------------------------- | -------------------------------------------------------- |
+| `USER_NOT_FOUND`        | 404  | JWT `sub` không tồn tại                           | Đăng xuất & đăng nhập lại                                |
+| `COUNTER_NOT_FOUND`     | 422  | Cashier chưa được phân công quầy                  | Admin phân công qua `PATCH /api/users/{id}/counter`      |
+| `PRODUCT_NOT_FOUND`     | 404  | Product `FX-EXCHANGE` chưa được seed              | Chạy lại DbSeeder                                        |
+| `CONFIG_RATE_NOT_FOUND` | 404  | Không có tỷ giá nào cho loại tiền này             | Manager tạo tỷ giá qua `POST /api/config/exchange-rates` |
+| `VALIDATION_FAILED`     | 422  | `fxFromAmount <= 0` hoặc thiếu customer           | Nhập đủ thông tin trước khi submit                       |
+| `AUTH_FORBIDDEN`        | 403  | Không có quyền `CONFIG_PRICE` khi cập nhật tỷ giá | Dùng tài khoản Manager trở lên                           |
 
 **Lưu ý quan trọng cho frontend:**
 
-Khi `fxFromAmount = 0` hoặc form chưa điền đầy đủ, nút submit bị disable — không cần báo lỗi từ API.  
-Nếu backend trả 422 `COUNTER_NOT_FOUND`, hiển thị thông báo: *"Tài khoản của bạn chưa được phân công quầy. Vui lòng liên hệ quản lý."*
+Khi `fxFromAmount = 0` hoặc form chưa điền đầy đủ, nút submit bị disable — không cần báo lỗi từ API.
+Nếu backend trả 422 `COUNTER_NOT_FOUND`, hiển thị thông báo: _"Tài khoản của bạn chưa được phân công quầy. Vui lòng liên hệ quản lý."_

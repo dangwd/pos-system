@@ -1,6 +1,6 @@
-# Sơ đồ Kiến trúc & Luồng Nghiệp vụ — POS Khamphuvong
+# Sơ đồ Kiến trúc & Luồng Nghiệp vụ — POS Khamphouvong
 
-> Tài liệu trực quan hoá kiến trúc hệ thống và các luồng nghiệp vụ chính, dùng sơ đồ **Mermaid** (render trực tiếp trên GitHub và VSCode — cài extension *Markdown Preview Mermaid Support* nếu cần).
+> Tài liệu trực quan hoá kiến trúc hệ thống và các luồng nghiệp vụ chính, dùng sơ đồ **Mermaid** (render trực tiếp trên GitHub và VSCode — cài extension _Markdown Preview Mermaid Support_ nếu cần).
 > Các sơ đồ được dựng từ **mã nguồn thực tế** (entities, EF configurations, handlers), không phải mô tả lý thuyết.
 
 ## Mục lục
@@ -43,7 +43,7 @@ flowchart TB
         API["Backend API :5000<br/>ASP.NET Core 9 · Clean Arch · CQRS"]
     end
 
-    PG[("PostgreSQL :5432<br/>pos_khamphuvong")]
+    PG[("PostgreSQL :5432<br/>pos_Khamphouvong")]
     REDIS[("Redis · Cache / Khoá giá")]
     OBJ[("Object Store / Disk<br/>ảnh, chứng từ")]
 
@@ -104,12 +104,12 @@ flowchart TD
     API -.->|đăng ký DI| INFRA
 ```
 
-| Lớp | Trách nhiệm | Không được phép |
-|---|---|---|
-| **Domain** | Entities, Enums, Exceptions — thuần nghiệp vụ | Phụ thuộc lớp khác |
-| **Application** | CQRS handlers, repository **interfaces**, services | Inject `AppDbContext` |
-| **Infrastructure** | EF Core, repository **implementations**, seeder | — |
-| **API** | Controllers mỏng, middleware, JWT, DI | Đặt business logic / inject `AppDbContext` |
+| Lớp                | Trách nhiệm                                        | Không được phép                            |
+| ------------------ | -------------------------------------------------- | ------------------------------------------ |
+| **Domain**         | Entities, Enums, Exceptions — thuần nghiệp vụ      | Phụ thuộc lớp khác                         |
+| **Application**    | CQRS handlers, repository **interfaces**, services | Inject `AppDbContext`                      |
+| **Infrastructure** | EF Core, repository **implementations**, seeder    | —                                          |
+| **API**            | Controllers mỏng, middleware, JWT, DI              | Đặt business logic / inject `AppDbContext` |
 
 ---
 
@@ -499,14 +499,14 @@ flowchart TD
 
 **Ma trận chiều tồn kho** (`ResolveInventoryDirection`):
 
-| Loại giao dịch | ItemRole | Tồn kho |
-|---|---|---|
-| SellGold / SellSilver | Normal | **OUT** |
-| ExchangeGold / ExchangeFree | Normal | **OUT** |
-| BuyGold / BuyMoreGold | bất kỳ | **IN** |
-| ExchangeGold / ExchangeFree | ExchangeIn | **IN** |
-| ExchangeToMoney | bất kỳ | **IN** |
-| ExchangeCurrency | — | **bỏ qua** |
+| Loại giao dịch              | ItemRole   | Tồn kho    |
+| --------------------------- | ---------- | ---------- |
+| SellGold / SellSilver       | Normal     | **OUT**    |
+| ExchangeGold / ExchangeFree | Normal     | **OUT**    |
+| BuyGold / BuyMoreGold       | bất kỳ     | **IN**     |
+| ExchangeGold / ExchangeFree | ExchangeIn | **IN**     |
+| ExchangeToMoney             | bất kỳ     | **IN**     |
+| ExchangeCurrency            | —          | **bỏ qua** |
 
 > Công thức tổng: `TotalAmount = SubtotalAmount − ExchangeCredit + LaborFee + StoneFee`. `LineTotal` mỗi dòng = `WeightGram × UnitPriceLak`. `DepositAmount > 0` tự chuyển Draft → Pending.
 
@@ -516,10 +516,10 @@ flowchart TD
 
 Tồn kho (`inventory_items`) biến động qua **hai đường**, cả hai đều cộng/trừ `Quantity` + `WeightGram` của `InventoryItem` và ghi một bản ghi `InventoryAdjustmentLog` (`ADJ-xxx`):
 
-| Đường | Kích hoạt | Chiều | Tham chiếu |
-|---|---|---|---|
-| **Tự động** | Giao dịch POS / Thu đổi (`ApplyInventoryChangesAsync`) | IN/OUT theo ma trận `ResolveInventoryDirection` | Mục 10 |
-| **Thủ công** | `POST /api/inventory/{id}/adjust` (policy `InventoryManage`) | `IN` = **nhập kho** · `OUT` = **xuất kho** | (sơ đồ dưới) |
+| Đường        | Kích hoạt                                                    | Chiều                                           | Tham chiếu   |
+| ------------ | ------------------------------------------------------------ | ----------------------------------------------- | ------------ |
+| **Tự động**  | Giao dịch POS / Thu đổi (`ApplyInventoryChangesAsync`)       | IN/OUT theo ma trận `ResolveInventoryDirection` | Mục 10       |
+| **Thủ công** | `POST /api/inventory/{id}/adjust` (policy `InventoryManage`) | `IN` = **nhập kho** · `OUT` = **xuất kho**      | (sơ đồ dưới) |
 
 ### 11.1. Luồng điều chỉnh thủ công (`AdjustInventoryCommandHandler`)
 
@@ -546,6 +546,7 @@ flowchart TD
 ```
 
 **Quy ước:**
+
 - `deltaWeight` suy ra từ **trọng lượng bình quân mỗi đơn vị** (`WeightGram / Quantity`), không nhập tay → giữ nhất quán tổng trọng lượng.
 - `AdjustmentCode = ADJ-{seq:D3}` với `seq` = số log hiện có + 1.
 - `InventoryItem.Decrease` tự ném lỗi khi vượt tồn; handler kiểm tra trước để trả `INVENTORY_INSUFFICIENT_STOCK` (422) đúng chuẩn errorCode.
@@ -569,25 +570,25 @@ stateDiagram-v2
     end note
 ```
 
-| `ItemTrangThai` | Ý nghĩa |
-|---|---|
-| `TiepNhan` (1) | Vừa tiếp nhận, chưa định giá (mặc định khi nhập) |
-| `DaDinhGia` (2) | Đã định giá |
-| `TrenQuay` (3) | Đang trưng bày, có thể bán |
+| `ItemTrangThai`   | Ý nghĩa                                                     |
+| ----------------- | ----------------------------------------------------------- |
+| `TiepNhan` (1)    | Vừa tiếp nhận, chưa định giá (mặc định khi nhập)            |
+| `DaDinhGia` (2)   | Đã định giá                                                 |
+| `TrenQuay` (3)    | Đang trưng bày, có thể bán                                  |
 | `ChuyenXuong` (4) | Chuyển xuống xưởng (vàng ngoài / lỗi / item cũ sau thu đổi) |
-| `DaBan` (5) | Đã bán ra |
+| `DaBan` (5)       | Đã bán ra                                                   |
 
 **Nguồn gốc hàng** (`ItemNguonGoc`): `Quan` = vàng của quán (được mua thêm / đổi hàng / đổi miễn phí) · `Ngoai` = vàng ngoài (chỉ mua vào, chuyển xuống xưởng).
 
 ### 11.3. Các endpoint Kho
 
-| Method | Route | Mục đích |
-|---|---|---|
-| GET | `/api/inventory` | Danh sách tồn — lọc `branchId / category / trayId / status / nguonGoc`; phân trang |
-| GET | `/api/inventory/{id}` | Chi tiết một mục kho |
-| POST | `/api/inventory/{id}/adjust` | **Nhập (IN) / Xuất (OUT)** thủ công kèm lý do |
-| PATCH | `/api/inventory/{id}/status` | Đổi `TrangThai` |
-| GET | `/api/inventory/adjustments` | Lịch sử điều chỉnh (`ADJ-xxx`) |
+| Method | Route                        | Mục đích                                                                           |
+| ------ | ---------------------------- | ---------------------------------------------------------------------------------- |
+| GET    | `/api/inventory`             | Danh sách tồn — lọc `branchId / category / trayId / status / nguonGoc`; phân trang |
+| GET    | `/api/inventory/{id}`        | Chi tiết một mục kho                                                               |
+| POST   | `/api/inventory/{id}/adjust` | **Nhập (IN) / Xuất (OUT)** thủ công kèm lý do                                      |
+| PATCH  | `/api/inventory/{id}/status` | Đổi `TrangThai`                                                                    |
+| GET    | `/api/inventory/adjustments` | Lịch sử điều chỉnh (`ADJ-xxx`)                                                     |
 
 > Ma trận chiều tồn kho **tự động** theo loại giao dịch: xem Mục 10. Cấu trúc bảng `inventory_items`: xem ERD Mục 6. Mã lỗi liên quan: `INVENTORY_INVALID_DIRECTION`, `INVENTORY_INVALID_QUANTITY`, `INVENTORY_REASON_REQUIRED`, `INVENTORY_INSUFFICIENT_STOCK`, `INVENTORY_NOT_FOUND`, `INVENTORY_INVALID_STATUS`.
 
@@ -599,16 +600,16 @@ Hệ thống có **hai luồng song song**: `Transaction` (bán hàng POS) và `
 
 **`TransactionType`** (bảng `transactions`):
 
-| Enum | Tiền tố mã | Ý nghĩa |
-|---|---|---|
-| `SellGold` | BV | Bán vàng cho khách |
-| `SellSilver` | BB | Bán bạc cho khách |
-| `BuyGold` | MV | Mua vàng từ khách |
-| `BuyMoreGold` | MT | Mua thêm (bù cho đơn có sẵn) |
-| `ExchangeGold` | DV | Đổi vàng (cũ ↔ mới) |
-| `ExchangeFree` | DMF | Đổi miễn phí (cần tham chiếu ≤ 30 ngày) |
-| `ExchangeCurrency` | NT | Thu đổi ngoại tệ (không đụng kho) |
-| `ExchangeToMoney` | DTT | Đổi vàng lấy tiền mặt |
+| Enum               | Tiền tố mã | Ý nghĩa                                 |
+| ------------------ | ---------- | --------------------------------------- |
+| `SellGold`         | BV         | Bán vàng cho khách                      |
+| `SellSilver`       | BB         | Bán bạc cho khách                       |
+| `BuyGold`          | MV         | Mua vàng từ khách                       |
+| `BuyMoreGold`      | MT         | Mua thêm (bù cho đơn có sẵn)            |
+| `ExchangeGold`     | DV         | Đổi vàng (cũ ↔ mới)                     |
+| `ExchangeFree`     | DMF        | Đổi miễn phí (cần tham chiếu ≤ 30 ngày) |
+| `ExchangeCurrency` | NT         | Thu đổi ngoại tệ (không đụng kho)       |
+| `ExchangeToMoney`  | DTT        | Đổi vàng lấy tiền mặt                   |
 
 **`TradeType`** (bảng `trade_txns`): `MuaThem`, `DoiHang`, `DoiMienPhi`, `DoiThanhTien`.
 
@@ -650,10 +651,12 @@ sequenceDiagram
 ```
 
 Công thức chênh lệch (đổi hàng):
+
 ```
 ChenhLech = [ WeightMới/3.75 × giáBán/Chỉ + TiềnĐáMới + TiềnCông + PhíHưHại + TiềnHaoHụt ]
           −  [ WeightCũ/3.75 × giáBán/Chỉ ]
 ```
+
 `ChenhLech > 0` → khách trả thêm · `< 0` → cửa hàng hoàn lại.
 
 ---
@@ -685,12 +688,12 @@ flowchart TD
     FX["ExchangeRate<br/>(RateToLak + Adjustment)"] --> SALE
 ```
 
-| Nhóm | Hàm lượng | Định giá |
-|---|---|---|
-| **Vàng** | `GoldPurity` Category=Gold | `PriceConfigItem` — giá/**Chỉ** |
-| **Bạc** | `GoldPurity` Category=Silver | `PriceConfigItem` — giá/**gram** |
-| **Đá** | ❌ không có hàm lượng | **Nhập giá tay** khi bán (`StoneFee` / đơn giá); `StonePriceRule` chỉ gợi ý theo số chỉ vàng |
-| **Ngoại tệ** | — | `ExchangeRate`: `số tiền × (RateToLak + Adjustment)` |
+| Nhóm         | Hàm lượng                    | Định giá                                                                                     |
+| ------------ | ---------------------------- | -------------------------------------------------------------------------------------------- |
+| **Vàng**     | `GoldPurity` Category=Gold   | `PriceConfigItem` — giá/**Chỉ**                                                              |
+| **Bạc**      | `GoldPurity` Category=Silver | `PriceConfigItem` — giá/**gram**                                                             |
+| **Đá**       | ❌ không có hàm lượng        | **Nhập giá tay** khi bán (`StoneFee` / đơn giá); `StonePriceRule` chỉ gợi ý theo số chỉ vàng |
+| **Ngoại tệ** | —                            | `ExchangeRate`: `số tiền × (RateToLak + Adjustment)`                                         |
 
 > Mỗi lần cập nhật giá tạo **bản ghi `PriceConfig` mới** (không ghi đè) → giữ lịch sử. `PriceConfigItem` snapshot `PurityCode/Category/HamLuong` để hiển thị không cần JOIN và bất biến theo thời điểm.
 
@@ -732,4 +735,4 @@ Những điểm đã xác minh từ mã nguồn — đáng lưu ý khi đọc s�
 
 ---
 
-*Tài liệu sinh từ rà soát mã nguồn (entities, EF configurations, handlers, services). Khi nghiệp vụ thay đổi, cập nhật lại sơ đồ tương ứng. Xem thêm: `docs/API Reference.md` và `docs/Tài liệu Kiến trúc & Thiết kế POS Khamphuvong.md`.*
+_Tài liệu sinh từ rà soát mã nguồn (entities, EF configurations, handlers, services). Khi nghiệp vụ thay đổi, cập nhật lại sơ đồ tương ứng. Xem thêm: `docs/API Reference.md` và `docs/Tài liệu Kiến trúc & Thiết kế POS Khamphouvong.md`._

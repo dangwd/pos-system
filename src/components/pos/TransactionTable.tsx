@@ -592,7 +592,7 @@ function BuyGoldRow({
       {/* Cân nặng (trong đơn vị đã chọn) */}
       <td className="px-2 py-2 w-24">
         <input
-          key={item.weightUnitId ?? "default"}
+          key={`${item.weightUnitId ?? "default"}-${item.qty}`}
           type="text"
           inputMode="decimal"
           disabled={item.isReadOnly}
