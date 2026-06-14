@@ -543,15 +543,6 @@ function BuyGoldRow({
   weightUnits: WeightUnit[];
 }) {
   const unitPrice = Math.round(item.unitPriceLakPerGram * item.weightGram);
-  // Cân nặng thực tế (đổi sang đơn vị hiện tại)
-  const effectiveGram =
-    item.weightGramOverride !== null
-      ? item.weightGramOverride
-      : item.qty * item.weightGram;
-  const effectiveUnits =
-    item.weightGram > 0
-      ? parseFloat((effectiveGram / item.weightGram).toFixed(4))
-      : item.qty;
 
   return (
     <tr
@@ -586,38 +577,6 @@ function BuyGoldRow({
           onDecrease={() => onQtyChange(item.productId, item.qty - 1)}
           onIncrease={() => onQtyChange(item.productId, item.qty + 1)}
           onSetQty={(q) => onQtyChange(item.productId, q)}
-        />
-      </td>
-
-      {/* Cân nặng (trong đơn vị đã chọn) */}
-      <td className="px-2 py-2 w-24">
-        <input
-          key={`${item.weightUnitId ?? "default"}-${item.qty}`}
-          type="text"
-          inputMode="decimal"
-          disabled={item.isReadOnly}
-          defaultValue={effectiveUnits.toLocaleString('en', { maximumFractionDigits: 3 })}
-          onFocus={(e) => {
-            e.target.value = e.target.value.replace(/,/g, '')
-            e.target.select()
-          }}
-          onBlur={(e) => {
-            const newUnits = Number(e.currentTarget.value.replace(/,/g, ''))
-            if (newUnits > 0) e.currentTarget.value = newUnits.toLocaleString('en', { maximumFractionDigits: 3 })
-            if (newUnits > 0 && newUnits !== effectiveUnits) {
-              onUpdate(item.productId, {
-                weightGramOverride: newUnits * item.weightGram,
-              });
-            }
-          }}
-          onKeyDown={(e) => {
-            if (e.key === "Enter") e.currentTarget.blur();
-            if (e.key === "Escape") {
-              e.currentTarget.value = effectiveUnits.toLocaleString('en', { maximumFractionDigits: 3 })
-              e.currentTarget.blur();
-            }
-          }}
-          className="h-6 w-20 text-right text-xs px-2 tabular-nums border rounded-sm outline-none focus:ring-1 focus:ring-inset focus:ring-primary bg-background disabled:opacity-40"
         />
       </td>
 
@@ -745,9 +704,6 @@ function BuyGoldTable({
             Đơn vị
           </th>
           <th className="px-3 py-2 text-left text-[10px] font-semibold text-muted-foreground uppercase tracking-wide whitespace-nowrap">
-            Số lượng
-          </th>
-          <th className="px-2 py-2 text-left text-[10px] font-semibold text-muted-foreground uppercase tracking-wide whitespace-nowrap">
             Cân nặng
           </th>
           <th className="px-2 py-2 text-left text-[10px] font-semibold text-muted-foreground uppercase tracking-wide whitespace-nowrap">
