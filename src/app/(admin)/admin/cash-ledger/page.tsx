@@ -2,22 +2,19 @@
 
 import { usePermission } from '@/hooks/usePermission'
 import { ForbiddenPage } from '@/components/shared/ForbiddenPage'
-import { useState } from 'react'
+import { useState, useMemo } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { cashLedgerRepository } from '@/lib/repositories/cash-ledger.repository'
 import { useAuthStore } from '@/stores/auth.store'
-import { Plus } from 'lucide-react'
-import { Form, DatePicker } from 'antd'
+import { useCounters } from '@/hooks/useBranches'
+import { Form, DatePicker, Table, Input as AntInput, Select as AntSelect, Card, Button as AntBtn, Tag } from 'antd'
+import type { ColumnsType } from 'antd/es/table/interface'
 import dayjs from 'dayjs'
-import { TablePageSkeleton } from '@/components/shared/PageSkeleton'
 import { Spinner } from '@/components/ui/spinner'
 import { useTranslations } from 'next-intl'
-import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import {
-  Dialog,
-  DialogContent,
-  DialogFooter,
+  Dialog, DialogContent, DialogFooter,
 } from '@/components/ui/dialog'
 import { Input } from '@/components/ui/input'
 import { NumberInput } from '@/components/ui/number-input'
@@ -25,26 +22,29 @@ import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from '@/components/ui/select'
 import { toast } from 'sonner'
-import { isIncomeEntry } from '@/types/cash-ledger'
-import type { CashEntryType, CashMethod, CashCurrency } from '@/types/cash-ledger'
+import { CashLedgerExpandedRow } from '@/components/admin/cash-ledger/CashLedgerExpandedRow'
+import { FileSpreadsheet, Plus } from 'lucide-react'
+import type { CashMethod, CashCurrency, CashLedgerEntry } from '@/types/cash-ledger'
 
-function formatKip(n: number) {
-  return n.toLocaleString('lo-LA') + ' ₭'
+const PAGE_SIZE = 20
+const PAGE_STYLE: React.CSSProperties = { padding: '24px 24px 32px' }
+const FILTER_STYLE: React.CSSProperties = {
+  display: 'flex', gap: 8, flexWrap: 'wrap', alignItems: 'center',
+  padding: '12px 16px', borderBottom: '1px solid #f0f0f0', background: '#fafafa',
 }
 
-function today() {
-  return new Date().toISOString().slice(0, 10)
-}
+function formatKip(n: number) { return n.toLocaleString('lo-LA') + ' ₭' }
 
-// Lives inside DialogContent (destroyOnHidden=true), so it remounts fresh on
-// each open — form state auto-resets without any manual cleanup.
-function AddEntryDialog({ branchId, open, onClose }: { branchId: string; open: boolean; onClose: () => void }) {
+// ─── Add entry dialog ─────────────────────────────────────────────────────────
+function AddEntryDialog({
+  branchId, open, defaultDirection, onClose,
+}: { branchId: string; open: boolean; defaultDirection: 'IN' | 'OUT'; onClose: () => void }) {
   const t = useTranslations('admin.cashLedger')
   const queryClient = useQueryClient()
   const [form, setForm] = useState({
     description: '',
-    entryType: 'INCOME' as CashEntryType,
-    method: 'Cash' as CashMethod,
+    direction: defaultDirection as 'IN' | 'OUT',
+    method: 'CASH' as CashMethod,
     currency: 'LAK' as CashCurrency,
     originalAmount: '',
     exchangeRate: '1',
@@ -54,7 +54,7 @@ function AddEntryDialog({ branchId, open, onClose }: { branchId: string; open: b
     mutationFn: () => cashLedgerRepository.addManualEntry({
       branchId,
       description: form.description,
-      entryType: form.entryType,
+      direction: form.direction,
       method: form.method,
       currency: form.currency,
       originalAmount: Number(form.originalAmount),
@@ -71,12 +71,10 @@ function AddEntryDialog({ branchId, open, onClose }: { branchId: string; open: b
     <Dialog open={open} onOpenChange={onClose}>
       <DialogContent
         className="sm:max-w-xl"
-        title={t('addEntry')}
+        title={defaultDirection === 'IN' ? t('createIncome') : t('createExpense')}
         footer={
           <DialogFooter>
-            <Button variant="outline" onClick={onClose}>
-              {t('cancel')}
-            </Button>
+            <Button variant="outline" onClick={onClose}>{t('cancel')}</Button>
             <Button
               onClick={() => addEntry()}
               disabled={isPending || !form.description || !form.originalAmount}
@@ -90,33 +88,31 @@ function AddEntryDialog({ branchId, open, onClose }: { branchId: string; open: b
           <Form.Item label={t('columns.description')}>
             <Input
               value={form.description}
-              onChange={(e) => setForm(p => ({ ...p, description: e.target.value }))}
+              onChange={e => setForm(p => ({ ...p, description: e.target.value }))}
             />
           </Form.Item>
           <div className="grid grid-cols-2 gap-3">
-            <Form.Item label={t('columns.direction')}>
+            <Form.Item label={t('filterVoucherType')}>
               <Select
-                value={form.entryType}
-                onValueChange={(v) => setForm(p => ({ ...p, entryType: v as CashEntryType }))}
+                value={form.direction}
+                onValueChange={v => setForm(p => ({ ...p, direction: v as 'IN' | 'OUT' }))}
               >
                 <SelectTrigger><SelectValue /></SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="INCOME">{t('entryType.INCOME')}</SelectItem>
-                  <SelectItem value="EXPENSE">{t('entryType.EXPENSE')}</SelectItem>
+                  <SelectItem value="IN">{t('filterIncome')}</SelectItem>
+                  <SelectItem value="OUT">{t('filterExpense')}</SelectItem>
                 </SelectContent>
               </Select>
             </Form.Item>
             <Form.Item label={t('columns.method')}>
               <Select
                 value={form.method}
-                onValueChange={(v) => setForm(p => ({ ...p, method: v as CashMethod }))}
+                onValueChange={v => setForm(p => ({ ...p, method: v as CashMethod }))}
               >
                 <SelectTrigger><SelectValue /></SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="Cash">{t('method.Cash')}</SelectItem>
-                  <SelectItem value="BankTransfer">{t('method.BankTransfer')}</SelectItem>
-                  <SelectItem value="QR">{t('method.QR')}</SelectItem>
-                  <SelectItem value="COMBINED">{t('method.COMBINED')}</SelectItem>
+                  <SelectItem value="CASH">{t('method.CASH')}</SelectItem>
+                  <SelectItem value="BANK">{t('method.BANK')}</SelectItem>
                 </SelectContent>
               </Select>
             </Form.Item>
@@ -126,13 +122,13 @@ function AddEntryDialog({ branchId, open, onClose }: { branchId: string; open: b
               <NumberInput
                 min={0}
                 value={form.originalAmount}
-                onChange={(v) => setForm(p => ({ ...p, originalAmount: v }))}
+                onChange={v => setForm(p => ({ ...p, originalAmount: v }))}
               />
             </Form.Item>
             <Form.Item label={t('columns.currency')} style={{ marginBottom: 0 }}>
               <Select
                 value={form.currency}
-                onValueChange={(v) => setForm(p => ({ ...p, currency: v as CashCurrency }))}
+                onValueChange={v => setForm(p => ({ ...p, currency: v as CashCurrency }))}
               >
                 <SelectTrigger><SelectValue /></SelectTrigger>
                 <SelectContent>
@@ -143,116 +139,239 @@ function AddEntryDialog({ branchId, open, onClose }: { branchId: string; open: b
               </Select>
             </Form.Item>
           </div>
+          {form.currency !== 'LAK' && (
+            <Form.Item label={t('columns.exchangeRate')} style={{ marginBottom: 0 }}>
+              <NumberInput
+                min={1}
+                value={form.exchangeRate}
+                onChange={v => setForm(p => ({ ...p, exchangeRate: v }))}
+              />
+            </Form.Item>
+          )}
         </Form>
       </DialogContent>
     </Dialog>
   )
 }
 
+// ─── Summary strip ────────────────────────────────────────────────────────────
+function SummaryStrip({ items }: { items: { label: string; value: number; color: string }[] }) {
+  return (
+    <div style={{
+      display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)',
+      background: '#fff', border: '1px solid #e5e7eb', borderRadius: 8,
+      padding: '14px 20px', marginBottom: 16,
+    }}>
+      {items.map(({ label, value, color }, i) => (
+        <div key={label} style={{
+          textAlign: i === 0 ? 'left' : 'center',
+          padding: '0 16px',
+          borderLeft: i > 0 ? '1px solid #f0f0f0' : 'none',
+        }}>
+          <div style={{ fontSize: 12, color: '#6b7280', marginBottom: 4 }}>{label}</div>
+          <div style={{ fontSize: 16, fontWeight: 700, color }}>{formatKip(value)}</div>
+        </div>
+      ))}
+    </div>
+  )
+}
+
+// ─── Main page ────────────────────────────────────────────────────────────────
 export default function CashLedgerPage() {
   const { hasPermission } = usePermission()
   const t = useTranslations('admin.cashLedger')
   const { user } = useAuthStore()
-
   const branchId = user?.branchId ?? ''
-  const [date, setDate] = useState(today())
-  const [addOpen, setAddOpen] = useState(false)
 
-  const { data: ledger, isLoading } = useQuery({
-    queryKey: ['cash-ledger', branchId, date],
-    queryFn: () => cashLedgerRepository.getDaily(branchId, date),
+  const today = dayjs()
+  const [dateRange, setDateRange] = useState<[dayjs.Dayjs | null, dayjs.Dayjs | null]>([today.subtract(30, 'day'), today])
+  const [keyword, setKeyword]           = useState('')
+  const [counterId, setCounterId]       = useState<string | undefined>()
+  const [page, setPage]                 = useState(1)
+  const [expandedKeys, setExpandedKeys] = useState<string[]>([])
+  const [addOpen, setAddOpen]           = useState(false)
+  const [addDir, setAddDir]             = useState<'IN' | 'OUT'>('IN')
+
+  const fromDate = dateRange[0]?.format('YYYY-MM-DD')
+  const toDate   = dateRange[1]?.format('YYYY-MM-DD')
+
+  const { data: counters = [] } = useCounters(branchId || null)
+
+  // Summary: GET /daily dùng ngày "from" để lấy số dư đầu kỳ
+  const { data: daily } = useQuery({
+    queryKey: ['cash-ledger', 'daily', branchId, counterId, fromDate],
+    queryFn: () => cashLedgerRepository.getDaily({ branchId, counterId, date: fromDate }),
     staleTime: 30_000,
     enabled: !!branchId,
   })
 
-  const summaryCards = [
-    { label: t('openingBalance'),  value: ledger?.openingBalanceLak ?? 0 },
-    { label: t('totalIn'),         value: ledger?.totalInLak ?? 0 },
-    { label: t('totalOut'),        value: ledger?.totalOutLak ?? 0 },
-    { label: t('closingBalance'),  value: ledger?.closingBalanceLak ?? 0 },
+  // Tổng thu/chi tính từ entries của /daily (ngày đầu kỳ)
+  const totalIn  = daily?.entries.filter(e => e.sign === 1).reduce((s, e) => s + e.amountLak, 0) ?? 0
+  const totalOut = daily?.entries.filter(e => e.sign === -1).reduce((s, e) => s + e.amountLak, 0) ?? 0
+
+  // Table: GET /activities
+  const { data: activities, isLoading } = useQuery({
+    queryKey: ['cash-ledger', 'activities', branchId, counterId, fromDate, toDate, keyword, page],
+    queryFn: () => cashLedgerRepository.getActivities({
+      branchId, counterId,
+      fromDate, toDate,
+      keyword: keyword.trim() || undefined,
+      page, pageSize: PAGE_SIZE,
+    }),
+    staleTime: 30_000,
+    enabled: !!branchId,
+  })
+
+  const entries    = activities?.entries ?? []
+  const totalCount = activities?.totalCount ?? 0
+
+  const summaryItems = [
+    { label: t('openingBalance'), value: (daily?.openingCashLak ?? 0) + (daily?.openingBankLak ?? 0), color: '#111827' },
+    { label: t('totalIn'),        value: totalIn,  color: '#16A34A' },
+    { label: t('totalOut'),       value: totalOut, color: '#DC2626' },
+    { label: t('closingBalance'), value: (daily?.expectedCashClosingLak ?? 0) + (daily?.expectedBankClosingLak ?? 0), color: '#16A34A' },
   ]
 
+  const columns = useMemo((): ColumnsType<CashLedgerEntry> => [
+    {
+      title: t('columns.time'), dataIndex: 'timeLabel', width: 100,
+      render: (v: string) => <span style={{ fontFamily: 'monospace', fontSize: 13 }}>{v}</span>,
+    },
+    {
+      title: t('columns.description'), dataIndex: 'description', width: 360,
+      render: (v: string) => <span style={{ whiteSpace: 'normal', wordBreak: 'break-word', fontSize: 13 }}>{v}</span>,
+    },
+    {
+      title: t('columns.entryType'), dataIndex: 'entryType', width: 130,
+      render: (v: string, r: CashLedgerEntry) => (
+        <Tag
+          color={r.sign === 1 ? 'green' : 'red'}
+          style={{ borderRadius: 10, fontSize: 11 }}
+        >
+          {t(`entryType.${v}` as Parameters<typeof t>[0])}
+        </Tag>
+      ),
+    },
+    {
+      title: t('columns.method'), dataIndex: 'method', width: 110,
+      render: (v: CashMethod) => t(`method.${v}` as Parameters<typeof t>[0]),
+    },
+    {
+      title: t('columns.amount'), dataIndex: 'amountLak', width: 140, align: 'right' as const,
+      render: (v: number, r: CashLedgerEntry) => (
+        <b style={{ color: r.sign === 1 ? '#16A34A' : '#DC2626', fontFamily: 'monospace' }}>
+          {r.sign === 1 ? '+' : '−'}{formatKip(v)}
+        </b>
+      ),
+    },
+  ], [t])
 
   if (!hasPermission('CASH_LEDGER_MANAGE')) return <ForbiddenPage />
+
   return (
-    <div className="p-6 space-y-6">
-      <div className="flex items-start justify-between">
+    <div style={PAGE_STYLE}>
+      {/* ── Header ── */}
+      <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: 16 }}>
         <div>
-          <h1 className="text-2xl font-bold">{t('title')}</h1>
-          <p className="text-muted-foreground text-sm">
-            {t('subtitle', { date })}
+          <h2 style={{ margin: 0, fontSize: 22, fontWeight: 700, color: '#111827' }}>{t('title')}</h2>
+          <p style={{ margin: '2px 0 0', fontSize: 13, color: '#6b7280' }}>
+            {totalCount > 0
+              ? t('showTotal', { from: (page - 1) * PAGE_SIZE + 1, to: Math.min(page * PAGE_SIZE, totalCount), total: totalCount })
+              : '—'}
           </p>
         </div>
-        <div className="flex items-center gap-2">
-          <DatePicker
-            value={date ? dayjs(date) : null}
-            onChange={d => setDate(d ? d.format('YYYY-MM-DD') : '')}
-            format="DD/MM/YYYY"
-            allowClear={false}
-            className="h-8 w-40"
+        <div style={{ display: 'flex', gap: 8 }}>
+          <AntBtn
+            type="primary"
+            icon={<Plus size={14} />}
+            onClick={() => { setAddDir('IN'); setAddOpen(true) }}
+          >
+            {t('createIncome')}
+          </AntBtn>
+          <AntBtn
+            type="primary"
+            icon={<Plus size={14} />}
+            onClick={() => { setAddDir('OUT'); setAddOpen(true) }}
+          >
+            {t('createExpense')}
+          </AntBtn>
+          <AntBtn icon={<FileSpreadsheet size={14} />}>{t('exportFile')}</AntBtn>
+        </div>
+      </div>
+
+      {/* ── Summary ── */}
+      <SummaryStrip items={summaryItems} />
+
+      {/* ── Table card ── */}
+      <Card
+        style={{ borderRadius: 10, border: '1px solid #e5e7eb', boxShadow: '0 1px 4px rgba(0,0,0,0.06)' }}
+        styles={{ body: { padding: 0 } }}
+      >
+        <div style={FILTER_STYLE}>
+          <AntInput.Search
+            placeholder={t('searchPlaceholder')}
+            allowClear
+            style={{ width: 230 }}
+            onSearch={v => { setKeyword(v); setPage(1) }}
+            onChange={e => { if (!e.target.value) { setKeyword(''); setPage(1) } }}
           />
-          <Button size="sm" onClick={() => setAddOpen(true)}>
-            <Plus className="h-4 w-4 mr-1" />
-            {t('addEntry')}
-          </Button>
+          <DatePicker.RangePicker
+            value={[dateRange[0], dateRange[1]]}
+            onChange={range => {
+              setDateRange([range?.[0] ?? null, range?.[1] ?? null])
+              setPage(1)
+            }}
+            format="DD/MM/YYYY"
+            allowEmpty={[true, true]}
+            style={{ height: 32 }}
+          />
+          <AntSelect
+            allowClear
+            placeholder={t('filterCounter')}
+            value={counterId}
+            onChange={v => { setCounterId(v); setPage(1) }}
+            style={{ width: 160 }}
+            options={counters.map(c => ({ value: c.id, label: c.counterName }))}
+          />
         </div>
-      </div>
 
-      <div className="grid grid-cols-4 gap-4">
-        {summaryCards.map(({ label, value }) => (
-          <div key={label} className="rounded-lg border bg-card p-4 space-y-1">
-            <p className="text-xs text-muted-foreground">{label}</p>
-            <p className="text-lg font-bold">{formatKip(value)}</p>
-          </div>
-        ))}
-      </div>
+        <Table<CashLedgerEntry>
+          rowKey="id"
+          columns={columns}
+          dataSource={entries}
+          loading={isLoading}
+          size="middle"
+          bordered
+          scroll={{ x: 800 }}
+          rowClassName={r => expandedKeys.includes(r.id) ? 'cash-row-expanded' : ''}
+          expandable={{
+            expandedRowKeys: expandedKeys,
+            onExpand: (expanded, record) =>
+              setExpandedKeys(expanded
+                ? [...expandedKeys, record.id]
+                : expandedKeys.filter(k => k !== record.id),
+              ),
+            expandedRowRender: record => <CashLedgerExpandedRow record={record} />,
+          }}
+          pagination={{
+            current: page,
+            pageSize: PAGE_SIZE,
+            total: totalCount,
+            onChange: p => setPage(p),
+            showSizeChanger: true,
+            pageSizeOptions: ['20', '50', '100'],
+            showTotal: (tot, [from, to]) => `${t('showTotal', { from, to, total: tot })}`,
+            style: { padding: '12px 16px', borderTop: '1px solid #f0f0f0' },
+          }}
+        />
+      </Card>
 
-      {isLoading ? <TablePageSkeleton /> : (
-        <div className="rounded-md border">
-          <table className="w-full text-sm">
-            <thead className="border-b bg-muted/40">
-              <tr>
-                <th className="px-4 py-3 text-left font-medium text-muted-foreground">{t('columns.description')}</th>
-                <th className="px-4 py-3 text-left font-medium text-muted-foreground">{t('columns.direction')}</th>
-                <th className="px-4 py-3 text-left font-medium text-muted-foreground">{t('columns.method')}</th>
-                <th className="px-4 py-3 text-left font-medium text-muted-foreground">{t('columns.currency')}</th>
-                <th className="px-4 py-3 text-right font-medium text-muted-foreground">{t('columns.amount')}</th>
-                <th className="px-4 py-3 text-right font-medium text-muted-foreground">{t('columns.amountLak')}</th>
-                <th className="px-4 py-3 text-left font-medium text-muted-foreground">{t('columns.time')}</th>
-              </tr>
-            </thead>
-            <tbody>
-              {(ledger?.entries ?? []).length === 0 ? (
-                <tr>
-                  <td colSpan={7} className="px-4 py-8 text-center text-muted-foreground">—</td>
-                </tr>
-              ) : (
-                ledger?.entries.map((entry) => (
-                  <tr key={entry.id} className="border-b last:border-0 hover:bg-muted/20">
-                    <td className="px-4 py-3">{entry.description}</td>
-                    <td className="px-4 py-3">
-                      <Badge variant={isIncomeEntry(entry.entryType) ? 'default' : 'destructive'}>
-                        {entry.entryType ? t(`entryType.${entry.entryType}`) : '—'}
-                      </Badge>
-                    </td>
-                    <td className="px-4 py-3">{entry.method ? t(`method.${entry.method}`) : '—'}</td>
-                    <td className="px-4 py-3 font-mono">{entry.currency}</td>
-                    <td className="px-4 py-3 text-right font-mono">{(entry.originalAmount ?? 0).toLocaleString('lo-LA')}</td>
-                    <td className="px-4 py-3 text-right font-semibold">{formatKip(entry.amountLak ?? 0)}</td>
-                    <td className="px-4 py-3 text-muted-foreground">
-                      {new Date(entry.createdAt).toLocaleTimeString('lo-LA', { hour: '2-digit', minute: '2-digit' })}
-                    </td>
-                  </tr>
-                ))
-              )}
-            </tbody>
-          </table>
-        </div>
-      )}
+      <style>{`.cash-row-expanded > td { background: #eff6ff !important; }`}</style>
 
       <AddEntryDialog
         branchId={branchId}
         open={addOpen}
+        defaultDirection={addDir}
         onClose={() => setAddOpen(false)}
       />
     </div>

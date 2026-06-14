@@ -199,12 +199,15 @@
       "columns": {
         "invoiceCode": "ລະຫັດໃບບິນ",
         "time": "ເວລາ",
-        "type": "ປະເພດ",
+        "type": "ປະເພດທຸລະກິດ",
         "payment": "ການຊຳລະ",
-        "amount": "ຈຳນວນ",
+        "amount": "ຍອດຊຳລະ",
         "status": "ສະຖານະ",
         "openMenu": "ເປີດເມນູ",
-        "viewDetail": "ເບິ່ງລາຍລະອຽດ"
+        "viewDetail": "ເບິ່ງລາຍລະອຽດ",
+        "refCode": "ເລກ HDDT",
+        "customer": "ລູກຄ້າ",
+        "bank": "ທະນາຄານ"
       },
       "transactionTypes": {
         "SellGold": "ຂາຍທອງ",
@@ -225,6 +228,32 @@
           "label": "ຍົກເລີກ",
           "variant": "destructive"
         }
+      },
+      "recordUnit": "ລາຍການ",
+      "expanded": {
+        "sectionInfo": "ຂໍ້ມູນການສັ່ງຊື້",
+        "fieldInvoiceCode": "ລະຫັດໃບບິນ",
+        "fieldCustomerCode": "ລະຫັດລູກຄ້າ",
+        "fieldCustomerName": "ຊື່ລູກຄ້າ",
+        "fieldPhone": "ເບີໂທ",
+        "fieldCreatedAt": "ວັນສ້າງ",
+        "fieldSubtotal": "ລາຄາຕົ້ນ",
+        "fieldLaborFee": "ຄ່າແຮງ",
+        "fieldStoneFee": "ຄ່າດ",
+        "fieldTotal": "ລວມ",
+        "fieldCounter": "ຕູ້",
+        "fieldCashier": "ພະນັກງານ",
+        "colProductCode": "ລະຫັດ",
+        "colProductName": "ຊື່ສິນຄ້າ",
+        "colUnit": "ໜ່ວຍ",
+        "colQty": "ຈຳນວນ",
+        "colWeight": "ນ້ຳໜັກ",
+        "colUnitPrice": "ລາຄາ/ໜ່ວຍ",
+        "colLineTotal": "ລວມ",
+        "btnExport": "ສົ່ງອອກ",
+        "btnPrintGoldCert": "ພິມໃບຮັບປະກັນ",
+        "btnRePrintInvoice": "ພິມໃໝ່",
+        "btnPrintBarcode": "ພິມ Barcode"
       }
     },
     "layout": {
@@ -866,12 +895,27 @@
     "cashLedger": {
       "title": "ສໍ ເງິນ",
       "subtitle": "ກະແສເງິນວັນທີ {date}",
-      "openingBalance": "ຍອດຕົ້ນ",
+      "openingBalance": "ເງິນຕົ້ນ",
       "totalIn": "ລວມຮັບ",
       "totalOut": "ລວມຈ່າຍ",
-      "closingBalance": "ຍອດປິດ",
+      "closingBalance": "ຍອດຄົງເຫຼືອ",
       "addEntry": "ເພີ່ມລາຍການ",
       "setOpeningBalance": "ຕັ້ງຍອດຕົ້ນ",
+      "createIncome": "ສ້າງໃບຮັບ",
+      "createExpense": "ສ້າງໃບຈ່າຍ",
+      "exportFile": "ສົ່ງອອກໄຟລ",
+      "searchPlaceholder": "ຄົ້ນຫາຕາມລະຫັດ",
+      "filterTime": "ເວລາ",
+      "filterFromDate": "ຈາກວັນທີ",
+      "filterToDate": "ຫາວັນທີ",
+      "filterReferenceInvoice": "ເລກໃບບິນຕົ້ນ",
+      "filterReferenceInvoicePlaceholder": "ໃສ່ເລກໃບບິນ",
+      "filterVoucherType": "ປະເພດ",
+      "filterIncome": "ໃບຮັບ",
+      "filterExpense": "ໃບຈ່າຍ",
+      "filterCounter": "ຕູ້ຮັບ/ຈ່າຍ",
+      "clearFilter": "ລ້າງຕົວກອງ",
+      "showTotal": "ສະແດງ {from} - {to} ຈາກ {total} ລາຍການ",
       "columns": {
         "description": "ລາຍລະອຽດ",
         "direction": "ທິດທາງ",
@@ -879,20 +923,27 @@
         "currency": "ສະກຸນ",
         "amount": "ຈຳນວນ",
         "amountLak": "ທຽບ LAK",
-        "time": "ເວລາ"
+        "time": "ເວລາ",
+        "entryType": "ປະເພດ",
+        "exchangeRate": "ອັດຕາ"
+      },
+      "detail": {
+        "time": "ເວລາ",
+        "description": "ເນື້ອຫາ",
+        "entryType": "ປະເພດ",
+        "method": "ວິທີ",
+        "source": "ທີ່ມາ",
+        "value": "ຈຳນວນ",
+        "printExcel": "ພິມ Excel",
+        "printPdf": "ພິມ PDF"
       },
       "method": {
-        "Cash": "ເງິນສົດ",
         "CASH": "ເງິນສົດ",
-        "BankTransfer": "ໂອນທະນາຄານ",
-        "BANK": "ໂອນທະນາຄານ",
-        "BANK_TRANSFER": "ໂອນທະນາຄານ",
-        "QR": "QR",
-        "COMBINED": "ລວມ"
+        "BANK": "ໂອນທະນາຄານ"
       },
       "entryType": {
-        "INCOME": "ຮັບດ້ວຍຕົນ",
-        "EXPENSE": "ຈ່າຍດ້ວຍຕົນ",
+        "IN": "ຮັບດ້ວຍຕົນ",
+        "OUT": "ຈ່າຍດ້ວຍຕົນ",
         "SellGold": "ຂາຍທອງ",
         "SellSilver": "ຂາຍເງິນ",
         "BuyGold": "ຊື້ທອງ",
@@ -902,7 +953,11 @@
         "ExchangeFree": "ແລກຟຣີ",
         "ExchangeToMoney": "ແລກເປັນເງິນ"
       },
-      "cancel": "ຍົກເລີກ"
+      "cancel": "ຍົກເລີກ",
+      "source": {
+        "Transaction": "ກິດຈະກໍາ POS",
+        "Manual": "ປ້ອນດ້ວຍຕົນ"
+      }
     },
     "reports": {
       "title": "ລາຍງານ",

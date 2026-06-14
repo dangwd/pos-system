@@ -197,14 +197,17 @@
       "filterTo": "Đến ngày",
       "filterQ": "Tìm mã HĐ, khách hàng...",
       "columns": {
-        "invoiceCode": "Mã hóa đơn",
+        "invoiceCode": "Mã hoá đơn",
         "time": "Thời gian",
-        "type": "Loại GD",
+        "type": "Mảng kinh doanh",
         "payment": "Thanh toán",
-        "amount": "Tổng tiền",
+        "amount": "Giá trị thanh toán",
         "status": "Trạng thái",
         "openMenu": "Mở menu",
-        "viewDetail": "Xem chi tiết"
+        "viewDetail": "Xem chi tiết",
+        "refCode": "Số HDDT",
+        "customer": "Khách hàng",
+        "bank": "Ngân hàng"
       },
       "transactionTypes": {
         "SellGold": "Bán Vàng",
@@ -225,6 +228,32 @@
           "label": "Đã hủy",
           "variant": "destructive"
         }
+      },
+      "recordUnit": "bản ghi",
+      "expanded": {
+        "sectionInfo": "Thông tin đơn hàng",
+        "fieldInvoiceCode": "Mã đơn hàng",
+        "fieldCustomerCode": "Mã khách hàng",
+        "fieldCustomerName": "Tên khách hàng",
+        "fieldPhone": "Số điện thoại",
+        "fieldCreatedAt": "Ngày tạo hóa đơn",
+        "fieldSubtotal": "Giá trị nguyên giá",
+        "fieldLaborFee": "Phí gia công",
+        "fieldStoneFee": "Phí đá",
+        "fieldTotal": "Thành tiền",
+        "fieldCounter": "Mã quầy hàng",
+        "fieldCashier": "Nhân viên quầy",
+        "colProductCode": "Mã sản phẩm",
+        "colProductName": "Tên sản phẩm",
+        "colUnit": "ĐVT",
+        "colQty": "Số lượng",
+        "colWeight": "Trọng lượng",
+        "colUnitPrice": "Đơn giá",
+        "colLineTotal": "Thành tiền",
+        "btnExport": "Xuất file",
+        "btnPrintGoldCert": "In giấy đảm bảo vàng",
+        "btnRePrintInvoice": "In lại HDDT",
+        "btnPrintBarcode": "In Barcode"
       }
     },
     "layout": {
@@ -866,12 +895,27 @@
     "cashLedger": {
       "title": "Sổ quỹ",
       "subtitle": "Dòng tiền ngày {date}",
-      "openingBalance": "Số dư đầu",
+      "openingBalance": "Quỹ đầu kỳ",
       "totalIn": "Tổng thu",
       "totalOut": "Tổng chi",
-      "closingBalance": "Số dư cuối",
+      "closingBalance": "Tồn quỹ",
       "addEntry": "Thêm mục thu chi",
       "setOpeningBalance": "Đặt số dư đầu",
+      "createIncome": "Lập phiếu thu",
+      "createExpense": "Lập phiếu chi",
+      "exportFile": "Xuất File",
+      "searchPlaceholder": "Tìm kiếm theo mã phiếu",
+      "filterTime": "Thời gian",
+      "filterFromDate": "Từ ngày",
+      "filterToDate": "Đến ngày",
+      "filterReferenceInvoice": "Số hóa đơn gốc",
+      "filterReferenceInvoicePlaceholder": "Nhập số hóa đơn gốc",
+      "filterVoucherType": "Loại phiếu",
+      "filterIncome": "Phiếu thu",
+      "filterExpense": "Phiếu chi",
+      "filterCounter": "Quầy thu/chi",
+      "clearFilter": "Xoá lọc",
+      "showTotal": "Hiển thị {from} - {to} trên tổng {total} sổ quỹ",
       "columns": {
         "description": "Mô tả",
         "direction": "Chiều",
@@ -879,20 +923,27 @@
         "currency": "Ngoại tệ",
         "amount": "Số tiền",
         "amountLak": "Quy đổi LAK",
-        "time": "Thời gian"
+        "time": "Thời gian",
+        "entryType": "Loại thu chi",
+        "exchangeRate": "Tỷ giá"
+      },
+      "detail": {
+        "time": "Thời gian",
+        "description": "Nội dung",
+        "entryType": "Loại",
+        "method": "Hình thức",
+        "source": "Nguồn",
+        "value": "Số tiền",
+        "printExcel": "In phiếu Excel",
+        "printPdf": "In phiếu PDF"
       },
       "method": {
-        "Cash": "Tiền mặt",
         "CASH": "Tiền mặt",
-        "BankTransfer": "Chuyển khoản",
-        "BANK": "Chuyển khoản",
-        "BANK_TRANSFER": "Chuyển khoản",
-        "QR": "QR",
-        "COMBINED": "Kết hợp"
+        "BANK": "Chuyển khoản"
       },
       "entryType": {
-        "INCOME": "Thu thủ công",
-        "EXPENSE": "Chi thủ công",
+        "IN": "Thu thủ công",
+        "OUT": "Chi thủ công",
         "SellGold": "Bán vàng",
         "SellSilver": "Bán bạc",
         "BuyGold": "Mua vào",
@@ -902,7 +953,11 @@
         "ExchangeFree": "Đổi miễn phí",
         "ExchangeToMoney": "Đổi thành tiền"
       },
-      "cancel": "Hủy"
+      "cancel": "Hủy",
+      "source": {
+        "Transaction": "Giao dịch POS",
+        "Manual": "Nhập thủ công"
+      }
     },
     "reports": {
       "title": "Báo cáo",

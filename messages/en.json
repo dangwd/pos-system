@@ -199,12 +199,15 @@
       "columns": {
         "invoiceCode": "Invoice code",
         "time": "Time",
-        "type": "Type",
+        "type": "Business segment",
         "payment": "Payment",
         "amount": "Amount",
         "status": "Status",
         "openMenu": "Open menu",
-        "viewDetail": "View details"
+        "viewDetail": "View details",
+        "refCode": "E-Invoice no.",
+        "customer": "Customer",
+        "bank": "Bank"
       },
       "transactionTypes": {
         "SellGold": "Sell Gold",
@@ -225,6 +228,32 @@
           "label": "Cancelled",
           "variant": "destructive"
         }
+      },
+      "recordUnit": "records",
+      "expanded": {
+        "sectionInfo": "Order details",
+        "fieldInvoiceCode": "Invoice code",
+        "fieldCustomerCode": "Customer code",
+        "fieldCustomerName": "Customer name",
+        "fieldPhone": "Phone",
+        "fieldCreatedAt": "Created at",
+        "fieldSubtotal": "Subtotal",
+        "fieldLaborFee": "Labor fee",
+        "fieldStoneFee": "Stone fee",
+        "fieldTotal": "Total",
+        "fieldCounter": "Counter",
+        "fieldCashier": "Staff",
+        "colProductCode": "Product code",
+        "colProductName": "Product name",
+        "colUnit": "Unit",
+        "colQty": "Qty",
+        "colWeight": "Weight",
+        "colUnitPrice": "Unit price",
+        "colLineTotal": "Line total",
+        "btnExport": "Export",
+        "btnPrintGoldCert": "Print gold cert",
+        "btnRePrintInvoice": "Reprint invoice",
+        "btnPrintBarcode": "Print barcode"
       }
     },
     "layout": {
@@ -874,29 +903,51 @@
       "totalIn": "Total In",
       "totalOut": "Total Out",
       "closingBalance": "Closing Balance",
-      "addEntry": "Add entry",
-      "setOpeningBalance": "Set opening balance",
+      "addEntry": "Add Entry",
+      "setOpeningBalance": "Set Opening Balance",
+      "createIncome": "New Receipt",
+      "createExpense": "New Payment",
+      "exportFile": "Export",
+      "searchPlaceholder": "Search by voucher code",
+      "filterTime": "Time",
+      "filterFromDate": "From date",
+      "filterToDate": "To date",
+      "filterReferenceInvoice": "Reference invoice no.",
+      "filterReferenceInvoicePlaceholder": "Enter invoice no.",
+      "filterVoucherType": "Voucher type",
+      "filterIncome": "Receipt",
+      "filterExpense": "Payment",
+      "filterCounter": "Counter",
+      "clearFilter": "Clear filters",
+      "showTotal": "Showing {from} - {to} of {total} entries",
       "columns": {
         "description": "Description",
         "direction": "Direction",
         "method": "Method",
         "currency": "Currency",
         "amount": "Amount",
-        "amountLak": "LAK Amount",
-        "time": "Time"
+        "amountLak": "LAK equiv.",
+        "time": "Time",
+        "entryType": "Type",
+        "exchangeRate": "Exchange rate"
+      },
+      "detail": {
+        "time": "Time",
+        "description": "Description",
+        "entryType": "Type",
+        "method": "Method",
+        "source": "Source",
+        "value": "Amount",
+        "printExcel": "Print Excel",
+        "printPdf": "Print PDF"
       },
       "method": {
-        "Cash": "Cash",
         "CASH": "Cash",
-        "BankTransfer": "Bank Transfer",
-        "BANK": "Bank Transfer",
-        "BANK_TRANSFER": "Bank Transfer",
-        "QR": "QR",
-        "COMBINED": "Combined"
+        "BANK": "Bank transfer"
       },
       "entryType": {
-        "INCOME": "Manual income",
-        "EXPENSE": "Manual expense",
+        "IN": "Manual income",
+        "OUT": "Manual expense",
         "SellGold": "Sell gold",
         "SellSilver": "Sell silver",
         "BuyGold": "Buy gold",
@@ -906,7 +957,11 @@
         "ExchangeFree": "Free exchange",
         "ExchangeToMoney": "Redeem to cash"
       },
-      "cancel": "Cancel"
+      "cancel": "Cancel",
+      "source": {
+        "Transaction": "POS transaction",
+        "Manual": "Manual entry"
+      }
     },
     "reports": {
       "title": "Reports",

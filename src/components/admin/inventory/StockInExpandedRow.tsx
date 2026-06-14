@@ -71,8 +71,7 @@ export function StockInExpandedRow({ record }: Props) {
           column={1}
           size="small"
           bordered
-          labelStyle={{ width: 110, fontSize: 12, color: '#6b7280', background: '#f9fafb' }}
-          contentStyle={{ fontSize: 13 }}
+          styles={{ label: { width: 110, fontSize: 12, color: '#6b7280', background: '#f9fafb' }, content: { fontSize: 13 } }}
         />
       </div>
 
