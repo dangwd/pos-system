@@ -6,7 +6,7 @@ import { useTranslations } from 'next-intl'
 import { Modal, Form, Select, Input, Divider, Button, Tag, message } from 'antd'
 import { AppstoreOutlined, UploadOutlined, SaveOutlined, CloseOutlined } from '@ant-design/icons'
 import { useCounters } from '@/hooks/useBranches'
-import { useBulkAdjustInventory } from '@/hooks/useInventory'
+import { useCreateAdjustment } from '@/hooks/useInventory'
 import { StockInProductPickerModal } from './StockInProductPickerModal'
 import { StockInSelectedTable, type SelectedLine } from './StockInSelectedTable'
 import type { InventoryItem, InventorySource } from '@/types/inventory'
@@ -28,7 +28,7 @@ export function StockInCreateModal({ open, branchId, onClose, onSuccess }: Props
   const { data: counters = [] } = useCounters(branchId)
   const counterId: string | undefined = Form.useWatch('counterId', form)
 
-  const { mutate: bulkAdjust, isPending } = useBulkAdjustInventory()
+  const { mutate: createAdjustment, isPending } = useCreateAdjustment()
 
   const totalQty = lines.reduce((s, l) => s + l.qty, 0)
   const selectedIds = lines.map(l => l.item.id)
@@ -68,18 +68,15 @@ export function StockInCreateModal({ open, branchId, onClose, onSuccess }: Props
     if (lines.length === 0) { message.error(t('errNoProducts')); return }
     if (!lines.some(l => l.qty > 0)) { message.error(t('errNoQty')); return }
 
-    bulkAdjust(
+    createAdjustment(
       {
-        items: lines
+        direction: 'IN',
+        reason: values.note ?? '',
+        nguonGoc: values.nguonHang,
+        supplier: values.supplier ?? null,
+        lines: lines
           .filter(l => l.qty > 0)
-          .map(l => ({
-            id: l.item.id,
-            direction: 'IN',
-            quantity: l.qty,
-            reason: values.note ?? '',
-            nguonGoc: values.nguonHang,
-            supplier: values.supplier ?? null,
-          })),
+          .map(l => ({ itemId: l.item.id, quantity: l.qty })),
       },
       {
         onSuccess: () => {

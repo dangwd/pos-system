@@ -53,7 +53,19 @@ export interface InventoryItem {
   lastUpdatedAt: string      // ISO 8601
 }
 
-/** Log điều chỉnh kho (`InventoryAdjustmentLog`, mã `ADJ-xxx`) */
+/** Một dòng sản phẩm trong phiếu điều chỉnh */
+export interface InventoryAdjustmentLine {
+  id: string
+  inventoryItemId: string
+  productName: string             // Tên sản phẩm (snapshot)
+  quantity: number
+  actualValue: number | null      // Giá trị thực dòng hàng (LAK)
+}
+
+/**
+ * Phiếu điều chỉnh tồn kho (`InventoryAdjustment`, mã `ADJ-xxx`).
+ * Một phiếu thuần một chiều (IN | OUT), một lý do + một PTTT chung, gồm nhiều dòng sản phẩm.
+ */
 export interface InventoryAdjustment {
   id: string
   adjustmentCode: string          // ADJ-001, ADJ-002, ...
@@ -61,18 +73,15 @@ export interface InventoryAdjustment {
   branchName: string
   counterId: string
   counterName: string             // Tên quầy (snapshot)
-  inventoryItemId: string
-  productName: string             // Tên sản phẩm (snapshot)
   direction: AdjustDirection
-  quantity: number
-  weightGram: number              // Tổng trọng lượng điều chỉnh (gram)
-  nguonGocLo: InventorySource | null  // Nguồn gốc lô — chỉ có khi direction=IN
-  documentRef: string | null      // Số chứng từ
-  supplier: string | null         // Nhà cung cấp
   reason: string
   paymentMethod: 'CASH' | 'BANK' | null
-  actualValue: number | null      // Giá trị thực tế lô hàng (LAK)
+  totalValue: number | null       // Tổng giá trị phiếu (LAK)
+  nguonGoc: InventorySource | null // Nguồn gốc lô — chỉ có khi direction=IN
+  supplier: string | null         // Nhà cung cấp
   createdAt: string               // ISO 8601
+  totalQuantity: number           // Tổng SL toàn phiếu (= Σ lines.quantity)
+  lines: InventoryAdjustmentLine[]
 }
 
 // ─── DTOs ─────────────────────────────────────────────────────────────────────
@@ -90,10 +99,10 @@ export interface AdjustInventoryDto {
   supplier?: string | null           // Nhà cung cấp (lưu nhưng chưa validate — mở rộng sau)
 }
 
-/** Kết quả POST /api/inventory/{id}/adjust — backend trả `{ item, log }` */
+/** Kết quả POST /api/inventory/{id}/adjust — backend trả `{ item, adjustment }` */
 export interface AdjustInventoryResult {
   item: InventoryItem
-  log: InventoryAdjustment
+  adjustment: InventoryAdjustment
 }
 
 /** PATCH /api/inventory/{id}/status */
@@ -117,7 +126,6 @@ export interface InventoryListParams {
 export interface InventoryAdjustmentParams {
   branchId?: string
   counterId?: string
-  inventoryItemId?: string     // Lọc theo mục kho cụ thể (dùng trong trang chi tiết)
   direction?: AdjustDirection  // Lọc theo hướng IN | OUT
   keyword?: string             // Tìm theo mã ADJ, tên SP, lý do, tên chi nhánh
   page?: number
@@ -143,33 +151,28 @@ export interface BulkUpdateInventoryResult {
   notFoundIds: string[]       // IDs không tìm thấy (partial success)
 }
 
-// ─── Bulk adjust (nhập/xuất nhiều mục cùng lúc) ───────────────────────────────
+// ─── Tạo phiếu điều chỉnh (nhập/xuất nhiều dòng) ──────────────────────────────
 
-/** Một item trong POST /api/inventory/bulk-adjust */
-export interface BulkAdjustInventoryItem {
-  id: string
-  direction: AdjustDirection
+/** Một dòng trong POST /api/inventory/adjustments */
+export interface CreateInventoryAdjustmentLine {
+  itemId: string
   quantity: number
-  reason: string
-  paymentMethod?: 'CASH' | 'BANK'   // Phương thức thanh toán (chỉ ý nghĩa với IN)
-  actualValue?: number              // Giá trị thực lô hàng (LAK)
-  nguonGoc?: InventorySource        // Nguồn gốc lô — bắt buộc khi IN (mirror AdjustInventoryDto)
-  documentRef?: string | null       // Số chứng từ / mã phiếu SAP
-  supplier?: string | null          // Nhà cung cấp
-}
-
-/** Request body POST /api/inventory/bulk-adjust */
-export interface BulkAdjustInventoryDto {
-  items: BulkAdjustInventoryItem[]
+  actualValue?: number              // Giá trị thực dòng hàng (LAK) — chỉ ý nghĩa với IN
 }
 
 /**
- * Response POST /api/inventory/bulk-adjust — partial success.
- * Item thất bại được bỏ qua (không tìm thấy / thiếu tồn); item còn lại vẫn xử lý.
- * Frontend phải kiểm tra cả `notFoundIds` lẫn `insufficientStockIds`.
+ * Request body POST /api/inventory/adjustments — tạo MỘT phiếu thuần một chiều.
+ * direction / reason / paymentMethod / nguonGoc / supplier là CHUNG cho cả phiếu.
+ * Tất cả các dòng phải thuộc cùng một quầy. Phiếu atomic: 1 dòng lỗi → cả phiếu bị từ chối.
  */
-export interface BulkAdjustInventoryResult {
-  adjustedCount: number
-  notFoundIds: string[]
-  insufficientStockIds: string[]
+export interface CreateInventoryAdjustmentDto {
+  direction: AdjustDirection
+  reason: string
+  lines: CreateInventoryAdjustmentLine[]
+  paymentMethod?: 'CASH' | 'BANK'   // Chỉ ý nghĩa với IN
+  nguonGoc?: InventorySource        // Bắt buộc khi IN: "Quan" | "Ngoai"
+  supplier?: string | null          // Nhà cung cấp (IN)
 }
+
+/** Response POST /api/inventory/adjustments — phiếu vừa tạo (header + lines) */
+export type CreateInventoryAdjustmentResult = InventoryAdjustment

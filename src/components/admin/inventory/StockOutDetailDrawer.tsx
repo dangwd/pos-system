@@ -2,11 +2,11 @@
 'use client'
 
 import { useTranslations } from 'next-intl'
-import { Drawer, Descriptions, Tag, Table, Divider, Badge } from 'antd'
+import { Drawer, Descriptions, Table, Divider, Badge } from 'antd'
 import { CalendarOutlined, ExportOutlined } from '@ant-design/icons'
 import type { DescriptionsProps } from 'antd'
 import type { ColumnsType } from 'antd/es/table/interface'
-import type { InventoryAdjustment } from '@/types/inventory'
+import type { InventoryAdjustment, InventoryAdjustmentLine } from '@/types/inventory'
 
 interface Props {
   record: InventoryAdjustment | null
@@ -59,17 +59,10 @@ export function StockOutDetailDrawer({ record, onClose }: Props) {
       : []),
   ] : []
 
-  const productColumns: ColumnsType<InventoryAdjustment> = [
-    { title: '#', width: 40, render: (_v: unknown, _r: InventoryAdjustment, i: number) => i + 1 },
+  const productColumns: ColumnsType<InventoryAdjustmentLine> = [
+    { title: '#', width: 40, render: (_v: unknown, _r: InventoryAdjustmentLine, i: number) => i + 1 },
     { title: t('colProductName'), dataIndex: 'productName' },
     { title: t('colQtyDetail'), dataIndex: 'quantity', width: 75, align: 'right' as const },
-    {
-      title: t('colWeightDetail'),
-      dataIndex: 'weightGram',
-      width: 90,
-      align: 'right' as const,
-      render: (v: number) => v?.toFixed(2) ?? '—',
-    },
   ]
 
   return (
@@ -126,10 +119,10 @@ export function StockOutDetailDrawer({ record, onClose }: Props) {
             <span style={{ width: 3, height: 14, background: '#ef4444', borderRadius: 2, display: 'inline-block' }} />
             {t('sectionProducts')}
           </div>
-          <Table<InventoryAdjustment>
+          <Table<InventoryAdjustmentLine>
             rowKey="id"
             columns={productColumns}
-            dataSource={[record]}
+            dataSource={record.lines}
             pagination={false}
             size="small"
             bordered

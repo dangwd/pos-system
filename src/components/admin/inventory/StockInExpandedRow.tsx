@@ -4,7 +4,7 @@ import { useTranslations } from 'next-intl'
 import { Descriptions, Table, Tag } from 'antd'
 import type { DescriptionsProps } from 'antd'
 import type { ColumnsType } from 'antd/es/table/interface'
-import type { InventoryAdjustment } from '@/types/inventory'
+import type { InventoryAdjustment, InventoryAdjustmentLine } from '@/types/inventory'
 
 interface Props { record: InventoryAdjustment }
 
@@ -32,9 +32,9 @@ function formatDate(iso: string) {
 export function StockInExpandedRow({ record }: Props) {
   const t = useTranslations('admin.inventory.stockInList')
 
-  const sourceNode = record.nguonGocLo
-    ? <Tag color={record.nguonGocLo === 'Quan' ? 'purple' : 'orange'} style={{ borderRadius: 10, fontSize: 11 }}>
-        {record.nguonGocLo === 'Quan' ? t('sourceQuan') : t('sourceNgoai')}
+  const sourceNode = record.nguonGoc
+    ? <Tag color={record.nguonGoc === 'Quan' ? 'purple' : 'orange'} style={{ borderRadius: 10, fontSize: 11 }}>
+        {record.nguonGoc === 'Quan' ? t('sourceQuan') : t('sourceNgoai')}
       </Tag>
     : <span style={{ color: '#9ca3af' }}>—</span>
 
@@ -52,17 +52,13 @@ export function StockInExpandedRow({ record }: Props) {
     { key: 'supplier',  label: t('labelSupplier'),  children: record.supplier ?? <span style={{ color: '#9ca3af' }}>—</span> },
     ...(record.reason ? [{ key: 'reason',  label: t('labelReason'),  children: record.reason }] : []),
     { key: 'payment', label: t('labelPayment'), children: paymentNode },
-    ...(record.actualValue ? [{ key: 'value', label: t('labelValue'), children: <b style={{ color: '#16a34a' }}>{record.actualValue.toLocaleString('lo-LA')} ₭</b> }] : []),
+    ...(record.totalValue ? [{ key: 'value', label: t('labelValue'), children: <b style={{ color: '#16a34a' }}>{record.totalValue.toLocaleString('lo-LA')} ₭</b> }] : []),
   ]
 
-  const productColumns: ColumnsType<InventoryAdjustment> = [
-    { title: '#', width: 40, render: () => 1 },
+  const productColumns: ColumnsType<InventoryAdjustmentLine> = [
+    { title: '#', width: 40, render: (_v: unknown, _r: InventoryAdjustmentLine, i: number) => i + 1 },
     { title: t('colProductName'), dataIndex: 'productName' },
     { title: t('colQtyDetail'),   dataIndex: 'quantity',   width: 80,  align: 'right' as const },
-    {
-      title: t('colWeightDetail'), dataIndex: 'weightGram', width: 100, align: 'right' as const,
-      render: (v: number) => v > 0 ? `${v.toFixed(2)} g` : '—',
-    },
   ]
 
   return (
@@ -83,9 +79,9 @@ export function StockInExpandedRow({ record }: Props) {
       {/* Sản phẩm nhập */}
       <div style={{ flex: 1, minWidth: 280 }}>
         <SectionLabel>{t('sectionProducts')}</SectionLabel>
-        <Table<InventoryAdjustment>
+        <Table<InventoryAdjustmentLine>
           rowKey="id"
-          dataSource={[record]}
+          dataSource={record.lines}
           columns={productColumns}
           size="small"
           bordered

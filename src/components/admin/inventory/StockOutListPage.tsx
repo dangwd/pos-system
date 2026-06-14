@@ -10,7 +10,7 @@ import { useInventoryAdjustments } from '@/hooks/useInventory'
 import { useBranches, useCounters } from '@/hooks/useBranches'
 import { useAuthStore } from '@/stores/auth.store'
 import { StockOutCreateModal } from './StockOutCreateModal'
-import type { InventoryAdjustment } from '@/types/inventory'
+import type { InventoryAdjustment, InventoryAdjustmentLine } from '@/types/inventory'
 
 const PAGE_SIZE = 20
 
@@ -52,17 +52,10 @@ function ExpandedRow({ record, t }: { record: InventoryAdjustment; t: (k: string
     ...(record.reason ? [{ key: 'reason', label: t('labelReason'), children: record.reason }] : []),
   ]
 
-  const productColumns: ColumnsType<InventoryAdjustment> = [
-    { title: '#',                    width: 40,  render: () => 1 },
+  const productColumns: ColumnsType<InventoryAdjustmentLine> = [
+    { title: '#',                    width: 40,  render: (_v: unknown, _r: InventoryAdjustmentLine, i: number) => i + 1 },
     { title: t('colProductName'),    dataIndex: 'productName' },
     { title: t('colQtyDetail'),      dataIndex: 'quantity',   width: 80,  align: 'right' as const },
-    {
-      title: t('colWeightDetail'),
-      dataIndex: 'weightGram',
-      width: 100,
-      align: 'right' as const,
-      render: (v: number) => v?.toFixed(2) ?? '—',
-    },
   ]
 
   return (
@@ -83,9 +76,9 @@ function ExpandedRow({ record, t }: { record: InventoryAdjustment; t: (k: string
       {/* Sản phẩm xuất */}
       <div style={{ flex: 1, minWidth: 280 }}>
         <SectionLabel>{t('sectionProducts')}</SectionLabel>
-        <Table<InventoryAdjustment>
+        <Table<InventoryAdjustmentLine>
           rowKey="id"
-          dataSource={[record]}
+          dataSource={record.lines}
           columns={productColumns}
           size="small"
           bordered
@@ -146,7 +139,7 @@ export function StockOutListPage() {
       sorter: (a: InventoryAdjustment, b: InventoryAdjustment) => a.createdAt.localeCompare(b.createdAt),
     },
     {
-      title: t('colTotalQty'), dataIndex: 'quantity', width: 90, align: 'center' as const,
+      title: t('colTotalQty'), dataIndex: 'totalQuantity', width: 90, align: 'center' as const,
       render: (v: number) => <b style={{ fontSize: 14, color: '#ef4444' }}>{v}</b>,
     },
     {

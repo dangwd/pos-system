@@ -14,9 +14,9 @@ import { Spinner } from '@/components/ui/spinner'
 import { Empty, EmptyTitle } from '@/components/ui/empty'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 import { InventoryProductPickerDialog } from '@/components/admin/inventory/InventoryProductPickerDialog'
-import { useBulkAdjustInventory } from '@/hooks/useInventory'
+import { useCreateAdjustment } from '@/hooks/useInventory'
 import { useCounters } from '@/hooks/useBranches'
-import type { AdjustDirection, BulkAdjustInventoryItem, InventoryItem } from '@/types/inventory'
+import type { AdjustDirection, InventoryItem } from '@/types/inventory'
 
 interface Line {
   id: string
@@ -25,7 +25,6 @@ interface Line {
   stock: number
   quantity: string
   actualValue: string   // chỉ dùng cho IN (giá trị lô)
-  reason: string        // ghi chú từng dòng (per-item)
 }
 
 interface Props {
@@ -51,9 +50,10 @@ export function InventoryBulkAdjustDialog({ open, direction, branchId, onClose }
 
   const [counterId, setCounterId] = useState<string | null>(null)
   const [lines, setLines] = useState<Line[]>([])
+  const [reason, setReason] = useState('')
   const [pickerOpen, setPickerOpen] = useState(false)
 
-  const { mutate: bulkAdjust, isPending } = useBulkAdjustInventory()
+  const { mutate: createAdjustment, isPending } = useCreateAdjustment()
 
   // Quầy thực hiện: nhiều quầy → người dùng chọn; 1 quầy → tự dùng; 0 → cấp chi nhánh.
   const effectiveCounterId = multiCounter ? counterId : (counters[0]?.id ?? null)
@@ -64,7 +64,7 @@ export function InventoryBulkAdjustDialog({ open, direction, branchId, onClose }
       const existing = new Set(ls.map(l => l.id))
       const fresh = items
         .filter(i => !existing.has(i.id))
-        .map<Line>(i => ({ id: i.id, productCode: i.productCode, productName: i.productName, stock: i.quantity, quantity: '', actualValue: '', reason: '' }))
+        .map<Line>(i => ({ id: i.id, productCode: i.productCode, productName: i.productName, stock: i.quantity, quantity: '', actualValue: '' }))
       return [...ls, ...fresh]
     })
     setPickerOpen(false)
@@ -82,31 +82,30 @@ export function InventoryBulkAdjustDialog({ open, direction, branchId, onClose }
   const totalQty = lines.reduce((sum, l) => sum + (parseInt(l.quantity, 10) || 0), 0)
   const canSave = lines.length > 0 && lines.every(lineValid) && !needCounter
 
-  const reset = () => { setCounterId(null); setLines([]) }
+  const reset = () => { setCounterId(null); setLines([]); setReason('') }
   const handleClose = () => { reset(); onClose() }
 
   function handleSave() {
     if (!canSave) return
-    const items: BulkAdjustInventoryItem[] = lines.map(l => {
-      const value = parseInt(l.actualValue, 10)
-      return {
-        id: l.id,
+    // Phiếu atomic: 1 dòng lỗi → cả phiếu bị từ chối (onError toast ở hook).
+    createAdjustment(
+      {
         direction,
-        quantity: qtyOf(l),
-        reason: l.reason.trim() || t('defaultReason'),
-        ...(isIn && !isNaN(value) && value > 0 ? { actualValue: value } : {}),
-      }
-    })
-    bulkAdjust({ items }, {
-      onSuccess: (res) => {
-        const failed = new Set([...res.notFoundIds, ...res.insufficientStockIds])
-        if (failed.size === 0) handleClose()
-        else setLines(ls => ls.filter(l => failed.has(l.id)))  // giữ dòng lỗi để sửa
+        reason: reason.trim() || t('defaultReason'),
+        lines: lines.map(l => {
+          const value = parseInt(l.actualValue, 10)
+          return {
+            itemId: l.id,
+            quantity: qtyOf(l),
+            ...(isIn && !isNaN(value) && value > 0 ? { actualValue: value } : {}),
+          }
+        }),
       },
-    })
+      { onSuccess: () => handleClose() },
+    )
   }
 
-  const colCount = isIn ? 7 : 6
+  const colCount = isIn ? 6 : 5
 
   return (
     <>
@@ -149,6 +148,17 @@ export function InventoryBulkAdjustDialog({ open, direction, branchId, onClose }
               </Button>
             </div>
 
+            {/* Lý do chung cho cả phiếu */}
+            <div className="space-y-1">
+              <label className="text-xs font-medium">{t('form.reason')}</label>
+              <Input
+                value={reason}
+                onChange={e => setReason(e.target.value)}
+                placeholder={t('reasonPlaceholder')}
+                className="h-9"
+              />
+            </div>
+
             {/* Bảng dòng hàng */}
             <div className="max-h-[44vh] overflow-y-auto rounded-md border">
               <Table>
@@ -159,7 +169,6 @@ export function InventoryBulkAdjustDialog({ open, direction, branchId, onClose }
                     <TableHead>{t('form.name')}</TableHead>
                     <TableHead className="w-24">{t('form.qty')}</TableHead>
                     {isIn && <TableHead className="w-36">{t('form.lotValue')}</TableHead>}
-                    <TableHead className="w-48">{t('form.reason')}</TableHead>
                     <TableHead className="w-14 text-center">{t('form.action')}</TableHead>
                   </TableRow>
                 </TableHeader>
@@ -197,14 +206,6 @@ export function InventoryBulkAdjustDialog({ open, direction, branchId, onClose }
                           />
                         </TableCell>
                       )}
-                      <TableCell>
-                        <Input
-                          value={l.reason}
-                          onChange={e => patchLine(l.id, { reason: e.target.value })}
-                          placeholder={t('reasonPlaceholder')}
-                          className="h-8"
-                        />
-                      </TableCell>
                       <TableCell className="text-center">
                         <button type="button" onClick={() => removeLine(l.id)} className="text-muted-foreground transition-colors hover:text-destructive">
                           <Trash2 className="h-4 w-4" />

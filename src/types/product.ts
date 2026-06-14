@@ -49,9 +49,9 @@ export interface ProductWithStock {
 
 // ─── DTOs ─────────────────────────────────────────────────────────────────────
 
+/** GET /api/products/check-duplicate?name=&excludeId= → { exists } */
 export interface CheckDuplicateResponse {
-  trung: boolean
-  sanPhamTrung?: { maSanPham: string; tenHang: string }
+  exists: boolean
 }
 
 export interface CreateProductDto {

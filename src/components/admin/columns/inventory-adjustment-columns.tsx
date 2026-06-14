@@ -24,6 +24,13 @@ interface Options {
 
 const lak = (n: number) => n.toLocaleString('lo-LA')
 
+/** Tóm tắt sản phẩm của một phiếu nhiều dòng: "Tên SP đầu +N". */
+function productSummary(a: InventoryAdjustment): string {
+  if (a.lines.length === 0) return '—'
+  const first = a.lines[0].productName
+  return a.lines.length > 1 ? `${first} +${a.lines.length - 1}` : first
+}
+
 export function createAdjustmentColumns({ variant, labels }: Options): TableColumnsType<InventoryAdjustment> {
   const columns: TableColumnsType<InventoryAdjustment> = [
     {
@@ -38,14 +45,13 @@ export function createAdjustmentColumns({ variant, labels }: Options): TableColu
     },
     {
       title: labels.product,
-      dataIndex: 'productName',
-      key: 'productName',
-      render: (value: string) => <span className="font-medium">{value}</span>,
+      key: 'product',
+      render: (_: unknown, record: InventoryAdjustment) => <span className="font-medium">{productSummary(record)}</span>,
     },
     {
       title: labels.quantity,
-      dataIndex: 'quantity',
-      key: 'quantity',
+      dataIndex: 'totalQuantity',
+      key: 'totalQuantity',
       render: (value: number) => (
         <span className={`font-semibold tabular-nums ${variant === 'IN' ? 'text-primary' : 'text-destructive'}`}>
           {variant === 'IN' ? '+' : '−'}{value}
@@ -73,8 +79,8 @@ export function createAdjustmentColumns({ variant, labels }: Options): TableColu
         title: labels.value,
         key: 'value',
         render: (_: unknown, record: InventoryAdjustment) =>
-          record.actualValue != null
-            ? <span className="tabular-nums">{lak(record.actualValue)} ₭</span>
+          record.totalValue != null
+            ? <span className="tabular-nums">{lak(record.totalValue)} ₭</span>
             : <span className="text-muted-foreground">—</span>,
       },
     )

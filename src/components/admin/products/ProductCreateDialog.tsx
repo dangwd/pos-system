@@ -76,20 +76,15 @@ export function ProductCreateDialog({ open, onClose }: Props) {
     return () => clearTimeout(timer)
   }, [form.productName])
 
-  // Reset purity when category changes
-  useEffect(() => {
-    setForm((f) => ({ ...f, goldPurityId: '' }))
-  }, [form.productCategoryId])
-
   // Duplicate check via React Query
   const { data: dupCheck, isFetching: isCheckingDup } = useQuery({
-    queryKey: ['products', 'check-duplicate', debouncedName, form.productCategoryId],
-    queryFn: () => productRepository.checkDuplicate(debouncedName, form.productCategoryId || undefined),
+    queryKey: ['products', 'check-duplicate', debouncedName],
+    queryFn: () => productRepository.checkDuplicate(debouncedName),
     enabled: debouncedName.length >= 2,
     staleTime: 10_000,
   })
 
-  const isDuplicate = dupCheck?.trung === true
+  const isDuplicate = dupCheck?.exists === true
   const nameChecked = debouncedName.length >= 2 && !isCheckingDup
 
   const set = (key: keyof FormState, value: string) => setForm((f) => ({ ...f, [key]: value }))
@@ -160,7 +155,7 @@ export function ProductCreateDialog({ open, onClose }: Props) {
             <FieldLabel>{t('form.category')} *</FieldLabel>
             <Select
               value={form.productCategoryId || undefined}
-              onChange={(v) => v && set('productCategoryId', v)}
+              onChange={(v) => v && setForm((f) => ({ ...f, productCategoryId: v, goldPurityId: '' }))}
               placeholder={t('form.categoryPlaceholder')}
               options={inventoryCategories.map((c) => ({ value: c.id, label: c.name }))}
               showSearch

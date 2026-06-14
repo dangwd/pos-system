@@ -6,7 +6,7 @@ import { Drawer, Descriptions, Tag, Table, Divider, Badge } from 'antd'
 import { CalendarOutlined, ShopOutlined, UserOutlined } from '@ant-design/icons'
 import type { DescriptionsProps } from 'antd'
 import type { ColumnsType } from 'antd/es/table/interface'
-import type { InventoryAdjustment } from '@/types/inventory'
+import type { InventoryAdjustment, InventoryAdjustmentLine } from '@/types/inventory'
 
 interface Props {
   record: InventoryAdjustment | null
@@ -49,9 +49,9 @@ export function StockInDetailDrawer({ record, onClose }: Props) {
     },
     {
       key: 'source', label: t('labelSource'),
-      children: record.nguonGocLo
-        ? <Tag color={record.nguonGocLo === 'Quan' ? 'purple' : 'orange'}>
-            {record.nguonGocLo === 'Quan' ? t('sourceQuan') : t('sourceNgoai')}
+      children: record.nguonGoc
+        ? <Tag color={record.nguonGoc === 'Quan' ? 'purple' : 'orange'}>
+            {record.nguonGoc === 'Quan' ? t('sourceQuan') : t('sourceNgoai')}
           </Tag>
         : <span style={{ color: '#9ca3af' }}>—</span>,
     },
@@ -61,27 +61,19 @@ export function StockInDetailDrawer({ record, onClose }: Props) {
         ? <span style={{ display: 'flex', alignItems: 'center', gap: 6 }}><UserOutlined />{record.supplier}</span>
         : <span style={{ color: '#9ca3af' }}>—</span>,
     },
-    {
-      key: 'sapCode', label: t('labelSapCode'),
-      children: record.documentRef ?? <span style={{ color: '#9ca3af' }}>—</span>,
-    },
   ] : []
 
-  const productColumns: ColumnsType<InventoryAdjustment> = [
-    { title: '#', width: 40, render: (_v: unknown, _r: InventoryAdjustment, i: number) => i + 1 },
+  const productColumns: ColumnsType<InventoryAdjustmentLine> = [
+    { title: '#', width: 40, render: (_v: unknown, _r: InventoryAdjustmentLine, i: number) => i + 1 },
     { title: t('colProductName'), dataIndex: 'productName' },
     { title: t('colQtyDetail'), dataIndex: 'quantity', width: 75, align: 'right' as const },
-    {
-      title: t('colWeightDetail'), dataIndex: 'weightGram', width: 90, align: 'right' as const,
-      render: (v: number) => v?.toFixed(2) ?? '—',
-    },
   ]
 
-  const hasExtra = !!(record?.reason || record?.paymentMethod || record?.actualValue)
+  const hasExtra = !!(record?.reason || record?.paymentMethod || record?.totalValue)
   const extraItems: DescriptionsProps['items'] = record ? [
     ...(record.reason ? [{ key: 'reason', label: t('labelReason'), children: record.reason }] : []),
     ...(record.paymentMethod ? [{ key: 'pay', label: t('labelPayment'), children: record.paymentMethod === 'CASH' ? t('paymentCash') : t('paymentBank') }] : []),
-    ...(record.actualValue ? [{ key: 'value', label: t('labelValue'), children: <b>{record.actualValue.toLocaleString('lo-LA')} ₭</b> }] : []),
+    ...(record.totalValue ? [{ key: 'value', label: t('labelValue'), children: <b>{record.totalValue.toLocaleString('lo-LA')} ₭</b> }] : []),
   ] : []
 
   return (
@@ -130,10 +122,10 @@ export function StockInDetailDrawer({ record, onClose }: Props) {
             <span style={{ width: 3, height: 14, background: '#6366f1', borderRadius: 2, display: 'inline-block' }} />
             {t('sectionProducts')}
           </div>
-          <Table<InventoryAdjustment>
+          <Table<InventoryAdjustmentLine>
             rowKey="id"
             columns={productColumns}
-            dataSource={[record]}
+            dataSource={record.lines}
             pagination={false}
             size="small"
             bordered

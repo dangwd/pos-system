@@ -4,6 +4,13 @@ import type { ColumnDef } from '@tanstack/react-table'
 import { ArrowUpFromLine } from 'lucide-react'
 import type { InventoryAdjustment } from '@/types/inventory'
 
+/** Tóm tắt sản phẩm của một phiếu nhiều dòng: "Tên SP đầu +N". */
+function productSummary(a: InventoryAdjustment): string {
+  if (a.lines.length === 0) return '—'
+  const first = a.lines[0].productName
+  return a.lines.length > 1 ? `${first} +${a.lines.length - 1}` : first
+}
+
 export interface StockOutListLabels {
   code: string
   product: string
@@ -28,9 +35,9 @@ export function createStockOutListColumns(
       ),
     },
     {
-      accessorKey: 'productName',
+      id: 'product',
       header: labels.product,
-      cell: ({ row }) => <span className="font-medium">{row.original.productName}</span>,
+      cell: ({ row }) => <span className="font-medium">{productSummary(row.original)}</span>,
     },
     {
       accessorKey: 'counterName',
@@ -42,24 +49,15 @@ export function createStockOutListColumns(
       ),
     },
     {
-      accessorKey: 'quantity',
+      id: 'totalQuantity',
       header: labels.quantity,
       cell: ({ row }) => (
         <div className="flex items-center gap-1">
           <ArrowUpFromLine className="h-3 w-3 text-destructive" />
           <span className="tabular-nums font-semibold text-destructive">
-            {row.original.quantity}
+            {row.original.totalQuantity}
           </span>
         </div>
-      ),
-    },
-    {
-      accessorKey: 'weightGram',
-      header: labels.weight,
-      cell: ({ row }) => (
-        <span className="tabular-nums text-sm">
-          {row.original.weightGram.toLocaleString('lo-LA', { maximumFractionDigits: 2 })} g
-        </span>
       ),
     },
     {

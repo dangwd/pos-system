@@ -107,11 +107,15 @@ export class ProductRepository {
     }
   }
 
-  // TODO: thay endpoint thực tế nếu BE dùng tên khác
-  async checkDuplicate(productName: string, categoryId?: string): Promise<CheckDuplicateResponse> {
+  /**
+   * Kiểm tra trùng TÊN sản phẩm.
+   * GET /api/products/check-duplicate?name=...&excludeId=... → { exists }
+   * Truyền excludeId khi sửa để bỏ qua chính sản phẩm đang sửa.
+   */
+  async checkDuplicate(name: string, excludeId?: string): Promise<CheckDuplicateResponse> {
     try {
       const { data } = await api.get<CheckDuplicateResponse>(`${this.base}/check-duplicate`, {
-        params: { productName, categoryId },
+        params: { name, excludeId },
       })
       return data
     } catch (err) {

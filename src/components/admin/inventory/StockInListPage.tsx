@@ -80,7 +80,7 @@ export function StockInListPage() {
       sorter: (a: InventoryAdjustment, b: InventoryAdjustment) => a.createdAt.localeCompare(b.createdAt),
     },
     {
-      title: t('colTotalQty'), dataIndex: 'quantity', width: 85, align: 'center' as const,
+      title: t('colTotalQty'), dataIndex: 'totalQuantity', width: 85, align: 'center' as const,
       render: (v: number) => <b style={{ fontSize: 14 }}>{v}</b>,
     },
     {
@@ -94,7 +94,7 @@ export function StockInListPage() {
         : <span style={{ color: '#d1d5db' }}>—</span>,
     },
     {
-      title: t('colSource'), dataIndex: 'nguonGocLo', width: 110,
+      title: t('colSource'), dataIndex: 'nguonGoc', width: 110,
       render: (v: string | null) => v
         ? <Tag color={v === 'Quan' ? 'purple' : 'orange'} style={{ borderRadius: 12, fontSize: 11 }}>
             {v === 'Quan' ? t('sourceQuan') : t('sourceNgoai')}

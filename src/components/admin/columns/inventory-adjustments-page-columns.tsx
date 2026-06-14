@@ -7,6 +7,13 @@ import type { InventoryAdjustment } from '@/types/inventory'
 
 const lak = (n: number) => n.toLocaleString('lo-LA', { maximumFractionDigits: 0 })
 
+/** Tóm tắt sản phẩm của một phiếu nhiều dòng: "Tên SP đầu +N". */
+function productSummary(a: InventoryAdjustment): string {
+  if (a.lines.length === 0) return '—'
+  const first = a.lines[0].productName
+  return a.lines.length > 1 ? `${first} +${a.lines.length - 1}` : first
+}
+
 export interface AdjustmentsPageLabels {
   code: string
   direction: string
@@ -65,10 +72,9 @@ export function createAdjustmentsPageColumns(
     },
     {
       title: labels.product,
-      dataIndex: 'productName',
-      key: 'productName',
-      render: (value: string) => (
-        <span className="font-medium">{value}</span>
+      key: 'product',
+      render: (_: unknown, record: InventoryAdjustment) => (
+        <span className="font-medium">{productSummary(record)}</span>
       ),
     },
     {
@@ -81,8 +87,8 @@ export function createAdjustmentsPageColumns(
     },
     {
       title: labels.qty,
-      dataIndex: 'quantity',
-      key: 'quantity',
+      dataIndex: 'totalQuantity',
+      key: 'totalQuantity',
       render: (value: number, record: InventoryAdjustment) => {
         const isIn = record.direction === 'IN'
         return (
@@ -93,20 +99,10 @@ export function createAdjustmentsPageColumns(
       },
     },
     {
-      title: labels.weight,
-      dataIndex: 'weightGram',
-      key: 'weightGram',
-      render: (value: number) => (
-        <span className="tabular-nums text-sm">
-          {value.toLocaleString('lo-LA', { maximumFractionDigits: 2 })} g
-        </span>
-      ),
-    },
-    {
       title: labels.nguonGocLo,
-      key: 'nguonGocLo',
+      key: 'nguonGoc',
       render: (_: unknown, record: InventoryAdjustment) => {
-        const src = record.nguonGocLo
+        const src = record.nguonGoc
         if (!src) return <span className="text-muted-foreground">—</span>
         return (
           <Badge variant="outline" className="text-[10px]">
@@ -114,15 +110,6 @@ export function createAdjustmentsPageColumns(
           </Badge>
         )
       },
-    },
-    {
-      title: labels.documentRef,
-      dataIndex: 'documentRef',
-      key: 'documentRef',
-      render: (value: string | null) =>
-        value
-          ? <span className="font-mono text-xs">{value}</span>
-          : <span className="text-muted-foreground">—</span>,
     },
     {
       title: labels.supplier,
@@ -137,7 +124,7 @@ export function createAdjustmentsPageColumns(
       title: labels.value,
       key: 'value',
       render: (_: unknown, record: InventoryAdjustment) => {
-        const v = record.actualValue
+        const v = record.totalValue
         if (v == null) return <span className="text-muted-foreground">—</span>
         return <span className="tabular-nums text-sm">{lak(v)} ₭</span>
       },

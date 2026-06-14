@@ -6,7 +6,7 @@ import { useTranslations } from 'next-intl'
 import { Modal, Form, Select, Input, Divider, Button, Tag, message } from 'antd'
 import { AppstoreOutlined, UploadOutlined, SaveOutlined, CloseOutlined } from '@ant-design/icons'
 import { useCounters } from '@/hooks/useBranches'
-import { useBulkAdjustInventory } from '@/hooks/useInventory'
+import { useCreateAdjustment } from '@/hooks/useInventory'
 import { StockInProductPickerModal } from './StockInProductPickerModal'
 import { StockOutSelectedTable, type SelectedOutLine } from './StockOutSelectedTable'
 import type { InventoryItem } from '@/types/inventory'
@@ -28,7 +28,7 @@ export function StockOutCreateModal({ open, branchId, onClose, onSuccess }: Prop
   const { data: counters = [] } = useCounters(branchId)
   const counterId: string | undefined = Form.useWatch('counterId', form)
 
-  const { mutate: bulkAdjust, isPending } = useBulkAdjustInventory()
+  const { mutate: createAdjustment, isPending } = useCreateAdjustment()
 
   const totalQty = lines.reduce((s, l) => s + l.qty, 0)
   const selectedIds = lines.map(l => l.item.id)
@@ -68,16 +68,13 @@ export function StockOutCreateModal({ open, branchId, onClose, onSuccess }: Prop
     if (!lines.some(l => l.qty > 0)) { message.error(t('errNoQty')); return }
     if (hasOverStock) { message.error(t('errOverStock')); return }
 
-    bulkAdjust(
+    createAdjustment(
       {
-        items: lines
+        direction: 'OUT',
+        reason: [values.reason, values.note].filter(Boolean).join(' — '),
+        lines: lines
           .filter(l => l.qty > 0)
-          .map(l => ({
-            id: l.item.id,
-            direction: 'OUT' as const,
-            quantity: l.qty,
-            reason: [values.reason, values.note].filter(Boolean).join(' — '),
-          })),
+          .map(l => ({ itemId: l.item.id, quantity: l.qty })),
       },
       {
         onSuccess: () => {

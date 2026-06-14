@@ -19,8 +19,8 @@ import type {
   UpdateInventoryStatusDto,
   BulkUpdateInventoryDto,
   BulkUpdateInventoryResult,
-  BulkAdjustInventoryDto,
-  BulkAdjustInventoryResult,
+  CreateInventoryAdjustmentDto,
+  CreateInventoryAdjustmentResult,
   InventoryListParams,
   InventoryAdjustmentParams,
 } from '@/types/inventory'
@@ -68,8 +68,8 @@ export class InventoryRepository {
   }
 
   /**
-   * Điều chỉnh tồn kho thủ công (IN = nhập / OUT = xuất + lý do bắt buộc).
-   * Role: InventoryManage (Manager, SystemAdmin). Trả về `{ item, log }`.
+   * Điều chỉnh tồn kho thủ công 1 mục (IN = nhập / OUT = xuất + lý do bắt buộc).
+   * Role: InventoryManage (Manager, SystemAdmin). Trả về `{ item, adjustment }`.
    */
   async adjust(id: string, dto: AdjustInventoryDto): Promise<AdjustInventoryResult> {
     try {
@@ -81,13 +81,13 @@ export class InventoryRepository {
   }
 
   /**
-   * Điều chỉnh tồn kho NHIỀU mục cùng lúc (nhập/xuất) — mỗi item có direction riêng.
-   * Partial success: trả về `{ adjustedCount, notFoundIds, insufficientStockIds }`.
-   * Role: InventoryManage (Manager, SystemAdmin).
+   * Tạo MỘT phiếu điều chỉnh tồn kho nhiều dòng (nhập/xuất) — POST /api/inventory/adjustments.
+   * Phiếu thuần một chiều, atomic: chỉ cần một dòng lỗi (không tìm thấy / thiếu tồn) thì cả phiếu bị từ chối.
+   * Trả về phiếu vừa tạo (header + lines). Role: InventoryManage (Manager, SystemAdmin).
    */
-  async bulkAdjust(dto: BulkAdjustInventoryDto): Promise<BulkAdjustInventoryResult> {
+  async createAdjustment(dto: CreateInventoryAdjustmentDto): Promise<CreateInventoryAdjustmentResult> {
     try {
-      const { data } = await api.post<BulkAdjustInventoryResult>(`${this.base}/bulk-adjust`, dto)
+      const { data } = await api.post<CreateInventoryAdjustmentResult>(`${this.base}/adjustments`, dto)
       return data
     } catch (err) {
       throw handleAxiosError(err)

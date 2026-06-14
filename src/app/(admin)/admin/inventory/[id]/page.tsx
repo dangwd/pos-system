@@ -41,13 +41,18 @@ export default function InventoryItemDetailPage() {
   const user = useAuthStore(s => s.user)
   const canManage = !!user?.permissions.includes('INVENTORY_MANAGE')
 
-  const [adjPage, setAdjPage] = useState(1)
   const [statusTarget, setStatusTarget] = useState<InventoryStatus | null>(null)
 
   const { data: item, isLoading } = useInventoryItem(id ?? null)
+  // BE không lọc phiếu theo từng mục kho → lấy lịch sử theo chi nhánh rồi lọc client-side
+  // các phiếu có dòng chứa item này. Lấy trang lớn để giảm sót (best-effort theo giới hạn BE).
   const { data: adjPaged, isLoading: adjLoading } = useInventoryAdjustments(
-    { inventoryItemId: id, page: adjPage, pageSize: PAGE_SIZE },
-    !!id,
+    item ? { branchId: item.branchId, page: 1, pageSize: 100 } : undefined,
+    !!item,
+  )
+  const adjRows = useMemo(
+    () => (adjPaged?.data ?? []).filter(a => a.lines.some(l => l.inventoryItemId === id)),
+    [adjPaged, id],
   )
 
   const statusLabels = useMemo<Record<InventoryStatus, string>>(() => ({
@@ -203,20 +208,15 @@ export default function InventoryItemDetailPage() {
         <div>
           <h2 className="text-base font-semibold">{tDetail('historyTitle')}</h2>
           <p className="text-sm text-muted-foreground">
-            {tAdj('subtitle', { count: adjPaged?.total ?? 0 })}
+            {tAdj('subtitle', { count: adjRows.length })}
           </p>
         </div>
         <DataTable
           columns={adjColumns}
-          data={adjPaged?.data ?? []}
+          data={adjRows}
           hideSearch
           loading={adjLoading}
-          serverPagination={adjPaged ? {
-            total: adjPaged.total,
-            page: adjPaged.page,
-            pageSize: adjPaged.pageSize,
-            onPageChange: setAdjPage,
-          } : undefined}
+          pageSize={PAGE_SIZE}
         />
       </div>
 
