@@ -83,10 +83,21 @@ function ProductSearch({ onSelect }: ProductSearchProps) {
     txnType === "SellSilver" ||
     txnType === "ExchangeGold";
 
+  const categoryCode =
+    txnType === "SellSilver"
+      ? "Silver"
+      : txnType === "ExchangeCurrency"
+        ? undefined
+        : "Gold";
+
   const { user } = useAuthStore();
   const { data: searchResults = [], isFetching } = useProductsWithStock(
     debouncedSearch
-      ? { search: debouncedSearch, counterId: user?.counterId ?? undefined }
+      ? {
+          search: debouncedSearch,
+          counterId: user?.counterId ?? undefined,
+          categoryCode,
+        }
       : undefined,
   );
   const results = debouncedSearch ? searchResults.slice(0, 8) : [];

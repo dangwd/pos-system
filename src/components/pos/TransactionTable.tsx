@@ -850,6 +850,7 @@ function ExchangeInRow({
       <td className="px-2 py-2 w-32">
         <div className="flex items-center gap-1.5">
           <button
+            disabled={item.isReadOnly}
             onClick={() =>
               onUpdate(item.productId, {
                 isDamaged: !item.isDamaged,
@@ -858,7 +859,7 @@ function ExchangeInRow({
             }
             title={item.isDamaged ? "Bỏ PHÍ KHÒ" : "Bật PHÍ KHÒ"}
             className={cn(
-              "shrink-0 w-4 h-4 rounded border-2 flex items-center justify-center transition-colors",
+              "shrink-0 w-4 h-4 rounded border-2 flex items-center justify-center transition-colors disabled:opacity-40",
               item.isDamaged
                 ? "bg-orange-500 border-orange-500 text-white"
                 : "border-muted-foreground/30 hover:border-orange-400",
@@ -870,6 +871,7 @@ function ExchangeInRow({
             <NumberInput
               min={0}
               placeholder="0"
+              disabled={item.isReadOnly}
               value={item.perItemDamage || ""}
               onChange={(v) =>
                 onUpdate(item.productId, {
@@ -891,6 +893,7 @@ function ExchangeInRow({
           decimals={2}
           min={0}
           placeholder="0"
+          disabled={item.isReadOnly}
           value={item.perItemWearChi || ""}
           onChange={(v) =>
             onUpdate(item.productId, {
