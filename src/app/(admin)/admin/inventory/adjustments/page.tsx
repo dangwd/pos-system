@@ -1,5 +1,7 @@
 'use client'
 
+import { usePermission } from '@/hooks/usePermission'
+import { ForbiddenPage } from '@/components/shared/ForbiddenPage'
 import { useMemo, useState } from 'react'
 import { useTranslations } from 'next-intl'
 import { useRouter } from 'next/navigation'
@@ -18,6 +20,7 @@ import type { AdjustDirection } from '@/types/inventory'
 const PAGE_SIZE = 20
 
 export default function InventoryAdjustmentsPage() {
+  const { hasPermission } = usePermission()
   const t = useTranslations('admin.inventory.adjustments')
   const router = useRouter()
   const user = useAuthStore(s => s.user)
@@ -72,6 +75,8 @@ export default function InventoryAdjustmentsPage() {
     na:          t('na'),
   }), [t])
 
+
+  if (!hasPermission('INVENTORY_MANAGE')) return <ForbiddenPage />
   return (
     <div className="p-6 space-y-4">
       {/* Header */}

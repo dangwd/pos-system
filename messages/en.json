@@ -1299,6 +1299,13 @@
       "cancel": "Cancel",
       "confirm": "Confirm",
       "update": "Update"
+    },
+    "forbidden": {
+      "title": "Access Denied",
+      "description": "Your account does not have permission to access this screen. Please contact the system administrator.",
+      "role": "Role",
+      "goBack": "Go Back",
+      "goToPOS": "Go to POS"
     }
   }
 }

@@ -1,5 +1,7 @@
 'use client'
 
+import { usePermission } from '@/hooks/usePermission'
+import { ForbiddenPage } from '@/components/shared/ForbiddenPage'
 import { useMemo, useState } from 'react'
 import { useTranslations } from 'next-intl'
 import { Table, Button, Input, Select, Card } from 'antd'
@@ -32,6 +34,7 @@ const FILTER_STYLE: React.CSSProperties = {
 }
 
 export default function ProductsPage() {
+  const { hasPermission } = usePermission()
   const t = useTranslations('admin.products')
 
   const [createOpen,    setCreateOpen]    = useState(false)
@@ -97,6 +100,8 @@ export default function ProductsPage() {
 
   const handleSearch = (value: string) => { setKeyword(value); setPage(1) }
 
+
+  if (!hasPermission('PRODUCT_MANAGE')) return <ForbiddenPage />
   return (
     <div style={PAGE_STYLE}>
       {/* ── Tiêu đề + actions ── */}

@@ -1,5 +1,7 @@
 'use client'
 
+import { usePermission } from '@/hooks/usePermission'
+import { ForbiddenPage } from '@/components/shared/ForbiddenPage'
 import { useState } from 'react'
 import { useTranslations } from 'next-intl'
 import { Pencil } from 'lucide-react'
@@ -13,6 +15,7 @@ import { useExchangeRates, useUpdateExchangeRate } from '@/hooks/useConfig'
 import type { ExchangeRate } from '@/types/config'
 
 export default function ExchangeRatesPage() {
+  const { hasPermission } = usePermission()
   const t = useTranslations('admin.config.exchangeRates')
   const [editing, setEditing] = useState<ExchangeRate | null>(null)
   const [form, setForm] = useState({ rateToLak: '', adjustment: '' })
@@ -33,6 +36,8 @@ export default function ExchangeRatesPage() {
     )
   }
 
+
+  if (!hasPermission('CONFIG_PRICE')) return <ForbiddenPage />
   return (
     <div className="p-6 space-y-4">
       <div>

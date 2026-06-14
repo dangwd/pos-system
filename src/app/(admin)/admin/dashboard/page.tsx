@@ -11,6 +11,8 @@ import {
   ResponsiveContainer, Cell, PieChart, Pie, Legend,
 } from 'recharts'
 import type { Transaction } from '@/types/transaction'
+import { usePermission } from '@/hooks/usePermission'
+import { ForbiddenPage } from '@/components/shared/ForbiddenPage'
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 
@@ -256,6 +258,7 @@ function RevenueByTypeChart({
 // ── Page ─────────────────────────────────────────────────────────────────────
 
 export default function DashboardPage() {
+  const { hasPermission } = usePermission()
   const t       = useTranslations('admin.dashboard')
   const tOrders = useTranslations('admin.orders')
 
@@ -270,6 +273,8 @@ export default function DashboardPage() {
   const grossProfit = (stats?.totalRevenue ?? 0) - (stats?.totalPurchase ?? 0)
 
   const typeLabels = tOrders.raw('transactionTypes') as Record<string, string>
+
+  if (!hasPermission('REPORT_DASHBOARD')) return <ForbiddenPage />
 
   return (
     <div className="p-6 space-y-6">

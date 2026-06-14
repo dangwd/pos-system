@@ -1,5 +1,7 @@
 'use client'
 
+import { usePermission } from '@/hooks/usePermission'
+import { ForbiddenPage } from '@/components/shared/ForbiddenPage'
 import { useState } from 'react'
 import { useTranslations } from 'next-intl'
 import { Plus, Pencil, Check, X, Trash2 } from 'lucide-react'
@@ -22,6 +24,7 @@ import type { WeightUnit } from '@/types/config'
 type EditingState = { id: string; tenDonVi: string; gramPerUnit: string } | null
 
 export default function WeightUnitsPage() {
+  const { hasPermission } = usePermission()
   const t = useTranslations('admin.config.weightUnits')
   const [editing, setEditing] = useState<EditingState>(null)
   const [createOpen, setCreateOpen] = useState(false)
@@ -55,6 +58,8 @@ export default function WeightUnitsPage() {
     )
   }
 
+
+  if (!hasPermission('CONFIG_WEIGHT_UNIT')) return <ForbiddenPage />
   return (
     <div className="p-6 space-y-4">
       <div className="flex items-start justify-between">

@@ -1,5 +1,7 @@
 'use client'
 
+import { usePermission } from '@/hooks/usePermission'
+import { ForbiddenPage } from '@/components/shared/ForbiddenPage'
 import { useState } from 'react'
 import { useDashboardReport, useDailyReport } from '@/hooks/useReports'
 import { useAuthStore } from '@/stores/auth.store'
@@ -67,6 +69,7 @@ type Tab = 'dashboard' | 'daily'
 // ── Page ─────────────────────────────────────────────────────────────────────
 
 export default function ReportsPage() {
+  const { hasPermission } = usePermission()
   const t = useTranslations('admin.reports')
   const { user } = useAuthStore()
   const [tab, setTab] = useState<Tab>('dashboard')
@@ -83,6 +86,8 @@ export default function ReportsPage() {
     tab === 'daily',
   )
 
+
+  if (!hasPermission('REPORT_DAILY')) return <ForbiddenPage />
   return (
     <div className="p-6 space-y-6">
       <h1 className="text-2xl font-bold">{t('title')}</h1>

@@ -22,6 +22,8 @@ import {
   useUpdateRolePermissions, useCreateRole, useUpdateRole, useDeleteRole,
 } from '@/hooks/useConfig'
 import type { AppRole, Permission } from '@/types/config'
+import { usePermission } from '@/hooks/usePermission'
+import { ForbiddenPage } from '@/components/shared/ForbiddenPage'
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -347,6 +349,7 @@ const DIVIDER_CELL = { colSpan: 5 }
 const HIDDEN_CELL  = { colSpan: 0 }
 
 export default function RolesPage() {
+  const { hasPermission } = usePermission()
   const t = useTranslations('admin.roles')
 
   const [permEditTarget, setPermEditTarget] = useState<PermEditTarget>(null)
@@ -455,6 +458,8 @@ export default function RolesPage() {
     },
   ], [t])
 
+
+  if (!hasPermission('USER_MANAGE')) return <ForbiddenPage />
   return (
     <div style={PAGE_STYLE}>
       {/* ── Tiêu đề + actions ── */}

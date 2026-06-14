@@ -1,5 +1,7 @@
 'use client'
 
+import { usePermission } from '@/hooks/usePermission'
+import { ForbiddenPage } from '@/components/shared/ForbiddenPage'
 import { useMemo, useState } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import { tradeRepository } from '@/lib/repositories/trade.repository'
@@ -15,6 +17,7 @@ type Filter = 'all' | TradeType
 const PAGE_SIZE = 20
 
 export default function TradePage() {
+  const { hasAnyPermission } = usePermission()
   const t = useTranslations('admin.trade')
   const [filter, setFilter] = useState<Filter>('all')
   const [page, setPage] = useState(1)
@@ -48,6 +51,8 @@ export default function TradePage() {
     },
   }), [t])
 
+
+  if (!hasAnyPermission('TRADE_CREATE', 'TRADE_APPROVE')) return <ForbiddenPage />
   return (
     <div className="p-6 space-y-4">
       <div className="flex items-center justify-between">

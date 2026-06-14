@@ -1,5 +1,7 @@
 'use client'
 
+import { usePermission } from '@/hooks/usePermission'
+import { ForbiddenPage } from '@/components/shared/ForbiddenPage'
 import { useState } from 'react'
 import { useTranslations } from 'next-intl'
 import { Plus, Pencil, Trash2 } from 'lucide-react'
@@ -25,6 +27,7 @@ type DialogState = { mode: 'create' } | { mode: 'edit'; purity: GoldPurity } | n
 const EMPTY_FORM = { ma: '', hamLuong: '', category: 'Gold' as 'Gold' | 'Silver' }
 
 export default function GoldPuritiesPage() {
+  const { hasPermission } = usePermission()
   const t = useTranslations('admin.config.goldPurities')
   const [dialog, setDialog] = useState<DialogState>(null)
   const [form, setForm] = useState(EMPTY_FORM)
@@ -59,6 +62,8 @@ export default function GoldPuritiesPage() {
     }
   }
 
+
+  if (!hasPermission('CONFIG_GOLD_PURITY')) return <ForbiddenPage />
   return (
     <div className="p-6 space-y-4">
       <div className="flex items-start justify-between">

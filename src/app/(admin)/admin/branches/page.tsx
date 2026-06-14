@@ -1,5 +1,7 @@
 'use client'
 
+import { usePermission } from '@/hooks/usePermission'
+import { ForbiddenPage } from '@/components/shared/ForbiddenPage'
 import { useState } from 'react'
 import { useTranslations } from 'next-intl'
 import { Building2, Layers, Pencil, Plus, PowerOff } from 'lucide-react'
@@ -14,6 +16,7 @@ import { cn } from '@/lib/utils'
 import type { Branch, Counter } from '@/types/branch'
 
 export default function BranchesPage() {
+  const { hasPermission } = usePermission()
   const t = useTranslations('admin.branches')
 
   const [selectedBranch, setSelectedBranch] = useState<Branch | null>(null)
@@ -52,6 +55,8 @@ export default function BranchesPage() {
     deactivateCounter({ branchId: selectedBranch.id, counterId: counter.id })
   }
 
+
+  if (!hasPermission('BRANCH_MANAGE')) return <ForbiddenPage />
   return (
     <div className="p-6 space-y-4">
       {/* Header */}

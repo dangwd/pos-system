@@ -1,5 +1,7 @@
 'use client'
 
+import { usePermission } from '@/hooks/usePermission'
+import { ForbiddenPage } from '@/components/shared/ForbiddenPage'
 import { useState } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { cashLedgerRepository } from '@/lib/repositories/cash-ledger.repository'
@@ -148,6 +150,7 @@ function AddEntryDialog({ branchId, open, onClose }: { branchId: string; open: b
 }
 
 export default function CashLedgerPage() {
+  const { hasPermission } = usePermission()
   const t = useTranslations('admin.cashLedger')
   const { user } = useAuthStore()
 
@@ -169,6 +172,8 @@ export default function CashLedgerPage() {
     { label: t('closingBalance'),  value: ledger?.closingBalanceLak ?? 0 },
   ]
 
+
+  if (!hasPermission('CASH_LEDGER_MANAGE')) return <ForbiddenPage />
   return (
     <div className="p-6 space-y-6">
       <div className="flex items-start justify-between">

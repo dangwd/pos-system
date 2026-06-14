@@ -1,5 +1,7 @@
 'use client'
 
+import { usePermission } from '@/hooks/usePermission'
+import { ForbiddenPage } from '@/components/shared/ForbiddenPage'
 import { useMemo, useState } from 'react'
 import { useTranslations } from 'next-intl'
 import { Table, Button, Input, Select, Card } from 'antd'
@@ -29,6 +31,7 @@ const FILTER_STYLE: React.CSSProperties = {
 }
 
 export default function UsersPage() {
+  const { hasPermission } = usePermission()
   const t = useTranslations('admin.users')
 
   const [createOpen,          setCreateOpen]          = useState(false)
@@ -96,6 +99,8 @@ export default function UsersPage() {
     (user) => setAssignCounterUser(user),
   ), [t, branchMap, activate, deactivate])
 
+
+  if (!hasPermission('USER_MANAGE')) return <ForbiddenPage />
   return (
     <div style={PAGE_STYLE}>
       {/* ── Tiêu đề + actions ── */}

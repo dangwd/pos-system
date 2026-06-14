@@ -1,5 +1,8 @@
 "use client";
 
+import { usePermission } from '@/hooks/usePermission'
+import { ForbiddenPage } from '@/components/shared/ForbiddenPage'
+
 import { createOrderColumns } from "@/components/admin/columns/order-columns";
 import { Receipt } from "@/components/pos/Receipt";
 import { DataTable } from "@/components/shared/DataTable";
@@ -20,6 +23,7 @@ function formatKip(n: number) {
 }
 
 export default function OrdersPage() {
+  const { hasPermission } = usePermission()
   const t = useTranslations("admin.orders");
 
   const [page, setPage] = useState(1);
@@ -105,6 +109,8 @@ export default function OrdersPage() {
     [t, transactionStatuses, typeLabels],
   );
 
+
+  if (!hasPermission('TRANSACTION_VIEW_ALL')) return <ForbiddenPage />
   return (
     <div className="p-6 flex flex-col h-full gap-4">
       <div>

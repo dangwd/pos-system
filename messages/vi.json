@@ -1295,6 +1295,13 @@
       "cancel": "Hủy",
       "confirm": "Xác nhận",
       "update": "Cập nhật"
+    },
+    "forbidden": {
+      "title": "Không có quyền truy cập",
+      "description": "Tài khoản của bạn không có quyền thao tác trên màn hình này. Vui lòng liên hệ quản trị viên.",
+      "role": "Vai trò",
+      "goBack": "Quay lại",
+      "goToPOS": "Về trang POS"
     }
   }
 }

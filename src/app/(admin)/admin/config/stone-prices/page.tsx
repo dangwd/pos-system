@@ -1,5 +1,7 @@
 'use client'
 
+import { usePermission } from '@/hooks/usePermission'
+import { ForbiddenPage } from '@/components/shared/ForbiddenPage'
 import { useState } from 'react'
 import { useTranslations } from 'next-intl'
 import { Plus, Pencil, Trash2 } from 'lucide-react'
@@ -27,6 +29,7 @@ function formatKip(n: number) {
 }
 
 export default function StonePricesPage() {
+  const { hasPermission } = usePermission()
   const t = useTranslations('admin.config.stonePrices')
   const [dialog, setDialog] = useState<DialogState>(null)
   const [form, setForm] = useState(EMPTY_FORM)
@@ -60,6 +63,8 @@ export default function StonePricesPage() {
 
   const isFormValid = !!form.tuSoChi && !!form.denSoChi && !!form.giaDa
 
+
+  if (!hasPermission('CONFIG_STONE_PRICE')) return <ForbiddenPage />
   return (
     <div className="p-6 space-y-4">
       <div className="flex items-start justify-between">

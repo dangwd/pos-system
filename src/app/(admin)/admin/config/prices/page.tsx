@@ -1,5 +1,7 @@
 'use client'
 
+import { usePermission } from '@/hooks/usePermission'
+import { ForbiddenPage } from '@/components/shared/ForbiddenPage'
 import { useMemo, useState } from 'react'
 import { useTranslations } from 'next-intl'
 import { Pencil, Plus, History } from 'lucide-react'
@@ -45,6 +47,7 @@ function buildFormRows(items: PriceItem[]): FormRow[] {
 }
 
 export default function PricesPage() {
+  const { hasPermission } = usePermission()
   const t = useTranslations('admin.config.prices')
   const [editing, setEditing] = useState(false)
   const [rows, setRows] = useState<FormRow[]>([])
@@ -137,6 +140,8 @@ export default function PricesPage() {
     })
   }
 
+
+  if (!hasPermission('CONFIG_PRICE')) return <ForbiddenPage />
   return (
     <div className="p-6 space-y-5">
       <div className="flex items-start justify-between">
