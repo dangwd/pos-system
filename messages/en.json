@@ -270,6 +270,8 @@
         "trade": "Trade",
         "cashLedger": "Cash Ledger",
         "reports": "Reports",
+        "reportInventory": "Inventory Report",
+        "reportRevenue": "Revenue Report",
         "config": "Configuration",
         "prices": "Price Config",
         "exchangeRates": "Exchange Rates",
@@ -762,6 +764,9 @@
         "labelPayment": "Payment",
         "labelValue": "Lot Value (₭)",
         "colProductName": "Product Name",
+        "colProductCode": "Code",
+        "colPurity": "Purity",
+        "colUnit": "Unit",
         "colQtyDetail": "Qty",
         "colWeightDetail": "Weight (g)",
         "paymentCash": "Cash",
@@ -842,6 +847,9 @@
         "labelCreatedAt": "Created At",
         "labelReason": "Reason",
         "colProductName": "Product Name",
+        "colProductCode": "Code",
+        "colPurity": "Purity",
+        "colUnit": "Unit",
         "colQtyDetail": "Qty",
         "colWeightDetail": "Weight (g)"
       },
@@ -993,6 +1001,48 @@
         "collectedLak": "Collected",
         "paidLak": "Paid Out",
         "closingLak": "Closing Balance"
+      },
+      "inventory": {
+        "title": "Inventory Report",
+        "subtitle": "Stock summary by category, status and source",
+        "filterBranch": "All branches",
+        "filterCounter": "All counters",
+        "totalItems": "Item types",
+        "totalQuantity": "Total quantity",
+        "totalWeight": "Total weight",
+        "byCategory": "By category",
+        "byStatus": "By status",
+        "byNguonGoc": "By source",
+        "colCategory": "Category",
+        "colCount": "Types",
+        "colQuantity": "Quantity",
+        "colWeight": "Weight",
+        "listTitle": "Inventory list"
+      },
+      "revenue": {
+        "title": "Revenue Report",
+        "subtitle": "Revenue, cost and gross profit by period",
+        "noBranch": "Please select a branch",
+        "filterBranch": "Select branch",
+        "periodWeek": "Week",
+        "periodMonth": "Month",
+        "periodYear": "Year",
+        "totalDoanhThuBan": "Sales revenue",
+        "totalChiPhiMua": "Purchase cost",
+        "totalDoanhThuDoi": "Exchange revenue",
+        "totalLaiGop": "Gross profit",
+        "laiGopNote": "= Sales − Purchase, before operating costs",
+        "totalHoaDon": "Total invoices",
+        "totalGiaoDichTrade": "Trade transactions",
+        "chartTitle": "Chart by period",
+        "tableTitle": "Details by period",
+        "colLabel": "Period",
+        "colDoanhThuBan": "Sales",
+        "colChiPhiMua": "Purchase",
+        "colDoanhThuDoi": "Exchange",
+        "colLaiGop": "Gross profit",
+        "colSoHoaDon": "Invoices",
+        "colSoGiaoDichTrade": "Trades"
       }
     },
     "config": {
@@ -1039,6 +1089,7 @@
       "exchangeRates": {
         "title": "Exchange Rates",
         "updateButton": "Update",
+        "edit": "Edit",
         "cancel": "Cancel",
         "columns": {
           "currency": "Currency",
@@ -1051,6 +1102,8 @@
         "title": "Stone Price Rules",
         "addButton": "Add rule",
         "editDialogTitle": "Edit rule",
+        "edit": "Edit",
+        "delete": "Delete",
         "saveButton": "Save",
         "cancel": "Cancel",
         "columns": {
@@ -1066,6 +1119,8 @@
         "saveButton": "Save",
         "cancel": "Cancel",
         "systemBadge": "System",
+        "edit": "Edit",
+        "delete": "Delete",
         "columns": {
           "code": "Code",
           "name": "Name",
@@ -1081,6 +1136,8 @@
         "title": "Gold / Silver Purities",
         "addButton": "Add purity",
         "editDialogTitle": "Edit purity",
+        "edit": "Edit",
+        "delete": "Delete",
         "saveButton": "Save",
         "cancel": "Cancel",
         "categoryGold": "Gold",
@@ -1299,7 +1356,8 @@
         "edit": "Rename",
         "deactivate": "Deactivate",
         "active": "Active",
-        "inactive": "Inactive"
+        "inactive": "Inactive",
+        "activate": "Activate"
       },
       "counterCreateDialog": {
         "title": "Add counter — {branchName}",
@@ -1318,7 +1376,8 @@
         "updateBranchSuccess": "Branch updated",
         "createCounterSuccess": "Counter created",
         "updateCounterSuccess": "Counter updated",
-        "deactivateCounterSuccess": "Counter deactivated"
+        "deactivateCounterSuccess": "Counter deactivated",
+        "activateCounterSuccess": "Counter activated"
       }
     }
   },

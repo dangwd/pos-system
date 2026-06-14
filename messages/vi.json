@@ -270,6 +270,8 @@
         "trade": "Mua-Bán",
         "cashLedger": "Sổ quỹ",
         "reports": "Báo cáo",
+        "reportInventory": "Báo cáo tồn kho",
+        "reportRevenue": "Báo cáo doanh thu",
         "config": "Cấu hình",
         "prices": "Bảng giá",
         "exchangeRates": "Tỷ giá",
@@ -425,6 +427,8 @@
       "statusChuyenXuong": "Chuyển xưởng",
       "statusDaBan": "Đã bán",
       "statusDoiRa": "Đã đổi ra",
+      "sourceQuan": "Hàng quán",
+      "sourceNgoai": "Hàng ngoài",
       "list": {
         "title": "Danh sách tồn kho",
         "subtitle": "{count} mục",
@@ -758,6 +762,9 @@
         "labelPayment": "Thanh toán",
         "labelValue": "Giá trị lô (₭)",
         "colProductName": "Tên sản phẩm",
+        "colProductCode": "Mã SP",
+        "colPurity": "Hàm lượng",
+        "colUnit": "Đơn vị",
         "colQtyDetail": "Số lượng",
         "colWeightDetail": "KL (g)",
         "paymentCash": "Tiền mặt",
@@ -838,6 +845,9 @@
         "labelCreatedAt": "Thời gian tạo",
         "labelReason": "Lý do",
         "colProductName": "Tên sản phẩm",
+        "colProductCode": "Mã SP",
+        "colPurity": "Hàm lượng",
+        "colUnit": "Đơn vị",
         "colQtyDetail": "Số lượng",
         "colWeightDetail": "KL (g)"
       },
@@ -989,6 +999,48 @@
         "collectedLak": "Thu trong ngày",
         "paidLak": "Chi trong ngày",
         "closingLak": "Tồn quỹ cuối ngày"
+      },
+      "inventory": {
+        "title": "Báo cáo tồn kho",
+        "subtitle": "Tổng hợp tồn kho theo danh mục, trạng thái và nguồn gốc",
+        "filterBranch": "Toàn hệ thống",
+        "filterCounter": "Tất cả quầy",
+        "totalItems": "Số loại mặt hàng",
+        "totalQuantity": "Tổng số lượng",
+        "totalWeight": "Tổng trọng lượng",
+        "byCategory": "Theo danh mục",
+        "byStatus": "Theo trạng thái",
+        "byNguonGoc": "Theo nguồn gốc",
+        "colCategory": "Danh mục",
+        "colCount": "Số loại",
+        "colQuantity": "Số lượng",
+        "colWeight": "Trọng lượng",
+        "listTitle": "Danh sách tồn kho"
+      },
+      "revenue": {
+        "title": "Báo cáo doanh thu",
+        "subtitle": "Doanh thu, chi phí và lãi gộp theo kỳ",
+        "noBranch": "Vui lòng chọn chi nhánh",
+        "filterBranch": "Chọn chi nhánh",
+        "periodWeek": "Tuần",
+        "periodMonth": "Tháng",
+        "periodYear": "Năm",
+        "totalDoanhThuBan": "Doanh thu bán",
+        "totalChiPhiMua": "Chi phí mua vào",
+        "totalDoanhThuDoi": "Doanh thu đổi hàng",
+        "totalLaiGop": "Lãi gộp",
+        "laiGopNote": "= Bán – Mua, chưa trừ vận hành",
+        "totalHoaDon": "Tổng hóa đơn",
+        "totalGiaoDichTrade": "Giao dịch Trade",
+        "chartTitle": "Biểu đồ theo kỳ",
+        "tableTitle": "Chi tiết theo kỳ",
+        "colLabel": "Kỳ",
+        "colDoanhThuBan": "Doanh thu bán",
+        "colChiPhiMua": "Chi phí mua",
+        "colDoanhThuDoi": "Doanh thu đổi",
+        "colLaiGop": "Lãi gộp",
+        "colSoHoaDon": "Số hóa đơn",
+        "colSoGiaoDichTrade": "Số GD Trade"
       }
     },
     "config": {
@@ -1035,6 +1087,7 @@
       "exchangeRates": {
         "title": "Tỷ giá ngoại tệ",
         "updateButton": "Cập nhật",
+        "edit": "Sửa",
         "cancel": "Hủy",
         "columns": {
           "currency": "Ngoại tệ",
@@ -1047,6 +1100,8 @@
         "title": "Bảng phí đá đính kèm",
         "addButton": "Thêm quy tắc",
         "editDialogTitle": "Sửa quy tắc",
+        "edit": "Sửa",
+        "delete": "Xóa",
         "saveButton": "Lưu",
         "cancel": "Hủy",
         "columns": {
@@ -1062,6 +1117,8 @@
         "saveButton": "Lưu",
         "cancel": "Hủy",
         "systemBadge": "Hệ thống",
+        "edit": "Sửa",
+        "delete": "Xóa",
         "columns": {
           "code": "Mã",
           "name": "Tên",
@@ -1077,6 +1134,8 @@
         "title": "Hàm lượng vàng / bạc",
         "addButton": "Thêm hàm lượng",
         "editDialogTitle": "Sửa hàm lượng",
+        "edit": "Sửa",
+        "delete": "Xóa",
         "saveButton": "Lưu",
         "cancel": "Hủy",
         "categoryGold": "Vàng",
@@ -1295,7 +1354,8 @@
         "edit": "Đổi tên",
         "deactivate": "Vô hiệu hóa",
         "active": "Hoạt động",
-        "inactive": "Vô hiệu"
+        "inactive": "Ngừng hoạt động",
+        "activate": "Kích hoạt"
       },
       "counterCreateDialog": {
         "title": "Thêm quầy — {branchName}",
@@ -1314,7 +1374,8 @@
         "updateBranchSuccess": "Đã cập nhật chi nhánh",
         "createCounterSuccess": "Đã tạo quầy",
         "updateCounterSuccess": "Đã cập nhật quầy",
-        "deactivateCounterSuccess": "Đã vô hiệu hóa quầy"
+        "deactivateCounterSuccess": "Đã vô hiệu hóa quầy",
+        "activateCounterSuccess": "Đã kích hoạt quầy"
       }
     }
   },

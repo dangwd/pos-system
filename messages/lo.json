@@ -270,6 +270,8 @@
         "trade": "ຊື້-ຂາຍ",
         "cashLedger": "ສໍ ເງິນ",
         "reports": "ລາຍງານ",
+        "reportInventory": "ລາຍງານສິນຄ້າຄົງຄັງ",
+        "reportRevenue": "ລາຍງານລາຍຮັບ",
         "config": "ການຕັ້ງຄ່າ",
         "prices": "ຕາຕະລາງລາຄາ",
         "exchangeRates": "ອັດຕາແລກປ່ຽນ",
@@ -425,6 +427,8 @@
       "statusChuyenXuong": "ສົ່ງໂຮງງານ",
       "statusDaBan": "ຂາຍແລ້ວ",
       "statusDoiRa": "ແລກອອກແລ້ວ",
+      "sourceQuan": "ສິນຄ້າຮ້ານ",
+      "sourceNgoai": "ສິນຄ້າພາຍນອກ",
       "list": {
         "title": "ລາຍການສາງ",
         "subtitle": "{count} ລາຍການ",
@@ -758,6 +762,9 @@
         "labelPayment": "ການຊຳລະ",
         "labelValue": "ມູນຄ່າ (₭)",
         "colProductName": "ຊື່ສິນຄ້າ",
+        "colProductCode": "ລະຫັດ",
+        "colPurity": "ຄວາມບໍລິສຸດ",
+        "colUnit": "ໜ່ວຍ",
         "colQtyDetail": "ຈຳນວນ",
         "colWeightDetail": "ນ້ຳໜັກ (g)",
         "paymentCash": "ເງິນສົດ",
@@ -838,6 +845,9 @@
         "labelCreatedAt": "ວັນທີສ້າງ",
         "labelReason": "ເຫດຜົນ",
         "colProductName": "ຊື່ສິນຄ້າ",
+        "colProductCode": "ລະຫັດ",
+        "colPurity": "ຄວາມບໍລິສຸດ",
+        "colUnit": "ໜ່ວຍ",
         "colQtyDetail": "ຈຳນວນ",
         "colWeightDetail": "ນ້ຳໜັກ (g)"
       },
@@ -989,6 +999,48 @@
         "collectedLak": "ຮັບລະຫວ່າງວັນ",
         "paidLak": "ຈ່າຍລະຫວ່າງວັນ",
         "closingLak": "ຍອດປິດ"
+      },
+      "inventory": {
+        "title": "ລາຍງານສິນຄ້າຄົງຄັງ",
+        "subtitle": "ສະຫຼຸບສິນຄ້າຄົງຄັງຕາມໝວດ, ສະຖານະ ແລະ ແຫຼ່ງທີ່ມາ",
+        "filterBranch": "ທັງລະບົບ",
+        "filterCounter": "ທຸກເຄົ້າເຕີ",
+        "totalItems": "ຈຳນວນປະເພດສິນຄ້າ",
+        "totalQuantity": "ຈຳນວນລວມ",
+        "totalWeight": "ນ້ຳໜັກລວມ",
+        "byCategory": "ຕາມໝວດ",
+        "byStatus": "ຕາມສະຖານະ",
+        "byNguonGoc": "ຕາມແຫຼ່ງທີ່ມາ",
+        "colCategory": "ໝວດ",
+        "colCount": "ປະເພດ",
+        "colQuantity": "ຈຳນວນ",
+        "colWeight": "ນ້ຳໜັກ",
+        "listTitle": "ລາຍການສິນຄ້າຄົງຄັງ"
+      },
+      "revenue": {
+        "title": "ລາຍງານລາຍຮັບ",
+        "subtitle": "ລາຍຮັບ, ຕົ້ນທຶນ ແລະ ກຳໄລລວມຕາມໄລຍະ",
+        "noBranch": "ກະລຸນາເລືອກສາຂາ",
+        "filterBranch": "ເລືອກສາຂາ",
+        "periodWeek": "ອາທິດ",
+        "periodMonth": "ເດືອນ",
+        "periodYear": "ປີ",
+        "totalDoanhThuBan": "ລາຍຮັບຂາຍ",
+        "totalChiPhiMua": "ຕົ້ນທຶນຊື້",
+        "totalDoanhThuDoi": "ລາຍຮັບແລກປ່ຽນ",
+        "totalLaiGop": "ກຳໄລລວມ",
+        "laiGopNote": "= ຂາຍ – ຊື້, ຍັງບໍ່ຫັກຄ່າດຳເນີນງານ",
+        "totalHoaDon": "ໃບບິນທັງໝົດ",
+        "totalGiaoDichTrade": "ທຸລະກຳ Trade",
+        "chartTitle": "ກຣາຟຕາມໄລຍະ",
+        "tableTitle": "ລາຍລະອຽດຕາມໄລຍະ",
+        "colLabel": "ໄລຍະ",
+        "colDoanhThuBan": "ຂາຍ",
+        "colChiPhiMua": "ຊື້",
+        "colDoanhThuDoi": "ແລກປ່ຽນ",
+        "colLaiGop": "ກຳໄລລວມ",
+        "colSoHoaDon": "ໃບບິນ",
+        "colSoGiaoDichTrade": "Trade"
       }
     },
     "config": {
@@ -1035,6 +1087,7 @@
       "exchangeRates": {
         "title": "ອັດຕາແລກປ່ຽນ",
         "updateButton": "ອັບເດດ",
+        "edit": "ແກ້ໄຂ",
         "cancel": "ຍົກເລີກ",
         "columns": {
           "currency": "ສະກຸນ",
@@ -1047,6 +1100,8 @@
         "title": "ຕາຕະລາງຄ່າຫີນ",
         "addButton": "ເພີ່ມກົດ",
         "editDialogTitle": "ແກ້ໄຂກົດ",
+        "edit": "ແກ້ໄຂ",
+        "delete": "ລຶບ",
         "saveButton": "ບັນທຶກ",
         "cancel": "ຍົກເລີກ",
         "columns": {
@@ -1062,6 +1117,8 @@
         "saveButton": "ບັນທຶກ",
         "cancel": "ຍົກເລີກ",
         "systemBadge": "ລະບົບ",
+        "edit": "ແກ້ໄຂ",
+        "delete": "ລຶບ",
         "columns": {
           "code": "ລະຫັດ",
           "name": "ຊື່",
@@ -1077,6 +1134,8 @@
         "title": "ຄວາມບໍລິສຸດທອງ / ເງິນ",
         "addButton": "ເພີ່ມຄວາມບໍລິສຸດ",
         "editDialogTitle": "ແກ້ໄຂຄວາມບໍລິສຸດ",
+        "edit": "ແກ້ໄຂ",
+        "delete": "ລຶບ",
         "saveButton": "ບັນທຶກ",
         "cancel": "ຍົກເລີກ",
         "categoryGold": "ທອງ",
@@ -1295,7 +1354,8 @@
         "edit": "ປ່ຽນຊື່",
         "deactivate": "ປິດໃຊ້ງານ",
         "active": "ໃຊ້ງານ",
-        "inactive": "ປິດໃຊ້"
+        "inactive": "ປິດໃຊ້",
+        "activate": "ເປີດໃຊ້ງານ"
       },
       "counterCreateDialog": {
         "title": "ເພີ່ມເຄົ້າເຕີ — {branchName}",
@@ -1314,7 +1374,8 @@
         "updateBranchSuccess": "ອັບເດດສາຂາສຳເລັດ",
         "createCounterSuccess": "ສ້າງເຄົ້າເຕີສຳເລັດ",
         "updateCounterSuccess": "ອັບເດດເຄົ້າເຕີສຳເລັດ",
-        "deactivateCounterSuccess": "ປິດໃຊ້ງານເຄົ້າເຕີສຳເລັດ"
+        "deactivateCounterSuccess": "ປິດໃຊ້ງານເຄົ້າເຕີສຳເລັດ",
+        "activateCounterSuccess": "ເປີດໃຊ້ງານເຄົ້າເຕີສຳເລັດ"
       }
     }
   },

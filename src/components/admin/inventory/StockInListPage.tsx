@@ -158,6 +158,8 @@ export function StockInListPage() {
           rowClassName={(_, i) => i % 2 !== 0 ? 'stock-in-row-alt' : ''}
           expandable={{
             expandedRowKeys: expandedKeys,
+            expandRowByClick: true,
+            showExpandColumn: false,
             onExpand: (expanded, record) =>
               setExpandedKeys(expanded
                 ? [...expandedKeys, record.id]

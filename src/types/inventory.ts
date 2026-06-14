@@ -57,7 +57,10 @@ export interface InventoryItem {
 export interface InventoryAdjustmentLine {
   id: string
   inventoryItemId: string
+  productCode: string             // Mã sản phẩm (snapshot)
   productName: string             // Tên sản phẩm (snapshot)
+  purity: string | null           // Hàm lượng (vd "9999")
+  weightUnitId: string | null     // ID đơn vị tính → map sang tên qua useWeightUnits
   quantity: number
   actualValue: number | null      // Giá trị thực dòng hàng (LAK)
 }

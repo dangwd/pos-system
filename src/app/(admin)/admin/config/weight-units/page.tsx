@@ -117,22 +117,43 @@ export default function WeightUnitsPage() {
                   <td className="px-4 py-3 text-right">
                     {editing?.id === unit.id ? (
                       <div className="flex justify-end gap-1">
-                        <Button size="icon" variant="ghost" className="h-7 w-7 text-primary" disabled={isUpdating} onClick={() => saveEdit(unit)}>
+                        <button
+                          type="button"
+                          title={t('saveButton')}
+                          disabled={isUpdating}
+                          onClick={() => saveEdit(unit)}
+                          className="inline-flex h-7 w-7 items-center justify-center rounded-md text-primary transition-colors hover:bg-primary/10 disabled:opacity-50"
+                        >
                           {isUpdating ? <Spinner className="size-3.5" /> : <Check className="h-3.5 w-3.5" />}
-                        </Button>
-                        <Button size="icon" variant="ghost" className="h-7 w-7" onClick={() => setEditing(null)}>
+                        </button>
+                        <button
+                          type="button"
+                          title={t('cancel')}
+                          onClick={() => setEditing(null)}
+                          className="inline-flex h-7 w-7 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-accent hover:text-foreground"
+                        >
                           <X className="h-3.5 w-3.5" />
-                        </Button>
+                        </button>
                       </div>
                     ) : (
                       <div className="flex justify-end gap-1">
-                        <Button size="icon" variant="ghost" className="h-7 w-7" onClick={() => startEdit(unit)}>
+                        <button
+                          type="button"
+                          title={t('edit')}
+                          onClick={() => startEdit(unit)}
+                          className="inline-flex h-7 w-7 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-accent hover:text-foreground"
+                        >
                           <Pencil className="h-3.5 w-3.5" />
-                        </Button>
+                        </button>
                         {!unit.isSystem && (
-                          <Button size="icon" variant="ghost" className="h-7 w-7 text-destructive hover:text-destructive" onClick={() => remove(unit.id)}>
+                          <button
+                            type="button"
+                            title={t('delete')}
+                            onClick={() => remove(unit.id)}
+                            className="inline-flex h-7 w-7 items-center justify-center rounded-md text-destructive transition-colors hover:bg-destructive/10"
+                          >
                             <Trash2 className="h-3.5 w-3.5" />
-                          </Button>
+                          </button>
                         )}
                       </div>
                     )}

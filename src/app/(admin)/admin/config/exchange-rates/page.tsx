@@ -66,9 +66,14 @@ export default function ExchangeRatesPage() {
                     {new Date(rate.effectiveFrom).toLocaleDateString('lo-LA')}
                   </td>
                   <td className="px-4 py-3 text-right">
-                    <Button size="icon" variant="ghost" className="h-7 w-7" onClick={() => openEdit(rate)}>
+                    <button
+                      type="button"
+                      title={t('edit')}
+                      onClick={() => openEdit(rate)}
+                      className="inline-flex h-7 w-7 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-accent hover:text-foreground"
+                    >
                       <Pencil className="h-3.5 w-3.5" />
-                    </Button>
+                    </button>
                   </td>
                 </tr>
               ))}

@@ -346,6 +346,8 @@ export default function CashLedgerPage() {
           rowClassName={r => expandedKeys.includes(r.id) ? 'cash-row-expanded' : ''}
           expandable={{
             expandedRowKeys: expandedKeys,
+            expandRowByClick: true,
+            showExpandColumn: false,
             onExpand: (expanded, record) =>
               setExpandedKeys(expanded
                 ? [...expandedKeys, record.id]

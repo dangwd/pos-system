@@ -83,6 +83,14 @@ export class BranchRepository {
       throw handleAxiosError(err)
     }
   }
+
+  async activateCounter(branchId: string, counterId: string): Promise<void> {
+    try {
+      await api.patch(`/api/branches/${branchId}/counters/${counterId}/activate`)
+    } catch (err) {
+      throw handleAxiosError(err)
+    }
+  }
 }
 
 export const branchRepository = new BranchRepository()

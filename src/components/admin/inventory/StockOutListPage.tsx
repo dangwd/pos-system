@@ -3,10 +3,11 @@
 
 import { useMemo, useState } from 'react'
 import { useTranslations } from 'next-intl'
-import { Table, Button, Input, Tooltip, Select, Card, Descriptions } from 'antd'
+import { Table, Button, Input, Tooltip, Select, Card } from 'antd'
 import { DeleteOutlined } from '@ant-design/icons'
 import type { ColumnsType, TableRowSelection } from 'antd/es/table/interface'
 import { useInventoryAdjustments } from '@/hooks/useInventory'
+import { useWeightUnits } from '@/hooks/useConfig'
 import { useBranches, useCounters } from '@/hooks/useBranches'
 import { useAuthStore } from '@/stores/auth.store'
 import { StockOutCreateModal } from './StockOutCreateModal'
@@ -45,47 +46,41 @@ function SectionLabel({ children }: { children: React.ReactNode }) {
 }
 
 function ExpandedRow({ record, t }: { record: InventoryAdjustment; t: (k: string) => string }) {
-  const infoItems = [
-    { key: 'branch',    label: t('labelBranch'),    children: <span style={{ fontWeight: 500 }}>{record.branchName}</span> },
-    { key: 'counter',   label: t('labelCounter'),   children: record.counterName },
-    { key: 'createdAt', label: t('labelCreatedAt'), children: formatDate(record.createdAt) },
-    ...(record.reason ? [{ key: 'reason', label: t('labelReason'), children: record.reason }] : []),
-  ]
+  const { data: units = [] } = useWeightUnits()
+  const unitMap = useMemo(() => new Map(units.map(u => [u.id, u.tenDonVi])), [units])
+
+  const dash = <span style={{ color: '#d1d5db' }}>—</span>
 
   const productColumns: ColumnsType<InventoryAdjustmentLine> = [
-    { title: '#',                    width: 40,  render: (_v: unknown, _r: InventoryAdjustmentLine, i: number) => i + 1 },
-    { title: t('colProductName'),    dataIndex: 'productName' },
-    { title: t('colQtyDetail'),      dataIndex: 'quantity',   width: 80,  align: 'right' as const },
+    { title: '#', width: 40, render: (_v: unknown, _r: InventoryAdjustmentLine, i: number) => i + 1 },
+    {
+      title: t('colProductCode'), dataIndex: 'productCode', width: 120,
+      render: (v: string) => <span style={{ fontFamily: 'monospace', fontSize: 12, color: '#6b7280' }}>{v}</span>,
+    },
+    { title: t('colProductName'), dataIndex: 'productName' },
+    {
+      title: t('colPurity'), dataIndex: 'purity', width: 100,
+      render: (v: string | null) => v ?? dash,
+    },
+    {
+      title: t('colUnit'), dataIndex: 'weightUnitId', width: 90,
+      render: (v: string | null) => (v ? unitMap.get(v) : null) ?? dash,
+    },
+    { title: t('colQtyDetail'), dataIndex: 'quantity', width: 80, align: 'right' as const },
   ]
 
   return (
-    <div style={{ padding: '16px 16px 16px 48px', background: '#fafafa', display: 'flex', gap: 40, flexWrap: 'wrap' }}>
-      {/* Thông tin phiếu */}
-      <div style={{ minWidth: 300 }}>
-        <SectionLabel>{t('sectionInfo')}</SectionLabel>
-        <Descriptions
-          items={infoItems}
-          column={1}
-          size="small"
-          bordered
-          labelStyle={{ width: 110, fontSize: 12, color: '#6b7280', background: '#f9fafb' }}
-          contentStyle={{ fontSize: 13 }}
-        />
-      </div>
-
-      {/* Sản phẩm xuất */}
-      <div style={{ flex: 1, minWidth: 280 }}>
-        <SectionLabel>{t('sectionProducts')}</SectionLabel>
-        <Table<InventoryAdjustmentLine>
-          rowKey="id"
-          dataSource={record.lines}
-          columns={productColumns}
-          size="small"
-          bordered
-          pagination={false}
-          style={{ borderRadius: 6, overflow: 'hidden' }}
-        />
-      </div>
+    <div style={{ padding: '16px 16px 16px 48px', background: '#fafafa' }}>
+      <SectionLabel>{t('sectionProducts')}</SectionLabel>
+      <Table<InventoryAdjustmentLine>
+        rowKey="id"
+        dataSource={record.lines}
+        columns={productColumns}
+        size="small"
+        bordered
+        pagination={false}
+        style={{ borderRadius: 6, overflow: 'hidden' }}
+      />
     </div>
   )
 }
@@ -227,6 +222,8 @@ export function StockOutListPage() {
           scroll={{ x: 1100 }}
           expandable={{
             expandedRowKeys: expandedKeys,
+            expandRowByClick: true,
+            showExpandColumn: false,
             onExpand: (expanded, record) =>
               setExpandedKeys(expanded
                 ? [...expandedKeys, record.id]

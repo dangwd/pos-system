@@ -162,6 +162,8 @@ export default function OrdersPage() {
           rowClassName={r => expandedKeys.includes(r.id) ? 'order-row-expanded' : ''}
           expandable={{
             expandedRowKeys: expandedKeys,
+            expandRowByClick: true,
+            showExpandColumn: false,
             onExpand: (expanded, record) =>
               setExpandedKeys(expanded
                 ? [...expandedKeys, record.id]

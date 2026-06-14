@@ -166,6 +166,8 @@ export function DataTable<TData extends object>({
         expandable={
           renderSubRow
             ? {
+                expandRowByClick: true,
+                showExpandColumn: false,
                 expandedRowRender: (record) => renderSubRow(record),
                 rowExpandable: () => true,
               }
