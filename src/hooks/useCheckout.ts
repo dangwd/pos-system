@@ -140,6 +140,7 @@ export function useCheckout(strategy: PaymentStrategy) {
     onSuccess: () => {
       clearCart();
       qc.invalidateQueries({ queryKey: ["transactions"] });
+      qc.invalidateQueries({ queryKey: ["products", "with-stock"] });
       toast.success(t("checkoutSuccess"));
     },
 

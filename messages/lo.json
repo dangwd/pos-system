@@ -32,6 +32,8 @@
         "qty": "ຈຳນວນ",
         "unit": "ໜ່ວຍ",
         "unitPrice": "ລາຄາ",
+        "laborFee": "ຄ່າແຮງງານ",
+        "stoneFee": "ຄ່າກ້ອນ",
         "total": "ລວມ"
       },
       "unitLabel": "ຈ",
@@ -67,6 +69,8 @@
         "customerNotFound": "ບໍ່ພົບລູກຄ້າ",
         "customerRequired": "ກະລຸນາເລືອກລູກຄ້າເພື່ອສ້າງໃບບິນ",
         "subtotalLabel": "ລວມສິນຄ້າ (A)",
+        "laborFeeLabel": "ຄ່າແຮງງານ",
+        "stoneFeeLabel": "ຄ່າກ້ອນ",
         "discountLabel": "ສ່ວນຫຼຸດ (B)",
         "discountInput": "ໃສ່ສ່ວນຫຼຸດ ₭...",
         "applyDiscount": "ໃຊ້",

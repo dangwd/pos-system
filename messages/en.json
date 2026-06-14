@@ -32,6 +32,8 @@
         "qty": "Qty",
         "unit": "Unit",
         "unitPrice": "Unit Price",
+        "laborFee": "Labor Fee",
+        "stoneFee": "Stone Fee",
         "total": "Total"
       },
       "unitLabel": "Chi",
@@ -67,6 +69,8 @@
         "customerNotFound": "No customer found",
         "customerRequired": "Please select a customer to proceed",
         "subtotalLabel": "Subtotal (A)",
+        "laborFeeLabel": "Labor Fee",
+        "stoneFeeLabel": "Stone Fee",
         "discountLabel": "Discount (B)",
         "discountInput": "Enter discount ₭...",
         "applyDiscount": "Apply",

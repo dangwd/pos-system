@@ -20,6 +20,7 @@ import { NumberInput } from "@/components/ui/number-input";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
 import { useActiveTab } from "@/hooks/useActiveTab";
+import { useAuthStore } from "@/stores/auth.store";
 import { useCustomers } from "@/hooks/useCustomers";
 import { useTransactionLookup, useCancelTransaction } from "@/hooks/useTransactions";
 import {
@@ -75,13 +76,17 @@ function SectionLabel({
 
 function StoreHeader() {
   const t = useTranslations("pos.payment.panel");
+  const { user } = useAuthStore();
   return (
     <div className="px-4 py-3 bg-primary text-primary-foreground shrink-0">
       <p className="text-xs font-extrabold tracking-wide uppercase text-center leading-snug">
         {t("storeName")}
       </p>
       <p className="text-[10px] mt-0.5 opacity-60 tracking-widest text-center uppercase">
-        {t("storeAddress")}
+        {user?.branchName ?? t("storeAddress")}
+        {user?.counterName && (
+          <span className="ml-2 opacity-80">· {user.counterName}</span>
+        )}
       </p>
     </div>
   );
@@ -430,6 +435,8 @@ function PaymentBreakdown({
   const discount = tab?.discountAmount ?? 0;
   const isExchange = txnType === "ExchangeGold" || txnType === "ExchangeFree" || txnType === "ExchangeToMoney";
   const isBuy = txnType === "BuyGold";
+  const totalLaborFee = (tab?.items ?? []).reduce((s, i) => s + (i.laborFee ?? 0), 0);
+  const totalStoneFee = (tab?.items ?? []).reduce((s, i) => s + (i.stoneFee ?? 0), 0);
   const [discountInput, setDiscountInput] = useState("");
 
   const handleApply = () => {
@@ -456,6 +463,18 @@ function PaymentBreakdown({
           <div className="flex justify-between items-center">
             <span className="text-xs text-muted-foreground">{t("subtotalLabel")}</span>
             <span className="text-xs font-medium tabular-nums">{fmt(subtotal)}</span>
+          </div>
+        )}
+        {totalLaborFee > 0 && (
+          <div className="flex justify-between items-center">
+            <span className="text-xs text-muted-foreground">{t("laborFeeLabel")}</span>
+            <span className="text-xs font-medium tabular-nums">+{fmt(totalLaborFee)}</span>
+          </div>
+        )}
+        {totalStoneFee > 0 && (
+          <div className="flex justify-between items-center">
+            <span className="text-xs text-muted-foreground">{t("stoneFeeLabel")}</span>
+            <span className="text-xs font-medium tabular-nums">+{fmt(totalStoneFee)}</span>
           </div>
         )}
         {discount > 0 && (

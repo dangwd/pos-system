@@ -560,8 +560,8 @@ export function PosTopBar({ onAddProduct }: PosTopBarProps) {
                   <span className="text-[10px] font-semibold text-foreground leading-tight max-w-24 truncate">
                     {user.fullName}
                   </span>
-                  <span className="text-[10px] text-muted-foreground leading-tight">
-                    {user.role}
+                  <span className="text-[10px] text-muted-foreground leading-tight truncate max-w-24">
+                    {user.counterName ?? user.role}
                   </span>
                 </div>
                 <ChevronDown className="h-3 w-3 text-muted-foreground shrink-0" />
@@ -574,6 +574,12 @@ export function PosTopBar({ onAddProduct }: PosTopBarProps) {
                   <p className="text-[10px] text-muted-foreground">
                     {user.role}
                   </p>
+                  {user.branchName && (
+                    <p className="text-[10px] text-muted-foreground truncate mt-0.5">
+                      {user.branchName}
+                      {user.counterName && ` · ${user.counterName}`}
+                    </p>
+                  )}
                 </div>
                 <DropdownMenuItem
                   onClick={() => router.push("/admin/dashboard")}

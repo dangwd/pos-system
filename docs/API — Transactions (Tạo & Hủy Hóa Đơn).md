@@ -1,8 +1,9 @@
 # API — Transactions: Tạo & Hủy Hóa Đơn
 
-> **Cập nhật mới nhất (2026-06-13)**: `customerId` là **bắt buộc** khi tạo hóa đơn. FE phải để nhân viên chọn khách hàng trước khi submit.
+> **Cập nhật mới nhất (2026-06-14)**: Bổ sung mục [Phí gia công & Phí đá](#2-phí-gia-công--phí-đá) mô tả chi tiết `laborFee` / `stoneFee` cho mặt hàng vàng, bạc.
+> **2026-06-13**: `customerId` là **bắt buộc** khi tạo hóa đơn.
 
-Base URL: `https://<host>/api`  
+Base URL: `https://<host>/api`
 Auth: `Authorization: Bearer <accessToken>`
 
 ---
@@ -10,12 +11,13 @@ Auth: `Authorization: Bearer <accessToken>`
 ## Mục lục
 
 1. [Tạo hóa đơn — POST /api/transactions](#1-tạo-hóa-đơn)
-2. [Hủy hóa đơn — POST /api/transactions/:id/cancel](#2-hủy-hóa-đơn)
-3. [Lấy chi tiết — GET /api/transactions/:id](#3-lấy-chi-tiết-hóa-đơn)
-4. [Danh sách — GET /api/transactions](#4-danh-sách-hóa-đơn)
-5. [Tìm kiếm khách hàng để chọn tại POS — GET /api/customers](#5-tìm-kiếm-khách-hàng-tại-pos)
-6. [Luồng UI yêu cầu chọn khách hàng](#6-luồng-ui-yêu-cầu-chọn-khách-hàng)
-7. [Mã lỗi liên quan](#7-mã-lỗi-liên-quan)
+2. [Phí gia công & Phí đá (laborFee / stoneFee)](#2-phí-gia-công--phí-đá)
+3. [Hủy hóa đơn — POST /api/transactions/:id/cancel](#3-hủy-hóa-đơn)
+4. [Lấy chi tiết — GET /api/transactions/:id](#4-lấy-chi-tiết-hóa-đơn)
+5. [Danh sách — GET /api/transactions](#5-danh-sách-hóa-đơn)
+6. [Tìm kiếm khách hàng để chọn tại POS — GET /api/customers](#6-tìm-kiếm-khách-hàng-tại-pos)
+7. [Luồng UI yêu cầu chọn khách hàng](#7-luồng-ui-yêu-cầu-chọn-khách-hàng)
+8. [Mã lỗi liên quan](#8-mã-lỗi-liên-quan)
 
 ---
 
@@ -112,7 +114,153 @@ HTTP 201 Created
 
 ---
 
-## 2. Hủy hóa đơn
+## 2. Phí gia công & Phí đá
+
+> Áp dụng cho giao dịch **SellGold (0)**, **SellSilver (1)**, **BuyGold (2)**, **ExchangeGold (4)**, **ExchangeFree (5)**
+> **Không áp dụng** cho ExchangeCurrency (7).
+
+### Hai trường per-item trong request
+
+| Trường | Kiểu | Bắt buộc | Mô tả |
+|---|---|---|---|
+| `laborFee` | `decimal` (LAK) | Không, mặc định `0` | Phí gia công thợ kim hoàn (tiền công chế tác, đánh bóng, ...) |
+| `stoneFee` | `decimal` (LAK) | Không, mặc định `0` | Phí đá (đá quý, đá trang trí đính kèm sản phẩm) |
+
+**Ràng buộc**: cả hai phải `>= 0` — nếu âm server trả `VALIDATION_FAILED`.
+
+### Công thức tính tổng tiền
+
+```
+SubtotalAmount = Σ (quantity × unitPriceLak)   [chỉ các dòng Normal]
+ExchangeCredit = Σ (quantity × unitPriceLak)   [chỉ các dòng ExchangeIn]
+
+LaborFee (transaction) = Σ item.laborFee       [tất cả các dòng]
+StoneFee (transaction) = Σ item.stoneFee       [tất cả các dòng]
+
+TotalAmount = SubtotalAmount - ExchangeCredit + LaborFee + StoneFee
+```
+
+**Ví dụ**: Bán 2 nhẫn vàng, mỗi nhẫn giá 1.914.000 ₭, phí gia công 50.000/nhẫn, không có phí đá:
+```
+SubtotalAmount = 2 × 1.914.000 = 3.828.000 ₭
+LaborFee       = 50.000 + 50.000 = 100.000 ₭
+StoneFee       = 0
+TotalAmount    = 3.828.000 + 100.000 = 3.928.000 ₭
+```
+
+### Request — ví dụ có phí gia công và phí đá
+
+```jsonc
+POST /api/transactions
+{
+  "customerId": "3fa85f64-...",
+  "type": 0,          // SellGold
+  "items": [
+    {
+      "productId": "uuid-nhan-vang-9999",
+      "productName": "Nhẫn vàng 9999 đính đá 1 chỉ",
+      "quantity": 1,
+      "weightUnitId": "uuid-chi",
+      "weightGramOverride": null,
+      "unitPriceLak": 1914000,
+      "itemRole": 0,
+      "laborFee": 80000,    // ← phí gia công: 80.000 ₭
+      "stoneFee": 200000,   // ← phí đá: 200.000 ₭
+      "haoHutGram": 0,
+      "phiHuHai": 0
+    },
+    {
+      "productId": "uuid-day-chuyen",
+      "productName": "Dây chuyền vàng 18K 2 chỉ",
+      "quantity": 1,
+      "weightUnitId": "uuid-chi",
+      "weightGramOverride": null,
+      "unitPriceLak": 3200000,
+      "itemRole": 0,
+      "laborFee": 120000,   // ← phí gia công: 120.000 ₭
+      "stoneFee": 0,        // ← không có đá
+      "haoHutGram": 0,
+      "phiHuHai": 0
+    }
+  ],
+  "paymentMethod": "CASH"
+}
+
+// Kết quả tính:
+// SubtotalAmount = 1.914.000 + 3.200.000 = 5.114.000 ₭
+// LaborFee       = 80.000 + 120.000      =   200.000 ₭
+// StoneFee       = 200.000 + 0           =   200.000 ₭
+// TotalAmount    = 5.114.000 + 200.000 + 200.000 = 5.514.000 ₭
+```
+
+### Response — phí gia công & đá xuất hiện ở 2 cấp
+
+**Cấp hóa đơn** (tổng hợp từ tất cả items):
+```jsonc
+{
+  "subtotalAmount": 5114000,  // tổng tiền hàng (không gồm phí)
+  "laborFee": 200000,         // tổng phí gia công
+  "stoneFee": 200000,         // tổng phí đá
+  "totalAmount": 5514000,     // = subtotal + laborFee + stoneFee
+  ...
+}
+```
+
+**Cấp từng item** (chi tiết):
+```jsonc
+{
+  "items": [
+    {
+      "productSnapshotName": "Nhẫn vàng 9999 đính đá 1 chỉ",
+      "lineTotal": 1914000,   // chỉ tiền hàng của item này
+      "laborFee": 80000,      // phí gia công của item này
+      "stoneFee": 200000,     // phí đá của item này
+      ...
+    },
+    {
+      "productSnapshotName": "Dây chuyền vàng 18K 2 chỉ",
+      "lineTotal": 3200000,
+      "laborFee": 120000,
+      "stoneFee": 0,
+      ...
+    }
+  ]
+}
+```
+
+### Gợi ý UI cho màn hình POS
+
+```
+┌───────────────────────────────────────────────────────────┐
+│  Nhẫn vàng 9999 đính đá 1 chỉ          × 1               │
+│  Đơn giá: 1.914.000 ₭                                     │
+│  ┌─────────────────────┐  ┌────────────────────────────┐  │
+│  │ Phí gia công (₭)    │  │ Phí đá (₭)                 │  │
+│  │  [     80,000     ] │  │ [    200,000             ] │  │
+│  └─────────────────────┘  └────────────────────────────┘  │
+│  Thành tiền item: 1.914.000 + 80.000 + 200.000           │
+│                 = 2.194.000 ₭                             │
+└───────────────────────────────────────────────────────────┘
+
+┌───────────────────────────────────────────────────────────┐
+│  TỔNG HÓA ĐƠN                                            │
+│  Tiền hàng:      5.114.000 ₭                             │
+│  Phí gia công:     200.000 ₭                             │
+│  Phí đá:           200.000 ₭                             │
+│  ─────────────────────────────                           │
+│  Tổng cộng:      5.514.000 ₭                             │
+└───────────────────────────────────────────────────────────┘
+```
+
+**Lưu ý UI**:
+- Mặc định `laborFee = 0` và `stoneFee = 0` — nhân viên chỉ nhập khi có phụ thu
+- Hiển thị dòng phí gia công / phí đá trong bảng tổng kết **chỉ khi > 0** để tránh rối
+- Phí gia công và phí đá **không được âm** — validate tại FE trước khi submit
+- `lineTotal` trong response **không bao gồm** `laborFee` và `stoneFee` của item đó — chỉ là `quantity × unitPriceLak`
+
+---
+
+## 3. Hủy hóa đơn
 
 ```
 POST /api/transactions/:id/cancel
@@ -134,12 +282,12 @@ Content-Type: application/json
 HTTP 204 No Content
 ```
 
-> Hủy hóa đơn sẽ tự động đảo kho và tạo bút toán hoàn tiền trong sổ quỹ.  
+> Hủy hóa đơn sẽ tự động đảo kho và tạo bút toán hoàn tiền trong sổ quỹ.
 > Chỉ hủy được hóa đơn chưa hủy (`Completed` → `Cancelled`).
 
 ---
 
-## 3. Lấy chi tiết hóa đơn
+## 4. Lấy chi tiết hóa đơn
 
 ```
 GET /api/transactions/:id
@@ -188,7 +336,7 @@ Authorization: Bearer <accessToken>
 
 ---
 
-## 4. Danh sách hóa đơn
+## 5. Danh sách hóa đơn
 
 ```
 GET /api/transactions
@@ -261,7 +409,7 @@ Authorization: Bearer <accessToken>
 
 ---
 
-## 5. Tìm kiếm khách hàng tại POS
+## 6. Tìm kiếm khách hàng tại POS
 
 Dùng để hiển thị dropdown/search chọn khách hàng trước khi tạo hóa đơn.
 
@@ -314,7 +462,7 @@ POST /api/customers
 
 ---
 
-## 6. Luồng UI yêu cầu chọn khách hàng
+## 7. Luồng UI yêu cầu chọn khách hàng
 
 ### Trạng thái UI tại màn hình POS
 
@@ -362,7 +510,7 @@ HTTP 422
 
 ---
 
-## 7. Mã lỗi liên quan
+## 8. Mã lỗi liên quan
 
 | Mã lỗi | HTTP | Nguyên nhân |
 |---|---|---|

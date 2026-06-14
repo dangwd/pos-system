@@ -32,6 +32,8 @@
         "qty": "Số lượng",
         "unit": "ĐV",
         "unitPrice": "Đơn giá",
+        "laborFee": "Tiền công",
+        "stoneFee": "Phí đá",
         "total": "Thành tiền"
       },
       "unitLabel": "Chỉ",
@@ -67,6 +69,8 @@
         "customerNotFound": "Không tìm thấy khách hàng",
         "customerRequired": "Vui lòng chọn khách hàng để lập đơn",
         "subtotalLabel": "Tổng hàng (A)",
+        "laborFeeLabel": "Phí gia công",
+        "stoneFeeLabel": "Phí đá",
         "discountLabel": "Giảm giá (B)",
         "discountInput": "Nhập giảm giá ₭...",
         "applyDiscount": "Áp dụng",
