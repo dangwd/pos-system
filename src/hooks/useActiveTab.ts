@@ -50,7 +50,7 @@ export function useActiveTab() {
   /** Tổng Normal items (hàng bán ra / mua vào) */
   const totalA = useMemo(() => calcTotalA(items), [items]);
 
-  /** Tổng ExchangeIn items (vàng cũ, sau Tiền công/ LAO SUT) */
+  /** Tổng ExchangeIn items (vàng cũ, sau Tiền công/ HAO HỤT) */
   const totalB = useMemo(() => calcTotalB(items), [items]);
 
   /**

@@ -1,6 +1,6 @@
 # Frontend — Nghiệp vụ Mua Bán Vàng & Bạc
 
-> Tài liệu mô tả cách frontend triển khai nghiệp vụ POS: từ luồng dữ liệu, tính toán giá, đến tương tác API.  
+> Tài liệu mô tả cách frontend triển khai nghiệp vụ POS: từ luồng dữ liệu, tính toán giá, đến tương tác API.
 > Stack: React + Zustand + Ant Design + TypeScript.
 
 ---
@@ -24,17 +24,17 @@
 
 ## 1. Các loại giao dịch
 
-| `TransactionType` | Tên hiển thị | Hướng tồn kho | Trang |
-|---|---|---|---|
-| `SellGold` | Bán vàng | Kho **giảm** | `/pos` |
-| `SellSilver` | Bán bạc | Kho **giảm** | `/pos` |
-| `BuyGold` | Mua vàng | Kho **tăng** | `/pos` |
-| `ExchangeGold` | Thu đổi vàng cũ | Kho tăng (vàng cũ IN) + giảm (vàng mới OUT) | `/pos` |
-| `ExchangeCurrency` | Đổi ngoại tệ | Không ảnh hưởng kho | `/pos` |
-| `MuaThem` | Mua thêm | Kho **tăng** | `/trade` |
-| `DoiHang` | Đổi hàng (có giá) | IN + OUT | `/trade` |
-| `DoiMienPhi` | Đổi miễn phí | IN + OUT | `/trade` |
-| `DoiThanhTien` | Đổi thành tiền | Kho **tăng** | `/trade` |
+| `TransactionType`  | Tên hiển thị      | Hướng tồn kho                               | Trang    |
+| ------------------ | ----------------- | ------------------------------------------- | -------- |
+| `SellGold`         | Bán vàng          | Kho **giảm**                                | `/pos`   |
+| `SellSilver`       | Bán bạc           | Kho **giảm**                                | `/pos`   |
+| `BuyGold`          | Mua vàng          | Kho **tăng**                                | `/pos`   |
+| `ExchangeGold`     | Thu đổi vàng cũ   | Kho tăng (vàng cũ IN) + giảm (vàng mới OUT) | `/pos`   |
+| `ExchangeCurrency` | Đổi ngoại tệ      | Không ảnh hưởng kho                         | `/pos`   |
+| `MuaThem`          | Mua thêm          | Kho **tăng**                                | `/trade` |
+| `DoiHang`          | Đổi hàng (có giá) | IN + OUT                                    | `/trade` |
+| `DoiMienPhi`       | Đổi miễn phí      | IN + OUT                                    | `/trade` |
+| `DoiThanhTien`     | Đổi thành tiền    | Kho **tăng**                                | `/trade` |
 
 ---
 
@@ -150,13 +150,13 @@ InvoiceSession được tạo (id = uuid, seq = N)
 
 ### 4.1 Giá đơn vị
 
-| Loại GD | Đơn vị giá gốc | `unitPriceLakPerUnit` mặc định |
-|---|---|---|
-| `SellGold` | LAK / Chỉ | `goldBuyPricePerChi` (giá bán ra cho khách) |
-| `BuyGold` | LAK / Chỉ | `goldSellPricePerChi` (giá mua vào từ khách) |
-| `ExchangeGold` — hàng mới | LAK / Chỉ | `goldBuyPricePerChi` |
-| `ExchangeGold` — hàng cũ | LAK / Chỉ | `goldSellPricePerChi` |
-| `SellSilver` | LAK / gram | `silverPricePerGram` |
+| Loại GD                   | Đơn vị giá gốc | `unitPriceLakPerUnit` mặc định               |
+| ------------------------- | -------------- | -------------------------------------------- |
+| `SellGold`                | LAK / Chỉ      | `goldBuyPricePerChi` (giá bán ra cho khách)  |
+| `BuyGold`                 | LAK / Chỉ      | `goldSellPricePerChi` (giá mua vào từ khách) |
+| `ExchangeGold` — hàng mới | LAK / Chỉ      | `goldBuyPricePerChi`                         |
+| `ExchangeGold` — hàng cũ  | LAK / Chỉ      | `goldSellPricePerChi`                        |
+| `SellSilver`              | LAK / gram     | `silverPricePerGram`                         |
 
 > **Giá được snapshot tại thời điểm thêm item** vào đơn. Cashier có thể sửa tay.
 
@@ -240,6 +240,7 @@ Tiền thối = tiền khách đưa - (netTotal - deposit)
 **Loại GD:** `BuyGold`
 
 Cùng luồng với bán vàng, chỉ khác:
+
 - `unitPriceLakPerUnit` mặc định = `goldSellPricePerChi` (thấp hơn giá bán)
 - Hướng tồn kho: IN (nhập kho)
 - Nhãn tổng tiền trên receipt: **"TỔNG CHI TRẢ KHÁCH"**
@@ -251,6 +252,7 @@ Cùng luồng với bán vàng, chỉ khác:
 **Loại GD:** `ExchangeGold`
 
 Layout đặc biệt — 2 panel dọc:
+
 - **Panel trên** (`filterByTypes=["ExchangeIn"]`): Hàng vàng cũ khách đổi vào
 - **Panel dưới** (`filterByTypes=["SellGold"]`): Hàng vàng mới bán ra
 
@@ -265,14 +267,14 @@ Layout đặc biệt — 2 panel dọc:
        └── isReadOnly = true (không sửa được)
 3. [Hoặc] Thêm tay vàng cũ vào panel trên
 4. Thêm hàng vàng mới vào panel dưới (ExchangeNewItemSearch)
-5. Nhập phí hao hụt (LAO SUT — chỉ) và lỗi hỏng (PHÍ KHÒ — kip) cho từng item cũ
+5. Nhập phí hao hụt (HAO HỤT — chỉ) và lỗi hỏng (PHÍ KHÒ — kip) cho từng item cũ
 6. Xem chênh lệch: netTotal = totalA (vàng mới) - totalB (vàng cũ)
    ├── Dương: Khách phải trả thêm
    └── Âm: Tiệm trả lại khách
 7. Submit
 ```
 
-### Cách encode PHÍ KHÒ / LAO SUT lên backend
+### Cách encode PHÍ KHÒ / HAO HỤT lên backend
 
 Vì `TransactionItemRequest` không có trường riêng cho 2 phí này, frontend encode vào trường sẵn có:
 
@@ -280,7 +282,7 @@ Vì `TransactionItemRequest` không có trường riêng cho 2 phí này, fronte
 // posStore.ts — toBackendItems()
 {
   laborFee: item.perItemDamage,       // PHÍ KHÒ (kip)
-  haoHutGram: item.perItemWearChi * gramPerChi,  // LAO SUT → đổi sang gram
+  haoHutGram: item.perItemWearChi * gramPerChi,  // HAO HỤT → đổi sang gram
 }
 ```
 
@@ -334,12 +336,12 @@ File: `app/(main)/trade/page.tsx` — gọi `POST /api/trade` (khác endpoint v�
 
 ### 4 loại Trade
 
-| `TradeType` | Mô tả | Có hàng cũ? | Có hàng mới? |
-|---|---|---|---|
-| `MuaThem` | Mua thêm từ khách | ✅ | ❌ |
-| `DoiHang` | Đổi hàng có tính chênh lệch | ✅ | ✅ |
-| `DoiMienPhi` | Đổi miễn phí (lỗi sản xuất) | ✅ | ✅ |
-| `DoiThanhTien` | Đổi lấy tiền, không lấy hàng mới | ✅ | ❌ |
+| `TradeType`    | Mô tả                            | Có hàng cũ? | Có hàng mới? |
+| -------------- | -------------------------------- | ----------- | ------------ |
+| `MuaThem`      | Mua thêm từ khách                | ✅          | ❌           |
+| `DoiHang`      | Đổi hàng có tính chênh lệch      | ✅          | ✅           |
+| `DoiMienPhi`   | Đổi miễn phí (lỗi sản xuất)      | ✅          | ✅           |
+| `DoiThanhTien` | Đổi lấy tiền, không lấy hàng mới | ✅          | ❌           |
 
 ### Công thức tính chênh lệch
 
@@ -385,40 +387,40 @@ File: `lib/api.ts` — `transactionApi.create()`
 // Mapping từ PosStore → CreateTransactionRequest
 function toBackendRequest(session: InvoiceSession): CreateTransactionRequest {
   return {
-    type:          session.defaultType,
+    type: session.defaultType,
     paymentMethod: session.paymentMethod,
-    customerId:    session.customerId ?? undefined,
-    deposit:       session.deposit,
-    note:          session.note,
+    customerId: session.customerId ?? undefined,
+    deposit: session.deposit,
+    note: session.note,
     referenceInvoiceCode: session.linkedInvoiceCode,
-    items: session.items.map(item => ({
-      productId:        item.productId,
-      productName:      item.productName,
-      quantity:         item.quantity,
-      weightUnitId:     item.weightUnitId,      // UUID đơn vị (bắt buộc với vàng/bạc)
-      weightGramOverride: item.unit === "g"
-                          ? item.weightInUnit
-                          : undefined,
-      unitPriceLak:     item.unitPriceLakPerUnit,
-      itemRole:         item.transactionType === "ExchangeGold"
-                          && item.isReadOnly ? "ExchangeIn" : "Normal",
-      laborFee:         item.perItemDamage,     // PHÍ KHÒ
-      stoneFee:         item.perItemStoneFee,
-      haoHutGram:       item.perItemWearChi * gramPerChi,
-    }))
+    items: session.items.map((item) => ({
+      productId: item.productId,
+      productName: item.productName,
+      quantity: item.quantity,
+      weightUnitId: item.weightUnitId, // UUID đơn vị (bắt buộc với vàng/bạc)
+      weightGramOverride: item.unit === "g" ? item.weightInUnit : undefined,
+      unitPriceLak: item.unitPriceLakPerUnit,
+      itemRole:
+        item.transactionType === "ExchangeGold" && item.isReadOnly
+          ? "ExchangeIn"
+          : "Normal",
+      laborFee: item.perItemDamage, // PHÍ KHÒ
+      stoneFee: item.perItemStoneFee,
+      haoHutGram: item.perItemWearChi * gramPerChi,
+    })),
   };
 }
 ```
 
 ### Xử lý response
 
-| Kết quả | Hành động frontend |
-|---|---|
-| `201 Created` — trả `{ id }` | Gọi `GET /api/transactions/{id}` để load full → mở `ReceiptModal` |
-| `422 COUNTER_NOT_FOUND` | User chưa được phân công quầy — báo lỗi |
-| `422 PRODUCT_PRICE_NOT_CONFIGURED` | Thiếu `weightUnitId` hoặc bảng giá chưa cấu hình |
-| `422 INVENTORY_NOT_FOUND` | Sản phẩm không có trong kho quầy này |
-| `422 INVENTORY_INSUFFICIENT_STOCK` | Số lượng tồn kho không đủ |
+| Kết quả                            | Hành động frontend                                                |
+| ---------------------------------- | ----------------------------------------------------------------- |
+| `201 Created` — trả `{ id }`       | Gọi `GET /api/transactions/{id}` để load full → mở `ReceiptModal` |
+| `422 COUNTER_NOT_FOUND`            | User chưa được phân công quầy — báo lỗi                           |
+| `422 PRODUCT_PRICE_NOT_CONFIGURED` | Thiếu `weightUnitId` hoặc bảng giá chưa cấu hình                  |
+| `422 INVENTORY_NOT_FOUND`          | Sản phẩm không có trong kho quầy này                              |
+| `422 INVENTORY_INSUFFICIENT_STOCK` | Số lượng tồn kho không đủ                                         |
 
 ---
 
@@ -428,12 +430,12 @@ Component: `components/pos/ReceiptModal.tsx`
 
 Receipt được render theo loại giao dịch:
 
-| Loại | Layout đặc biệt |
-|---|---|
-| `SellGold` / `SellSilver` | Items + tổng thu tiền |
-| `BuyGold` | Items + tổng chi trả khách |
-| `ExchangeGold` | 2 section: **Hàng đổi vào** (credit) + **Hàng bán ra** (debit) + chênh lệch |
-| `ExchangeCurrency` | `100 USD → 1,430,000 LAK` + tỷ giá |
+| Loại                      | Layout đặc biệt                                                             |
+| ------------------------- | --------------------------------------------------------------------------- |
+| `SellGold` / `SellSilver` | Items + tổng thu tiền                                                       |
+| `BuyGold`                 | Items + tổng chi trả khách                                                  |
+| `ExchangeGold`            | 2 section: **Hàng đổi vào** (credit) + **Hàng bán ra** (debit) + chênh lệch |
+| `ExchangeCurrency`        | `100 USD → 1,430,000 LAK` + tỷ giá                                          |
 
 In bằng `window.print()` với CSS `@media print` (80mm thermal printer).
 
@@ -454,6 +456,7 @@ Search khách: GET /api/customers?q=<tên/sĐT>&limit=5
 ```
 
 **Hạng thành viên** (`loyaltyTier`) hiển thị tag màu tại quầy:
+
 - `silver` — Thành viên thường
 - `gold` — Khách thân thiết
 - `platinum` — VIP
@@ -481,5 +484,5 @@ Search khách: GET /api/customers?q=<tên/sĐT>&limit=5
   COMPLETED ← ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ (không thể sửa/xóa)
 ```
 
-> Frontend POS tạo đơn ở trạng thái `PENDING` (hoặc `DRAFT` nếu đặt cọc).  
+> Frontend POS tạo đơn ở trạng thái `PENDING` (hoặc `DRAFT` nếu đặt cọc).
 > Workflow phê duyệt thực hiện qua màn hình quản lý.

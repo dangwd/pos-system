@@ -150,6 +150,7 @@ export function CurrencyExchangeForm() {
                 readOnly
                 value={toDisplay}
                 placeholder="0"
+                onChange={() => {}}
                 className="h-9 text-right font-mono font-bold tabular-nums text-sm flex-1 min-w-0 bg-muted/40 cursor-default"
               />
               <Select

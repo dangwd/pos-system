@@ -107,7 +107,10 @@
       "storeName": "Khamphouvong Jewelry",
       "columnProduct": "Product",
       "columnQty": "Qty",
+      "columnLaborFee": "Labor fee",
+      "columnStoneFee": "Stone fee",
       "columnTotal": "Total",
+      "subtotalLabel": "Subtotal",
       "totalLabel": "Total",
       "printButton": "Print receipt",
       "closeButton": "Close & New",
@@ -930,27 +933,41 @@
       "columns": {
         "description": "Description",
         "direction": "Direction",
+        "entryCode": "Voucher code",
         "method": "Method",
         "currency": "Currency",
         "amount": "Amount",
         "amountLak": "LAK equiv.",
         "time": "Time",
         "entryType": "Type",
-        "exchangeRate": "Exchange rate"
+        "exchangeRate": "Exchange rate",
+        "createdBy": "Created by"
       },
       "detail": {
+        "loading": "Loading...",
+        "entryCode": "Voucher code",
         "time": "Time",
         "description": "Description",
         "entryType": "Type",
-        "method": "Method",
         "source": "Source",
+        "reason": "Reason",
+        "note": "Note",
+        "method": "Method",
         "value": "Amount",
+        "cashAmount": "Cash",
+        "bankAmount": "Bank transfer",
+        "currency": "Currency / Rate",
+        "createdBy": "Created by",
+        "branch": "Branch",
+        "referenceInvoice": "Reference invoice",
+        "customer": "Customer",
         "printExcel": "Print Excel",
         "printPdf": "Print PDF"
       },
       "method": {
         "CASH": "Cash",
-        "BANK": "Bank transfer"
+        "BANK": "Bank transfer",
+        "COMBINED": "Cash & Bank"
       },
       "entryType": {
         "IN": "Manual income",
@@ -968,7 +985,7 @@
       "source": {
         "Transaction": "POS transaction",
         "Manual": "Manual entry",
-        "Cancellation": "Cancellation"
+        "Handover": "Shift handover"
       }
     },
     "reports": {
@@ -1321,6 +1338,7 @@
     "branches": {
       "title": "Branches & Counters",
       "subtitle": "{count} branches",
+      "panelTitle": "Branches",
       "addButton": "Add branch",
       "hqBadge": "HQ",
       "active": "Active",

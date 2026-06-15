@@ -106,7 +106,7 @@ export interface CreateTransactionItemDto {
   itemRole: ItemRole;
   laborFee: number; // Phí gia công thợ (₭)
   stoneFee: number; // Phí đá đính kèm (₭)
-  haoHutGram: number; // Hao hụt trọng lượng (gram) — LAO SUT
+  haoHutGram: number; // Hao hụt trọng lượng (gram) — HAO HỤT
   phiHuHai: number; // Phí hủy hoại (₭) — Tiền côngcho ExchangeIn
 }
 

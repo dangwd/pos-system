@@ -18,15 +18,14 @@
 import { useState } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import { useActiveTab } from './useActiveTab'
+import { useAddToCart } from './useAddToCart'
 import { useCheckout } from './useCheckout'
 import { useCoupon } from './useCoupon'
-import { useWeightUnits } from './useConfig'
 import { useInvoiceTabStore } from '@/stores/invoice-tab.store'
 import { CashStrategy, BankTransferStrategy, CombinedStrategy } from '@/lib/strategies'
 import { configRepository } from '@/lib/repositories/config.repository'
 
 import type { ProductWithStock } from '@/types/product'
-import type { CartItem } from '@/types/cart'
 import type { PaymentMethodKey } from '@/lib/strategies/payment.strategy'
 import type { TransactionType } from '@/types/transaction'
 
@@ -48,18 +47,16 @@ export function usePos() {
     staleTime: 60_000,
   })
 
-  // ── Đơn vị trọng lượng (cache 10 phút — hiếm khi thay đổi) ─────────────────
-  const { data: weightUnits = [] } = useWeightUnits()
-
   // ── Active tab state (cart, giảm giá, v.v.) ─────────────────────────────────
   const {
     tab,
     subtotal,
     total,
     totalQty,
-    addItem,
     clearCart,
   } = useActiveTab()
+
+  const { addToCartAs } = useAddToCart(priceConfig)
 
   const { updateTab } = useInvoiceTabStore()
   const { applyAmount: applyDiscount, clear: clearDiscount } = useCoupon()
@@ -71,61 +68,7 @@ export function usePos() {
 
   // ── Actions ─────────────────────────────────────────────────────────────────
 
-  /**
-   * Thêm sản phẩm vào giỏ với unitPriceLakPerGram snapshot từ priceConfig.
-   * Tìm giá theo purityCode + weightUnitId của sản phẩm.
-   */
-  const addToCart = (product: ProductWithStock) => {
-    if (!priceConfig) return // Chưa load giá — không thêm vào giỏ
-    if (tab?.cancelTransactionId) return // Đang ở chế độ hủy HĐ — không cho thêm sản phẩm
-
-    // Tìm PriceItem khớp purity code + weightUnit của sản phẩm
-    const priceItem = priceConfig.items.find(
-      item => item.purityCode === product.purity && item.weightUnitId === product.weightUnitId
-    )
-    // Nếu không tìm thấy exact match, thử theo purity code bất kỳ unit
-    const fallback = priceConfig.items.find(item => item.purityCode === product.purity)
-    const matched = priceItem ?? fallback
-
-    // BuyGold dùng buyPrice (giá mua vào từ khách — thấp hơn)
-    // Các nghiệp vụ còn lại dùng sellPrice (giá bán ra cho khách)
-    const isBuyMode = (tab?.txnType ?? 'SellGold') === 'BuyGold'
-    const unitPrice = matched ? (isBuyMode ? matched.buyPrice : matched.sellPrice) : 0
-    // unitPriceLakPerGram = unitPrice / gramPerUnit — dùng cho lineTotal nội bộ
-    const unitPriceLakPerGram = matched ? unitPrice / matched.gramPerUnit : 0
-
-    // weightGram canonical = gramPerUnit từ bảng giá (source of truth cho pricing)
-    // product.weightGram có thể = 0 nếu sản phẩm chưa cấu hình → dùng matched làm fallback
-    const weightGram = matched?.gramPerUnit ?? product.weightGram
-
-    // weightUnitId: ưu tiên unit từ matched price config (đảm bảo khớp với gramPerUnit)
-    const weightUnitId = matched?.weightUnitId ?? product.weightUnitId
-
-    const weightUnit = weightUnits.find(u => u.id === weightUnitId)
-    const weightUnitName = weightUnit?.tenDonVi ?? matched?.weightUnitCode ?? null
-
-    const cartItem: CartItem = {
-      productId: product.id,
-      name: product.productName,
-      purity: product.purity ?? '',
-      weightGram,
-      productType: product.productType,
-      categoryName: product.categoryName,
-      weightUnitId,
-      weightUnitName,
-      weightGramOverride: null,
-      qty: 1,
-      unitPriceLakPerGram,
-      laborFee: 0,
-      stoneFee: 0,
-      itemRole: 'Normal',
-      perItemDamage: 0,
-      perItemWearChi: 0,
-      isDamaged: false,
-      isReadOnly: false,
-    }
-    addItem(cartItem)
-  }
+  const addToCart = (product: ProductWithStock) => addToCartAs(product, 'Normal')
 
   const checkout = (params: {
     type: TransactionType

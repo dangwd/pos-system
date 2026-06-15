@@ -62,7 +62,7 @@
 
 /* ─── Blue + Slate theme ──────────────────────────────────────────────────── */
 :root {
-  --background:           oklch(0.984 0.003 247);     /* #F8FAFC slate-50  */
+  --background:           oklch(1 0 0);               /* #FFFFFF white */
   --foreground:           oklch(0.129 0.042 265);     /* #0F172A slate-900 */
   --card:                 oklch(1 0 0);
   --card-foreground:      oklch(0.129 0.042 265);
@@ -94,14 +94,14 @@
 
   --radius: 0.5rem;
 
-  /* Sidebar — dark navy (Linear / Stripe style) */
-  --sidebar:                      oklch(0.129 0.042 265);     /* #0F172A slate-900 */
-  --sidebar-foreground:           oklch(0.692 0.018 248);     /* #94A3B8 slate-400 */
-  --sidebar-primary:              oklch(0.488 0.243 264);     /* #2563EB blue-600  */
+  /* Sidebar — light (antd style, blue accent) */
+  --sidebar:                      oklch(0.980 0.004 247);     /* #F5F8FF near-white blue */
+  --sidebar-foreground:           oklch(0.320 0.025 265);     /* #2D3A4A slate-700      */
+  --sidebar-primary:              oklch(0.488 0.243 264);     /* #2563EB blue-600       */
   --sidebar-primary-foreground:   oklch(0.985 0 0);
-  --sidebar-accent:               oklch(0.214 0.039 265);     /* #1E293B slate-800 */
-  --sidebar-accent-foreground:    oklch(0.985 0 0);
-  --sidebar-border:               oklch(0.185 0.033 265);     /* #17213A          */
+  --sidebar-accent:               oklch(0.924 0.012 247);     /* #E8EDF5 hover blue-50  */
+  --sidebar-accent-foreground:    oklch(0.200 0.030 265);     /* #1E2A38 dark           */
+  --sidebar-border:               oklch(0.900 0.008 247);     /* #E0E5EE border         */
   --sidebar-ring:                 oklch(0.488 0.243 264);
 }
 
@@ -156,4 +156,24 @@
     color: inherit;
     text-decoration: inherit;
   }
+}
+
+
+
+/* ── Ant Design Splitter — ẩn drag handle pill, reset background ────────── */
+.ant-splitter,
+.ant-splitter-panel {
+  background: var(--background) !important;
+}
+.ant-splitter-bar-dragger {
+  display: none !important;
+}
+.ant-splitter-bar {
+  background: var(--border) !important;
+  width: 1px !important;
+}
+.ant-splitter-bar:hover {
+  background: var(--primary) !important;
+  opacity: 0.4 !important;
+  transition: opacity 0.2s;
 }

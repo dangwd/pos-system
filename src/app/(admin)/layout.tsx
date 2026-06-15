@@ -7,9 +7,9 @@ import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
-  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { useAuthStore } from "@/stores/auth.store";
 import {
@@ -24,7 +24,6 @@ import {
   Gem,
   LayoutDashboard,
   LogOut,
-  Monitor,
   Package,
   PanelLeftClose,
   PanelLeftOpen,
@@ -184,20 +183,28 @@ export default function AdminLayout({
         {/* Header */}
         <div
           className={cn(
-            "flex items-center h-14 border-b border-sidebar-border shrink-0 gap-1.5 px-3",
-            collapsed && "justify-center",
+            "flex items-center h-16 border-b border-sidebar-border shrink-0 px-3",
+            collapsed ? "justify-center gap-0" : "gap-2.5",
           )}
         >
-          <div className={cn(
-            "h-6 w-6 rounded-md bg-primary flex items-center justify-center shrink-0",
-            !collapsed && "ml-0.5",
-          )}>
-            <Monitor className="h-3.5 w-3.5 text-white" />
-          </div>
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            src="/img/logo_v%C3%A0ng-removebg-preview.png"
+            alt="Phouvong Jewelry"
+            className={cn(
+              "shrink-0 object-contain transition-all duration-200",
+              collapsed ? "h-8 w-8" : "h-10 w-10",
+            )}
+          />
           {!collapsed && (
-            <span className="font-semibold text-sm text-white truncate flex-1 min-w-0">
-              {t("title")}
-            </span>
+            <div className="flex flex-col flex-1 min-w-0">
+              <span className="font-bold text-[13.5px] text-sidebar-foreground leading-snug truncate">
+                ຮ້ານຄຳພູວົງ
+              </span>
+              <span className="text-[10px] text-sidebar-foreground/50 leading-snug truncate tracking-wide">
+                Phouvong Jewelry
+              </span>
+            </div>
           )}
           <button
             onClick={handleToggle}
@@ -401,6 +408,15 @@ export default function AdminLayout({
         <header className="h-14 flex items-center justify-between px-6 border-b bg-card shrink-0">
           <div />
           <div className="flex items-center gap-3">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => router.push("/pos")}
+              className="gap-1.5 text-xs h-8"
+            >
+              <ArrowLeft className="h-3.5 w-3.5" />
+              {t("nav.backToPOS")}
+            </Button>
             <LocaleSwitcher />
             {user && (
               <DropdownMenu>
@@ -423,14 +439,6 @@ export default function AdminLayout({
                     <p className="text-sm font-semibold truncate">{user.fullName}</p>
                     <p className="text-xs text-muted-foreground">{user.role}</p>
                   </div>
-                  <DropdownMenuItem
-                    onClick={() => router.push("/pos")}
-                    className="cursor-pointer gap-2 mt-1"
-                  >
-                    <ArrowLeft className="h-3.5 w-3.5" />
-                    {t("nav.backToPOS")}
-                  </DropdownMenuItem>
-                  <DropdownMenuSeparator />
                   <DropdownMenuItem
                     onClick={() => logout()}
                     disabled={isLoggingOut}

@@ -68,7 +68,7 @@ export interface InvoiceTabStore {
   setItemQtyInActive: (productId: string, qty: number) => void;
   clearActiveCart: () => void;
 
-  /** Cập nhật một số trường của CartItem trong active tab (dùng cho Tiền công/ LAO SUT) */
+  /** Cập nhật một số trường của CartItem trong active tab (dùng cho Tiền công/ HAO HỤT) */
   updateCartItemInActive: (productId: string, patch: Partial<CartItem>) => void;
 
   /** Load items từ HĐ cũ vào active tab dưới dạng ExchangeIn */

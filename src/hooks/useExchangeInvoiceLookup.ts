@@ -55,10 +55,13 @@ export function useExchangeInvoiceLookup() {
     const detail = await transactionRepository.getById(transaction.id)
 
     const exchangeItems: CartItem[] = detail.items.map(item => {
-      // Tìm PriceItem khớp — dùng buyPrice cho ExchangeIn
-      const priceItem = priceConfig.items[0]
-      const gramPerUnit = priceItem?.gramPerUnit ?? 3.75
-      const unitPriceLakPerGram = priceItem ? priceItem.buyPrice / gramPerUnit : 0
+      // Khớp PriceItem theo weightUnitId → đúng gramPerUnit (Chỉ/Bath/Lượng)
+      // ExchangeGold: vàng cũ tính theo giá BÁN RA hiện tại (per CLAUDE.md)
+      const priceItem = priceConfig.items.find(p => p.weightUnitId === item.weightUnitId)
+        ?? priceConfig.items[0]
+      const perUnitGram = item.quantity > 0 ? item.weightGram / item.quantity : (priceItem?.gramPerUnit ?? 3.75)
+      const gramPerUnit = priceItem?.gramPerUnit ?? perUnitGram
+      const unitPriceLakPerGram = priceItem ? priceItem.sellPrice / gramPerUnit : 0
 
       return {
         // ExchangeIn: backend nhận Product entity ID từ phiếu gốc
