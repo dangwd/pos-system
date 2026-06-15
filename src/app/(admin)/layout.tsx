@@ -128,6 +128,7 @@ export default function AdminLayout({
             children: [
               { href: "/admin/reports/inventory", label: t("nav.reportInventory") },
               { href: "/admin/reports/revenue", label: t("nav.reportRevenue") },
+              { href: "/admin/reports/currency-exchange", label: t("nav.reportCurrencyExchange") },
             ],
           },
         ],

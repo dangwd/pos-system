@@ -4,6 +4,7 @@ import { useQuery, keepPreviousData } from '@tanstack/react-query'
 import { reportsRepository } from '@/lib/repositories/reports.repository'
 import type {
   ReportParams, DailyReportParams, InventoryReportParams, RevenueReportParams,
+  CurrencyExchangeReportParams,
 } from '@/types/report'
 
 export function useDashboardReport(params?: ReportParams) {
@@ -43,5 +44,19 @@ export function useRevenueReport(params: RevenueReportParams, enabled = true) {
     queryFn: () => reportsRepository.getRevenue(params),
     staleTime: 60_000,
     enabled: enabled && !!params.branchId,
+  })
+}
+
+export function useCurrencyExchangeReport(params?: CurrencyExchangeReportParams) {
+  return useQuery({
+    queryKey: [
+      'reports', 'currency-exchange',
+      params?.from ?? null, params?.to ?? null,
+      params?.branchId ?? null, params?.counterId ?? null,
+      params?.page ?? 1, params?.pageSize ?? 20,
+    ],
+    queryFn: () => reportsRepository.getCurrencyExchange(params),
+    staleTime: 60_000,
+    placeholderData: keepPreviousData,
   })
 }

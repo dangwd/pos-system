@@ -143,3 +143,53 @@ export interface RevenueReportParams {
   period?: RevenuePeriod    // default: month
   date?: string             // ngày bất kỳ trong kỳ — default: hôm nay
 }
+
+// ─── Báo cáo đổi ngoại tệ (GET /api/reports/currency-exchange) ────────────────
+
+export interface CurrencyExchangeBalanceRow {
+  currencyCode: string
+  openingBalance: number
+  totalIn: number
+  totalOut: number
+  closingBalance: number
+}
+
+export interface CurrencyExchangeTx {
+  id: string
+  invoiceCode: string
+  transactedAt: string
+  customerName: string | null
+  sourceCurrency: string
+  sourceAmount: number
+  targetCurrency: string
+  targetAmount: number
+  displayRate: number
+  counterName: string
+  counterId: string
+  branchName: string
+  branchId: string
+  cashierName: string
+  status: string
+}
+
+export interface CurrencyExchangeReport {
+  from: string
+  to: string
+  branchId: string | null
+  counterId: string | null
+  balanceSummary: CurrencyExchangeBalanceRow[]
+  totalTransactions: number
+  transactions: {
+    data: CurrencyExchangeTx[]
+    pagination: { page: number; pageSize: number; totalItems: number; totalPages: number }
+  }
+}
+
+export interface CurrencyExchangeReportParams {
+  from?: string
+  to?: string
+  branchId?: string
+  counterId?: string
+  page?: number
+  pageSize?: number
+}
