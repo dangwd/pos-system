@@ -155,9 +155,17 @@ export const useInvoiceTabStore = create<InvoiceTabStore>()(
         const activeId = resolveActiveId(tabs, get().activeTabId);
         if (!activeId) return;
         set({
-          tabs: tabs.map((t) =>
-            t.id !== activeId ? t : { ...t, items: t.items.filter((i) => i.productId !== productId) },
-          ),
+          tabs: tabs.map((t) => {
+            if (t.id !== activeId) return t;
+            const newItems = t.items.filter((i) => i.productId !== productId);
+            const newLinkedKeys = t.linkedInvoiceItemKeys.filter((k) => k !== productId);
+            return {
+              ...t,
+              items: newItems,
+              linkedInvoiceItemKeys: newLinkedKeys,
+              linkedInvoiceCode: newLinkedKeys.length === 0 ? null : t.linkedInvoiceCode,
+            };
+          }),
         });
       },
 

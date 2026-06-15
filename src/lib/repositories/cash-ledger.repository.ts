@@ -1,26 +1,38 @@
 import api from '@/lib/axios'
 import type {
   DailyCashLedger,
-  ManualEntryDto,
+  ManualEntryRequest,
+  ManualEntryResponse,
   OpeningBalanceDto,
-  CashLedgerEntry,
   CashLedgerActivitiesParams,
   CashLedgerActivitiesResult,
+  CashVoucherDto,
+  VoucherReason,
+  CreateVoucherDto,
+  VoucherListParams,
+  VoucherListResponse,
   CashCountSheet,
   SaveCashCountDto,
   HandoverDto,
+  CashDirection,
 } from '@/types/cash-ledger'
 
 export class CashLedgerRepository {
-  /** GET /daily — sổ quỹ ngày với tóm tắt số dư đầu/cuối ca */
+  /** GET /daily — tổng hợp số dư đầu/cuối và tổng thu/chi trong ngày */
   async getDaily(params: { branchId: string; counterId?: string; date?: string }): Promise<DailyCashLedger> {
     const { data } = await api.get<DailyCashLedger>('/api/cash-ledger/daily', { params })
     return data
   }
 
-  /** GET /activities — danh sách bút toán có phân trang */
+  /** GET /activities — danh sách bút toán rút gọn (không có amountLak) */
   async getActivities(params: CashLedgerActivitiesParams): Promise<CashLedgerActivitiesResult> {
     const { data } = await api.get<CashLedgerActivitiesResult>('/api/cash-ledger/activities', { params })
+    return data
+  }
+
+  /** GET /activities/{id} — chi tiết đầy đủ một bút toán */
+  async getActivityById(id: string): Promise<CashVoucherDto> {
+    const { data } = await api.get<CashVoucherDto>(`/api/cash-ledger/activities/${id}`)
     return data
   }
 
@@ -29,13 +41,39 @@ export class CashLedgerRepository {
     await api.post('/api/cash-ledger/opening-balance', dto)
   }
 
-  /** POST /manual-entry — tạo thu/chi thủ công */
-  async addManualEntry(dto: ManualEntryDto): Promise<CashLedgerEntry> {
-    const { data } = await api.post<CashLedgerEntry>('/api/cash-ledger/manual-entry', dto)
+  /** POST /manual-entry — tạo thu/chi thủ công nhanh (không qua lý do) */
+  async addManualEntry(dto: ManualEntryRequest): Promise<ManualEntryResponse> {
+    const { data } = await api.post<ManualEntryResponse>('/api/cash-ledger/manual-entry', dto)
     return data
   }
 
-  /** GET /cash-count — lấy bảng kê đếm tiền */
+  /** GET /voucher-reasons — danh sách lý do phiếu thu/chi */
+  async getVoucherReasons(direction?: CashDirection): Promise<VoucherReason[]> {
+    const { data } = await api.get<VoucherReason[]>('/api/cash-ledger/voucher-reasons', {
+      params: direction ? { direction } : undefined,
+    })
+    return data
+  }
+
+  /** GET /vouchers — danh sách phiếu thu/chi có đầy đủ thông tin */
+  async getVouchers(params: VoucherListParams): Promise<VoucherListResponse> {
+    const { data } = await api.get<VoucherListResponse>('/api/cash-ledger/vouchers', { params })
+    return data
+  }
+
+  /** POST /vouchers — tạo phiếu thu/chi chính thức (có lý do) */
+  async createVoucher(dto: CreateVoucherDto): Promise<CashVoucherDto> {
+    const { data } = await api.post<CashVoucherDto>('/api/cash-ledger/vouchers', dto)
+    return data
+  }
+
+  /** GET /vouchers/{id} — chi tiết phiếu thu/chi */
+  async getVoucherById(id: string): Promise<CashVoucherDto> {
+    const { data } = await api.get<CashVoucherDto>(`/api/cash-ledger/vouchers/${id}`)
+    return data
+  }
+
+  /** GET /cash-count — bảng kê đếm tiền ca hiện tại */
   async getCashCount(params: { branchId: string; counterId?: string; date?: string }): Promise<CashCountSheet> {
     const { data } = await api.get<CashCountSheet>('/api/cash-ledger/cash-count', { params })
     return data

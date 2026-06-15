@@ -41,18 +41,14 @@ import {
   ChevronDown,
   ChevronRight,
   Coins,
-  Copy,
   Gem,
   LayoutDashboard,
   LogOut,
   PackagePlus,
-  PauseCircle,
   Plus,
   Search,
-  Sparkles,
   X,
 } from "lucide-react";
-import { motion } from "motion/react";
 import { useTranslations } from "next-intl";
 import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
@@ -226,14 +222,20 @@ function ProductSearch({ onSelect }: ProductSearchProps) {
 
 // ─── InlineTabChip ────────────────────────────────────────────────────────────
 
+const TXN_TYPE_ICONS: Partial<Record<string, React.ElementType>> = {
+  SellGold: Coins,
+  SellSilver: Gem,
+  BuyGold: PackagePlus,
+  ExchangeGold: ArrowLeftRight,
+  ExchangeCurrency: Banknote,
+};
+
 interface InlineTabChipProps {
   tab: InvoiceTab;
   isActive: boolean;
   showClose: boolean;
   onSwitch: () => void;
   onClose: () => void;
-  onHold: () => void;
-  onDuplicate: () => void;
 }
 
 function InlineTabChip({
@@ -242,13 +244,11 @@ function InlineTabChip({
   showClose,
   onSwitch,
   onClose,
-  onHold,
-  onDuplicate,
 }: InlineTabChipProps) {
-  const t = useTranslations("pos.topBar");
-  const tTxn = useTranslations("pos.txnTypes");
+  const t = useTranslations("pos.txnTypes");
   const totalQty = tab.items.reduce((s, i) => s + i.qty, 0);
-  const abbr = tTxn(`${tab.txnType}.abbr`);
+  const TabIcon = TXN_TYPE_ICONS[tab.txnType] ?? Coins;
+  const txnLabel = t(`${tab.txnType}.label`);
 
   return (
     <div
@@ -256,136 +256,74 @@ function InlineTabChip({
       aria-selected={isActive}
       onClick={onSwitch}
       className={cn(
-        "group relative flex items-center gap-1.5 px-3 h-full cursor-pointer select-none shrink-0",
-        "min-w-28 max-w-48 border-r border-primary/10 last:border-r-0",
-        "transition-colors duration-150",
+        "group relative flex flex-col justify-center px-3 cursor-pointer select-none shrink-0",
+        "min-w-44 max-w-60 transition-all duration-100 rounded-t-lg",
         isActive
-          ? "bg-background text-foreground"
-          : "text-muted-foreground hover:text-foreground hover:bg-background/60",
+          ? "z-10 bg-background text-foreground h-[calc(100%-2px)]"
+          : "h-[calc(100%-6px)] hover:bg-white/10",
       )}
     >
-      {/* Indicator bottom — chỉ hiện khi active để "kết nối" với nội dung */}
-      {isActive && (
-        <motion.div
-          layoutId="pos-tab-indicator"
-          className="absolute bottom-0 inset-x-0 h-0.5 bg-primary"
-          transition={{ type: "spring", stiffness: 500, damping: 40 }}
+      {/* Hàng 1: tên nghiệp vụ + nút đóng */}
+      <div className="flex items-center gap-1.5">
+        <TabIcon
+          className={cn(
+            "h-3 w-3 shrink-0",
+            isActive ? "text-primary" : "text-white/55",
+          )}
         />
-      )}
-
-      {/* Chấm trạng thái */}
-      {tab.status === "holding" && (
-        <span
-          className="w-2 h-2 rounded-full bg-amber-400 shrink-0"
-          title={t("holdingStatus")}
-        />
-      )}
-      {tab.status === "paying" && (
-        <span
-          className="w-2 h-2 rounded-full bg-blue-400 shrink-0 animate-pulse"
-          title={t("payingStatus")}
-        />
-      )}
-
-      {/* Type abbr badge — luôn hiển thị rõ */}
-      <span
-        className={cn(
-          "shrink-0 text-[9px] font-bold leading-none px-1.5 py-0.5 rounded",
-          isActive
-            ? "bg-primary/10 text-primary"
-            : "bg-primary/10 text-primary/70",
-        )}
-      >
-        {abbr}
-      </span>
-
-      {/* Label */}
-      <span
-        className={cn(
-          "truncate text-xs",
-          isActive && "font-medium",
-          tab.customerName ? "flex-none" : "flex-1",
-        )}
-      >
-        {tab.label}
-      </span>
-
-      {/* Customer chip — khi có khách hàng */}
-      {/* {tab.customerName && (
         <span
           className={cn(
-            "flex items-center gap-0.5 shrink min-w-0 text-[10px] rounded px-1 py-0.5 truncate",
-            isActive
-              ? "bg-primary/10 text-primary font-medium"
-              : "bg-muted text-muted-foreground",
+            "truncate text-[10px] font-medium flex-1 leading-none tracking-wide",
+            isActive ? "text-primary" : "text-white/55",
           )}
         >
-          <User className="h-2.5 w-2.5 shrink-0" />
-          <span className="truncate max-w-16">{tab.customerName.split(" ").pop()}</span>
+          {txnLabel}
         </span>
-      )} */}
-
-      {/* Spacer khi không có customer */}
-      {!tab.customerName && <span className="flex-1" />}
-
-      {/* Badge số lượng — solid khi active */}
-      {totalQty > 0 && (
-        <span
-          className={cn(
-            "shrink-0 text-[10px] font-bold leading-none rounded px-1.5 py-0.5 tabular-nums",
-            isActive
-              ? "bg-primary text-primary-foreground"
-              : "bg-primary/15 text-primary/80",
-          )}
-        >
-          {totalQty}
-        </span>
-      )}
-
-      {/* Actions — hiện khi hover active */}
-      {isActive && (
-        <div className="flex items-center gap-0.5 opacity-0 group-hover:opacity-100 shrink-0 transition-opacity">
+        {showClose && (
           <button
+            type="button"
             onClick={(e) => {
               e.stopPropagation();
-              onHold();
+              onClose();
             }}
-            className="p-0.5 rounded hover:bg-amber-100 hover:text-amber-600 text-muted-foreground"
-            title={t("holdTooltip")}
+            className={cn(
+              "shrink-0 h-4 w-4 flex items-center justify-center rounded-sm transition-all opacity-0 group-hover:opacity-100",
+              isActive
+                ? "text-muted-foreground hover:bg-destructive/10 hover:text-destructive"
+                : "text-white/70 hover:bg-white/15",
+            )}
           >
-            <PauseCircle className="h-3 w-3" />
+            <X className="h-2.5 w-2.5" />
           </button>
-          <button
-            onClick={(e) => {
-              e.stopPropagation();
-              onDuplicate();
-            }}
-            className="p-0.5 rounded hover:bg-muted text-muted-foreground"
-            title={t("duplicateTooltip")}
-          >
-            <Copy className="h-3 w-3" />
-          </button>
-        </div>
-      )}
+        )}
+      </div>
 
-      {/* Đóng tab */}
-      {showClose && (
-        <button
-          onClick={(e) => {
-            e.stopPropagation();
-            onClose();
-          }}
+      {/* Hàng 2: label hoá đơn + badge số lượng */}
+      <div className="flex items-center gap-2 mt-1">
+        {tab.status === "paying" && (
+          <span className="w-1.5 h-1.5 rounded-full bg-blue-300 shrink-0 animate-pulse" />
+        )}
+        <span
           className={cn(
-            "shrink-0 p-0.5 rounded transition-all hover:text-destructive hover:bg-destructive/10",
-            isActive
-              ? "opacity-0 group-hover:opacity-100 text-muted-foreground"
-              : "opacity-0 group-hover:opacity-70 text-muted-foreground",
+            "truncate text-[13px] font-semibold flex-1 leading-none",
+            isActive ? "text-foreground" : "text-white/90",
           )}
-          title={t("closeTooltip")}
         >
-          <X className="h-3 w-3" />
-        </button>
-      )}
+          {tab.label}
+        </span>
+        {totalQty > 0 && (
+          <span
+            className={cn(
+              "shrink-0 min-w-5 px-1.5 h-4 rounded-full text-[10px] font-bold tabular-nums leading-none flex items-center justify-center",
+              isActive
+                ? "bg-primary/10 text-primary"
+                : "bg-white/15 text-white/80",
+            )}
+          >
+            {totalQty}
+          </span>
+        )}
+      </div>
     </div>
   );
 }
@@ -490,15 +428,8 @@ export function PosTopBar({ onAddProduct }: PosTopBarProps) {
   const tAuth = useTranslations("auth.login");
   const router = useRouter();
   const { user } = useAuthStore();
-  const {
-    tabs,
-    activeTabId,
-    openTabWithType,
-    closeTab,
-    switchTab,
-    holdTab,
-    duplicateTab,
-  } = useInvoiceTabStore();
+  const { tabs, activeTabId, openTabWithType, closeTab, switchTab } =
+    useInvoiceTabStore();
   const { mutate: logout, isPending: isLoggingOut } = useLogout();
 
   const [pendingClose, setPendingClose] = useState<InvoiceTab | null>(null);
@@ -517,21 +448,22 @@ export function PosTopBar({ onAddProduct }: PosTopBarProps) {
 
   return (
     <>
-      <header className="flex items-stretch h-11 border-b bg-card shrink-0">
-        {/* ── Left: Search + AI ──────────────────────────────────────────── */}
-        <div className="flex items-center gap-2 px-3 border-r">
+      <header className="flex items-stretch h-12 bg-primary shrink-0">
+        {/* ── Left: Logo + Search + AI ───────────────────────────────────── */}
+        <div className="flex items-center gap-2 px-3">
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            src="/img/logo_v%C3%A0ng-removebg-preview.png"
+            alt="Phouvong"
+            className="h-7 w-7 object-contain shrink-0"
+          />
           <ProductSearch onSelect={onAddProduct} />
-          <button
-            className="shrink-0 h-7 w-7 flex items-center justify-center rounded-md border bg-muted/50 text-muted-foreground hover:text-primary hover:border-primary hover:bg-background transition-colors"
-            title={t("aiTooltip")}
-          >
-            <Sparkles className="h-3.5 w-3.5" />
-          </button>
         </div>
 
-        {/* ── Center: Invoice tabs ────────────────────────────────────────── */}
+        {/* ── Center: Invoice tabs (inherits bg-primary từ header) ─────── */}
+        {/* Không dùng overflow-x-auto để pseudo-elements curved corners không bị clip */}
         <div
-          className="flex-1 flex items-stretch overflow-x-auto min-w-0 bg-primary/8"
+          className="flex-1 flex items-end min-w-0 pl-3.5 pr-3 gap-0.5"
           role="tablist"
           aria-label={t("tabListLabel")}
         >
@@ -543,39 +475,37 @@ export function PosTopBar({ onAddProduct }: PosTopBarProps) {
               showClose={tabs.length > 1}
               onSwitch={() => switchTab(tab.id)}
               onClose={() => handleCloseRequest(tab)}
-              onHold={() => holdTab(tab.id)}
-              onDuplicate={() => duplicateTab(tab.id)}
             />
           ))}
 
           <button
             onClick={() => setTypeDialogOpen(true)}
             title={t("newTabTooltip")}
-            className="shrink-0 my-auto ml-2 h-7 w-7 flex items-center justify-center rounded-md border border-dashed border-muted-foreground/30 text-muted-foreground hover:border-primary/50 hover:text-primary hover:bg-primary/5 transition-all"
+            className="shrink-0 self-center ml-1 h-6 w-6 flex items-center justify-center rounded-full border border-dashed border-white/35 text-white/45 hover:border-white/70 hover:text-white hover:bg-white/10 transition-all"
           >
             <Plus className="h-3.5 w-3.5" />
           </button>
         </div>
 
-        {/* ── Right: Locale + User menu + Admin ──────────────────────────── */}
-        <div className="flex items-center gap-2 px-3 border-l">
+        {/* ── Right: Locale + User menu ───────────────────────────────────── */}
+        <div className="flex items-center gap-2 px-3">
           <LocaleSwitcher />
 
           {user && (
             <DropdownMenu>
-              <DropdownMenuTrigger className="hidden lg:flex items-center gap-1.5 h-7 px-2 rounded-md hover:bg-accent transition-colors focus:outline-none focus:ring-1 focus:ring-ring">
-                <div className="h-5 w-5 rounded-full bg-primary text-primary-foreground flex items-center justify-center text-[9px] font-bold shrink-0">
+              <DropdownMenuTrigger className="hidden lg:flex items-center gap-1.5 h-7 px-2 rounded-md hover:bg-white/10 transition-colors focus:outline-none">
+                <div className="h-5 w-5 rounded-full bg-white/20 text-white flex items-center justify-center text-[9px] font-bold shrink-0">
                   {getInitials(user.fullName)}
                 </div>
                 <div className="flex flex-col items-start">
-                  <span className="text-[10px] font-semibold text-foreground leading-tight max-w-24 truncate">
+                  <span className="text-[10px] font-semibold text-white leading-tight max-w-24 truncate">
                     {user.fullName}
                   </span>
-                  <span className="text-[10px] text-muted-foreground leading-tight truncate max-w-24">
+                  <span className="text-[10px] text-white/60 leading-tight truncate max-w-24">
                     {user.counterName ?? user.role}
                   </span>
                 </div>
-                <ChevronDown className="h-3 w-3 text-muted-foreground shrink-0" />
+                <ChevronDown className="h-3 w-3 text-white/60 shrink-0" />
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end" className="min-w-48">
                 <div className="px-3 py-2.5 border-b">

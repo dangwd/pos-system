@@ -18,11 +18,7 @@ import { useCounters } from "@/hooks/useBranches";
 import { usePermission } from "@/hooks/usePermission";
 import { cashLedgerRepository } from "@/lib/repositories/cash-ledger.repository";
 import { useAuthStore } from "@/stores/auth.store";
-import type {
-  CashCurrency,
-  CashLedgerEntry,
-  CashMethod,
-} from "@/types/cash-ledger";
+import type { ActivityItem, CashCurrency } from "@/types/cash-ledger";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
   Button as AntBtn,
@@ -74,7 +70,7 @@ function AddEntryDialog({
   const [form, setForm] = useState({
     description: "",
     direction: defaultDirection as "IN" | "OUT",
-    method: "CASH" as CashMethod,
+    method: "CASH" as "CASH" | "BANK",
     currency: "LAK" as CashCurrency,
     originalAmount: "",
     exchangeRate: "1",
@@ -147,7 +143,7 @@ function AddEntryDialog({
               <Select
                 value={form.method}
                 onValueChange={(v) =>
-                  setForm((p) => ({ ...p, method: v as CashMethod }))
+                  setForm((p) => ({ ...p, method: v as "CASH" | "BANK" }))
                 }
               >
                 <SelectTrigger>
@@ -278,16 +274,6 @@ export default function CashLedgerPage() {
     enabled: !!branchId,
   });
 
-  // Tổng thu/chi tính từ entries của /daily (ngày đầu kỳ)
-  const totalIn =
-    daily?.entries
-      .filter((e) => e.sign === 1)
-      .reduce((s, e) => s + e.amountLak, 0) ?? 0;
-  const totalOut =
-    daily?.entries
-      .filter((e) => e.sign === -1)
-      .reduce((s, e) => s + e.amountLak, 0) ?? 0;
-
   // Table: GET /activities
   const { data: activities, isLoading } = useQuery({
     queryKey: [
@@ -314,87 +300,58 @@ export default function CashLedgerPage() {
     enabled: !!branchId,
   });
 
-  const entries = activities?.entries ?? [];
+  const items = activities?.items ?? [];
   const totalCount = activities?.totalCount ?? 0;
 
   const summaryItems = [
-    {
-      label: t("openingBalance"),
-      value: (daily?.openingCashLak ?? 0) + (daily?.openingBankLak ?? 0),
-      color: "#111827",
-    },
-    { label: t("totalIn"), value: totalIn, color: "#16A34A" },
-    { label: t("totalOut"), value: totalOut, color: "#DC2626" },
-    {
-      label: t("closingBalance"),
-      value:
-        (daily?.expectedCashClosingLak ?? 0) +
-        (daily?.expectedBankClosingLak ?? 0),
-      color: "#16A34A",
-    },
+    { label: t("openingBalance"), value: daily?.openingBalanceLak ?? 0, color: "#111827" },
+    { label: t("totalIn"),        value: daily?.totalInLak ?? 0,        color: "#16A34A" },
+    { label: t("totalOut"),       value: daily?.totalOutLak ?? 0,       color: "#DC2626" },
+    { label: t("closingBalance"), value: daily?.closingBalanceLak ?? 0, color: "#16A34A" },
   ];
 
   const columns = useMemo(
-    (): ColumnsType<CashLedgerEntry> => [
+    (): ColumnsType<ActivityItem> => [
       {
-        title: t("columns.time"),
-        dataIndex: "timeLabel",
-        width: 100,
+        title: t("columns.direction"),
+        dataIndex: "direction",
+        width: 80,
         render: (v: string) => (
-          <span style={{ fontFamily: "monospace", fontSize: 13 }}>{v}</span>
-        ),
-      },
-      {
-        title: t("columns.description"),
-        dataIndex: "description",
-        width: 360,
-        render: (v: string) => (
-          <span
-            style={{
-              whiteSpace: "normal",
-              wordBreak: "break-word",
-              fontSize: 13,
-            }}
-          >
-            {v}
-          </span>
-        ),
-      },
-      {
-        title: t("columns.entryType"),
-        dataIndex: "entryType",
-        width: 130,
-        render: (v: string, r: CashLedgerEntry) => (
           <Tag
-            color={r.sign === 1 ? "green" : "red"}
+            color={v === "IN" ? "green" : "red"}
             style={{ borderRadius: 10, fontSize: 11 }}
           >
-            {t(`entryType.${v}` as Parameters<typeof t>[0])}
+            {v === "IN" ? t("filterIncome") : t("filterExpense")}
           </Tag>
         ),
       },
       {
-        title: t("columns.method"),
-        dataIndex: "method",
-        width: 110,
-        render: (v: CashMethod) => t(`method.${v}` as Parameters<typeof t>[0]),
+        title: t("columns.entryCode"),
+        dataIndex: "entryCode",
+        width: 130,
+        render: (v: string) => (
+          <span style={{ fontFamily: "monospace", fontSize: 12 }}>{v}</span>
+        ),
       },
       {
-        title: t("columns.amount"),
-        dataIndex: "amountLak",
-        width: 140,
-        align: "right" as const,
-        render: (v: number, r: CashLedgerEntry) => (
-          <b
-            style={{
-              color: r.sign === 1 ? "#16A34A" : "#DC2626",
-              fontFamily: "monospace",
-            }}
-          >
-            {r.sign === 1 ? "+" : "−"}
-            {formatKip(v)}
-          </b>
+        title: t("columns.time"),
+        dataIndex: "timeLabel",
+        width: 160,
+        render: (v: string) => (
+          <span style={{ fontFamily: "monospace", fontSize: 12 }}>{v}</span>
         ),
+      },
+      {
+        title: t("columns.createdBy"),
+        dataIndex: "createdByName",
+        width: 140,
+        render: (v: string) => <span style={{ fontSize: 13 }}>{v}</span>,
+      },
+      {
+        title: t("columns.method"),
+        dataIndex: "methodLabel",
+        width: 160,
+        render: (v: string) => <span style={{ fontSize: 13 }}>{v}</span>,
       },
     ],
     [t],
@@ -505,10 +462,10 @@ export default function CashLedgerPage() {
           />
         </div>
 
-        <Table<CashLedgerEntry>
+        <Table<ActivityItem>
           rowKey="id"
           columns={columns}
-          dataSource={entries}
+          dataSource={items}
           loading={isLoading}
           size="middle"
           bordered
@@ -527,7 +484,7 @@ export default function CashLedgerPage() {
                   : expandedKeys.filter((k) => k !== record.id),
               ),
             expandedRowRender: (record) => (
-              <CashLedgerExpandedRow record={record} />
+              <CashLedgerExpandedRow activityId={record.id} />
             ),
           }}
           pagination={{

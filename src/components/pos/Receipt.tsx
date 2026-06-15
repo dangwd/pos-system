@@ -175,6 +175,12 @@ export function Receipt({ open, transaction, onClose }: ReceiptProps) {
                       {t("columnQty")}
                     </TableHead>
                     <TableHead className="text-right">
+                      {t("columnLaborFee")}
+                    </TableHead>
+                    <TableHead className="text-right">
+                      {t("columnStoneFee")}
+                    </TableHead>
+                    <TableHead className="text-right">
                       {t("columnTotal")}
                     </TableHead>
                   </TableRow>
@@ -189,6 +195,12 @@ export function Receipt({ open, transaction, onClose }: ReceiptProps) {
                         {item.quantity}
                       </TableCell>
                       <TableCell className="text-right text-sm">
+                        {item.laborFee > 0 ? formatKip(item.laborFee) : "—"}
+                      </TableCell>
+                      <TableCell className="text-right text-sm">
+                        {item.stoneFee > 0 ? formatKip(item.stoneFee) : "—"}
+                      </TableCell>
+                      <TableCell className="text-right text-sm">
                         {formatKip(item.lineTotal)}
                       </TableCell>
                     </TableRow>
@@ -200,6 +212,26 @@ export function Receipt({ open, transaction, onClose }: ReceiptProps) {
             <Separator />
 
             <div className="space-y-1 text-sm">
+              {!isFx && (
+                <>
+                  <div className="flex justify-between text-muted-foreground">
+                    <span>{t("subtotalLabel")}</span>
+                    <span>{formatKip(transaction.subtotalAmount)}</span>
+                  </div>
+                  {transaction.laborFee > 0 && (
+                    <div className="flex justify-between text-muted-foreground">
+                      <span>{t("columnLaborFee")}</span>
+                      <span>{formatKip(transaction.laborFee)}</span>
+                    </div>
+                  )}
+                  {transaction.stoneFee > 0 && (
+                    <div className="flex justify-between text-muted-foreground">
+                      <span>{t("columnStoneFee")}</span>
+                      <span>{formatKip(transaction.stoneFee)}</span>
+                    </div>
+                  )}
+                </>
+              )}
               <div className="flex justify-between font-bold text-base pt-1">
                 <span>
                   {isFx ? "TỔNG QUY ĐỔI TIỀN TỆ LAK" : t("totalLabel")}

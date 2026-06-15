@@ -101,36 +101,37 @@ export function useCheckout(strategy: PaymentStrategy) {
         items: isFx
           ? []
           : tab.items.map((item) => {
-            const isExchangeIn = item.itemRole === "ExchangeIn";
-            const hasPhiKho = item.perItemDamage > 0;
-            const hasLaoSut = item.perItemWearChi > 0;
+              const isExchangeIn = item.itemRole === "ExchangeIn";
+              const hasPhiKho = item.perItemDamage > 0;
+              const hasLaoSut = item.perItemWearChi > 0;
 
-            // Trọng lượng thực = tổng - hao hụt LAO SUT (ExchangeIn & BuyGold)
-            const totalGram =
-              item.weightGramOverride ?? item.qty * item.weightGram;
-            const effectiveWeightGram =
-              hasLaoSut ? totalGram - item.perItemWearChi * 3.75 : totalGram;
+              // Trọng lượng thực = tổng - hao hụt HAO HỤT (ExchangeIn & BuyGold)
+              const totalGram =
+                item.weightGramOverride ?? item.qty * item.weightGram;
+              const effectiveWeightGram = hasLaoSut
+                ? totalGram - item.perItemWearChi * 3.75
+                : totalGram;
 
-            // PHÍ KHÒ / LAO SUT encode vào productName để in phiếu
-            const productName =
-              hasPhiKho || hasLaoSut
-                ? `${item.name} [PHÍ KHÒ: ${item.perItemDamage.toLocaleString("lo-LA")}₭ | LAO SUT: ${item.perItemWearChi} Chỉ]`
-                : item.name;
+              // PHÍ KHÒ / HAO HỤT encode vào productName để in phiếu
+              const productName =
+                hasPhiKho || hasLaoSut
+                  ? `${item.name} [PHÍ KHÒ: ${item.perItemDamage.toLocaleString("lo-LA")}₭ | HAO HỤT: ${item.perItemWearChi} Chỉ]`
+                  : item.name;
 
-            return {
-              productId: item.productId,
-              productName,
-              quantity: item.qty,
-              weightUnitId: item.weightUnitId ?? null,
-              weightGramOverride: effectiveWeightGram,
-              unitPriceLak: item.unitPriceLakPerGram * item.weightGram,
-              itemRole: item.itemRole,
-              laborFee: isExchangeIn ? 0 : item.laborFee,
-              stoneFee: isExchangeIn ? 0 : item.stoneFee,
-              haoHutGram: item.perItemWearChi * 3.75,
-              phiHuHai: item.perItemDamage,
-            };
-          }),
+              return {
+                productId: item.productId,
+                productName,
+                quantity: item.qty,
+                weightUnitId: item.weightUnitId ?? null,
+                weightGramOverride: effectiveWeightGram,
+                unitPriceLak: item.unitPriceLakPerGram * item.weightGram,
+                itemRole: item.itemRole,
+                laborFee: isExchangeIn ? 0 : item.laborFee,
+                stoneFee: isExchangeIn ? 0 : item.stoneFee,
+                haoHutGram: item.perItemWearChi * 3.75,
+                phiHuHai: item.perItemDamage,
+              };
+            }),
       });
 
       // Fetch full transaction để hiển thị receipt

@@ -76,11 +76,7 @@ const ERROR_MESSAGES: Record<string, ErrorMap> = {
   },
 
   // ── TRADE ─────────────────────────────────────────────────────────────────
-  TRADE_NOT_FOUND: {
-    lo: "ບໍ່ພົບການໂອນສິນຄ້າ",
-    vi: "Không tìm thấy giao dịch mua vào / đổi hàng",
-    en: "Trade transaction not found",
-  },
+  // (Backend trả RESOURCE_NOT_FOUND cho GET /api/trade/{id} không tồn tại)
   TRADE_ITEM_NOT_QUAN: {
     lo: "ສິນຄ້ານີ້ບໍ່ແມ່ນສິນຄ້າຂອງຮ້ານ",
     vi: "Sản phẩm không phải của cửa hàng",
@@ -339,6 +335,38 @@ const ERROR_MESSAGES: Record<string, ErrorMap> = {
     lo: "ບໍ່ພົບຊັບພະຍາກອນ",
     vi: "Không tìm thấy tài nguyên",
     en: "Resource not found",
+  },
+
+  // ── CASH LEDGER ───────────────────────────────────────────────────────────
+  CASH_ACTIVITY_NOT_FOUND: {
+    lo: "ບໍ່ພົບລາຍການກິດຈະກຳ",
+    vi: "Không tìm thấy bút toán",
+    en: "Cash activity not found",
+  },
+  CASH_VOUCHER_NOT_FOUND: {
+    lo: "ບໍ່ພົບໃບສຳຄັນ",
+    vi: "Không tìm thấy phiếu thu/chi",
+    en: "Cash voucher not found",
+  },
+  CASH_VOUCHER_INVALID_DIRECTION: {
+    lo: "ທິດທາງໃບສຳຄັນຕ້ອງເປັນ IN ຫຼື OUT",
+    vi: "Direction của phiếu phải là IN hoặc OUT",
+    en: "Voucher direction must be IN or OUT",
+  },
+  CASH_VOUCHER_INVALID_AMOUNT: {
+    lo: "ຈຳນວນເງິນໃບສຳຄັນຕ້ອງ > 0",
+    vi: "Số tiền phiếu phải lớn hơn 0",
+    en: "Voucher amount must be greater than 0",
+  },
+  CASH_VOUCHER_AMOUNT_REQUIRED: {
+    lo: "ກະລຸນາລະບຸ cashAmount ຫຼື bankAmount",
+    vi: "Phải cung cấp cashAmount hoặc bankAmount",
+    en: "cashAmount or bankAmount is required",
+  },
+  CASH_VOUCHER_REASON_INVALID: {
+    lo: "ລະຫັດເຫດຜົນບໍ່ຖືກຕ້ອງ ຫຼື ບໍ່ກົງກັບທິດທາງ",
+    vi: "Mã lý do không hợp lệ hoặc không khớp với direction",
+    en: "Reason code is invalid or does not match the voucher direction",
   },
 
   // ── SYSTEM ────────────────────────────────────────────────────────────────

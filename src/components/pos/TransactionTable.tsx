@@ -12,15 +12,17 @@
 import { Badge } from "@/components/ui/badge";
 import { NumberInput } from "@/components/ui/number-input";
 import { useActiveTab } from "@/hooks/useActiveTab";
+import { useAddToCart } from "@/hooks/useAddToCart";
 import { useConfigPrices, useWeightUnits } from "@/hooks/useConfig";
-import { useAuthStore } from "@/stores/auth.store";
+import { useProductsWithStock } from "@/hooks/useProducts";
 import { cn } from "@/lib/utils";
+import { useAuthStore } from "@/stores/auth.store";
 import type { CartItem } from "@/types/cart";
 import { lineTotal } from "@/types/cart";
 import type { PriceConfig, WeightUnit } from "@/types/config";
+import type { ProductWithStock } from "@/types/product";
 import { Select } from "antd";
 import {
-  AlertTriangle,
   ArrowDownToLine,
   ArrowLeftRight,
   ArrowUpFromLine,
@@ -32,11 +34,13 @@ import {
   Package,
   PackagePlus,
   Plus,
+  Search,
   ShoppingCart,
   Trash2,
   TrendingUp,
 } from "lucide-react";
 import { useTranslations } from "next-intl";
+import { useEffect, useState } from "react";
 import { CurrencyExchangeForm } from "./CurrencyExchangeForm";
 
 function fmt(n: number) {
@@ -437,36 +441,19 @@ function SellTable({
                     {unitPrice.toLocaleString("lo-LA")} ₭
                   </span>
                 ) : (
-                  <input
+                  <NumberInput
                     key={item.weightUnitId ?? "default"}
-                    type="text"
-                    inputMode="numeric"
-                    min={0}
-                    defaultValue={unitPrice.toLocaleString('en')}
-                    onFocus={(e) => {
-                      e.target.value = e.target.value.replace(/,/g, '')
-                      e.target.select()
-                    }}
-                    onBlur={(e) => {
-                      const newPrice = Math.round(Number(e.currentTarget.value.replace(/,/g, '')) || 0)
-                      e.currentTarget.value = newPrice ? newPrice.toLocaleString('en') : ''
+                    value={unitPrice || ""}
+                    onChange={(v) => {
+                      const newPrice = Math.round(Number(v.replace(/,/g, "")) || 0);
                       if (newPrice !== unitPrice) {
                         onUpdate(item.productId, {
                           unitPriceLakPerGram:
-                            item.weightGram > 0
-                              ? newPrice / item.weightGram
-                              : 0,
+                            item.weightGram > 0 ? newPrice / item.weightGram : 0,
                         });
                       }
                     }}
-                    onKeyDown={(e) => {
-                      if (e.key === "Enter") e.currentTarget.blur();
-                      if (e.key === "Escape") {
-                        e.currentTarget.value = unitPrice.toLocaleString('en')
-                        e.currentTarget.blur();
-                      }
-                    }}
-                    className="h-7 w-32 text-right text-xs px-2 tabular-nums border rounded-sm outline-none focus:ring-1 focus:ring-inset focus:ring-primary bg-background"
+                    className="h-7 w-32 text-right text-xs"
                   />
                 )}
               </td>
@@ -474,14 +461,18 @@ function SellTable({
               <td className="px-2 py-2.5 w-28">
                 {item.isReadOnly ? (
                   <span className="text-xs tabular-nums text-muted-foreground">
-                    {item.laborFee > 0 ? item.laborFee.toLocaleString("lo-LA") : "—"}
+                    {item.laborFee > 0
+                      ? item.laborFee.toLocaleString("lo-LA")
+                      : "—"}
                   </span>
                 ) : (
                   <NumberInput
                     min={0}
                     placeholder="0"
                     value={item.laborFee || ""}
-                    onChange={(v) => onUpdate(item.productId, { laborFee: Number(v) || 0 })}
+                    onChange={(v) =>
+                      onUpdate(item.productId, { laborFee: Number(v) || 0 })
+                    }
                     className="h-7 w-24 text-xs tabular-nums"
                   />
                 )}
@@ -490,14 +481,18 @@ function SellTable({
               <td className="px-2 py-2.5 w-28">
                 {item.isReadOnly ? (
                   <span className="text-xs tabular-nums text-muted-foreground">
-                    {item.stoneFee > 0 ? item.stoneFee.toLocaleString("lo-LA") : "—"}
+                    {item.stoneFee > 0
+                      ? item.stoneFee.toLocaleString("lo-LA")
+                      : "—"}
                   </span>
                 ) : (
                   <NumberInput
                     min={0}
                     placeholder="0"
                     value={item.stoneFee || ""}
-                    onChange={(v) => onUpdate(item.productId, { stoneFee: Number(v) || 0 })}
+                    onChange={(v) =>
+                      onUpdate(item.productId, { stoneFee: Number(v) || 0 })
+                    }
                     className="h-7 w-24 text-xs tabular-nums"
                   />
                 )}
@@ -587,18 +582,11 @@ function BuyGoldRow({
             {unitPrice.toLocaleString("lo-LA")} ₭
           </span>
         ) : (
-          <input
+          <NumberInput
             key={`price-${item.weightUnitId ?? "default"}`}
-            type="text"
-            inputMode="numeric"
-            defaultValue={unitPrice.toLocaleString('en')}
-            onFocus={(e) => {
-              e.target.value = e.target.value.replace(/,/g, '')
-              e.target.select()
-            }}
-            onBlur={(e) => {
-              const newPrice = Math.round(Number(e.currentTarget.value.replace(/,/g, '')) || 0)
-              e.currentTarget.value = newPrice ? newPrice.toLocaleString('en') : ''
+            value={unitPrice || ""}
+            onChange={(v) => {
+              const newPrice = Math.round(Number(v.replace(/,/g, "")) || 0);
               if (newPrice !== unitPrice) {
                 onUpdate(item.productId, {
                   unitPriceLakPerGram:
@@ -606,14 +594,7 @@ function BuyGoldRow({
                 });
               }
             }}
-            onKeyDown={(e) => {
-              if (e.key === "Enter") e.currentTarget.blur();
-              if (e.key === "Escape") {
-                e.currentTarget.value = unitPrice.toLocaleString('en')
-                e.currentTarget.blur();
-              }
-            }}
-            className="h-6 w-28 text-right text-xs px-2 tabular-nums border rounded-sm outline-none focus:ring-1 focus:ring-inset focus:ring-primary bg-background"
+            className="h-6 w-28 text-right text-xs"
           />
         )}
       </td>
@@ -622,7 +603,9 @@ function BuyGoldRow({
       <td className="px-2 py-2 w-32">
         {item.isReadOnly ? (
           <span className="text-[10px] tabular-nums text-muted-foreground">
-            {item.perItemDamage > 0 ? item.perItemDamage.toLocaleString("lo-LA") : "—"}
+            {item.perItemDamage > 0
+              ? item.perItemDamage.toLocaleString("lo-LA")
+              : "—"}
           </span>
         ) : (
           <NumberInput
@@ -639,7 +622,7 @@ function BuyGoldRow({
         )}
       </td>
 
-      {/* LAO SUT (số chỉ hao mòn) */}
+      {/* HAO HỤT (số chỉ hao mòn) */}
       <td className="px-2 py-2 w-24">
         <NumberInput
           decimals={2}
@@ -739,7 +722,72 @@ function BuyGoldTable({
   );
 }
 
-// ─── ExchangeInRow — vàng cũ với Tiền công/ LAO SUT ──────────────────────────
+// ─── ExchangeInSearch — ô tìm nhanh để thêm vàng cũ vào panel A ─────────────
+
+function ExchangeInSearch({ onAdd }: { onAdd: (p: ProductWithStock) => void }) {
+  const [query, setQuery] = useState("");
+  const [debounced, setDebounced] = useState("");
+  const [open, setOpen] = useState(false);
+  const { user } = useAuthStore();
+
+  useEffect(() => {
+    const t = setTimeout(() => setDebounced(query.trim()), 350);
+    return () => clearTimeout(t);
+  }, [query]);
+
+  const { data: results = [] } = useProductsWithStock(
+    debounced
+      ? {
+          search: debounced,
+          categoryCode: "Gold",
+          counterId: user?.counterId ?? undefined,
+        }
+      : undefined,
+  );
+  const hits = debounced ? results.slice(0, 6) : [];
+
+  return (
+    <div className="relative px-3 py-1.5 border-b bg-amber-50/20 dark:bg-amber-950/10 shrink-0">
+      <div className="relative">
+        <Search className="absolute left-2 top-1/2 -translate-y-1/2 h-3 w-3 text-muted-foreground pointer-events-none" />
+        <input
+          type="text"
+          placeholder="Tìm sản phẩm cũ để thêm thủ công..."
+          value={query}
+          onChange={(e) => {
+            setQuery(e.target.value);
+            setOpen(true);
+          }}
+          onFocus={() => setOpen(true)}
+          onBlur={() => setTimeout(() => setOpen(false), 150)}
+          className="h-6 w-full pl-6 pr-2 text-[10px] border rounded-sm bg-background outline-none focus:ring-1 focus:ring-inset focus:ring-amber-400 placeholder:text-muted-foreground/50"
+        />
+      </div>
+      {open && hits.length > 0 && (
+        <div className="absolute left-3 right-3 top-full mt-0.5 bg-background border rounded-md shadow-lg z-20 overflow-hidden">
+          {hits.map((p) => (
+            <button
+              key={p.id}
+              className="w-full text-left px-3 py-1.5 text-xs hover:bg-amber-50 dark:hover:bg-amber-950/20 flex items-center justify-between gap-3"
+              onMouseDown={() => {
+                onAdd(p);
+                setQuery("");
+                setOpen(false);
+              }}
+            >
+              <span className="truncate font-medium">{p.productName}</span>
+              <span className="shrink-0 text-[10px] text-muted-foreground font-mono">
+                {p.purity}
+              </span>
+            </button>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ─── ExchangeInRow — vàng cũ với Tiền công/ HAO HỤT ──────────────────────────
 
 function ExchangeInRow({
   item,
@@ -782,54 +830,27 @@ function ExchangeInRow({
         ₭/{item.weightUnitName ?? "g"}
       </td>
 
-      {/* PHÍ KHÒ: checkbox + input */}
+      {/* Lỗi/Hỏng — luôn nhập được (đánh giá tại thời điểm nhận hàng, không phụ thuộc isReadOnly) */}
       <td className="px-2 py-2 w-32">
-        <div className="flex items-center gap-1.5">
-          <button
-            disabled={item.isReadOnly}
-            onClick={() =>
-              onUpdate(item.productId, {
-                isDamaged: !item.isDamaged,
-                perItemDamage: item.isDamaged ? 0 : item.perItemDamage,
-              })
-            }
-            title={item.isDamaged ? "Bỏ PHÍ KHÒ" : "Bật PHÍ KHÒ"}
-            className={cn(
-              "shrink-0 w-4 h-4 rounded border-2 flex items-center justify-center transition-colors disabled:opacity-40",
-              item.isDamaged
-                ? "bg-orange-500 border-orange-500 text-white"
-                : "border-muted-foreground/30 hover:border-orange-400",
-            )}
-          >
-            {item.isDamaged && <AlertTriangle className="h-2.5 w-2.5" />}
-          </button>
-          {item.isDamaged && (
-            <NumberInput
-              min={0}
-              placeholder="0"
-              disabled={item.isReadOnly}
-              value={item.perItemDamage || ""}
-              onChange={(v) =>
-                onUpdate(item.productId, {
-                  perItemDamage: Number(v) || 0,
-                })
-              }
-              className="h-5 w-20 text-[10px] px-1.5 tabular-nums"
-            />
-          )}
-          {!item.isDamaged && (
-            <span className="text-[10px] text-muted-foreground/40">—</span>
-          )}
-        </div>
+        <NumberInput
+          min={0}
+          placeholder="0"
+          value={item.perItemDamage || ""}
+          onChange={(v) =>
+            onUpdate(item.productId, {
+              perItemDamage: Number(v) || 0,
+            })
+          }
+          className="h-5 w-24 text-[10px] px-1.5 tabular-nums"
+        />
       </td>
 
-      {/* LAO SUT: số chỉ */}
+      {/* Hao mòn — luôn nhập được */}
       <td className="px-2 py-2 w-24">
         <NumberInput
           decimals={2}
           min={0}
           placeholder="0"
-          disabled={item.isReadOnly}
           value={item.perItemWearChi || ""}
           onChange={(v) =>
             onUpdate(item.productId, {
@@ -844,14 +865,12 @@ function ExchangeInRow({
         {fmt(rowTotal)}
       </td>
       <td className="px-2 py-2 w-7">
-        {!item.isReadOnly && (
-          <button
-            onClick={() => onDelete(item.productId)}
-            className="p-1 rounded opacity-0 group-hover:opacity-100 text-muted-foreground hover:bg-destructive/10 hover:text-destructive transition-all"
-          >
-            <Trash2 className="h-3.5 w-3.5" />
-          </button>
-        )}
+        <button
+          onClick={() => onDelete(item.productId)}
+          className="p-1 rounded opacity-0 group-hover:opacity-100 text-muted-foreground hover:bg-destructive/10 hover:text-destructive transition-all"
+        >
+          <Trash2 className="h-3.5 w-3.5" />
+        </button>
       </td>
     </tr>
   );
@@ -867,6 +886,7 @@ function ExchangeGoldTable({
   onQtyChange,
   onDelete,
   onUpdate,
+  onAddExchangeIn,
   priceConfig,
   weightUnits,
 }: {
@@ -877,6 +897,7 @@ function ExchangeGoldTable({
   onQtyChange: (id: string, qty: number) => void;
   onDelete: (id: string) => void;
   onUpdate: (id: string, patch: Partial<CartItem>) => void;
+  onAddExchangeIn: (p: ProductWithStock) => void;
   priceConfig: PriceConfig | undefined;
   weightUnits: WeightUnit[];
 }) {
@@ -892,10 +913,12 @@ function ExchangeGoldTable({
         className="text-amber-700 dark:text-amber-400 bg-amber-50/60 dark:bg-amber-950/20"
       />
 
+      <ExchangeInSearch onAdd={onAddExchangeIn} />
+
       {exchangeItems.length === 0 ? (
         <div className="flex items-center justify-center py-5 text-muted-foreground">
           <p className="text-xs opacity-60">
-            Liên kết HĐ bán vàng cũ hoặc thêm thủ công
+            Tìm sản phẩm cũ ở ô trên hoặc liên kết HĐ gốc
           </p>
         </div>
       ) : (
@@ -912,10 +935,10 @@ function ExchangeGoldTable({
                 Giá/g
               </th>
               <th className="px-2 py-1.5 text-[9px] font-semibold text-orange-600 uppercase text-left whitespace-nowrap">
-                Tiền công (₭)
+                Lỗi/Hỏng (₭)
               </th>
               <th className="px-2 py-1.5 text-[9px] font-semibold text-orange-600 uppercase text-left whitespace-nowrap">
-                Hao hụt (Chỉ)
+                Hao mòn (Chỉ)
               </th>
               <th className="px-3 py-1.5 text-[9px] font-semibold text-amber-700 dark:text-amber-400 uppercase text-right whitespace-nowrap">
                 Trị giá
@@ -1097,6 +1120,7 @@ export function TransactionTable() {
   const { data: priceConfig } = useConfigPrices();
   const { data: weightUnits = [] } = useWeightUnits();
   const { user } = useAuthStore();
+  const { addToCartAs } = useAddToCart(priceConfig);
   const items = tab?.items ?? [];
   const txnType = tab?.txnType ?? "SellGold";
   const discount = tab?.discountAmount ?? 0;
@@ -1117,7 +1141,7 @@ export function TransactionTable() {
 
       <div className="flex-1 overflow-auto min-h-0">
         {isFx ? (
-          <CurrencyExchangeForm />
+          <CurrencyExchangeForm key={tab?.id} />
         ) : isExchange ? (
           <ExchangeGoldTable
             items={items}
@@ -1127,6 +1151,7 @@ export function TransactionTable() {
             onQtyChange={setQty}
             onDelete={deleteItem}
             onUpdate={updateCartItem}
+            onAddExchangeIn={(p) => addToCartAs(p, "ExchangeIn")}
             priceConfig={priceConfig}
             weightUnits={weightUnits}
           />

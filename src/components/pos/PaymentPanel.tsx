@@ -78,14 +78,14 @@ function StoreHeader() {
   const t = useTranslations("pos.payment.panel");
   const { user } = useAuthStore();
   return (
-    <div className="px-4 py-3 bg-primary text-primary-foreground shrink-0">
-      <p className="text-xs font-extrabold tracking-wide uppercase text-center leading-snug">
+    <div className="px-4 py-2.5 bg-primary/8 border-b border-primary/12 shrink-0">
+      <p className="text-[11px] font-bold tracking-widest text-primary uppercase text-center leading-snug">
         {t("storeName")}
       </p>
-      <p className="text-[10px] mt-0.5 opacity-60 tracking-widest text-center uppercase">
+      <p className="text-[10px] mt-0.5 text-muted-foreground tracking-wide text-center">
         {user?.branchName ?? t("storeAddress")}
         {user?.counterName && (
-          <span className="ml-2 opacity-80">· {user.counterName}</span>
+          <span className="ml-2 text-primary/70">· {user.counterName}</span>
         )}
       </p>
     </div>
@@ -436,7 +436,7 @@ function PaymentBreakdown({
   onClearDiscount: () => void;
 }) {
   const t = useTranslations("pos.payment.panel");
-  const { tab, total, subtotal, totalA, totalB } = useActiveTab();
+  const { tab, total, subtotal, totalA, totalB, netTotal } = useActiveTab();
   const txnType = tab?.txnType ?? "SellGold";
   const discount = tab?.discountAmount ?? 0;
   const isExchange = txnType === "ExchangeGold" || txnType === "ExchangeFree" || txnType === "ExchangeToMoney";
@@ -523,21 +523,44 @@ function PaymentBreakdown({
       <div className="border-t border-border" />
 
       {/* Total box */}
-      <div className={cn(
-        "rounded-lg border px-4 py-3 text-center",
-        isBuy ? "border-primary/20 bg-blue-50 dark:bg-blue-950/30" : "border-primary/20 bg-primary/5",
-      )}>
-        <p className="text-[10px] text-muted-foreground uppercase tracking-widest font-medium mb-1">
-          {isBuy ? "Tiệm phải chi" : isExchange && total < 0 ? "Tiệm trả lại" : t("totalDue")}
-        </p>
-        <p className={cn(
-          "text-3xl font-black tabular-nums tracking-tight leading-none",
-          isBuy || (isExchange && total < 0) ? "text-blue-600 dark:text-blue-400" : "text-foreground",
-        )}>
-          {Math.abs(total).toLocaleString("lo-LA")}
-        </p>
-        <p className="text-xs text-muted-foreground mt-1">{t("currency")}</p>
-      </div>
+      {(() => {
+        const storePays = isBuy || (isExchange && netTotal < 0);
+        const balanced = isExchange && netTotal === 0;
+        const totalLabel = isBuy
+          ? "Tiệm phải chi"
+          : isExchange
+            ? netTotal > 0
+              ? "Khách phải trả thêm"
+              : netTotal < 0
+                ? "Tiệm trả lại khách"
+                : "Hoà vốn"
+            : t("totalDue");
+        return (
+          <div className={cn(
+            "rounded-lg border px-4 py-3 text-center",
+            storePays
+              ? "border-blue-200 dark:border-blue-800 bg-blue-50 dark:bg-blue-950/30"
+              : balanced
+                ? "border-border bg-muted/30"
+                : "border-primary/20 bg-primary/5",
+          )}>
+            <p className="text-[10px] text-muted-foreground uppercase tracking-widest font-medium mb-1">
+              {totalLabel}
+            </p>
+            <p className={cn(
+              "text-3xl font-black tabular-nums tracking-tight leading-none",
+              storePays
+                ? "text-blue-600 dark:text-blue-400"
+                : balanced
+                  ? "text-muted-foreground"
+                  : "text-foreground",
+            )}>
+              {Math.abs(total).toLocaleString("lo-LA")}
+            </p>
+            <p className="text-xs text-muted-foreground mt-1">{t("currency")}</p>
+          </div>
+        );
+      })()}
     </div>
   );
 }

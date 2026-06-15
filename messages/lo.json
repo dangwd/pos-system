@@ -107,7 +107,10 @@
       "storeName": "Khamphouvong Jewelry",
       "columnProduct": "ສິນຄ້າ",
       "columnQty": "ຈຳນວນ",
+      "columnLaborFee": "ຄ່າແຮງ",
+      "columnStoneFee": "ຄ່າຫີນ",
       "columnTotal": "ລວມ",
+      "subtotalLabel": "ລວມສິນຄ້າ",
       "totalLabel": "ລວມທັງໝົດ",
       "printButton": "ພິມໃບບິນ",
       "closeButton": "ປິດ & ສ້າງໃໝ່",
@@ -928,27 +931,41 @@
       "columns": {
         "description": "ລາຍລະອຽດ",
         "direction": "ທິດທາງ",
+        "entryCode": "ລະຫັດໃບ",
         "method": "ວິທີ",
         "currency": "ສະກຸນ",
         "amount": "ຈຳນວນ",
         "amountLak": "ທຽບ LAK",
         "time": "ເວລາ",
         "entryType": "ປະເພດ",
-        "exchangeRate": "ອັດຕາ"
+        "exchangeRate": "ອັດຕາ",
+        "createdBy": "ຜູ້ສ້າງ"
       },
       "detail": {
+        "loading": "ກຳລັງໂຫລດ...",
+        "entryCode": "ລະຫັດໃບ",
         "time": "ເວລາ",
         "description": "ເນື້ອຫາ",
         "entryType": "ປະເພດ",
-        "method": "ວິທີ",
         "source": "ທີ່ມາ",
+        "reason": "ເຫດຜົນ",
+        "note": "ໝາຍເຫດ",
+        "method": "ວິທີ",
         "value": "ຈຳນວນ",
+        "cashAmount": "ເງິນສົດ",
+        "bankAmount": "ໂອນທະນາຄານ",
+        "currency": "ສະກຸນ / ອັດຕາ",
+        "createdBy": "ຜູ້ສ້າງ",
+        "branch": "ສາຂາ",
+        "referenceInvoice": "ໃບບິນຕົ້ນ",
+        "customer": "ລູກຄ້າ",
         "printExcel": "ພິມ Excel",
         "printPdf": "ພິມ PDF"
       },
       "method": {
         "CASH": "ເງິນສົດ",
-        "BANK": "ໂອນທະນາຄານ"
+        "BANK": "ໂອນທະນາຄານ",
+        "COMBINED": "ສົດ & ໂອນ"
       },
       "entryType": {
         "IN": "ຮັບດ້ວຍຕົນ",
@@ -966,7 +983,7 @@
       "source": {
         "Transaction": "ກິດຈະກໍາ POS",
         "Manual": "ປ້ອນດ້ວຍຕົນ",
-        "Cancellation": "ຍົກເລີກການຊໍາລະ"
+        "Handover": "ສົ່ງ-ຮັບ ກະ"
       }
     },
     "reports": {
@@ -1319,6 +1336,7 @@
     "branches": {
       "title": "ສາຂາ & ເຄົ້າເຕີ",
       "subtitle": "{count} ສາຂາ",
+      "panelTitle": "ລາຍການສາຂາ",
       "addButton": "ເພີ່ມສາຂາ",
       "hqBadge": "ສຳນັກງານໃຫຍ່",
       "active": "ໃຊ້ງານ",

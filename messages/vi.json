@@ -107,7 +107,10 @@
       "storeName": "Khamphouvong Jewelry",
       "columnProduct": "Sản phẩm",
       "columnQty": "Số lượng",
+      "columnLaborFee": "Tiền công",
+      "columnStoneFee": "Tiền đá",
       "columnTotal": "Thành tiền",
+      "subtotalLabel": "Tiền hàng",
       "totalLabel": "Tổng cộng",
       "printButton": "In hóa đơn",
       "closeButton": "Đóng & Tạo mới",
@@ -928,27 +931,41 @@
       "columns": {
         "description": "Mô tả",
         "direction": "Chiều",
+        "entryCode": "Mã phiếu",
         "method": "Phương thức",
         "currency": "Ngoại tệ",
         "amount": "Số tiền",
         "amountLak": "Quy đổi LAK",
         "time": "Thời gian",
         "entryType": "Loại thu chi",
-        "exchangeRate": "Tỷ giá"
+        "exchangeRate": "Tỷ giá",
+        "createdBy": "Người tạo"
       },
       "detail": {
+        "loading": "Đang tải...",
+        "entryCode": "Mã phiếu",
         "time": "Thời gian",
         "description": "Nội dung",
         "entryType": "Loại",
-        "method": "Hình thức",
         "source": "Nguồn",
+        "reason": "Lý do",
+        "note": "Ghi chú",
+        "method": "Hình thức",
         "value": "Số tiền",
+        "cashAmount": "Tiền mặt",
+        "bankAmount": "Chuyển khoản",
+        "currency": "Ngoại tệ / Tỷ giá",
+        "createdBy": "Người tạo",
+        "branch": "Chi nhánh",
+        "referenceInvoice": "Hóa đơn gốc",
+        "customer": "Khách hàng",
         "printExcel": "In phiếu Excel",
         "printPdf": "In phiếu PDF"
       },
       "method": {
         "CASH": "Tiền mặt",
-        "BANK": "Chuyển khoản"
+        "BANK": "Chuyển khoản",
+        "COMBINED": "Tiền mặt & CK"
       },
       "entryType": {
         "IN": "Thu thủ công",
@@ -966,7 +983,7 @@
       "source": {
         "Transaction": "Giao dịch POS",
         "Manual": "Nhập thủ công",
-        "Cancellation": "Hủy giao dịch"
+        "Handover": "Bàn giao ca"
       }
     },
     "reports": {
@@ -1319,6 +1336,7 @@
     "branches": {
       "title": "Chi nhánh & Quầy",
       "subtitle": "{count} chi nhánh",
+      "panelTitle": "Danh sách chi nhánh",
       "addButton": "Thêm chi nhánh",
       "hqBadge": "Hội sở",
       "active": "Đang hoạt động",

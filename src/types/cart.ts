@@ -35,7 +35,7 @@ export interface CartItem {
   itemRole: "Normal" | "ExchangeIn";
   /** PHÍ KHÒ (₭) — chi phí đúc lại khi vàng bị hỏng; áp dụng ExchangeIn & BuyGold */
   perItemDamage: number;
-  /** LAO SUT (chỉ) — hao hụt trọng lượng do mài mòn; áp dụng ExchangeIn & BuyGold */
+  /** HAO HỤT (chỉ) — hao hụt trọng lượng do mài mòn; áp dụng ExchangeIn & BuyGold */
   perItemWearChi: number;
   /** true = kích hoạt ô nhập Tiền công*/
   isDamaged: boolean;
@@ -57,7 +57,7 @@ export function lineTotal(item: CartItem): number {
       ? item.weightGramOverride
       : item.qty * item.weightGram;
 
-  // 1 chỉ = 3.75 gram; LAO SUT tính bằng chỉ → đổi sang ₭
+  // 1 chỉ = 3.75 gram; HAO HỤT tính bằng chỉ → đổi sang ₭
   const laoSutLak = Math.round(
     item.perItemWearChi * 3.75 * item.unitPriceLakPerGram,
   );
@@ -70,7 +70,7 @@ export function lineTotal(item: CartItem): number {
     );
   }
 
-  // Normal: BuyGold trừ PHÍ KHÒ / LAO SUT; SellGold hai trường này luôn = 0
+  // Normal: BuyGold trừ PHÍ KHÒ / HAO HỤT; SellGold hai trường này luôn = 0
   return (
     Math.round(totalGram * item.unitPriceLakPerGram) +
     item.laborFee +

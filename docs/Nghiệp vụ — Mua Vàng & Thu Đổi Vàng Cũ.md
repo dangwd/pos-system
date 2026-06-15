@@ -17,8 +17,8 @@
    - 3.1 [Luồng UI](#31-luồng-ui)
    - 3.2 [Tra cứu hóa đơn cũ](#32-tra-cứu-hóa-đơn-cũ)
    - 3.3 [State management](#33-state-management)
-   - 3.4 [Tính toán giá — PHÍ KHÒ & LAO SUT](#34-tính-toán-giá--phí-khò--lao-sut)
-   - 3.5 [Encoding PHÍ KHÒ / LAO SUT lên backend](#35-encoding-phí-khò--lao-sut-lên-backend)
+   - 3.4 [Tính toán giá — PHÍ KHÒ & HAO HỤT](#34-tính-toán-giá--phí-khò--lao-sut)
+   - 3.5 [Encoding PHÍ KHÒ / HAO HỤT lên backend](#35-encoding-phí-khò--lao-sut-lên-backend)
    - 3.6 [Request gửi lên API](#36-request-gửi-lên-api)
 4. [Backend — Validation](#4-backend--validation)
 5. [Backend — Handler xử lý lệnh tạo GD](#5-backend--handler-xử-lý-lệnh-tạo-gd)
@@ -42,7 +42,7 @@
 | **Giá áp dụng**        | `goldSellPricePerChi` (giá mua vào) | ExchangeIn: `goldSellPricePerChi`; Normal: `goldBuyPricePerChi` |
 | **ItemRole**           | `Normal`                            | `ExchangeIn` (hàng cũ) + `Normal` (hàng mới)                    |
 | **Hóa đơn liên kết**   | ❌ Không                            | ✅ Tùy chọn — liên kết HĐ bán vàng cũ                           |
-| **PHÍ KHÒ / LAO SUT**  | ❌ Không                            | ✅ Có — nhập tay per item                                       |
+| **PHÍ KHÒ / HAO HỤT**  | ❌ Không                            | ✅ Có — nhập tay per item                                       |
 | **Layout POS**         | Cột đơn tiêu chuẩn                  | **2 panel dọc** (hàng cũ + hàng mới)                            |
 | **Tổng tiền hiển thị** | "TIỆM PHẢI CHI"                     | Có thể dương (thu thêm) hoặc âm (chi trả)                       |
 
@@ -204,7 +204,7 @@ PosTopBar
   │  InvoiceItemsTable (filterByTypes=["ExchangeGold"])              │
   │  ├── Items read-only (từ HĐ cũ) hoặc có thể sửa (thêm tay)      │
   │  ├── Cột "LỖI HỎNG" — checkbox kích hoạt PHÍ KHÒ               │
-  │  ├── Cột "HAO HỤT/MÓP" — popover nhập PHÍ KHÒ + LAO SUT        │
+  │  ├── Cột "HAO HỤT/MÓP" — popover nhập PHÍ KHÒ + HAO HỤT        │
   │  └── Footer: "TỔNG KHẨU TRỪ VÀNG CŨ: B₭"                      │
   └──────────────────────────────────────────────────────────────────┘
 
@@ -278,7 +278,7 @@ File: `stores/posStore.ts`
       itemRole: "ExchangeIn",           // gửi lên backend
       unitPriceLakPerUnit: goldSellPricePerChi,
       perItemDamage: 0,                 // PHÍ KHÒ (kip) — điền sau
-      perItemWearChi: 0,                // LAO SUT (chỉ) — điền sau
+      perItemWearChi: 0,                // HAO HỤT (chỉ) — điền sau
       isDamaged: false,
     },
     // Items mới bán ra (Normal)
@@ -310,17 +310,17 @@ setLinkedInvoice(code, newItems, total) {
 }
 ```
 
-### 3.4 Tính toán giá — PHÍ KHÒ & LAO SUT
+### 3.4 Tính toán giá — PHÍ KHÒ & HAO HỤT
 
 **PHÍ KHÒ** (`perItemDamage`): Chi phí vàng bị hỏng, đúc lại — tính bằng **Kip**.
 
-**LAO SUT** (`perItemWearChi`): Hao hụt trọng lượng do mài mòn — tính bằng **Chỉ**, sau đó nhân với giá để ra Kip.
+**HAO HỤT** (`perItemWearChi`): Hao hụt trọng lượng do mài mòn — tính bằng **Chỉ**, sau đó nhân với giá để ra Kip.
 
 ```
 itemLineTotal (ExchangeGold — ExchangeIn) =
   weightFactor × unitPriceLakPerUnit   ← giá trị vàng cũ
   - perItemDamage                       ← trừ PHÍ KHÒ (kip)
-  - (perItemWearChi × unitPriceLakPerUnit)  ← trừ LAO SUT (chỉ → kip)
+  - (perItemWearChi × unitPriceLakPerUnit)  ← trừ HAO HỤT (chỉ → kip)
 
 itemLineTotal (SellGold — Normal) =
   weightFactor × unitPriceLakPerUnit   ← giá vàng mới
@@ -339,13 +339,13 @@ netTotal = totalA - totalB - voucher
 **Ví dụ thực tế:**
 
 ```
-Khách đổi nhẫn vàng cũ 2 chỉ (có LAO SUT 0.2 chỉ, PHÍ KHÒ 50,000₭)
+Khách đổi nhẫn vàng cũ 2 chỉ (có HAO HỤT 0.2 chỉ, PHÍ KHÒ 50,000₭)
   goldSellPricePerChi = 3,700,000 ₭/chỉ
 
   itemLineTotal (ExchangeIn) =
     2 × 3,700,000
     - 50,000                           ← PHÍ KHÒ
-    - (0.2 × 3,700,000)                ← LAO SUT = 740,000₭
+    - (0.2 × 3,700,000)                ← HAO HỤT = 740,000₭
     = 7,400,000 - 50,000 - 740,000
     = 6,610,000 ₭                      ← tiệm trả cho vàng cũ
 
@@ -360,9 +360,9 @@ netTotal = 7,700,000 - 6,610,000 = 1,090,000 ₭
 → Khách trả thêm 1,090,000 ₭
 ```
 
-### 3.5 Encoding PHÍ KHÒ / LAO SUT lên backend
+### 3.5 Encoding PHÍ KHÒ / HAO HỤT lên backend
 
-`TransactionItemRequest` không có trường riêng cho PHÍ KHÒ và LAO SUT của ExchangeGold.
+`TransactionItemRequest` không có trường riêng cho PHÍ KHÒ và HAO HỤT của ExchangeGold.
 Frontend encode như sau trong `posStore.toBackendItems()`:
 
 ```typescript
@@ -371,12 +371,12 @@ Frontend encode như sau trong `posStore.toBackendItems()`:
   productId:        item.productId,
   productName:      item.productName
                     + (hasPhiKho || hasLaoSut
-                       ? ` [PHÍ KHÒ: ${fmt(item.perItemDamage)}₭ | LAO SUT: ${item.perItemWearChi} Chỉ]`
+                       ? ` [PHÍ KHÒ: ${fmt(item.perItemDamage)}₭ | HAO HỤT: ${item.perItemWearChi} Chỉ]`
                        : ""),
   quantity:         item.quantity,
   weightUnitId:     item.weightUnitId,
 
-  // Trọng lượng NET sau khi trừ LAO SUT
+  // Trọng lượng NET sau khi trừ HAO HỤT
   weightGramOverride: (item.weightInChi - item.perItemWearChi) * gramPerChi,
 
   unitPriceLak:     item.unitPriceLakPerUnit,
@@ -384,13 +384,13 @@ Frontend encode như sau trong `posStore.toBackendItems()`:
 
   laborFee:         item.perItemDamage,    // PHÍ KHÒ encode vào laborFee
   stoneFee:         0,
-  haoHutGram:       item.perItemWearChi * gramPerChi,  // LAO SUT → gram
+  haoHutGram:       item.perItemWearChi * gramPerChi,  // HAO HỤT → gram
   phiHuHai:         0,
 }
 ```
 
 > **Backend** lưu `haoHutGram` và `phiHuHai` vào `TransactionItem` entity (dùng cho báo cáo).
-> **ReceiptModal** parse lại chuỗi `[PHÍ KHÒ: ... | LAO SUT: ...]` để hiển thị đẹp trên phiếu.
+> **ReceiptModal** parse lại chuỗi `[PHÍ KHÒ: ... | HAO HỤT: ...]` để hiển thị đẹp trên phiếu.
 
 ### 3.6 Request gửi lên API
 
@@ -407,7 +407,7 @@ Frontend encode như sau trong `posStore.toBackendItems()`:
   "items": [
     {
       "productId": "aaa-bbb-ccc",
-      "productName": "Nhẫn vàng 18K 2 chỉ [PHÍ KHÒ: 50,000₭ | LAO SUT: 0.2 Chỉ]",
+      "productName": "Nhẫn vàng 18K 2 chỉ [PHÍ KHÒ: 50,000₭ | HAO HỤT: 0.2 Chỉ]",
       "quantity": 1,
       "weightUnitId": "uuid-don-vi-chi",
       "weightGramOverride": 6.75,
@@ -626,9 +626,9 @@ File: `Domain/Entities/TransactionItem.cs`
 | `ItemRole`          | `ItemRole` | `Normal` hoặc `ExchangeIn`                       |
 | `UnitPriceLak`      | `decimal`  | Giá cashier nhập — **snapshot tại thời điểm GD** |
 | `TableUnitPriceLak` | `decimal`  | Giá bảng reference (không tính tiền)             |
-| `WeightGram`        | `decimal`  | Trọng lượng thực (sau LAO SUT)                   |
+| `WeightGram`        | `decimal`  | Trọng lượng thực (sau HAO HỤT)                   |
 | `LineTotal`         | `decimal`  | `Quantity × UnitPriceLak`                        |
-| `HaoHutGram`        | `decimal`  | LAO SUT (gram) — ExchangeGold                    |
+| `HaoHutGram`        | `decimal`  | HAO HỤT (gram) — ExchangeGold                    |
 | `PhiHuHai`          | `decimal`  | PHÍ KHÒ (kip) — ExchangeGold                     |
 | `PriceConfigItemId` | `Guid?`    | FK → dòng bảng giá (nullable)                    |
 
@@ -689,7 +689,7 @@ CREATE TABLE transaction_items (
     item_role             VARCHAR(20) NOT NULL DEFAULT 'Normal',
     labor_fee             DECIMAL(18,2) DEFAULT 0,
     stone_fee             DECIMAL(18,2) DEFAULT 0,
-    hao_hut_gram          DECIMAL(18,4) DEFAULT 0,       -- LAO SUT
+    hao_hut_gram          DECIMAL(18,4) DEFAULT 0,       -- HAO HỤT
     phi_hu_hai            DECIMAL(18,2) DEFAULT 0,       -- PHÍ KHÒ
     price_config_item_id  UUID REFERENCES price_config_items(id) ON DELETE SET NULL
 );
@@ -728,7 +728,7 @@ Component: `components/pos/ReceiptModal.tsx`
 │─────────────────────────────────────────│
 │  ↩ HÀNG ĐỔI VÀO — Vàng cũ khách trả   │
 │  Nhẫn vàng 18K                          │
-│  [PHÍ KHÒ: 50,000₭ | LAO SUT: 0.2 Chỉ]│
+│  [PHÍ KHÒ: 50,000₭ | HAO HỤT: 0.2 Chỉ]│
 │  1.8 chỉ × 3,700,000 ₭ = 6,660,000 ₭  │
 │  Trị giá vàng cũ đổi vào (B): -6,610,000₭│
 │─────────────────────────────────────────│

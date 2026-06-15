@@ -6,7 +6,6 @@ import { useState } from 'react'
 import { useTranslations } from 'next-intl'
 import { Building2, Layers, Pencil, Plus, Power, PowerOff } from 'lucide-react'
 import { Badge } from '@/components/ui/badge'
-import { Button } from '@/components/ui/button'
 import { Spinner } from '@/components/ui/spinner'
 import { TablePageSkeleton } from '@/components/shared/PageSkeleton'
 import { BranchUpsertDialog } from '@/components/admin/branches/BranchUpsertDialog'
@@ -14,6 +13,28 @@ import { CounterUpsertDialog } from '@/components/admin/branches/CounterUpsertDi
 import { useBranches, useCounters, useDeactivateCounter, useActivateCounter } from '@/hooks/useBranches'
 import { cn } from '@/lib/utils'
 import type { Branch, Counter } from '@/types/branch'
+import { Button as AntBtn } from 'antd'
+
+const PAGE_STYLE: React.CSSProperties = { padding: '24px 24px 32px' }
+
+const PANEL_STYLE: React.CSSProperties = {
+  borderRadius: 10,
+  border: '1px solid #e5e7eb',
+  boxShadow: '0 1px 4px rgba(0,0,0,0.07), 0 4px 12px rgba(0,0,0,0.04)',
+  overflow: 'hidden',
+  display: 'flex',
+  flexDirection: 'column',
+}
+
+const PANEL_HEADER_STYLE: React.CSSProperties = {
+  display: 'flex',
+  alignItems: 'center',
+  justifyContent: 'space-between',
+  padding: '10px 16px',
+  borderBottom: '1px solid #f0f0f0',
+  background: '#fafafa',
+  flexShrink: 0,
+}
 
 export default function BranchesPage() {
   const { hasPermission } = usePermission()
@@ -61,37 +82,53 @@ export default function BranchesPage() {
     activateCounter({ branchId: selectedBranch.id, counterId: counter.id })
   }
 
-
   if (!hasPermission('BRANCH_MANAGE')) return <ForbiddenPage />
+
   return (
-    <div className="p-6 space-y-4">
-      {/* Header */}
-      <div className="flex items-start justify-between">
+    <div style={PAGE_STYLE}>
+      {/* ── Header ── */}
+      <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: 18 }}>
         <div>
-          <h1 className="text-2xl font-bold">{t('title')}</h1>
-          <p className="text-sm text-muted-foreground mt-0.5">
+          <h2 style={{ margin: 0, fontSize: 22, fontWeight: 700, color: '#111827' }}>
+            {t('title')}
+          </h2>
+          <p style={{ margin: '2px 0 0', fontSize: 13, color: '#6b7280' }}>
             {t('subtitle', { count: branches.length })}
           </p>
         </div>
-        <Button size="sm" className="gap-1.5" onClick={openCreateBranch}>
-          <Plus className="h-4 w-4" />
+        <AntBtn type="primary" icon={<Plus size={14} />} onClick={openCreateBranch}>
           {t('addButton')}
-        </Button>
+        </AntBtn>
       </div>
 
-      {/* Split layout */}
-      <div className="grid grid-cols-5 gap-4 min-h-[500px]">
-        {/* ── Left: Branches list ────────────────────────── */}
-        <div className="col-span-2 rounded-lg border overflow-hidden flex flex-col">
+      {/* ── Split panel ── */}
+      <div style={{ display: 'grid', gridTemplateColumns: '2fr 3fr', gap: 16, minHeight: 500 }}>
+
+        {/* ── Left: Branches ── */}
+        <div style={PANEL_STYLE}>
+          <div style={PANEL_HEADER_STYLE}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+              <Building2 size={15} style={{ color: '#6b7280' }} />
+              <span style={{ fontSize: 13, fontWeight: 600, color: '#111827' }}>
+                {t('panelTitle')}
+              </span>
+              {branches.length > 0 && (
+                <span style={{ fontSize: 11, color: '#6b7280', fontVariantNumeric: 'tabular-nums' }}>
+                  ({branches.length})
+                </span>
+              )}
+            </div>
+          </div>
+
           {isLoading ? (
-            <div className="p-4"><TablePageSkeleton cols={1} rows={5} /></div>
+            <div style={{ padding: 16 }}><TablePageSkeleton cols={1} rows={5} /></div>
           ) : branches.length === 0 ? (
-            <div className="flex-1 flex flex-col items-center justify-center gap-2 py-16 text-muted-foreground">
-              <Building2 className="h-8 w-8 opacity-30" />
-              <p className="text-sm">—</p>
+            <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 8, padding: '48px 0', color: '#9ca3af' }}>
+              <Building2 size={28} style={{ opacity: 0.3 }} />
+              <p style={{ fontSize: 13, margin: 0 }}>—</p>
             </div>
           ) : (
-            <ul className="flex-1 overflow-y-auto divide-y">
+            <ul style={{ flex: 1, overflowY: 'auto', listStyle: 'none', margin: 0, padding: 0 }}>
               {branches.map(branch => {
                 const isSelected = selectedBranch?.id === branch.id
                 return (
@@ -104,6 +141,7 @@ export default function BranchesPage() {
                         ? 'bg-primary/8 border-l-2 border-primary'
                         : 'hover:bg-muted/40 border-l-2 border-transparent',
                     )}
+                    style={{ borderBottom: '1px solid #f3f4f6' }}
                   >
                     <Building2 className={cn(
                       'h-4 w-4 mt-0.5 shrink-0',
@@ -144,47 +182,52 @@ export default function BranchesPage() {
           )}
         </div>
 
-        {/* ── Right: Counters ─────────────────────────────── */}
-        <div className="col-span-3 rounded-lg border overflow-hidden flex flex-col">
-          {/* Counters header */}
-          <div className="flex items-center justify-between px-4 py-3 border-b bg-muted/20 shrink-0">
-            <div className="flex items-center gap-2">
-              <Layers className="h-4 w-4 text-muted-foreground" />
-              <span className="text-sm font-medium">
+        {/* ── Right: Counters ── */}
+        <div style={PANEL_STYLE}>
+          <div style={PANEL_HEADER_STYLE}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+              <Layers size={15} style={{ color: '#6b7280' }} />
+              <span style={{ fontSize: 13, fontWeight: 600, color: '#111827' }}>
                 {selectedBranch
                   ? t('counters.title', { branchName: selectedBranch.name })
                   : t('counters.title', { branchName: '—' })}
               </span>
+              {counters.length > 0 && (
+                <span style={{ fontSize: 11, color: '#6b7280' }}>
+                  ({counters.length})
+                </span>
+              )}
             </div>
             {selectedBranch && (
-              <Button size="sm" variant="outline" className="h-7 text-xs gap-1" onClick={openCreateCounter}>
-                <Plus className="h-3.5 w-3.5" />
+              <AntBtn size="small" icon={<Plus size={12} />} onClick={openCreateCounter}>
                 {t('counters.addButton')}
-              </Button>
+              </AntBtn>
             )}
           </div>
 
-          {/* Counters body */}
           {!selectedBranch ? (
-            <div className="flex-1 flex flex-col items-center justify-center gap-2 py-16 text-muted-foreground">
-              <Layers className="h-8 w-8 opacity-30" />
-              <p className="text-sm">{t('counters.selectPrompt')}</p>
+            <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 8, padding: '48px 0', color: '#9ca3af' }}>
+              <Layers size={28} style={{ opacity: 0.3 }} />
+              <p style={{ fontSize: 13, margin: 0 }}>{t('counters.selectPrompt')}</p>
             </div>
           ) : countersLoading ? (
-            <div className="p-4"><TablePageSkeleton cols={1} rows={4} /></div>
+            <div style={{ padding: 16 }}><TablePageSkeleton cols={1} rows={4} /></div>
           ) : counters.length === 0 ? (
-            <div className="flex-1 flex flex-col items-center justify-center gap-3 py-16 text-muted-foreground">
-              <Layers className="h-8 w-8 opacity-30" />
-              <p className="text-sm">{t('counters.empty')}</p>
-              <Button size="sm" variant="outline" className="gap-1.5" onClick={openCreateCounter}>
-                <Plus className="h-3.5 w-3.5" />
+            <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 12, padding: '48px 0', color: '#9ca3af' }}>
+              <Layers size={28} style={{ opacity: 0.3 }} />
+              <p style={{ fontSize: 13, margin: 0 }}>{t('counters.empty')}</p>
+              <AntBtn size="small" icon={<Plus size={12} />} onClick={openCreateCounter}>
                 {t('counters.addButton')}
-              </Button>
+              </AntBtn>
             </div>
           ) : (
-            <ul className="flex-1 overflow-y-auto divide-y">
+            <ul style={{ flex: 1, overflowY: 'auto', listStyle: 'none', margin: 0, padding: 0 }}>
               {counters.map(counter => (
-                <li key={counter.id} className="flex items-center gap-3 px-4 py-3 group">
+                <li
+                  key={counter.id}
+                  className="flex items-center gap-3 px-4 py-3 group"
+                  style={{ borderBottom: '1px solid #f3f4f6' }}
+                >
                   <div className="flex-1 min-w-0">
                     <p className={cn('text-sm font-medium', !counter.isActive && 'text-muted-foreground')}>
                       {counter.counterName}
@@ -235,7 +278,7 @@ export default function BranchesPage() {
         </div>
       </div>
 
-      {/* Dialogs */}
+      {/* ── Dialogs ── */}
       <BranchUpsertDialog
         open={branchDialogOpen}
         branch={editingBranch}

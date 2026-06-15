@@ -51,9 +51,9 @@ export interface CreateTradeDto {
   phiHuHai?: number            // Phí hư hại (LAK), mặc định 0
   haoHutGram?: number          // Trọng lượng hao hụt (gram), mặc định 0
   tienCong?: number            // Phí gia công (LAK), mặc định 0
-  customerId?: string
+  customerId?: string | null
   ngayMuaCu?: string | null    // Bắt buộc khi DoiMienPhi (ISO 8601)
-  note?: string
+  note?: string | null
 }
 
 // ─── Phân trang ───────────────────────────────────────────────────────────────
