@@ -179,7 +179,10 @@ export interface CurrencyExchangeReport {
   counterId: string | null
   balanceSummary: CurrencyExchangeBalanceRow[]
   totalTransactions: number
-  transactions: CurrencyExchangeTx[]
+  transactions: {
+    data: CurrencyExchangeTx[]
+    pagination: { page: number; pageSize: number; totalItems: number; totalPages: number }
+  }
 }
 
 export interface CurrencyExchangeReportParams {
@@ -187,4 +190,6 @@ export interface CurrencyExchangeReportParams {
   to?: string
   branchId?: string
   counterId?: string
+  page?: number
+  pageSize?: number
 }

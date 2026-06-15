@@ -32,15 +32,27 @@ export default function CurrencyExchangeReportPage() {
   const [counterId, setCounterId] = useState<string | null>(null)
   const [from, setFrom] = useState(yesterdayIso())
   const [to, setTo] = useState(todayIso())
+  const [page, setPage] = useState(1)
+  const PAGE_SIZE = 20
 
   const { data: branches = [] } = useBranches()
   const { data: counters = [] } = useCounters(branchId)
 
-  const { data, isLoading } = useCurrencyExchangeReport({
+  // Reset trang khi filter đổi
+  const [prevFilters, setPrevFilters] = useState({ from, to, branchId, counterId })
+  const curFilters = { from, to, branchId, counterId }
+  if (JSON.stringify(curFilters) !== JSON.stringify(prevFilters)) {
+    setPrevFilters(curFilters)
+    setPage(1)
+  }
+
+  const { data, isLoading, isFetching } = useCurrencyExchangeReport({
     from: from + 'T00:00:00Z',
     to: to + 'T23:59:59Z',
     branchId: branchId ?? undefined,
     counterId: counterId ?? undefined,
+    page,
+    pageSize: PAGE_SIZE,
   })
 
   const balanceColumns: TableColumnsType<CurrencyExchangeBalanceRow> = [
@@ -235,16 +247,22 @@ export default function CurrencyExchangeReportPage() {
 
           {/* Danh sách giao dịch */}
           <Panel title={`${t('txTitle')} (${data.totalTransactions})`}>
-            {data.transactions.length === 0 ? (
+            {data.transactions.data.length === 0 ? (
               <EmptyHint>—</EmptyHint>
             ) : (
               <DataTable
                 columns={txColumns}
-                data={data.transactions}
+                data={data.transactions.data}
                 rowKey="id"
                 hideSearch
                 maxHeight={false}
-                pageSize={20}
+                loading={isFetching}
+                serverPagination={{
+                  total: data.transactions.pagination.totalItems,
+                  page: data.transactions.pagination.page,
+                  pageSize: data.transactions.pagination.pageSize,
+                  onPageChange: setPage,
+                }}
               />
             )}
           </Panel>
