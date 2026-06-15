@@ -61,6 +61,7 @@ export function Receipt({ open, transaction, onClose }: ReceiptProps) {
   const isCompleted = !isCancelled && transaction.status === "Completed";
   const isFx = transaction.type === "ExchangeCurrency";
   const fxParsed = isFx ? parseFxNote(transaction.note) : null;
+  const isFxToNonLak = isFx && !!transaction.targetCurrency && transaction.targetCurrency !== "LAK";
 
   const handleClose = () => {
     setIsCancelled(false);
@@ -112,11 +113,20 @@ export function Receipt({ open, transaction, onClose }: ReceiptProps) {
                 {transaction.invoiceCode ??
                   `#${transaction.id.slice(0, 8).toUpperCase()}`}
               </p>
+              {transaction.customer?.name && (
+                <p className="text-sm font-semibold">{transaction.customer.name}</p>
+              )}
               <p className="text-sm text-muted-foreground">
                 {new Date(transaction.transactedAt ?? "").toLocaleString(
                   "lo-LA",
                 )}
               </p>
+              {transaction.cashierName && (
+                <p className="text-xs text-muted-foreground">
+                  {transaction.cashierName}
+                  {transaction.counterName ? ` · ${transaction.counterName}` : ""}
+                </p>
+              )}
               <div className="flex items-center justify-center gap-2">
                 <Badge>{paymentLabel}</Badge>
                 {isCancelled && (
@@ -152,18 +162,32 @@ export function Receipt({ open, transaction, onClose }: ReceiptProps) {
                 </div>
 
                 {/* Tỷ giá */}
-                {transaction.exchangeRate && transaction.currency && (
+                {isFxToNonLak && transaction.targetRateToLak ? (
                   <p className="text-xs text-center text-muted-foreground">
                     1{" "}
                     <span className="font-semibold text-foreground">
-                      {transaction.currency}
+                      {transaction.targetCurrency}
                     </span>{" "}
                     ={" "}
                     <span className="font-semibold text-foreground tabular-nums">
-                      {transaction.exchangeRate.toLocaleString("lo-LA")}
+                      {transaction.targetRateToLak.toLocaleString("lo-LA")}
                     </span>{" "}
                     ₭
                   </p>
+                ) : (
+                  transaction.exchangeRate && transaction.currency && (
+                    <p className="text-xs text-center text-muted-foreground">
+                      1{" "}
+                      <span className="font-semibold text-foreground">
+                        {transaction.currency}
+                      </span>{" "}
+                      ={" "}
+                      <span className="font-semibold text-foreground tabular-nums">
+                        {transaction.exchangeRate.toLocaleString("lo-LA")}
+                      </span>{" "}
+                      ₭
+                    </p>
+                  )
                 )}
               </div>
             ) : (
@@ -234,10 +258,16 @@ export function Receipt({ open, transaction, onClose }: ReceiptProps) {
               )}
               <div className="flex justify-between font-bold text-base pt-1">
                 <span>
-                  {isFx ? "TỔNG QUY ĐỔI TIỀN TỆ LAK" : t("totalLabel")}
+                  {isFx
+                    ? isFxToNonLak
+                      ? `TỔNG QUY ĐỔI (${transaction.targetCurrency})`
+                      : "TỔNG QUY ĐỔI (LAK)"
+                    : t("totalLabel")}
                 </span>
                 <span className="text-primary">
-                  {formatKip(transaction.totalAmount)}
+                  {isFx && isFxToNonLak
+                    ? `${(transaction.targetAmount ?? 0).toLocaleString("en")} ${transaction.targetCurrency}`
+                    : formatKip(transaction.totalAmount)}
                 </span>
               </div>
             </div>

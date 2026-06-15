@@ -150,14 +150,16 @@ export const useInvoiceTabStore = create<InvoiceTabStore>()(
         });
       },
 
-      deleteItemFromActive(productId: string) {
+      deleteItemFromActive(productId: string, itemRole?: 'Normal' | 'ExchangeIn') {
         const { tabs } = get();
         const activeId = resolveActiveId(tabs, get().activeTabId);
         if (!activeId) return;
         set({
           tabs: tabs.map((t) => {
             if (t.id !== activeId) return t;
-            const newItems = t.items.filter((i) => i.productId !== productId);
+            const newItems = itemRole
+              ? t.items.filter((i) => !(i.productId === productId && i.itemRole === itemRole))
+              : t.items.filter((i) => i.productId !== productId);
             const newLinkedKeys = t.linkedInvoiceItemKeys.filter((k) => k !== productId);
             return {
               ...t,

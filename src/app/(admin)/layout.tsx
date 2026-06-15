@@ -81,7 +81,19 @@ export default function AdminLayout({
         label: null as string | null,
         items: [
           { href: "/admin/dashboard", label: t("nav.dashboard"), icon: LayoutDashboard },
-          { href: "/admin/orders", label: t("nav.orders"), icon: ClipboardList },
+          {
+            href: "/admin/orders", label: t("nav.transactionLog"), icon: ClipboardList,
+            children: [
+              { href: "/admin/orders/SellGold",        label: t("nav.orderSellGold") },
+              { href: "/admin/orders/SellSilver",      label: t("nav.orderSellSilver") },
+              { href: "/admin/orders/BuyGold",         label: t("nav.orderBuyGold") },
+              { href: "/admin/orders/BuyMoreGold",     label: t("nav.orderBuyMoreGold") },
+              { href: "/admin/orders/ExchangeGold",    label: t("nav.orderExchangeGold") },
+              { href: "/admin/orders/ExchangeFree",    label: t("nav.orderExchangeFree") },
+              { href: "/admin/orders/ExchangeToMoney",  label: t("nav.orderExchangeToMoney") },
+              { href: "/admin/orders/ExchangeCurrency", label: t("nav.orderExchangeCurrency") },
+            ],
+          },
         ],
       },
       {

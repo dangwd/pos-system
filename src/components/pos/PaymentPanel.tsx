@@ -371,54 +371,74 @@ function CustomerSection({ showError }: { showError: boolean }) {
 // ─── 5. FxBreakdown ──────────────────────────────────────────────────────────
 
 function FxBreakdown() {
-  const { tab, total } = useActiveTab();
+  const { tab } = useActiveTab();
   const from = tab?.fxFromAmount ?? 0;
   const fromCurr = tab?.fxFromCurrency ?? "USD";
   const to = tab?.fxToAmount ?? 0;
   const toCurr = tab?.fxToCurrency ?? "LAK";
-  const lak = tab?.fxLakAmount ?? 0;
-  const rate = from > 0 ? Math.round(lak / from) : 0;
+  const fromRate = tab?.fxFromRate ?? 0;
+  const toRate = tab?.fxToRate ?? 0;
+
+  const crossRate = toRate > 0 ? fromRate / toRate : 0;
+  const toFormatted =
+    to > 0
+      ? toCurr === "LAK"
+        ? Math.round(to).toLocaleString("lo-LA")
+        : to.toLocaleString("en", { maximumFractionDigits: 4 })
+      : null;
 
   return (
     <div className="px-4 py-3 flex flex-col gap-3 shrink-0">
-      <div className="space-y-2.5">
+      <div className="space-y-2">
         <div className="flex justify-between items-center">
           <span className="text-xs text-muted-foreground">Khách nộp quầy</span>
           <span className="text-xs font-semibold tabular-nums">
-            {from > 0 ? from.toLocaleString("en", { maximumFractionDigits: 2 }) : "—"} {fromCurr}
+            {from > 0
+              ? from.toLocaleString("en", { maximumFractionDigits: 2 })
+              : "—"}{" "}
+            {fromCurr}
           </span>
         </div>
         <div className="flex justify-between items-center">
           <span className="text-xs text-muted-foreground">Tỷ suất quy đổi</span>
           <span className="text-xs font-semibold tabular-nums text-primary">
-            {rate > 0 ? `1 ${fromCurr} = ${rate.toLocaleString("lo-LA")} ₭` : "—"}
+            {crossRate > 0
+              ? `1 ${fromCurr} = ${crossRate.toLocaleString("en", { maximumFractionDigits: 4 })} ${toCurr}`
+              : "—"}
           </span>
         </div>
         <div className="flex justify-between items-center">
           <span className="text-xs text-muted-foreground">Khách hàng thực nhận</span>
           <span className="text-xs font-semibold tabular-nums">
-            {to > 0
-              ? toCurr === "LAK"
-                ? Math.round(to).toLocaleString("lo-LA") + " ₭"
-                : to.toLocaleString("en", { maximumFractionDigits: 4 }) + " " + toCurr
-              : "—"}
+            {toFormatted ? `${toFormatted} ${toCurr === "LAK" ? "₭" : toCurr}` : "—"}
           </span>
         </div>
       </div>
+
       <div className="border-t border-border" />
-      <div className="rounded-lg border border-primary/20 bg-primary/5 px-4 py-4 text-center">
+
+      <div
+        className={cn(
+          "rounded-lg border px-4 py-3 text-center",
+          toFormatted ? "border-primary/20 bg-primary/5" : "border-border bg-muted/30",
+        )}
+      >
         <p className="text-[10px] text-muted-foreground uppercase tracking-widest font-medium mb-1">
           Khách hàng thực nhận
         </p>
-        <p className="text-3xl font-black tabular-nums tracking-tight leading-none text-foreground">
-          {to > 0
-            ? toCurr === "LAK"
-              ? Math.round(to).toLocaleString("lo-LA")
-              : to.toLocaleString("en", { maximumFractionDigits: 4 })
-            : "—"}
+        <p
+          className={cn(
+            "text-3xl font-black tabular-nums tracking-tight leading-none",
+            toFormatted ? "text-foreground" : "text-muted-foreground/40",
+          )}
+        >
+          {toFormatted ?? "—"}
         </p>
-        <p className="text-xs text-muted-foreground mt-1">{toCurr}</p>
+        <p className="text-xs text-muted-foreground mt-1">
+          {toCurr === "LAK" ? "₭ (Kip)" : toCurr}
+        </p>
       </div>
+
       <p className="text-[10px] text-muted-foreground text-center leading-relaxed">
         Bút toán hoán đổi ngoại tệ sẽ được ghi tự động vào Sổ Quỹ Kết.
       </p>
@@ -710,8 +730,14 @@ export function PaymentPanel({
 
   // Reset khi đổi tab hoặc khi khách hàng được chọn
   useEffect(() => { setCashInput(""); setBankInput(""); setCustomerError(false); setLinkedError(false); }, [tab?.id]);
+  const hasManualExchangeIn = (tab?.items ?? []).some(
+    (i) => i.itemRole === "ExchangeIn" && !i.isReadOnly,
+  );
+
   useEffect(() => { if (tab?.customerId) setCustomerError(false); }, [tab?.customerId]);
-  useEffect(() => { if (tab?.linkedInvoiceCode) setLinkedError(false); }, [tab?.linkedInvoiceCode]);
+  useEffect(() => {
+    if (tab?.linkedInvoiceCode || hasManualExchangeIn) setLinkedError(false);
+  }, [tab?.linkedInvoiceCode, hasManualExchangeIn]);
   // Reset payment inputs sau khi checkout (clearActiveCart → items về 0, cùng tab)
   useEffect(() => { if (!tab?.items.length) { setCashInput(""); setBankInput(""); } }, [tab?.items.length]);
 
@@ -764,12 +790,11 @@ export function PaymentPanel({
   };
 
   const requireLinkedInvoice = () => {
-    if (isExchangeGold && !tab?.linkedInvoiceCode) {
-      setLinkedError(true);
-      document.getElementById("pos-exchange-lookup")?.focus();
-      return false;
-    }
-    return true;
+    if (!isExchangeGold) return true;
+    if (tab?.linkedInvoiceCode || hasManualExchangeIn) return true;
+    setLinkedError(true);
+    document.getElementById("pos-exchange-lookup")?.focus();
+    return false;
   };
 
   const handleCheckout = () => {

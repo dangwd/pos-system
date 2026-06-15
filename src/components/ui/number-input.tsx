@@ -12,6 +12,8 @@ interface NumberInputProps extends Omit<
   onChange?: (value: string) => void
   /** Max decimal places. 0 = integers only (default) */
   decimals?: number
+  /** Clamp value to this max on blur */
+  max?: number
 }
 
 function formatDisplay(raw: string, dec: number): string {
@@ -26,6 +28,7 @@ export function NumberInput({
   value = '',
   onChange,
   decimals = 0,
+  max,
   className,
   onFocus,
   onBlur,
@@ -54,6 +57,14 @@ export function NumberInput({
 
   function handleBlur(e: React.FocusEvent<HTMLInputElement>) {
     setFocused(false)
+    if (max !== undefined) {
+      const n = parseFloat(raw.replace(/,/g, ''))
+      if (!isNaN(n) && n > max) {
+        const clamped = String(max)
+        setRaw(clamped)
+        onChange?.(clamped)
+      }
+    }
     onBlur?.(e)
   }
 

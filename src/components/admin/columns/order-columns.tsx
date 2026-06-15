@@ -26,7 +26,6 @@ export interface OrderColumnLabels {
   colTime: string
   colCustomer: string
   colAmount: string
-  colBank: string
   colStatus: string
   transactionTypes: Record<string, string>
   transactionStatuses: Record<string, { label: string; variant: 'default' | 'secondary' | 'destructive' | 'outline' }>
@@ -56,7 +55,7 @@ export function createOrderColumns(labels: OrderColumnLabels): TableColumnsType<
       title: labels.colInvoiceCode,
       dataIndex: 'invoiceCode',
       key: 'invoiceCode',
-      width: 130,
+      width: 180,
       onHeaderCell: noWrapHeader,
       render: (value: string | null, record: Transaction) => (
         <span style={{ fontFamily: 'monospace', fontSize: 13, fontWeight: 600, color: '#4f46e5' }}>
@@ -88,6 +87,7 @@ export function createOrderColumns(labels: OrderColumnLabels): TableColumnsType<
     {
       title: labels.colCustomer,
       key: 'customer',
+      width: 160,
       onHeaderCell: noWrapHeader,
       render: (_: unknown, record: Transaction) =>
         record.customer?.name
@@ -105,18 +105,6 @@ export function createOrderColumns(labels: OrderColumnLabels): TableColumnsType<
       render: (value: number) => (
         <span style={{ fontWeight: 600, fontFamily: 'monospace' }}>{formatKip(value)}</span>
       ),
-    },
-    {
-      title: labels.colBank,
-      dataIndex: 'bankAmount',
-      key: 'bankAmount',
-      width: 120,
-      align: 'right' as const,
-      onHeaderCell: noWrapHeader,
-      render: (value: number | null) =>
-        value != null && value > 0
-          ? <span style={{ fontFamily: 'monospace' }}>{formatKip(value)}</span>
-          : <span style={{ color: '#d1d5db' }}>--</span>,
     },
     {
       title: labels.colStatus,

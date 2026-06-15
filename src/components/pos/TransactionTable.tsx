@@ -627,6 +627,7 @@ function BuyGoldRow({
         <NumberInput
           decimals={2}
           min={0}
+          max={parseFloat(((item.weightGramOverride ?? item.qty * item.weightGram) / 3.75).toFixed(2))}
           placeholder="0"
           disabled={item.isReadOnly}
           value={item.perItemWearChi || ""}
@@ -825,9 +826,25 @@ function ExchangeInRow({
           )}
         </div>
       </td>
-      <td className="px-3 py-2 text-xs tabular-nums text-muted-foreground whitespace-nowrap">
-        {(item.unitPriceLakPerGram * item.weightGram).toLocaleString("lo-LA")}{" "}
-        ₭/{item.weightUnitName ?? "g"}
+      <td className="px-3 py-2 w-36">
+        {item.isReadOnly ? (
+          <span className="text-xs tabular-nums text-muted-foreground whitespace-nowrap">
+            {Math.round(item.unitPriceLakPerGram * item.weightGram).toLocaleString("lo-LA")} ₭
+          </span>
+        ) : (
+          <NumberInput
+            key={item.weightUnitId ?? "default"}
+            value={Math.round(item.unitPriceLakPerGram * item.weightGram) || ""}
+            onChange={(v) => {
+              const newPrice = Math.round(Number(v.replace(/,/g, "")) || 0);
+              onUpdate(item.productId, {
+                unitPriceLakPerGram:
+                  item.weightGram > 0 ? newPrice / item.weightGram : 0,
+              });
+            }}
+            className="h-6 w-32 text-right text-xs"
+          />
+        )}
       </td>
 
       {/* Lỗi/Hỏng — luôn nhập được (đánh giá tại thời điểm nhận hàng, không phụ thuộc isReadOnly) */}
@@ -850,6 +867,7 @@ function ExchangeInRow({
         <NumberInput
           decimals={2}
           min={0}
+          max={parseFloat(((item.weightGramOverride ?? item.qty * item.weightGram) / 3.75).toFixed(2))}
           placeholder="0"
           value={item.perItemWearChi || ""}
           onChange={(v) =>
@@ -884,7 +902,8 @@ function ExchangeGoldTable({
   totalB,
   netTotal,
   onQtyChange,
-  onDelete,
+  onDeleteExchangeIn,
+  onDeleteNormal,
   onUpdate,
   onAddExchangeIn,
   priceConfig,
@@ -895,7 +914,8 @@ function ExchangeGoldTable({
   totalB: number;
   netTotal: number;
   onQtyChange: (id: string, qty: number) => void;
-  onDelete: (id: string) => void;
+  onDeleteExchangeIn: (id: string) => void;
+  onDeleteNormal: (id: string) => void;
   onUpdate: (id: string, patch: Partial<CartItem>) => void;
   onAddExchangeIn: (p: ProductWithStock) => void;
   priceConfig: PriceConfig | undefined;
@@ -932,7 +952,9 @@ function ExchangeGoldTable({
                 Sản phẩm
               </th>
               <th className="px-3 py-1.5 text-[9px] font-semibold text-muted-foreground uppercase text-left whitespace-nowrap">
-                Giá/g
+                {exchangeItems[0]?.weightUnitName
+                  ? `Giá/${exchangeItems[0].weightUnitName}`
+                  : "Giá/đơn vị"}
               </th>
               <th className="px-2 py-1.5 text-[9px] font-semibold text-orange-600 uppercase text-left whitespace-nowrap">
                 Lỗi/Hỏng (₭)
@@ -940,8 +962,8 @@ function ExchangeGoldTable({
               <th className="px-2 py-1.5 text-[9px] font-semibold text-orange-600 uppercase text-left whitespace-nowrap">
                 Hao mòn (Chỉ)
               </th>
-              <th className="px-3 py-1.5 text-[9px] font-semibold text-amber-700 dark:text-amber-400 uppercase text-right whitespace-nowrap">
-                Trị giá
+              <th className="px-3 py-1.5 text-[9px] font-semibold text-muted-foreground uppercase text-right whitespace-nowrap">
+                Thành tiền
               </th>
               <th className="w-7" />
             </tr>
@@ -953,7 +975,7 @@ function ExchangeGoldTable({
                 item={item}
                 index={i}
                 onUpdate={onUpdate}
-                onDelete={onDelete}
+                onDelete={onDeleteExchangeIn}
               />
             ))}
           </tbody>
@@ -983,7 +1005,7 @@ function ExchangeGoldTable({
         <SellTable
           items={normalItems}
           onQtyChange={onQtyChange}
-          onDelete={onDelete}
+          onDelete={onDeleteNormal}
           onUpdate={onUpdate}
           priceConfig={priceConfig}
           weightUnits={weightUnits}
@@ -1149,7 +1171,8 @@ export function TransactionTable() {
             totalB={totalB}
             netTotal={netTotal}
             onQtyChange={setQty}
-            onDelete={deleteItem}
+            onDeleteExchangeIn={(id) => deleteItem(id, "ExchangeIn")}
+            onDeleteNormal={(id) => deleteItem(id, "Normal")}
             onUpdate={updateCartItem}
             onAddExchangeIn={(p) => addToCartAs(p, "ExchangeIn")}
             priceConfig={priceConfig}

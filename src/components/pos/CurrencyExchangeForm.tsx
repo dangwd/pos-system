@@ -1,14 +1,25 @@
 "use client";
 
-import { Input } from "@/components/ui/input";
 import { NumberInput } from "@/components/ui/number-input";
 import { useActiveTab } from "@/hooks/useActiveTab";
-import { useExchangeRates } from "@/hooks/useExchangeRates";
+import { useExchangeRates, useUpdateExchangeRate } from "@/hooks/useConfig";
 import { cn } from "@/lib/utils";
 import type { ExchangeRate } from "@/types/config";
 import { Select } from "antd";
-import { ArrowDown, ArrowLeftRight, RefreshCw } from "lucide-react";
+import { ArrowRight, Check, Pencil, X } from "lucide-react";
 import { useEffect, useState } from "react";
+
+const CURRENCY_LABELS: Record<string, string> = {
+  LAK: "LAK (Kip) Lốc kíp Lào",
+  USD: "USD ($) Đô la Mỹ",
+  THB: "THB (฿) Bạt Thái Lan",
+  CNY: "CNY (¥) Nhân dân tệ",
+  EUR: "EUR (€) Euro",
+  JPY: "JPY (¥) Yên Nhật",
+  KRW: "KRW (₩) Won Hàn Quốc",
+  SGD: "SGD ($) Đô la Singapore",
+  VND: "VND (đ) Đồng Việt Nam",
+};
 
 function getRateLak(currency: string, rates: ExchangeRate[]): number {
   if (currency === "LAK") return 1;
@@ -18,14 +29,15 @@ function getRateLak(currency: string, rates: ExchangeRate[]): number {
 export function CurrencyExchangeForm() {
   const { tab, setFxData } = useActiveTab();
   const { data: rates = [], isLoading } = useExchangeRates();
+  const { mutate: updateRate, isPending: isSavingRate } = useUpdateExchangeRate();
 
-  const [fromCurrency, setFromCurrency] = useState(
-    tab?.fxFromCurrency ?? "USD",
-  );
+  const [fromCurrency, setFromCurrency] = useState(tab?.fxFromCurrency ?? "USD");
   const [toCurrency, setToCurrency] = useState(tab?.fxToCurrency ?? "LAK");
   const [fromInput, setFromInput] = useState(
     tab?.fxFromAmount ? String(tab.fxFromAmount) : "",
   );
+  const [editingRate, setEditingRate] = useState(false);
+  const [rateInput, setRateInput] = useState("");
 
   const currencies = ["LAK", ...rates.map((r) => r.currencyCode)];
   const fromRateLak = getRateLak(fromCurrency, rates);
@@ -49,6 +61,11 @@ export function CurrencyExchangeForm() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [fromCurrency, toCurrency, fromAmount]);
 
+  // Khi đổi cặp tiền, reset edit mode
+  useEffect(() => {
+    setEditingRate(false);
+  }, [fromCurrency, toCurrency]);
+
   const handleFromCurrencyChange = (curr: string) => {
     setFromCurrency(curr);
     if (curr === toCurrency) {
@@ -65,198 +82,218 @@ export function CurrencyExchangeForm() {
     }
   };
 
-  const swap = () => {
-    const prev = fromCurrency;
-    setFromCurrency(toCurrency);
-    setToCurrency(prev);
-    setFromInput("");
+  // Xác định tỷ giá nào đang hiển thị và cần lưu
+  // - to = LAK: hiển thị & sửa fromCurrency LAK rate
+  // - from = LAK: hiển thị & sửa toCurrency LAK rate
+  // - cả hai ngoại tệ: hiển thị cross-rate, lưu bằng cách tính ngược fromCurrency LAK rate
+  const rateIsFromToLak = toCurrency === "LAK";
+  const rateIsLakToTo = fromCurrency === "LAK";
+  const displayRate = rateIsFromToLak
+    ? fromRateLak
+    : rateIsLakToTo
+      ? toRateLak
+      : crossRate;
+  const rateDecimals = rateIsFromToLak || rateIsLakToTo ? 0 : 4;
+  const rateUnit = rateIsLakToTo ? toCurrency : toCurrency === "LAK" ? "₭" : toCurrency;
+  const rateBase = rateIsLakToTo ? fromCurrency : fromCurrency;
+
+  const openEditRate = () => {
+    setRateInput(
+      displayRate > 0
+        ? displayRate.toLocaleString("en", { maximumFractionDigits: rateDecimals, useGrouping: false })
+        : "",
+    );
+    setEditingRate(true);
+  };
+
+  const saveRate = () => {
+    const val = parseFloat(rateInput);
+    if (!val || val <= 0) { setEditingRate(false); return; }
+
+    let currencyCode: string;
+    let rateToLak: number;
+
+    if (rateIsFromToLak) {
+      // to = LAK → sửa fromCurrency LAK rate
+      currencyCode = fromCurrency;
+      rateToLak = val;
+    } else if (rateIsLakToTo) {
+      // from = LAK → sửa toCurrency LAK rate
+      currencyCode = toCurrency;
+      rateToLak = val;
+    } else {
+      // cross-rate → tính ngược fromCurrency LAK rate
+      currencyCode = fromCurrency;
+      rateToLak = val * toRateLak;
+    }
+
+    updateRate(
+      { currencyCode, rateToLak, adjustment: 0 },
+      { onSuccess: () => setEditingRate(false) },
+    );
   };
 
   const toDisplay =
     toAmount > 0
       ? toCurrency === "LAK"
         ? Math.round(toAmount).toLocaleString("lo-LA")
-        : toAmount.toLocaleString("en", { maximumFractionDigits: 6 })
-      : "";
+        : toAmount.toLocaleString("en", { maximumFractionDigits: 4 })
+      : null;
 
   const currencyOptions = (exclude: string) =>
     currencies
       .filter((c) => c !== exclude)
-      .map((c) => ({ value: c, label: c }));
+      .map((c) => ({ value: c, label: CURRENCY_LABELS[c] ?? c }));
 
   if (isLoading) {
     return (
-      <div className="flex items-center justify-center h-full text-muted-foreground">
-        <RefreshCw className="h-4 w-4 animate-spin mr-2" />
-        <span className="text-xs">Đang tải tỷ giá...</span>
+      <div className="flex items-center justify-center h-full text-muted-foreground text-xs">
+        Đang tải tỷ giá...
       </div>
     );
   }
 
   return (
-    <div className="flex flex-col h-full overflow-y-auto">
-      {/* ── Header label ── */}
-      <div className="px-4 pt-4 pb-3 border-b shrink-0 space-y-3">
-        <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
-          Thu đổi ngoại tệ
-        </p>
-
-        {/* ── Amount row ── */}
-        <div className="flex items-end gap-2">
-          {/* FROM */}
-          <div className="flex-1 space-y-1 min-w-0">
-            <p className="text-[10px] text-muted-foreground uppercase tracking-wide">
-              Tiền khách đưa
-            </p>
-            <div className="flex gap-1.5">
-              <NumberInput
-                decimals={2}
-                min={0}
-                placeholder="0"
-                value={fromInput}
-                onChange={(v) => setFromInput(v)}
-                className="h-9 text-right font-mono font-bold tabular-nums text-sm flex-1 min-w-0"
-                autoFocus
-              />
-              <Select
-                value={fromCurrency}
-                onChange={handleFromCurrencyChange}
-                options={currencyOptions(toCurrency)}
-                style={{ width: 80 }}
-                size="middle"
-                className="shrink-0"
-                popupMatchSelectWidth={false}
-              />
-            </div>
-          </div>
-
-          {/* Swap button */}
-          <button
-            type="button"
-            onClick={swap}
-            title="Đổi chiều"
-            className="h-9 w-9 shrink-0 flex items-center justify-center rounded-md border hover:bg-accent hover:border-primary/40 text-muted-foreground hover:text-primary transition-colors mb-0"
-          >
-            <ArrowLeftRight className="h-3.5 w-3.5" />
-          </button>
-
-          {/* TO */}
-          <div className="flex-1 space-y-1 min-w-0">
-            <p className="text-[10px] text-muted-foreground uppercase tracking-wide">
-              Tiền trả khách
-            </p>
-            <div className="flex gap-1.5">
-              <Input
-                readOnly
-                value={toDisplay}
-                placeholder="0"
-                onChange={() => {}}
-                className="h-9 text-right font-mono font-bold tabular-nums text-sm flex-1 min-w-0 bg-muted/40 cursor-default"
-              />
-              <Select
-                value={toCurrency}
-                onChange={handleToCurrencyChange}
-                options={currencyOptions(fromCurrency)}
-                style={{ width: 80 }}
-                size="middle"
-                className="shrink-0"
-                popupMatchSelectWidth={false}
-              />
-            </div>
-          </div>
+    <div className="px-4 py-4 flex flex-col gap-4">
+      <div className="rounded-lg border bg-card p-4 flex flex-col gap-4">
+        {/* Column labels */}
+        <div className="grid grid-cols-[1fr_auto_1fr] gap-3">
+          <p className="text-[10px] uppercase tracking-wide font-semibold text-muted-foreground">
+            Tiền khách đưa
+          </p>
+          <div className="w-10" />
+          <p className="text-[10px] uppercase tracking-wide font-semibold text-muted-foreground">
+            Tiền trả khách
+          </p>
         </div>
 
-        {/* ── Cross-rate label ── */}
+        {/* Currency selects */}
+        <div className="grid grid-cols-[1fr_auto_1fr] gap-3 items-center">
+          <Select
+            value={fromCurrency}
+            onChange={handleFromCurrencyChange}
+            options={currencyOptions(toCurrency)}
+            className="w-full"
+            size="middle"
+            popupMatchSelectWidth={false}
+          />
+          <div className="w-10 flex items-center justify-center">
+            <div className="h-7 w-7 rounded-full bg-muted border border-border flex items-center justify-center">
+              <ArrowRight className="h-3.5 w-3.5 text-muted-foreground" />
+            </div>
+          </div>
+          <Select
+            value={toCurrency}
+            onChange={handleToCurrencyChange}
+            options={currencyOptions(fromCurrency)}
+            className="w-full"
+            size="middle"
+            popupMatchSelectWidth={false}
+          />
+        </div>
+
+        {/* Rate — editable inline */}
         {crossRate > 0 && (
-          <p className="text-[11px] text-muted-foreground text-center">
-            1{" "}
-            <span className="font-semibold text-foreground">
-              {fromCurrency}
-            </span>
-            {" = "}
-            <span className="font-semibold text-foreground tabular-nums">
-              {crossRate.toLocaleString("en", { maximumFractionDigits: 6 })}
-            </span>{" "}
-            <span className="font-semibold text-foreground">{toCurrency}</span>
-          </p>
-        )}
-      </div>
-
-      {/* ── Result card ── */}
-      {fromAmount > 0 && (
-        <div className="px-4 py-4 border-b shrink-0">
-          <div className="rounded-xl border border-primary/20 bg-primary/5 px-4 py-4">
-            {/* From row */}
-            <div className="flex items-center justify-between text-sm">
-              <span className="text-muted-foreground">Khách đưa</span>
-              <span className="font-bold tabular-nums">
-                {fromAmount.toLocaleString("en", { maximumFractionDigits: 2 })}{" "}
-                <span className="text-primary">{fromCurrency}</span>
-              </span>
-            </div>
-
-            {/* Arrow */}
-            <div className="flex justify-center my-2">
-              <ArrowDown className="h-3.5 w-3.5 text-muted-foreground/50" />
-            </div>
-
-            {/* To row — big */}
-            <div className="text-center">
-              <p className="text-3xl font-black tabular-nums tracking-tight leading-none text-foreground">
-                {toDisplay}
-              </p>
-              <p className="text-xs text-muted-foreground mt-1">
-                {toCurrency === "LAK" ? "₭ Kip Lào" : toCurrency}
-              </p>
-            </div>
-
-            {/* LAK equivalent (only when cross-rate, i.e. to != LAK) */}
-            {/* {toCurrency !== "LAK" && lakAmount > 0 && (
-              <p className="text-[10px] text-muted-foreground text-center mt-2.5 border-t border-primary/10 pt-2">
-                Tương đương:{" "}
-                <span className="font-semibold text-foreground">
-                  {lakAmount.toLocaleString("lo-LA")} ₭
+          <div className="rounded-md border bg-muted/30 px-3 py-2.5">
+            <p className="text-[9px] uppercase tracking-wide text-muted-foreground mb-1.5">
+              Tỷ giá
+            </p>
+            {editingRate ? (
+              <div className="flex items-center gap-2">
+                <span className="text-sm font-semibold text-muted-foreground shrink-0">
+                  1 {rateBase} =
                 </span>
-              </p>
-            )} */}
-          </div>
-        </div>
-      )}
-
-      {/* ── Rate table ── */}
-      {rates.length > 0 && (
-        <div className="px-4 py-3">
-          <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground mb-2">
-            Bảng tỷ giá hiện hành
-          </p>
-          <div className="space-y-1">
-            {rates.map((r) => {
-              const isActive =
-                fromCurrency === r.currencyCode ||
-                toCurrency === r.currencyCode;
-              return (
-                <div
-                  key={r.currencyCode}
-                  className={cn(
-                    "flex justify-between items-center text-xs px-3 py-2 rounded-md border",
-                    isActive
-                      ? "bg-primary/10 border-primary/30 font-semibold"
-                      : "bg-background border-border",
-                  )}
+                <NumberInput
+                  decimals={rateDecimals}
+                  min={0}
+                  value={rateInput}
+                  onChange={setRateInput}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter") saveRate();
+                    if (e.key === "Escape") setEditingRate(false);
+                  }}
+                  className="h-8 flex-1 text-sm font-mono text-center border-primary"
+                  autoFocus
+                />
+                <span className="text-sm font-semibold text-muted-foreground shrink-0">
+                  {rateUnit}
+                </span>
+                <button
+                  onClick={saveRate}
+                  disabled={isSavingRate || !rateInput}
+                  className="h-8 w-8 shrink-0 flex items-center justify-center rounded-md bg-primary text-primary-foreground hover:bg-primary/90 disabled:opacity-50 transition-colors"
                 >
-                  <span className="font-mono font-bold text-primary">
-                    {r.currencyCode}
-                  </span>
-                  <span className="tabular-nums text-muted-foreground">
-                    1 {r.currencyCode} ={" "}
-                    {r.effectiveRate.toLocaleString("lo-LA")} ₭
-                  </span>
-                </div>
-              );
-            })}
+                  <Check className="h-4 w-4" />
+                </button>
+                <button
+                  onClick={() => setEditingRate(false)}
+                  disabled={isSavingRate}
+                  className="h-8 w-8 shrink-0 flex items-center justify-center rounded-md border border-border text-muted-foreground hover:bg-accent transition-colors"
+                >
+                  <X className="h-4 w-4" />
+                </button>
+              </div>
+            ) : (
+              <button
+                onClick={openEditRate}
+                className="w-full flex items-center justify-between gap-2 group"
+                title="Nhấn để sửa tỷ giá"
+              >
+                <span className="text-base font-bold font-mono tabular-nums text-foreground group-hover:text-primary transition-colors">
+                  1 {rateBase} ={" "}
+                  {displayRate.toLocaleString("en", { maximumFractionDigits: rateDecimals })}{" "}
+                  {rateUnit}
+                </span>
+                <span className="shrink-0 flex items-center gap-1 text-[10px] text-muted-foreground group-hover:text-primary transition-colors">
+                  <Pencil className="h-3.5 w-3.5" />
+                  Sửa
+                </span>
+              </button>
+            )}
           </div>
+        )}
+
+        {/* Amount input */}
+        <div className="flex items-center border rounded-md overflow-hidden bg-background">
+          <span className="px-3 py-2 text-xs font-bold font-mono text-muted-foreground bg-muted/50 border-r shrink-0">
+            {fromCurrency}
+          </span>
+          <NumberInput
+            decimals={2}
+            min={0}
+            placeholder="Nhập số tiền"
+            value={fromInput}
+            onChange={(v) => setFromInput(v)}
+            className="h-9 text-right font-mono font-semibold tabular-nums text-sm flex-1 border-0 rounded-none focus:ring-0"
+            autoFocus
+          />
         </div>
-      )}
+
+        {/* Result box */}
+        <div
+          className={cn(
+            "rounded-lg border px-4 py-3 text-center",
+            toDisplay
+              ? "border-primary/20 bg-primary/5"
+              : "border-border bg-muted/30",
+          )}
+        >
+          <p className="text-[10px] text-muted-foreground uppercase tracking-widest font-medium mb-1">
+            Khách hàng thực nhận
+          </p>
+          <p
+            className={cn(
+              "text-3xl font-black tabular-nums tracking-tight leading-none",
+              toDisplay ? "text-foreground" : "text-muted-foreground/40",
+            )}
+          >
+            {toDisplay ?? "—"}
+          </p>
+          <p className="text-xs text-muted-foreground mt-1">
+            {toCurrency === "LAK" ? "₭ (Kip)" : toCurrency}
+          </p>
+        </div>
+      </div>
     </div>
   );
 }

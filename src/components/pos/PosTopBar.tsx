@@ -39,6 +39,7 @@ import {
   ArrowLeftRight,
   Banknote,
   ChevronDown,
+  ChevronLeft,
   ChevronRight,
   Coins,
   Gem,
@@ -435,6 +436,39 @@ export function PosTopBar({ onAddProduct }: PosTopBarProps) {
   const [pendingClose, setPendingClose] = useState<InvoiceTab | null>(null);
   const [typeDialogOpen, setTypeDialogOpen] = useState(false);
 
+  const tabsScrollRef = useRef<HTMLDivElement>(null);
+  const [canScrollLeft, setCanScrollLeft] = useState(false);
+  const [canScrollRight, setCanScrollRight] = useState(false);
+
+  const checkScroll = () => {
+    const el = tabsScrollRef.current;
+    if (!el) return;
+    setCanScrollLeft(el.scrollLeft > 2);
+    setCanScrollRight(el.scrollLeft + el.clientWidth < el.scrollWidth - 2);
+  };
+
+  useEffect(() => {
+    checkScroll();
+    const el = tabsScrollRef.current;
+    if (!el) return;
+    const ro = new ResizeObserver(checkScroll);
+    ro.observe(el);
+    return () => ro.disconnect();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [tabs]);
+
+  // Cuộn tab đang active vào vùng nhìn thấy
+  useEffect(() => {
+    const el = tabsScrollRef.current;
+    if (!el) return;
+    const activeEl = el.querySelector('[aria-selected="true"]') as HTMLElement | null;
+    activeEl?.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'nearest' });
+  }, [activeTabId]);
+
+  const scrollTabs = (dir: 'left' | 'right') => {
+    tabsScrollRef.current?.scrollBy({ left: dir === 'left' ? -200 : 200, behavior: 'smooth' });
+  };
+
   const handleCloseRequest = (tab: InvoiceTab) => {
     if (tab.status === "paying") return;
     if (tab.items.length > 0) setPendingClose(tab);
@@ -460,31 +494,54 @@ export function PosTopBar({ onAddProduct }: PosTopBarProps) {
           <ProductSearch onSelect={onAddProduct} />
         </div>
 
-        {/* ── Center: Invoice tabs (inherits bg-primary từ header) ─────── */}
-        {/* Không dùng overflow-x-auto để pseudo-elements curved corners không bị clip */}
-        <div
-          className="flex-1 flex items-end min-w-0 pl-3.5 pr-3 gap-0.5"
-          role="tablist"
-          aria-label={t("tabListLabel")}
-        >
-          {tabs.map((tab) => (
-            <InlineTabChip
-              key={tab.id}
-              tab={tab}
-              isActive={tab.id === activeTabId}
-              showClose={tabs.length > 1}
-              onSwitch={() => switchTab(tab.id)}
-              onClose={() => handleCloseRequest(tab)}
-            />
-          ))}
+        {/* ── Center: Invoice tabs (scrollable, hidden scrollbar) ─────── */}
+        <div className="flex-1 h-full flex items-end min-w-0 relative">
+          {/* Nút cuộn trái */}
+          {canScrollLeft && (
+            <button
+              onClick={() => scrollTabs('left')}
+              className="absolute left-0 bottom-0 z-20 h-full px-1 flex items-center bg-linear-to-r from-primary via-primary/90 to-transparent text-white/60 hover:text-white transition-colors"
+            >
+              <ChevronLeft className="h-3.5 w-3.5" />
+            </button>
+          )}
 
-          <button
-            onClick={() => setTypeDialogOpen(true)}
-            title={t("newTabTooltip")}
-            className="shrink-0 self-center ml-1 h-6 w-6 flex items-center justify-center rounded-full border border-dashed border-white/35 text-white/45 hover:border-white/70 hover:text-white hover:bg-white/10 transition-all"
+          <div
+            ref={tabsScrollRef}
+            onScroll={checkScroll}
+            className="h-full flex items-end pl-3.5 pr-3 gap-0.5 overflow-x-auto [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] scrollbar-none"
+            role="tablist"
+            aria-label={t("tabListLabel")}
           >
-            <Plus className="h-3.5 w-3.5" />
-          </button>
+            {tabs.map((tab) => (
+              <InlineTabChip
+                key={tab.id}
+                tab={tab}
+                isActive={tab.id === activeTabId}
+                showClose={tabs.length > 1}
+                onSwitch={() => switchTab(tab.id)}
+                onClose={() => handleCloseRequest(tab)}
+              />
+            ))}
+
+            <button
+              onClick={() => setTypeDialogOpen(true)}
+              title={t("newTabTooltip")}
+              className="shrink-0 self-center ml-1 h-6 w-6 flex items-center justify-center rounded-full border border-dashed border-white/35 text-white/45 hover:border-white/70 hover:text-white hover:bg-white/10 transition-all"
+            >
+              <Plus className="h-3.5 w-3.5" />
+            </button>
+          </div>
+
+          {/* Nút cuộn phải */}
+          {canScrollRight && (
+            <button
+              onClick={() => scrollTabs('right')}
+              className="absolute right-0 bottom-0 z-20 h-full px-1 flex items-center bg-linear-to-l from-primary via-primary/90 to-transparent text-white/60 hover:text-white transition-colors"
+            >
+              <ChevronRight className="h-3.5 w-3.5" />
+            </button>
+          )}
         </div>
 
         {/* ── Right: Locale + User menu ───────────────────────────────────── */}

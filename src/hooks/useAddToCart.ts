@@ -31,9 +31,15 @@ export function useAddToCart(priceConfig: PriceConfig | undefined) {
     const isBuyMode = (tab?.txnType ?? 'SellGold') === 'BuyGold'
     const unitPrice = matched ? (isBuyMode ? matched.buyPrice : matched.sellPrice) : 0
     const unitPriceLakPerGram = matched ? unitPrice / matched.gramPerUnit : 0
-    const weightGram = matched?.gramPerUnit ?? product.weightGram
-    const weightUnitId = matched?.weightUnitId ?? product.weightUnitId
-    const weightUnit = weightUnits.find(u => u.id === weightUnitId)
+
+    // Ưu tiên đơn vị từ sản phẩm (product.weightUnitId), fallback về priceConfig
+    const weightUnitId = product.weightUnitId ?? matched?.weightUnitId ?? null
+
+    // gramPerUnit: dùng priceItem exact-match → đơn vị của sản phẩm → product.weightGram
+    const productWeightUnit = weightUnits.find(u => u.id === (product.weightUnitId ?? undefined))
+    const weightGram = priceItem?.gramPerUnit ?? productWeightUnit?.gramPerUnit ?? product.weightGram
+
+    const weightUnit = weightUnits.find(u => u.id === (weightUnitId ?? undefined))
     const weightUnitName = weightUnit?.tenDonVi ?? matched?.weightUnitCode ?? null
 
     addItem({

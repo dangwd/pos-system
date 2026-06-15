@@ -64,7 +64,7 @@ export interface InvoiceTabStore {
   // Cart mutations — luôn tác động lên active tab
   addItemToActive: (item: CartItem) => void;
   removeItemFromActive: (productId: string) => void;
-  deleteItemFromActive: (productId: string) => void;
+  deleteItemFromActive: (productId: string, itemRole?: 'Normal' | 'ExchangeIn') => void;
   setItemQtyInActive: (productId: string, qty: number) => void;
   clearActiveCart: () => void;
 
