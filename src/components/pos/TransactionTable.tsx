@@ -915,7 +915,7 @@ function ExchangeGoldTable({
                 Tiền công (₭)
               </th>
               <th className="px-2 py-1.5 text-[9px] font-semibold text-orange-600 uppercase text-left whitespace-nowrap">
-                Lao sút (Chỉ)
+                Hao hụt (Chỉ)
               </th>
               <th className="px-3 py-1.5 text-[9px] font-semibold text-amber-700 dark:text-amber-400 uppercase text-right whitespace-nowrap">
                 Trị giá

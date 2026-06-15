@@ -130,7 +130,7 @@ function ItemRow({ item, index }: { item: CartItem; index: number }) {
           )}
           {item.perItemWearChi > 0 && (
             <span className="text-[10px] text-orange-500">
-              LAO SÚT: {item.perItemWearChi} Chỉ
+              HAO HỤT: {item.perItemWearChi} Chỉ
             </span>
           )}
         </div>
