@@ -18,11 +18,16 @@ export interface LoginResponse {
 
 export interface AuthUser {
   userId: string
+  employeeCode: string
   fullName: string
+  phone: string | null
   role: UserRole
   permissions: string[]
   branchId: string | null
+  branchName: string | null
   counterId: string | null
+  counterName: string | null
+  lastLoginAt: string | null
 }
 
 export interface RefreshResponse {
@@ -38,6 +43,8 @@ export interface MeResponse {
   role: UserRole
   permissions: string[]
   branchId: string | null
+  branchName: string | null
   counterId: string | null
+  counterName: string | null
   lastLoginAt: string | null
 }

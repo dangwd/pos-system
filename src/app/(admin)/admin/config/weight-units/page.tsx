@@ -1,10 +1,13 @@
 'use client'
 
+import { usePermission } from '@/hooks/usePermission'
+import { ForbiddenPage } from '@/components/shared/ForbiddenPage'
 import { useState } from 'react'
 import { useTranslations } from 'next-intl'
 import { Plus, Pencil, Check, X, Trash2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
+import { NumberInput } from '@/components/ui/number-input'
 import { Badge } from '@/components/ui/badge'
 import { Spinner } from '@/components/ui/spinner'
 import { Dialog, DialogContent, DialogFooter } from '@/components/ui/dialog'
@@ -21,6 +24,7 @@ import type { WeightUnit } from '@/types/config'
 type EditingState = { id: string; tenDonVi: string; gramPerUnit: string } | null
 
 export default function WeightUnitsPage() {
+  const { hasPermission } = usePermission()
   const t = useTranslations('admin.config.weightUnits')
   const [editing, setEditing] = useState<EditingState>(null)
   const [createOpen, setCreateOpen] = useState(false)
@@ -54,6 +58,8 @@ export default function WeightUnitsPage() {
     )
   }
 
+
+  if (!hasPermission('CONFIG_WEIGHT_UNIT')) return <ForbiddenPage />
   return (
     <div className="p-6 space-y-4">
       <div className="flex items-start justify-between">
@@ -98,37 +104,56 @@ export default function WeightUnitsPage() {
                   </td>
                   <td className="px-4 py-3 text-right">
                     {editing?.id === unit.id ? (
-                      <Input
-                        type="number"
-                        min="0"
-                        step="0.001"
+                      <NumberInput
+                        decimals={4}
+                        min={0}
                         value={editing.gramPerUnit}
-                        onChange={(e) => setEditing((s) => s ? { ...s, gramPerUnit: e.target.value } : s)}
+                        onChange={(v) => setEditing((s) => s ? { ...s, gramPerUnit: v } : s)}
                         className="h-7 w-24 text-right ml-auto text-xs"
-                      />
-                    ) : (
+                      />                    ) : (
                       <span className="font-semibold">{unit.gramPerUnit}</span>
                     )}
                   </td>
                   <td className="px-4 py-3 text-right">
                     {editing?.id === unit.id ? (
                       <div className="flex justify-end gap-1">
-                        <Button size="icon" variant="ghost" className="h-7 w-7 text-primary" disabled={isUpdating} onClick={() => saveEdit(unit)}>
+                        <button
+                          type="button"
+                          title={t('saveButton')}
+                          disabled={isUpdating}
+                          onClick={() => saveEdit(unit)}
+                          className="inline-flex h-7 w-7 items-center justify-center rounded-md text-primary transition-colors hover:bg-primary/10 disabled:opacity-50"
+                        >
                           {isUpdating ? <Spinner className="size-3.5" /> : <Check className="h-3.5 w-3.5" />}
-                        </Button>
-                        <Button size="icon" variant="ghost" className="h-7 w-7" onClick={() => setEditing(null)}>
+                        </button>
+                        <button
+                          type="button"
+                          title={t('cancel')}
+                          onClick={() => setEditing(null)}
+                          className="inline-flex h-7 w-7 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-accent hover:text-foreground"
+                        >
                           <X className="h-3.5 w-3.5" />
-                        </Button>
+                        </button>
                       </div>
                     ) : (
                       <div className="flex justify-end gap-1">
-                        <Button size="icon" variant="ghost" className="h-7 w-7" onClick={() => startEdit(unit)}>
+                        <button
+                          type="button"
+                          title={t('edit')}
+                          onClick={() => startEdit(unit)}
+                          className="inline-flex h-7 w-7 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-accent hover:text-foreground"
+                        >
                           <Pencil className="h-3.5 w-3.5" />
-                        </Button>
+                        </button>
                         {!unit.isSystem && (
-                          <Button size="icon" variant="ghost" className="h-7 w-7 text-destructive hover:text-destructive" onClick={() => remove(unit.id)}>
+                          <button
+                            type="button"
+                            title={t('delete')}
+                            onClick={() => remove(unit.id)}
+                            className="inline-flex h-7 w-7 items-center justify-center rounded-md text-destructive transition-colors hover:bg-destructive/10"
+                          >
                             <Trash2 className="h-3.5 w-3.5" />
-                          </Button>
+                          </button>
                         )}
                       </div>
                     )}
@@ -165,7 +190,7 @@ export default function WeightUnitsPage() {
             </Field>
             <Field>
               <FieldLabel>{t('form.gramPerUnit')}</FieldLabel>
-              <Input type="number" min="0" step="0.001" value={createForm.gramPerUnit} onChange={(e) => setCreateForm((f) => ({ ...f, gramPerUnit: e.target.value }))} placeholder="37.799" />
+              <NumberInput decimals={4} min={0} value={createForm.gramPerUnit} onChange={(v) => setCreateForm((f) => ({ ...f, gramPerUnit: v }))} placeholder="37.799" />
             </Field>
           </div>
         </DialogContent>

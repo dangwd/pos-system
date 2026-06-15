@@ -9,7 +9,7 @@
  *  - ['transactions'] cache bị invalidate
  */
 
-import type { ApiError } from "@/lib/api-error";
+import { ApiError } from "@/lib/api-error";
 import type { AppLocale } from "@/lib/errors";
 import { getErrorMessage } from "@/lib/errors";
 import { transactionRepository } from "@/lib/repositories/transaction.repository";
@@ -22,7 +22,7 @@ import { useActiveTab } from "./useActiveTab";
 
 interface CheckoutParams {
   type: TransactionType;
-  customerId?: string;
+  customerId: string; // bắt buộc — backend trả CUSTOMER_REQUIRED nếu thiếu
   note?: string;
   paymentMethod?: PaymentMethod;
   cashAmount?: number; // Bắt buộc khi COMBINED
@@ -39,6 +39,10 @@ export function useCheckout(strategy: PaymentStrategy) {
   return useMutation({
     mutationFn: async (params: CheckoutParams) => {
       const isFx = params.type === "ExchangeCurrency";
+
+      if (!params.customerId) {
+        throw new ApiError("CUSTOMER_REQUIRED");
+      }
 
       if (!tab || (!isFx && tab.items.length === 0)) {
         throw new Error("Giỏ hàng trống");
@@ -136,6 +140,7 @@ export function useCheckout(strategy: PaymentStrategy) {
     onSuccess: () => {
       clearCart();
       qc.invalidateQueries({ queryKey: ["transactions"] });
+      qc.invalidateQueries({ queryKey: ["products", "with-stock"] });
       toast.success(t("checkoutSuccess"));
     },
 

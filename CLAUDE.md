@@ -124,7 +124,7 @@ PosPage (orchestrate only)
 | Server State | TanStack Query v5 |
 | HTTP Client | Axios (chỉ trong `src/lib/repositories/`) |
 | Client State | Zustand (persist middleware) |
-| Tables | TanStack Table (`@tanstack/react-table`) |
+| Tables | Ant Design `<Table />` (`antd`) |
 | Forms | React Hook Form + Zod + shadcn `Form` |
 | Animation | Motion (`motion`) |
 | Language | TypeScript strict — không dùng `any` |
@@ -739,7 +739,7 @@ const total = weight * goldSellPrice + laborFee + stoneFee // trong component
 
 ```
 1. shadcn/ui gốc        → src/components/ui/
-   TanStack Table        (MỌI bảng data — không exception)
+   antd Table            (MỌI bảng data — không exception)
 
 2. shadcnblocks          → src/components/shadcnblocks/   ← KIỂM TRA TRƯỚC KHI TỰ VIẾT
    src/components/ui/   (một số shadcnblocks cài vào ui/)
@@ -766,11 +766,17 @@ npx shadcn@latest add <tên>
 npx shadcn@latest add @shadcnblocks/<tên>
 ```
 
-### R-UI-2 · TanStack Table cho mọi bảng dữ liệu
+### R-UI-2 · Ant Design Table cho mọi bảng dữ liệu
 
-KHÔNG dùng `<table>` HTML thuần cho data grid trong admin.  
-Mọi bảng admin → dùng `<DataTable>` tại `src/components/pos/DataTable.tsx`.  
-Columns định nghĩa trong `src/components/pos/columns/*.tsx`.
+## UI Table
+
+- Dùng `<Table />` từ `antd` cho mọi table admin trong project — thông qua wrapper `<DataTable>` tại `src/components/shared/DataTable.tsx`
+- **KHÔNG dùng** `@tanstack/react-table` — đã migrate hoàn toàn sang antd
+- Columns theo `TableColumnsType<T>` từ `antd`: `{ title, dataIndex, key, render? }`
+- Luôn set `rowKey` (mặc định `'id'`), pagination mặc định `pageSize=10` có `showSizeChanger`
+- **KHÔNG import** `flexRender`, `useReactTable`, `getCoreRowModel`, `ColumnDef` từ `@tanstack/react-table`
+- Column files tại `src/components/admin/columns/` — mỗi file export factory function `createXxxColumns(labels, ...callbacks)`
+- Server-side pagination dùng prop `serverPagination` của `<DataTable>`
 
 > **Exception được phép**: `TransactionTable.tsx` dùng `<table>` HTML compact vì layout POS cần density cao. Không áp dụng DataTable ở đây.
 

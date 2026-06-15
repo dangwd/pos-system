@@ -16,12 +16,13 @@ import type { InvoiceTab, InvoiceTabStore } from "@/types/invoice-tab";
 import type { TransactionType } from "@/types/transaction";
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
+import { genId } from "@/lib/utils";
 
 let _tabCounter = 1;
 
 function makeNewTab(type: TransactionType = "SellGold"): InvoiceTab {
   return {
-    id: crypto.randomUUID(),
+    id: genId(),
     label: `INV-${String(_tabCounter++).padStart(3, "0")}`,
     status: "draft",
     createdAt: new Date().toISOString(),
@@ -169,7 +170,11 @@ export const useInvoiceTabStore = create<InvoiceTabStore>()(
             if (t.id !== activeId) return t;
             const items = qty <= 0
               ? t.items.filter((i) => i.productId !== productId)
-              : t.items.map((i) => i.productId === productId && i.itemRole === 'Normal' ? { ...i, qty } : i);
+              : t.items.map((i) =>
+                  i.productId === productId && i.itemRole === 'Normal'
+                    ? { ...i, qty, weightGramOverride: null }
+                    : i,
+                );
             return { ...t, items };
           }),
         });
@@ -191,6 +196,8 @@ export const useInvoiceTabStore = create<InvoiceTabStore>()(
               linkedInvoiceItemKeys: [],
               cancelTransactionId: null,
               cancelInvoiceCode: null,
+              customerId: null,
+              customerName: null,
             },
           ),
         });

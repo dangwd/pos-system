@@ -3,15 +3,15 @@
 import { useExchangeInvoiceLookup } from '@/hooks/useExchangeInvoiceLookup'
 import { Input } from '@/components/ui/input'
 import { Spinner } from '@/components/ui/spinner'
-import { Badge } from '@/components/ui/badge'
-import { Search, X, ExternalLink } from 'lucide-react'
+import { cn } from '@/lib/utils'
+import { AlertCircle, Link2, Search, X } from 'lucide-react'
 import type { Transaction } from '@/types/transaction'
 
-function formatKip(n: number) {
-  return n.toLocaleString('lo-LA') + ' ₭'
+interface ExchangeInvoiceLookupProps {
+  showError?: boolean
 }
 
-export function ExchangeInvoiceLookup() {
+export function ExchangeInvoiceLookup({ showError = false }: ExchangeInvoiceLookupProps) {
   const {
     query, setQuery,
     results, isFetching,
@@ -20,72 +20,88 @@ export function ExchangeInvoiceLookup() {
   } = useExchangeInvoiceLookup()
 
   return (
-    <div className="px-3 py-2 border-b bg-amber-50/40 dark:bg-amber-950/20 space-y-2">
-      {/* Header row */}
-      <div className="flex items-center justify-between">
-        <p className="text-[10px] font-semibold text-amber-700 dark:text-amber-400 uppercase tracking-widest">
-          Liên kết HĐ bán vàng cũ
+    <div className="px-4 py-3 shrink-0">
+      {/* Label */}
+      <div className="flex items-center justify-between mb-1.5">
+        <p className="text-[10px] font-bold tracking-widest text-muted-foreground uppercase">
+          Hóa đơn gốc <span className="text-destructive">*</span>
         </p>
         {linkedCode && (
-          <div className="flex items-center gap-1.5">
-            <Badge variant="outline" className="text-[10px] h-5 px-1.5 border-amber-400 text-amber-700 bg-amber-50">
-              {linkedCode}
-            </Badge>
-            <button
-              onClick={clearLinkedInvoice}
-              className="p-0.5 rounded text-amber-600 hover:text-destructive hover:bg-destructive/10 transition-colors"
-              title="Xóa liên kết"
-            >
-              <X className="h-3 w-3" />
-            </button>
-          </div>
+          <button
+            onClick={clearLinkedInvoice}
+            className="p-0.5 rounded text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-colors"
+            title="Xóa liên kết"
+          >
+            <X className="h-3 w-3" />
+          </button>
         )}
       </div>
 
-      {/* Search input — ẩn khi đã có HĐ liên kết */}
-      {!linkedCode && (
-        <Input
-          placeholder="Nhập mã HĐ bán vàng (ví dụ: BV-20250615-0003)..."
-          prefix={<Search className="h-3.5 w-3.5 text-muted-foreground" />}
-          suffix={isFetching ? <Spinner className="h-3 w-3" /> : null}
-          value={query}
-          onChange={e => setQuery(e.target.value)}
-          className="h-7 text-xs"
-        />
-      )}
-
-      {/* Results dropdown */}
-      {!linkedCode && results.length > 0 && (
-        <div className="rounded-md border bg-popover shadow-md overflow-hidden max-h-40 overflow-y-auto">
-          {results.map((txn: Transaction) => (
-            <button
-              key={txn.id}
-              onClick={() => selectInvoice(txn)}
-              className="w-full flex items-center justify-between px-3 py-2 text-left hover:bg-accent transition-colors border-b last:border-0"
-            >
-              <div className="min-w-0">
-                <p className="text-xs font-semibold">{txn.invoiceCode}</p>
-                <p className="text-[10px] text-muted-foreground">
-                  {txn.items.length} sản phẩm · {new Date(txn.transactedAt).toLocaleDateString('lo-LA')}
-                  {txn.customer && ` · ${txn.customer.name}`}
-                </p>
-              </div>
-              <div className="text-right shrink-0 ml-3">
-                <p className="text-xs font-semibold tabular-nums">{formatKip(txn.totalAmount)}</p>
-                <ExternalLink className="h-3 w-3 text-muted-foreground mt-0.5 ml-auto" />
-              </div>
-            </button>
-          ))}
+      {/* Linked invoice — hiển thị khi đã chọn */}
+      {linkedCode ? (
+        <div className="flex items-center gap-2 bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800 rounded-md px-3 py-2">
+          <Link2 className="h-3.5 w-3.5 text-amber-600 dark:text-amber-400 shrink-0" />
+          <span className="flex-1 text-xs font-mono font-semibold text-amber-700 dark:text-amber-400 truncate">
+            {linkedCode}
+          </span>
         </div>
-      )}
+      ) : (
+        <>
+          <Input
+            id="pos-exchange-lookup"
+            placeholder="Nhập mã HĐ bán vàng cũ..."
+            prefix={<Search className="h-3 w-3 text-muted-foreground" />}
+            suffix={isFetching ? <Spinner className="h-3 w-3" /> : null}
+            value={query}
+            onChange={e => setQuery(e.target.value)}
+            onPaste={e => {
+              const pasted = e.clipboardData.getData('text').trim()
+              if (pasted) { e.preventDefault(); setQuery(pasted) }
+            }}
+            status={showError ? 'error' : undefined}
+            className="h-8 text-xs"
+          />
 
-      {!linkedCode && query.length >= 3 && !isFetching && results.length === 0 && (
-        <p className="text-xs text-muted-foreground px-1">Không tìm thấy HĐ &quot;{query}&quot;</p>
-      )}
+          {/* Kết quả tìm kiếm */}
+          {results.length > 0 && (
+            <div className="mt-1 rounded-md border bg-popover shadow-md overflow-hidden max-h-44 overflow-y-auto">
+              {results.map((txn: Transaction) => (
+                <button
+                  key={txn.id}
+                  type="button"
+                  onClick={() => selectInvoice(txn)}
+                  disabled={isFetching}
+                  className="w-full flex items-center justify-between px-3 py-2.5 text-left hover:bg-accent transition-colors border-b last:border-0 disabled:opacity-50"
+                >
+                  <div className="min-w-0">
+                    <p className="text-xs font-semibold">{txn.invoiceCode}</p>
+                    <p className="text-[10px] text-muted-foreground mt-0.5">
+                      {txn.items.length} sp · {new Date(txn.transactedAt).toLocaleDateString('lo-LA')}
+                      {txn.customer && ` · ${txn.customer.name}`}
+                    </p>
+                  </div>
+                  <p className="text-xs font-semibold tabular-nums shrink-0 ml-3">
+                    {txn.totalAmount.toLocaleString('lo-LA')} ₭
+                  </p>
+                </button>
+              ))}
+            </div>
+          )}
 
-      <p className="text-[10px] text-muted-foreground leading-relaxed">
-        Liên kết tùy chọn — hoặc thêm vàng cũ trực tiếp bên dưới.
-      </p>
+          {query.length >= 3 && !isFetching && results.length === 0 && (
+            <p className="mt-1 text-[10px] text-muted-foreground px-0.5">
+              Không tìm thấy &quot;{query}&quot;
+            </p>
+          )}
+
+          {showError && (
+            <p className={cn("mt-1 text-[10px] text-destructive flex items-center gap-1")}>
+              <AlertCircle className="h-3 w-3 shrink-0" />
+              Vui lòng liên kết hóa đơn vàng gốc
+            </p>
+          )}
+        </>
+      )}
     </div>
   )
 }

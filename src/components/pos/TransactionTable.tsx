@@ -10,9 +10,10 @@
 "use client";
 
 import { Badge } from "@/components/ui/badge";
-import { Input } from "@/components/ui/input";
+import { NumberInput } from "@/components/ui/number-input";
 import { useActiveTab } from "@/hooks/useActiveTab";
 import { useConfigPrices, useWeightUnits } from "@/hooks/useConfig";
+import { useAuthStore } from "@/stores/auth.store";
 import { cn } from "@/lib/utils";
 import type { CartItem } from "@/types/cart";
 import { lineTotal } from "@/types/cart";
@@ -37,7 +38,6 @@ import {
 } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { CurrencyExchangeForm } from "./CurrencyExchangeForm";
-import { ExchangeInvoiceLookup } from "./ExchangeInvoiceLookup";
 
 function fmt(n: number) {
   return n.toLocaleString("lo-LA") + " ₭";
@@ -160,12 +160,14 @@ function InfoBar({
   txnType,
   customerName,
   note,
+  counterName,
 }: {
   label: string;
   status: string;
   txnType: string;
   customerName: string | null;
   note: string;
+  counterName?: string | null;
 }) {
   const t = useTranslations("pos.transactionTable");
   const tTxn = useTranslations("pos.txnTypes");
@@ -219,7 +221,7 @@ function InfoBar({
         )}
       </div>
       <span className="shrink-0 text-[10px] text-muted-foreground ml-4 hidden md:block font-mono uppercase tracking-widest">
-        {t("counter")}
+        {counterName ?? t("counter")}
       </span>
     </div>
   );
@@ -252,15 +254,16 @@ function QtyControl({
       <input
         key={qty}
         type="number"
-        min={1}
+        min={0.001}
+        step="any"
         defaultValue={qty}
         disabled={disabled}
         onFocus={(e) => e.target.select()}
         onKeyDown={(e) => {
           if (e.key === "Enter") {
             e.preventDefault();
-            const n = parseInt(e.currentTarget.value, 10);
-            if (!isNaN(n) && n >= 1) {
+            const n = parseFloat(e.currentTarget.value);
+            if (!isNaN(n) && n > 0) {
               onSetQty?.(n);
               e.currentTarget.blur();
             } else e.currentTarget.value = String(qty);
@@ -271,8 +274,8 @@ function QtyControl({
           }
         }}
         onBlur={(e) => {
-          const n = parseInt(e.currentTarget.value, 10);
-          if (isNaN(n) || n < 1) e.currentTarget.value = String(qty);
+          const n = parseFloat(e.currentTarget.value);
+          if (isNaN(n) || n <= 0) e.currentTarget.value = String(qty);
           else onSetQty?.(n);
         }}
         className="h-6 w-10 text-center border-y text-xs font-semibold tabular-nums bg-background outline-none focus:ring-1 focus:ring-inset focus:ring-primary disabled:opacity-40"
@@ -375,6 +378,12 @@ function SellTable({
           <th className="px-3 py-2 text-left text-[10px] font-semibold text-muted-foreground uppercase tracking-wide whitespace-nowrap">
             {t("columns.unitPrice")}
           </th>
+          <th className="px-2 py-2 text-left text-[10px] font-semibold text-muted-foreground uppercase tracking-wide whitespace-nowrap">
+            {t("columns.laborFee")}
+          </th>
+          <th className="px-2 py-2 text-left text-[10px] font-semibold text-muted-foreground uppercase tracking-wide whitespace-nowrap">
+            {t("columns.stoneFee")}
+          </th>
           <th className="px-3 py-2 text-right text-[10px] font-semibold text-muted-foreground uppercase tracking-wide whitespace-nowrap">
             {t("columns.total")}
           </th>
@@ -430,14 +439,17 @@ function SellTable({
                 ) : (
                   <input
                     key={item.weightUnitId ?? "default"}
-                    type="number"
+                    type="text"
+                    inputMode="numeric"
                     min={0}
-                    defaultValue={unitPrice}
-                    onFocus={(e) => e.target.select()}
+                    defaultValue={unitPrice.toLocaleString('en')}
+                    onFocus={(e) => {
+                      e.target.value = e.target.value.replace(/,/g, '')
+                      e.target.select()
+                    }}
                     onBlur={(e) => {
-                      const newPrice = Math.round(
-                        Number(e.currentTarget.value) || 0,
-                      );
+                      const newPrice = Math.round(Number(e.currentTarget.value.replace(/,/g, '')) || 0)
+                      e.currentTarget.value = newPrice ? newPrice.toLocaleString('en') : ''
                       if (newPrice !== unitPrice) {
                         onUpdate(item.productId, {
                           unitPriceLakPerGram:
@@ -450,11 +462,43 @@ function SellTable({
                     onKeyDown={(e) => {
                       if (e.key === "Enter") e.currentTarget.blur();
                       if (e.key === "Escape") {
-                        e.currentTarget.value = String(unitPrice);
+                        e.currentTarget.value = unitPrice.toLocaleString('en')
                         e.currentTarget.blur();
                       }
                     }}
                     className="h-7 w-32 text-right text-xs px-2 tabular-nums border rounded-sm outline-none focus:ring-1 focus:ring-inset focus:ring-primary bg-background"
+                  />
+                )}
+              </td>
+              {/* Tiền công */}
+              <td className="px-2 py-2.5 w-28">
+                {item.isReadOnly ? (
+                  <span className="text-xs tabular-nums text-muted-foreground">
+                    {item.laborFee > 0 ? item.laborFee.toLocaleString("lo-LA") : "—"}
+                  </span>
+                ) : (
+                  <NumberInput
+                    min={0}
+                    placeholder="0"
+                    value={item.laborFee || ""}
+                    onChange={(v) => onUpdate(item.productId, { laborFee: Number(v) || 0 })}
+                    className="h-7 w-24 text-xs tabular-nums"
+                  />
+                )}
+              </td>
+              {/* Phí đá */}
+              <td className="px-2 py-2.5 w-28">
+                {item.isReadOnly ? (
+                  <span className="text-xs tabular-nums text-muted-foreground">
+                    {item.stoneFee > 0 ? item.stoneFee.toLocaleString("lo-LA") : "—"}
+                  </span>
+                ) : (
+                  <NumberInput
+                    min={0}
+                    placeholder="0"
+                    value={item.stoneFee || ""}
+                    onChange={(v) => onUpdate(item.productId, { stoneFee: Number(v) || 0 })}
+                    className="h-7 w-24 text-xs tabular-nums"
                   />
                 )}
               </td>
@@ -499,15 +543,6 @@ function BuyGoldRow({
   weightUnits: WeightUnit[];
 }) {
   const unitPrice = Math.round(item.unitPriceLakPerGram * item.weightGram);
-  // Cân nặng thực tế (đổi sang đơn vị hiện tại)
-  const effectiveGram =
-    item.weightGramOverride !== null
-      ? item.weightGramOverride
-      : item.qty * item.weightGram;
-  const effectiveUnits =
-    item.weightGram > 0
-      ? parseFloat((effectiveGram / item.weightGram).toFixed(4))
-      : item.qty;
 
   return (
     <tr
@@ -545,35 +580,6 @@ function BuyGoldRow({
         />
       </td>
 
-      {/* Cân nặng (trong đơn vị đã chọn) */}
-      <td className="px-2 py-2 w-24">
-        <input
-          key={item.weightUnitId ?? "default"}
-          type="number"
-          min={0.001}
-          step={0.001}
-          disabled={item.isReadOnly}
-          defaultValue={effectiveUnits}
-          onFocus={(e) => e.target.select()}
-          onBlur={(e) => {
-            const newUnits = Number(e.currentTarget.value);
-            if (newUnits > 0 && newUnits !== effectiveUnits) {
-              onUpdate(item.productId, {
-                weightGramOverride: newUnits * item.weightGram,
-              });
-            }
-          }}
-          onKeyDown={(e) => {
-            if (e.key === "Enter") e.currentTarget.blur();
-            if (e.key === "Escape") {
-              e.currentTarget.value = String(effectiveUnits);
-              e.currentTarget.blur();
-            }
-          }}
-          className="h-6 w-20 text-right text-xs px-2 tabular-nums border rounded-sm outline-none focus:ring-1 focus:ring-inset focus:ring-primary bg-background disabled:opacity-40"
-        />
-      </td>
-
       {/* Giá mua (₭/đơn vị) */}
       <td className="px-2 py-2 w-28">
         {item.isReadOnly ? (
@@ -583,12 +589,16 @@ function BuyGoldRow({
         ) : (
           <input
             key={`price-${item.weightUnitId ?? "default"}`}
-            type="number"
-            min={0}
-            defaultValue={unitPrice}
-            onFocus={(e) => e.target.select()}
+            type="text"
+            inputMode="numeric"
+            defaultValue={unitPrice.toLocaleString('en')}
+            onFocus={(e) => {
+              e.target.value = e.target.value.replace(/,/g, '')
+              e.target.select()
+            }}
             onBlur={(e) => {
-              const newPrice = Math.round(Number(e.currentTarget.value) || 0);
+              const newPrice = Math.round(Number(e.currentTarget.value.replace(/,/g, '')) || 0)
+              e.currentTarget.value = newPrice ? newPrice.toLocaleString('en') : ''
               if (newPrice !== unitPrice) {
                 onUpdate(item.productId, {
                   unitPriceLakPerGram:
@@ -599,7 +609,7 @@ function BuyGoldRow({
             onKeyDown={(e) => {
               if (e.key === "Enter") e.currentTarget.blur();
               if (e.key === "Escape") {
-                e.currentTarget.value = String(unitPrice);
+                e.currentTarget.value = unitPrice.toLocaleString('en')
                 e.currentTarget.blur();
               }
             }}
@@ -608,60 +618,38 @@ function BuyGoldRow({
         )}
       </td>
 
-      {/* PHÍ KHÒ — checkbox bật / tắt + input số tiền */}
+      {/* PHÍ KHÒ — nhập trực tiếp */}
       <td className="px-2 py-2 w-32">
-        <div className="flex items-center gap-1.5">
-          <button
-            disabled={item.isReadOnly}
-            onClick={() =>
+        {item.isReadOnly ? (
+          <span className="text-[10px] tabular-nums text-muted-foreground">
+            {item.perItemDamage > 0 ? item.perItemDamage.toLocaleString("lo-LA") : "—"}
+          </span>
+        ) : (
+          <NumberInput
+            min={0}
+            placeholder="0"
+            value={item.perItemDamage || ""}
+            onChange={(v) =>
               onUpdate(item.productId, {
-                isDamaged: !item.isDamaged,
-                perItemDamage: item.isDamaged ? 0 : item.perItemDamage,
+                perItemDamage: Number(v) || 0,
               })
             }
-            title={item.isDamaged ? "Bỏ PHÍ KHÒ" : "Bật PHÍ KHÒ"}
-            className={cn(
-              "shrink-0 w-4 h-4 rounded border-2 flex items-center justify-center transition-colors disabled:opacity-40",
-              item.isDamaged
-                ? "bg-orange-500 border-orange-500 text-white"
-                : "border-muted-foreground/30 hover:border-orange-400",
-            )}
-          >
-            {item.isDamaged && <AlertTriangle className="h-2.5 w-2.5" />}
-          </button>
-          {item.isDamaged && (
-            <Input
-              type="number"
-              min={0}
-              placeholder="0"
-              disabled={item.isReadOnly}
-              value={item.perItemDamage || ""}
-              onChange={(e) =>
-                onUpdate(item.productId, {
-                  perItemDamage: Number(e.target.value) || 0,
-                })
-              }
-              className="h-5 w-20 text-[10px] px-1.5 tabular-nums"
-            />
-          )}
-          {!item.isDamaged && (
-            <span className="text-[10px] text-muted-foreground/40">—</span>
-          )}
-        </div>
+            className="h-5 w-24 text-[10px] px-1.5 tabular-nums"
+          />
+        )}
       </td>
 
       {/* LAO SUT (số chỉ hao mòn) */}
       <td className="px-2 py-2 w-24">
-        <Input
-          type="number"
+        <NumberInput
+          decimals={2}
           min={0}
-          step={0.01}
           placeholder="0"
           disabled={item.isReadOnly}
           value={item.perItemWearChi || ""}
-          onChange={(e) =>
+          onChange={(v) =>
             onUpdate(item.productId, {
-              perItemWearChi: Number(e.target.value) || 0,
+              perItemWearChi: Number(v) || 0,
             })
           }
           className="h-5 w-20 text-[10px] px-1.5 tabular-nums"
@@ -716,9 +704,6 @@ function BuyGoldTable({
             Đơn vị
           </th>
           <th className="px-3 py-2 text-left text-[10px] font-semibold text-muted-foreground uppercase tracking-wide whitespace-nowrap">
-            Số lượng
-          </th>
-          <th className="px-2 py-2 text-left text-[10px] font-semibold text-muted-foreground uppercase tracking-wide whitespace-nowrap">
             Cân nặng
           </th>
           <th className="px-2 py-2 text-left text-[10px] font-semibold text-muted-foreground uppercase tracking-wide whitespace-nowrap">
@@ -801,6 +786,7 @@ function ExchangeInRow({
       <td className="px-2 py-2 w-32">
         <div className="flex items-center gap-1.5">
           <button
+            disabled={item.isReadOnly}
             onClick={() =>
               onUpdate(item.productId, {
                 isDamaged: !item.isDamaged,
@@ -809,7 +795,7 @@ function ExchangeInRow({
             }
             title={item.isDamaged ? "Bỏ PHÍ KHÒ" : "Bật PHÍ KHÒ"}
             className={cn(
-              "shrink-0 w-4 h-4 rounded border-2 flex items-center justify-center transition-colors",
+              "shrink-0 w-4 h-4 rounded border-2 flex items-center justify-center transition-colors disabled:opacity-40",
               item.isDamaged
                 ? "bg-orange-500 border-orange-500 text-white"
                 : "border-muted-foreground/30 hover:border-orange-400",
@@ -818,14 +804,14 @@ function ExchangeInRow({
             {item.isDamaged && <AlertTriangle className="h-2.5 w-2.5" />}
           </button>
           {item.isDamaged && (
-            <Input
-              type="number"
+            <NumberInput
               min={0}
               placeholder="0"
+              disabled={item.isReadOnly}
               value={item.perItemDamage || ""}
-              onChange={(e) =>
+              onChange={(v) =>
                 onUpdate(item.productId, {
-                  perItemDamage: Number(e.target.value) || 0,
+                  perItemDamage: Number(v) || 0,
                 })
               }
               className="h-5 w-20 text-[10px] px-1.5 tabular-nums"
@@ -839,15 +825,15 @@ function ExchangeInRow({
 
       {/* LAO SUT: số chỉ */}
       <td className="px-2 py-2 w-24">
-        <Input
-          type="number"
+        <NumberInput
+          decimals={2}
           min={0}
-          step={0.01}
           placeholder="0"
+          disabled={item.isReadOnly}
           value={item.perItemWearChi || ""}
-          onChange={(e) =>
+          onChange={(v) =>
             onUpdate(item.productId, {
-              perItemWearChi: Number(e.target.value) || 0,
+              perItemWearChi: Number(v) || 0,
             })
           }
           className="h-5 w-20 text-[10px] px-1.5 tabular-nums"
@@ -900,8 +886,6 @@ function ExchangeGoldTable({
   return (
     <div className="flex flex-col min-h-0">
       {/* PANEL A: Vàng cũ đổi vào */}
-      <ExchangeInvoiceLookup />
-
       <SectionHeader
         icon={ArrowDownToLine}
         label="Vàng cũ đổi vào"
@@ -931,7 +915,7 @@ function ExchangeGoldTable({
                 Tiền công (₭)
               </th>
               <th className="px-2 py-1.5 text-[9px] font-semibold text-orange-600 uppercase text-left whitespace-nowrap">
-                Lao sút (Chỉ)
+                Hao hụt (Chỉ)
               </th>
               <th className="px-3 py-1.5 text-[9px] font-semibold text-amber-700 dark:text-amber-400 uppercase text-right whitespace-nowrap">
                 Trị giá
@@ -1112,6 +1096,7 @@ export function TransactionTable() {
   } = useActiveTab();
   const { data: priceConfig } = useConfigPrices();
   const { data: weightUnits = [] } = useWeightUnits();
+  const { user } = useAuthStore();
   const items = tab?.items ?? [];
   const txnType = tab?.txnType ?? "SellGold";
   const discount = tab?.discountAmount ?? 0;
@@ -1120,13 +1105,14 @@ export function TransactionTable() {
   const isBuy = txnType === "BuyGold";
 
   return (
-    <div className="flex flex-col flex-1 min-h-0 overflow-hidden">
+    <div className="flex flex-col h-full overflow-hidden">
       <InfoBar
         label={tab?.label ?? "INV"}
         status={tab?.status ?? "draft"}
         txnType={txnType}
         customerName={tab?.customerName ?? null}
         note={tab?.note ?? ""}
+        counterName={user?.counterName}
       />
 
       <div className="flex-1 overflow-auto min-h-0">

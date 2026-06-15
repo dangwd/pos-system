@@ -1,5 +1,5 @@
 import { useMemo } from 'react'
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+import { useInfiniteQuery, useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useLocale, useTranslations } from 'next-intl'
 import { toast } from 'sonner'
 import { inventoryRepository } from '@/lib/repositories/inventory.repository'
@@ -13,8 +13,8 @@ import type {
   AdjustInventoryDto,
   AdjustInventoryResult,
   UpdateInventoryStatusDto,
-  BulkAdjustInventoryDto,
-  BulkAdjustInventoryResult,
+  CreateInventoryAdjustmentDto,
+  CreateInventoryAdjustmentResult,
   InventoryItem,
 } from '@/types/inventory'
 
@@ -26,6 +26,21 @@ export function useInventory(params?: InventoryListParams) {
   return useQuery({
     queryKey: [...INVENTORY_KEY, 'list', params],
     queryFn: () => inventoryRepository.getList(params),
+    staleTime: 60_000,
+  })
+}
+
+/** Infinite-scroll variant — dùng cho picker chọn sản phẩm, tự tích lũy trang. */
+export function useInventoryInfinite(params: Omit<InventoryListParams, 'page'>) {
+  return useInfiniteQuery({
+    queryKey: [...INVENTORY_KEY, 'infinite', params],
+    queryFn: ({ pageParam }) =>
+      inventoryRepository.getList({ ...params, page: pageParam as number }),
+    initialPageParam: 1,
+    getNextPageParam: (lastPage, allPages) => {
+      const loaded = allPages.reduce((s, p) => s + p.data.length, 0)
+      return loaded < lastPage.total ? allPages.length + 1 : undefined
+    },
     staleTime: 60_000,
   })
 }
@@ -104,25 +119,23 @@ export function useAdjustInventory() {
     mutationFn: ({ id, dto }) => inventoryRepository.adjust(id, dto),
     onSuccess: (res) => {
       invalidate()
-      toast.success(t('adjustSuccess', { code: res.log.adjustmentCode }))
+      toast.success(t('adjustSuccess', { code: res.adjustment.adjustmentCode }))
     },
     onError: (err) => toast.error(getErrorMessage(err.code, locale)),
   })
 }
 
 /**
- * Nhập/Xuất nhiều mục kho cùng lúc (POST /api/inventory/bulk-adjust).
- * Partial success: báo riêng số điều chỉnh thành công, số thiếu tồn và số không tìm thấy.
+ * Tạo MỘT phiếu điều chỉnh nhiều dòng (POST /api/inventory/adjustments).
+ * Atomic: 1 dòng lỗi → cả phiếu bị từ chối (onError). Thành công trả về phiếu (header + lines).
  */
-export function useBulkAdjustInventory() {
+export function useCreateAdjustment() {
   const { locale, t, invalidate } = useInventoryMutationBase()
-  return useMutation<BulkAdjustInventoryResult, ApiError, BulkAdjustInventoryDto>({
-    mutationFn: (dto) => inventoryRepository.bulkAdjust(dto),
+  return useMutation<CreateInventoryAdjustmentResult, ApiError, CreateInventoryAdjustmentDto>({
+    mutationFn: (dto) => inventoryRepository.createAdjustment(dto),
     onSuccess: (res) => {
       invalidate()
-      if (res.adjustedCount > 0) toast.success(t('bulkAdjustSuccess', { count: res.adjustedCount }))
-      if (res.insufficientStockIds.length > 0) toast.warning(t('bulkInsufficientStock', { count: res.insufficientStockIds.length }))
-      if (res.notFoundIds.length > 0) toast.warning(t('bulkNotFound', { count: res.notFoundIds.length }))
+      toast.success(t('adjustSuccess', { code: res.adjustmentCode }))
     },
     onError: (err) => toast.error(getErrorMessage(err.code, locale)),
   })

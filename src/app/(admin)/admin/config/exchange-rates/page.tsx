@@ -1,10 +1,12 @@
 'use client'
 
+import { usePermission } from '@/hooks/usePermission'
+import { ForbiddenPage } from '@/components/shared/ForbiddenPage'
 import { useState } from 'react'
 import { useTranslations } from 'next-intl'
 import { Pencil } from 'lucide-react'
 import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
+import { NumberInput } from '@/components/ui/number-input'
 import { Spinner } from '@/components/ui/spinner'
 import { Dialog, DialogContent, DialogFooter } from '@/components/ui/dialog'
 import { Field, FieldLabel } from '@/components/ui/field'
@@ -13,6 +15,7 @@ import { useExchangeRates, useUpdateExchangeRate } from '@/hooks/useConfig'
 import type { ExchangeRate } from '@/types/config'
 
 export default function ExchangeRatesPage() {
+  const { hasPermission } = usePermission()
   const t = useTranslations('admin.config.exchangeRates')
   const [editing, setEditing] = useState<ExchangeRate | null>(null)
   const [form, setForm] = useState({ rateToLak: '', adjustment: '' })
@@ -33,6 +36,8 @@ export default function ExchangeRatesPage() {
     )
   }
 
+
+  if (!hasPermission('CONFIG_PRICE')) return <ForbiddenPage />
   return (
     <div className="p-6 space-y-4">
       <div>
@@ -61,9 +66,14 @@ export default function ExchangeRatesPage() {
                     {new Date(rate.effectiveFrom).toLocaleDateString('lo-LA')}
                   </td>
                   <td className="px-4 py-3 text-right">
-                    <Button size="icon" variant="ghost" className="h-7 w-7" onClick={() => openEdit(rate)}>
+                    <button
+                      type="button"
+                      title={t('edit')}
+                      onClick={() => openEdit(rate)}
+                      className="inline-flex h-7 w-7 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-accent hover:text-foreground"
+                    >
                       <Pencil className="h-3.5 w-3.5" />
-                    </Button>
+                    </button>
                   </td>
                 </tr>
               ))}
@@ -89,11 +99,11 @@ export default function ExchangeRatesPage() {
           <div className="space-y-4 py-2">
             <Field>
               <FieldLabel>{t('columns.rate')}</FieldLabel>
-              <Input type="number" min="0" value={form.rateToLak} onChange={(e) => setForm((f) => ({ ...f, rateToLak: e.target.value }))} />
+              <NumberInput min={0} value={form.rateToLak} onChange={(v) => setForm((f) => ({ ...f, rateToLak: v }))} />
             </Field>
             <Field>
               <FieldLabel>{t('columns.adjustment')}</FieldLabel>
-              <Input type="number" value={form.adjustment} onChange={(e) => setForm((f) => ({ ...f, adjustment: e.target.value }))} />
+              <NumberInput value={form.adjustment} onChange={(v) => setForm((f) => ({ ...f, adjustment: v }))} />
             </Field>
           </div>
         </DialogContent>

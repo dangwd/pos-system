@@ -1,92 +1,89 @@
 'use client'
 
-import { useRef, useState } from 'react'
 import { useTranslations } from 'next-intl'
 import {
-  Dialog, DialogContent, DialogFooter,
+  Dialog,
+  DialogContent,
+  DialogFooter,
 } from '@/components/ui/dialog'
 import { Button } from '@/components/ui/button'
-import { ComboboxSelect } from '@/components/shared/ComboboxSelect'
-import { Field, FieldLabel } from '@/components/ui/field'
+import { Badge } from '@/components/ui/badge'
+import { ArrowRight } from 'lucide-react'
 import { Spinner } from '@/components/ui/spinner'
 import { useUpdateInventoryStatus } from '@/hooks/useInventory'
 import type { InventoryItem, InventoryStatus } from '@/types/inventory'
 
 interface Props {
   item: InventoryItem | null
+  targetStatus: InventoryStatus | null
   onClose: () => void
 }
 
-const STATUS_VALUES: InventoryStatus[] = ['TiepNhan', 'DaDinhGia', 'TrenQuay', 'DaBan', 'ChuyenXuong']
-
-// Keyed inner component — remounts when `item` changes so status state
-// always initializes from the current entity without a useEffect.
-// submitRef is populated so the outer footer button can trigger submission.
-function StatusFormBody({
-  item,
-  submitRef,
-}: {
-  item: InventoryItem
-  submitRef: React.MutableRefObject<(() => InventoryStatus | null)>
-}) {
-  const t       = useTranslations('admin.inventory')
-  const tDialog = useTranslations('admin.inventory.statusDialog')
-
-  const [status, setStatus] = useState<InventoryStatus>(() => item.trangThai)
-
-  submitRef.current = () => (status !== item.trangThai ? status : null)
-
-  return (
-    <div className="py-1">
-      <p className="text-sm text-muted-foreground mb-3">
-        {item.productName} · {t(`status${item.trangThai}`)}
-      </p>
-      <Field>
-        <FieldLabel>{tDialog('newStatus')}</FieldLabel>
-        <ComboboxSelect
-          value={status}
-          onChange={v => v && setStatus(v as InventoryStatus)}
-          options={STATUS_VALUES.map(s => ({ value: s, label: t(`status${s}`) }))}
-        />
-      </Field>
-    </div>
-  )
+const STATUS_STYLE: Record<InventoryStatus, string> = {
+  TiepNhan:    'bg-muted text-muted-foreground',
+  DaDinhGia:   'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400',
+  TrenQuay:    'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400',
+  ChuyenXuong: 'bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-400',
+  DaBan:       'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400',
+  DoiRa:       'bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-400',
 }
 
-export function InventoryStatusDialog({ item, onClose }: Props) {
-  const tDialog = useTranslations('admin.inventory.statusDialog')
+export function InventoryStatusDialog({ item, targetStatus, onClose }: Props) {
+  const t = useTranslations('admin.inventory')
+  const tDialog = useTranslations('admin.inventory.confirmStatusDialog')
   const { mutate: updateStatus, isPending } = useUpdateInventoryStatus()
-  const submitRef = useRef<() => InventoryStatus | null>(() => null)
 
-  function handleSubmit() {
-    if (!item) return
-    const status = submitRef.current()
-    if (!status) return
-    updateStatus({ id: item.id, dto: { trangThai: status } }, { onSuccess: onClose })
+  if (!item || !targetStatus) return null
+
+  const statusLabel = (s: InventoryStatus) => t(`status${s}` as Parameters<typeof t>[0])
+
+  const CONFIRM_LABELS: Partial<Record<InventoryStatus, string>> = {
+    DaDinhGia:   tDialog('confirmToDaDinhGia'),
+    TrenQuay:    tDialog('confirmToTrenQuay'),
+    ChuyenXuong: tDialog('confirmToChuyenXuong'),
+  }
+  const confirmLabel = CONFIRM_LABELS[targetStatus] ?? tDialog('confirm')
+
+  function handleConfirm() {
+    updateStatus(
+      { id: item!.id, dto: { trangThai: targetStatus! } },
+      { onSuccess: onClose },
+    )
   }
 
   return (
-    <Dialog open={!!item} onOpenChange={o => !o && onClose()}>
+    <Dialog open={!!item && !!targetStatus} onOpenChange={o => !o && onClose()}>
       <DialogContent
-        className="sm:max-w-md"
+        className="sm:max-w-sm"
         title={tDialog('title')}
         footer={
           <DialogFooter>
             <Button variant="outline" onClick={onClose} disabled={isPending}>{tDialog('cancel')}</Button>
-            <Button onClick={handleSubmit} disabled={isPending}>
+            <Button onClick={handleConfirm} disabled={isPending}>
               {isPending && <Spinner className="mr-2" />}
-              {tDialog('submit')}
+              {confirmLabel}
             </Button>
           </DialogFooter>
         }
       >
-        {item && (
-          <StatusFormBody
-            key={item.id}
-            item={item}
-            submitRef={submitRef}
-          />
-        )}
+        <div className="space-y-3 py-1">
+          {/* Product info */}
+          <div className="rounded-lg border bg-muted/30 px-3 py-2 text-sm">
+            <p className="font-medium">{item.productName}</p>
+            <p className="text-xs text-muted-foreground mt-0.5">{item.counterName}</p>
+          </div>
+
+          {/* Transition arrow */}
+          <div className="flex items-center justify-center gap-3">
+            <Badge variant="secondary" className={`text-xs ${STATUS_STYLE[item.trangThai]}`}>
+              {statusLabel(item.trangThai)}
+            </Badge>
+            <ArrowRight className="h-4 w-4 text-muted-foreground shrink-0" />
+            <Badge variant="secondary" className={`text-xs ${STATUS_STYLE[targetStatus]}`}>
+              {statusLabel(targetStatus)}
+            </Badge>
+          </div>
+        </div>
       </DialogContent>
     </Dialog>
   )

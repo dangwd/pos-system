@@ -113,3 +113,16 @@ export function useDeactivateCounter() {
     onError: (err) => toast.error(getErrorMessage(err.code, locale)),
   })
 }
+
+export function useActivateCounter() {
+  const { locale, t, invalidateCounters } = useBranchMutationBase()
+
+  return useMutation<void, ApiError, { branchId: string; counterId: string }>({
+    mutationFn: ({ branchId, counterId }) => branchRepository.activateCounter(branchId, counterId),
+    onSuccess: (_, { branchId }) => {
+      invalidateCounters(branchId)
+      toast.success(t('toasts.activateCounterSuccess'))
+    },
+    onError: (err) => toast.error(getErrorMessage(err.code, locale)),
+  })
+}

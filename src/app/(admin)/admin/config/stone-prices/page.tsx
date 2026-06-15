@@ -1,10 +1,13 @@
 'use client'
 
+import { usePermission } from '@/hooks/usePermission'
+import { ForbiddenPage } from '@/components/shared/ForbiddenPage'
 import { useState } from 'react'
 import { useTranslations } from 'next-intl'
 import { Plus, Pencil, Trash2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
+import { NumberInput } from '@/components/ui/number-input'
 import { Spinner } from '@/components/ui/spinner'
 import { Dialog, DialogContent, DialogFooter } from '@/components/ui/dialog'
 import { Field, FieldLabel } from '@/components/ui/field'
@@ -26,6 +29,7 @@ function formatKip(n: number) {
 }
 
 export default function StonePricesPage() {
+  const { hasPermission } = usePermission()
   const t = useTranslations('admin.config.stonePrices')
   const [dialog, setDialog] = useState<DialogState>(null)
   const [form, setForm] = useState(EMPTY_FORM)
@@ -59,6 +63,8 @@ export default function StonePricesPage() {
 
   const isFormValid = !!form.tuSoChi && !!form.denSoChi && !!form.giaDa
 
+
+  if (!hasPermission('CONFIG_STONE_PRICE')) return <ForbiddenPage />
   return (
     <div className="p-6 space-y-4">
       <div className="flex items-start justify-between">
@@ -91,12 +97,22 @@ export default function StonePricesPage() {
                     <td className="px-4 py-3 text-right font-semibold">{formatKip(rule.giaDa)}</td>
                     <td className="px-4 py-3 text-right">
                       <div className="flex justify-end gap-1">
-                        <Button size="icon" variant="ghost" className="h-7 w-7" onClick={() => openEdit(rule)}>
+                        <button
+                          type="button"
+                          title={t('edit')}
+                          onClick={() => openEdit(rule)}
+                          className="inline-flex h-7 w-7 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-accent hover:text-foreground"
+                        >
                           <Pencil className="h-3.5 w-3.5" />
-                        </Button>
-                        <Button size="icon" variant="ghost" className="h-7 w-7 text-destructive hover:text-destructive" onClick={() => remove(rule.id)}>
+                        </button>
+                        <button
+                          type="button"
+                          title={t('delete')}
+                          onClick={() => remove(rule.id)}
+                          className="inline-flex h-7 w-7 items-center justify-center rounded-md text-destructive transition-colors hover:bg-destructive/10"
+                        >
                           <Trash2 className="h-3.5 w-3.5" />
-                        </Button>
+                        </button>
                       </div>
                     </td>
                   </tr>
@@ -125,16 +141,16 @@ export default function StonePricesPage() {
             <div className="grid grid-cols-2 gap-3">
               <Field>
                 <FieldLabel>{t('columns.weightFrom')}</FieldLabel>
-                <Input type="number" min="0" step="0.1" value={form.tuSoChi} onChange={(e) => setForm((f) => ({ ...f, tuSoChi: e.target.value }))} />
+                <NumberInput decimals={2} min={0} value={form.tuSoChi} onChange={(v) => setForm((f) => ({ ...f, tuSoChi: v }))} />
               </Field>
               <Field>
                 <FieldLabel>{t('columns.weightTo')}</FieldLabel>
-                <Input type="number" min="0" step="0.1" value={form.denSoChi} onChange={(e) => setForm((f) => ({ ...f, denSoChi: e.target.value }))} />
+                <NumberInput decimals={2} min={0} value={form.denSoChi} onChange={(v) => setForm((f) => ({ ...f, denSoChi: v }))} />
               </Field>
             </div>
             <Field>
               <FieldLabel>{t('columns.fee')}</FieldLabel>
-              <Input type="number" min="0" value={form.giaDa} onChange={(e) => setForm((f) => ({ ...f, giaDa: e.target.value }))} />
+              <NumberInput min={0} value={form.giaDa} onChange={(v) => setForm((f) => ({ ...f, giaDa: v }))} />
             </Field>
           </div>
         </DialogContent>

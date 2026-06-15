@@ -37,6 +37,8 @@ export function InventoryActivityLog({ branchId, branchName }: Props) {
         <ul className="mt-3 max-h-[420px] space-y-2.5 overflow-y-auto pr-1">
           {logs.map(log => {
             const isIn = log.direction === 'IN'
+            const firstProduct = log.lines[0]?.productName ?? '—'
+            const productLabel = log.lines.length > 1 ? `${firstProduct} +${log.lines.length - 1}` : firstProduct
             return (
               <li key={log.id} className="rounded-lg border bg-muted/20 p-2.5">
                 <div className="flex items-center justify-between gap-2">
@@ -51,9 +53,9 @@ export function InventoryActivityLog({ branchId, branchName }: Props) {
                   </span>
                 </div>
                 <p className="mt-1.5 text-sm font-medium leading-snug">
-                  {log.productName} —{' '}
+                  {productLabel} —{' '}
                   <span className={isIn ? 'text-primary' : 'text-destructive'}>
-                    {isIn ? t('in') : t('out')} {log.quantity}
+                    {isIn ? t('in') : t('out')} {log.totalQuantity}
                   </span>
                 </p>
                 {log.reason && (

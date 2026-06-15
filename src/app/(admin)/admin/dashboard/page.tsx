@@ -1,41 +1,47 @@
 'use client'
 
-import Link from 'next/link'
 import { useDashboardReport } from '@/hooks/useReports'
 import { useTransactions } from '@/hooks/useTransactions'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { Badge } from '@/components/ui/badge'
 import { Skeleton } from '@/components/ui/skeleton'
-import { TrendingUp, TrendingDown, XCircle, BarChart3, ArrowRight } from 'lucide-react'
+import { TrendingUp, TrendingDown, XCircle, BarChart3 } from 'lucide-react'
 import { useTranslations } from 'next-intl'
+import {
+  BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip,
+  ResponsiveContainer, Cell, PieChart, Pie, Legend,
+} from 'recharts'
 import type { Transaction } from '@/types/transaction'
+import { usePermission } from '@/hooks/usePermission'
+import { ForbiddenPage } from '@/components/shared/ForbiddenPage'
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 
 function todayRange() {
   const d = new Date()
-  const from = new Date(d.getFullYear(), d.getMonth(), d.getDate())
-  const to = new Date(d.getFullYear(), d.getMonth(), d.getDate(), 23, 59, 59, 999)
-  return { from: from.toISOString(), to: to.toISOString() }
+  return {
+    from: new Date(d.getFullYear(), d.getMonth(), d.getDate()).toISOString(),
+    to:   new Date(d.getFullYear(), d.getMonth(), d.getDate(), 23, 59, 59, 999).toISOString(),
+  }
 }
 
-function formatKip(n: number) {
-  return n.toLocaleString('lo-LA') + ' ₭'
+function formatKip(n: number) { return n.toLocaleString('lo-LA') + ' ₭' }
+
+function fmtAxisKip(n: number) {
+  if (n >= 1_000_000_000) return (n / 1_000_000_000).toFixed(1) + 'B'
+  if (n >= 1_000_000)     return (n / 1_000_000).toFixed(0) + 'M'
+  if (n >= 1_000)         return (n / 1_000).toFixed(0) + 'K'
+  return String(n)
 }
 
-function formatTime(iso: string) {
-  return new Date(iso).toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' })
-}
-
-const TYPE_STYLE: Record<string, string> = {
-  SellGold:        'bg-green-100/80 text-green-700 dark:bg-green-950/40 dark:text-green-400',
-  SellSilver:      'bg-teal-100/80 text-teal-700 dark:bg-teal-950/40 dark:text-teal-400',
-  BuyGold:         'bg-blue-100/80 text-blue-700 dark:bg-blue-950/40 dark:text-blue-400',
-  BuyMoreGold:     'bg-blue-100/80 text-blue-700 dark:bg-blue-950/40 dark:text-blue-400',
-  ExchangeGold:    'bg-amber-100/80 text-amber-700 dark:bg-amber-950/40 dark:text-amber-400',
-  ExchangeFree:    'bg-amber-100/80 text-amber-700 dark:bg-amber-950/40 dark:text-amber-400',
-  ExchangeToMoney: 'bg-indigo-100/80 text-indigo-700 dark:bg-indigo-950/40 dark:text-indigo-400',
-  ExchangeCurrency:'bg-violet-100/80 text-violet-700 dark:bg-violet-950/40 dark:text-violet-400',
+const TYPE_COLORS: Record<string, string> = {
+  SellGold:        '#22c55e',
+  SellSilver:      '#14b8a6',
+  BuyGold:         '#3b82f6',
+  ExchangeGold:    '#f59e0b',
+  ExchangeCurrency:'#8b5cf6',
+  BuyMoreGold:     '#0ea5e9',
+  ExchangeFree:    '#d97706',
+  ExchangeToMoney: '#6366f1',
 }
 
 // ── Sub-components ────────────────────────────────────────────────────────────
@@ -74,56 +80,191 @@ function StatSkeleton() {
   )
 }
 
-function TxRowSkeleton() {
+function ChartSkeleton({ height = 260 }: { height?: number }) {
   return (
-    <div className="flex items-center gap-3 px-4 py-3 border-b last:border-0">
-      <Skeleton className="h-4 w-28 shrink-0" />
-      <Skeleton className="h-5 w-20 rounded-full shrink-0" />
-      <Skeleton className="h-4 flex-1" />
-      <Skeleton className="h-5 w-16 rounded-full shrink-0" />
-      <Skeleton className="h-4 w-24 shrink-0" />
-      <Skeleton className="h-3 w-12 shrink-0" />
+    <div className="flex items-end gap-2 px-2" style={{ height }}>
+      {[60, 90, 40, 75, 55, 85, 45, 70].map((h, i) => (
+        <Skeleton key={i} className="flex-1 rounded-t-sm" style={{ height: `${h}%` }} />
+      ))}
     </div>
   )
 }
 
-function TxRow({ tx, typeLabel, statusLabel, statusVariant }: {
-  tx: Transaction
-  typeLabel: string
-  statusLabel: string
-  statusVariant: 'default' | 'secondary' | 'destructive' | 'outline'
+// ── Chart 1: Tài chính tổng quan ─────────────────────────────────────────────
+
+function FinancialOverviewChart({
+  revenue, purchase, profit, loading,
+}: {
+  revenue: number; purchase: number; profit: number; loading: boolean
 }) {
+  const data = [
+    { name: 'Doanh thu',  value: revenue,  fill: '#22c55e' },
+    { name: 'Chi mua vào', value: purchase, fill: '#f97316' },
+    { name: 'Lãi gộp',    value: profit,   fill: '#6366f1' },
+  ]
+
   return (
-    <div className="flex items-center gap-3 px-4 py-3 border-b last:border-0 text-sm hover:bg-muted/30 transition-colors">
-      <span className="font-mono text-xs text-muted-foreground w-28 shrink-0 truncate">
-        {tx.invoiceCode ?? `#${tx.id.slice(0, 8).toUpperCase()}`}
-      </span>
-      <span className={`shrink-0 rounded-full px-2 py-0.5 text-[11px] font-semibold ${TYPE_STYLE[tx.type] ?? 'bg-secondary text-secondary-foreground'}`}>
-        {typeLabel}
-      </span>
-      <span className="flex-1 truncate text-xs text-muted-foreground">
-        {tx.cashierName}
-      </span>
-      <Badge variant={statusVariant} className="shrink-0 text-[11px]">{statusLabel}</Badge>
-      <span className="font-semibold tabular-nums shrink-0">
-        {formatKip(tx.totalAmount ?? 0)}
-      </span>
-      <span className="text-[11px] text-muted-foreground shrink-0 w-11 text-right">
-        {formatTime(tx.transactedAt)}
-      </span>
-    </div>
+    <Card className="flex flex-col">
+      <CardHeader className="pb-2">
+        <CardTitle className="text-sm font-semibold">Tài chính hôm nay</CardTitle>
+      </CardHeader>
+      <CardContent className="flex-1 pt-0">
+        {loading ? (
+          <ChartSkeleton height={220} />
+        ) : (
+          <ResponsiveContainer width="100%" height={220}>
+            <BarChart data={data} margin={{ top: 4, right: 8, left: 0, bottom: 0 }}>
+              <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" />
+              <XAxis dataKey="name" tick={{ fontSize: 11 }} />
+              <YAxis tickFormatter={fmtAxisKip} tick={{ fontSize: 11 }} width={52} />
+              <Tooltip
+                formatter={(v) => [formatKip(v as number), '']}
+                contentStyle={{ fontSize: 12, borderRadius: 8 }}
+              />
+              <Bar dataKey="value" radius={[4, 4, 0, 0]} maxBarSize={72}>
+                {data.map((d, i) => <Cell key={i} fill={d.fill} />)}
+              </Bar>
+            </BarChart>
+          </ResponsiveContainer>
+        )}
+      </CardContent>
+    </Card>
+  )
+}
+
+// ── Chart 2: Cơ cấu loại giao dịch (Donut) ───────────────────────────────────
+
+function TypeDistributionChart({
+  transactions, typeLabels, loading,
+}: {
+  transactions: Transaction[]; typeLabels: Record<string, string>; loading: boolean
+}) {
+  const counts = transactions
+    .filter(tx => tx.status === 'Completed')
+    .reduce((acc, tx) => { acc[tx.type] = (acc[tx.type] ?? 0) + 1; return acc }, {} as Record<string, number>)
+
+  const data = Object.entries(counts).map(([type, count]) => ({
+    name:  typeLabels?.[type] ?? type,
+    value: count,
+    fill:  TYPE_COLORS[type] ?? '#94a3b8',
+  }))
+
+  const total = data.reduce((s, d) => s + d.value, 0)
+
+  return (
+    <Card className="flex flex-col">
+      <CardHeader className="pb-2">
+        <CardTitle className="text-sm font-semibold">Cơ cấu giao dịch</CardTitle>
+      </CardHeader>
+      <CardContent className="flex-1 pt-0">
+        {loading ? (
+          <div className="flex items-center justify-center" style={{ height: 220 }}>
+            <Skeleton className="h-36 w-36 rounded-full" />
+          </div>
+        ) : data.length === 0 ? (
+          <div className="flex items-center justify-center h-55 text-sm text-muted-foreground">
+            Chưa có dữ liệu
+          </div>
+        ) : (
+          <div className="relative">
+            <ResponsiveContainer width="100%" height={220}>
+              <PieChart>
+                <Pie
+                  data={data}
+                  cx="50%" cy="50%"
+                  innerRadius={60} outerRadius={90}
+                  dataKey="value"
+                  paddingAngle={2}
+                >
+                  {data.map((d, i) => <Cell key={i} fill={d.fill} />)}
+                </Pie>
+                <Tooltip
+                  formatter={(v, name) => [`${v} GD`, name as string]}
+                  contentStyle={{ fontSize: 12, borderRadius: 8 }}
+                />
+                <Legend
+                  iconType="circle" iconSize={8}
+                  wrapperStyle={{ fontSize: 11, paddingTop: 8 }}
+                />
+              </PieChart>
+            </ResponsiveContainer>
+            {/* Center label */}
+            <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none" style={{ top: -20 }}>
+              <p className="text-2xl font-bold tabular-nums leading-none">{total}</p>
+              <p className="text-[10px] text-muted-foreground mt-0.5">giao dịch</p>
+            </div>
+          </div>
+        )}
+      </CardContent>
+    </Card>
+  )
+}
+
+// ── Chart 3: Doanh thu theo loại giao dịch ────────────────────────────────────
+
+function RevenueByTypeChart({
+  transactions, typeLabels, loading,
+}: {
+  transactions: Transaction[]; typeLabels: Record<string, string>; loading: boolean
+}) {
+  const revenue = transactions
+    .filter(tx => tx.status === 'Completed')
+    .reduce((acc, tx) => {
+      acc[tx.type] = (acc[tx.type] ?? 0) + (tx.totalAmount ?? 0)
+      return acc
+    }, {} as Record<string, number>)
+
+  const data = Object.entries(revenue)
+    .map(([type, amount]) => ({
+      name:   typeLabels?.[type] ?? type,
+      value:  amount,
+      fill:   TYPE_COLORS[type] ?? '#94a3b8',
+    }))
+    .sort((a, b) => b.value - a.value)
+
+  return (
+    <Card>
+      <CardHeader className="pb-2">
+        <CardTitle className="text-sm font-semibold">Doanh thu theo loại giao dịch</CardTitle>
+      </CardHeader>
+      <CardContent className="pt-0">
+        {loading ? (
+          <ChartSkeleton height={200} />
+        ) : data.length === 0 ? (
+          <div className="flex items-center justify-center h-50 text-sm text-muted-foreground">
+            Chưa có dữ liệu
+          </div>
+        ) : (
+          <ResponsiveContainer width="100%" height={200}>
+            <BarChart data={data} layout="vertical" margin={{ top: 0, right: 16, left: 0, bottom: 0 }}>
+              <CartesianGrid strokeDasharray="3 3" horizontal={false} stroke="var(--border)" />
+              <XAxis type="number" tickFormatter={fmtAxisKip} tick={{ fontSize: 11 }} />
+              <YAxis type="category" dataKey="name" width={110} tick={{ fontSize: 11 }} />
+              <Tooltip
+                formatter={(v) => [formatKip(v as number), 'Doanh thu']}
+                contentStyle={{ fontSize: 12, borderRadius: 8 }}
+              />
+              <Bar dataKey="value" radius={[0, 4, 4, 0]} maxBarSize={24}>
+                {data.map((d, i) => <Cell key={i} fill={d.fill} />)}
+              </Bar>
+            </BarChart>
+          </ResponsiveContainer>
+        )}
+      </CardContent>
+    </Card>
   )
 }
 
 // ── Page ─────────────────────────────────────────────────────────────────────
 
 export default function DashboardPage() {
-  const t = useTranslations('admin.dashboard')
+  const { hasPermission } = usePermission()
+  const t       = useTranslations('admin.dashboard')
   const tOrders = useTranslations('admin.orders')
 
   const range = todayRange()
   const { data: stats, isLoading: statsLoading } = useDashboardReport(range)
-  const { data: txPage, isLoading: txLoading } = useTransactions({ limit: 10 } as Parameters<typeof useTransactions>[0])
+  const { data: txPage, isLoading: txLoading }   = useTransactions({ ...range, limit: 50 } as Parameters<typeof useTransactions>[0])
 
   const transactions: Transaction[] = Array.isArray(txPage)
     ? txPage
@@ -132,7 +273,8 @@ export default function DashboardPage() {
   const grossProfit = (stats?.totalRevenue ?? 0) - (stats?.totalPurchase ?? 0)
 
   const typeLabels = tOrders.raw('transactionTypes') as Record<string, string>
-  const statusMap = tOrders.raw('transactionStatuses') as Record<string, { label: string; variant: 'default' | 'secondary' | 'destructive' | 'outline' }>
+
+  if (!hasPermission('REPORT_DASHBOARD')) return <ForbiddenPage />
 
   return (
     <div className="p-6 space-y-6">
@@ -146,50 +288,38 @@ export default function DashboardPage() {
         <StatSkeleton />
       ) : (
         <div className="grid grid-cols-2 xl:grid-cols-4 gap-4">
-          <StatCard label={t('stats.totalRevenue')}  value={formatKip(stats?.totalRevenue ?? 0)}  icon={TrendingUp}   iconClass="text-green-500" />
-          <StatCard label={t('stats.totalPurchase')} value={formatKip(stats?.totalPurchase ?? 0)} icon={TrendingDown}  iconClass="text-orange-500" />
-          <StatCard label={t('stats.grossProfit')}   value={formatKip(grossProfit)}               icon={BarChart3}    iconClass="text-primary" />
-          <StatCard label={t('stats.cancelledCount')}value={stats?.cancelledCount ?? 0}           icon={XCircle}      iconClass="text-destructive" />
+          <StatCard label={t('stats.totalRevenue')}   value={formatKip(stats?.totalRevenue ?? 0)}  icon={TrendingUp}  iconClass="text-green-500" />
+          <StatCard label={t('stats.totalPurchase')}  value={formatKip(stats?.totalPurchase ?? 0)} icon={TrendingDown} iconClass="text-orange-500" />
+          <StatCard label={t('stats.grossProfit')}    value={formatKip(grossProfit)}               icon={BarChart3}   iconClass="text-primary" />
+          <StatCard label={t('stats.cancelledCount')} value={stats?.cancelledCount ?? 0}           icon={XCircle}     iconClass="text-destructive" />
         </div>
       )}
 
-      {/* ── Recent transactions ── */}
-      <Card>
-        <CardHeader className="flex flex-row items-center justify-between py-3 px-4">
-          <CardTitle className="text-sm font-semibold">{t('recentTitle')}</CardTitle>
-          <Link
-            href="/admin/orders"
-            className="flex items-center gap-1 text-xs text-muted-foreground hover:text-primary transition-colors"
-          >
-            {t('viewAll')} <ArrowRight className="h-3 w-3" />
-          </Link>
-        </CardHeader>
+      {/* ── Charts row ── */}
+      <div className="grid grid-cols-1 lg:grid-cols-5 gap-4">
+        <div className="lg:col-span-3">
+          <FinancialOverviewChart
+            revenue={stats?.totalRevenue ?? 0}
+            purchase={stats?.totalPurchase ?? 0}
+            profit={grossProfit}
+            loading={statsLoading}
+          />
+        </div>
+        <div className="lg:col-span-2">
+          <TypeDistributionChart
+            transactions={transactions}
+            typeLabels={typeLabels}
+            loading={txLoading}
+          />
+        </div>
+      </div>
 
-        {txLoading ? (
-          <div>
-            {[0, 1, 2, 3, 4].map((i) => <TxRowSkeleton key={i} />)}
-          </div>
-        ) : transactions.length === 0 ? (
-          <CardContent>
-            <p className="text-center py-8 text-muted-foreground text-sm">{t('empty')}</p>
-          </CardContent>
-        ) : (
-          <div>
-            {transactions.slice(0, 10).map((tx) => {
-              const statusInfo = statusMap?.[tx.status]
-              return (
-                <TxRow
-                  key={tx.id}
-                  tx={tx}
-                  typeLabel={typeLabels?.[tx.type] ?? tx.type}
-                  statusLabel={statusInfo?.label ?? tx.status}
-                  statusVariant={statusInfo?.variant ?? 'secondary'}
-                />
-              )
-            })}
-          </div>
-        )}
-      </Card>
+      {/* ── Revenue by type ── */}
+      <RevenueByTypeChart
+        transactions={transactions}
+        typeLabels={typeLabels}
+        loading={txLoading}
+      />
     </div>
   )
 }

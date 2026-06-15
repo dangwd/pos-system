@@ -18,6 +18,7 @@ import type { Transaction } from '@/types/transaction'
 export function useExchangeInvoiceLookup() {
   const [query, setQuery] = useState('')
   const [debouncedQuery, setDebouncedQuery] = useState('')
+  const [isSelecting, setIsSelecting] = useState(false)
 
   useEffect(() => {
     const timer = setTimeout(() => setDebouncedQuery(query.trim()), 400)
@@ -38,17 +39,22 @@ export function useExchangeInvoiceLookup() {
     staleTime: 60_000,
   })
 
-  const { tab, setLinkedInvoice, clearLinkedInvoice } = useActiveTab()
+  const { tab, setLinkedInvoice, clearLinkedInvoice, setCustomer } = useActiveTab()
 
   // limit mode → Transaction[]; paged mode → { data: Transaction[] }
   const results: Transaction[] = Array.isArray(searchResult)
     ? searchResult
     : ((searchResult as unknown as { data?: Transaction[] })?.data ?? [])
 
-  const selectInvoice = (transaction: Transaction) => {
+  const selectInvoice = async (transaction: Transaction) => {
     if (!priceConfig) return
+    setIsSelecting(true)
+    try {
+    // Fetch full detail so item.productId (Product entity ID) is available —
+    // the list endpoint does not include productId on items.
+    const detail = await transactionRepository.getById(transaction.id)
 
-    const exchangeItems: CartItem[] = transaction.items.map(item => {
+    const exchangeItems: CartItem[] = detail.items.map(item => {
       // Tìm PriceItem khớp — dùng buyPrice cho ExchangeIn
       const priceItem = priceConfig.items[0]
       const gramPerUnit = priceItem?.gramPerUnit ?? 3.75
@@ -77,15 +83,24 @@ export function useExchangeInvoiceLookup() {
       }
     })
 
-    setLinkedInvoice(transaction.invoiceCode, exchangeItems)
+    setLinkedInvoice(detail.invoiceCode, exchangeItems)
+
+    // Tự động điền khách hàng từ hóa đơn gốc
+    if (detail.customer) {
+      setCustomer(detail.customer.id, detail.customer.name, detail.customer.phoneNumber)
+    }
+
     setQuery('')
+    } finally {
+      setIsSelecting(false)
+    }
   }
 
   return {
     query,
     setQuery,
     results,
-    isFetching,
+    isFetching: isFetching || isSelecting,
     linkedCode: tab?.linkedInvoiceCode ?? null,
     selectInvoice,
     clearLinkedInvoice,

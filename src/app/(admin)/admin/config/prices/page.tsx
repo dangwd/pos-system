@@ -1,17 +1,22 @@
 'use client'
 
+import { usePermission } from '@/hooks/usePermission'
+import { ForbiddenPage } from '@/components/shared/ForbiddenPage'
 import { useMemo, useState } from 'react'
 import { useTranslations } from 'next-intl'
-import { Pencil } from 'lucide-react'
+import { Pencil, Plus, History } from 'lucide-react'
 import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
+import { NumberInput } from '@/components/ui/number-input'
 import { Spinner } from '@/components/ui/spinner'
 import { Badge } from '@/components/ui/badge'
 import { TablePageSkeleton } from '@/components/shared/PageSkeleton'
+import { PriceRowAddDialog } from '@/components/admin/config/PriceRowAddDialog'
+import { PriceComparison } from '@/components/admin/config/PriceComparison'
+import { PriceHistory } from '@/components/admin/config/PriceHistory'
 import { useConfigPrices, useUpdatePrices } from '@/hooks/useConfig'
 import { useUser } from '@/hooks/useUsers'
 import { useAuthStore } from '@/stores/auth.store'
-import type { PriceItemDto, PriceItem } from '@/types/config'
+import type { PriceItemDto, PriceItem, GoldPurity, WeightUnit } from '@/types/config'
 
 function formatKip(n: number) {
   return n.toLocaleString('lo-LA') + ' ₭'
@@ -42,9 +47,13 @@ function buildFormRows(items: PriceItem[]): FormRow[] {
 }
 
 export default function PricesPage() {
+  const { hasPermission } = usePermission()
   const t = useTranslations('admin.config.prices')
   const [editing, setEditing] = useState(false)
   const [rows, setRows] = useState<FormRow[]>([])
+  const [addOpen, setAddOpen] = useState(false)
+  const [comparing, setComparing] = useState(false)
+  const [viewingHistory, setViewingHistory] = useState(false)
 
   const { data: prices, isLoading } = useConfigPrices()
   const { mutate: update, isPending } = useUpdatePrices()
@@ -67,11 +76,53 @@ export default function PricesPage() {
 
   function startEdit() {
     setRows(buildFormRows(prices?.items ?? []))
+    setComparing(false)
+    setViewingHistory(false)
     setEditing(true)
   }
 
   function setCell(idx: number, field: 'buyPrice' | 'sellPrice', value: string) {
     setRows((r) => r.map((row, i) => i === idx ? { ...row, [field]: value } : row))
+  }
+
+  // Mở dialog thêm dòng — vào chế độ sửa nếu chưa
+  function openAddDialog() {
+    if (!editing) startEdit()
+    setAddOpen(true)
+  }
+
+  function openHistory() {
+    setEditing(false)
+    setComparing(false)
+    setViewingHistory(true)
+  }
+
+  // Các tổ hợp (hàm lượng × đơn vị) đã có — để dialog loại trùng
+  const existingKeys = useMemo(
+    () => new Set(rows.map((r) => `${r.goldPurityId}:${r.weightUnitId}`)),
+    [rows],
+  )
+
+  function handleAddRow(
+    category: 'Gold' | 'Silver',
+    purity: GoldPurity,
+    unit: WeightUnit,
+    buyPrice: string,
+    sellPrice: string,
+  ) {
+    setRows((r) => [
+      ...r,
+      {
+        goldPurityId: purity.id,
+        purityCode: purity.ma,
+        category,
+        weightUnitId: unit.id,
+        weightUnitCode: unit.maTocDoc,
+        gramPerUnit: unit.gramPerUnit,
+        buyPrice,
+        sellPrice,
+      },
+    ])
   }
 
   function handleSubmit() {
@@ -81,9 +132,16 @@ export default function PricesPage() {
       buyPrice: Number(r.buyPrice) || 0,
       sellPrice: Number(r.sellPrice) || 0,
     }))
-    update({ items }, { onSuccess: () => setEditing(false) })
+    update({ items }, {
+      onSuccess: () => {
+        setEditing(false)
+        setComparing(true)
+      },
+    })
   }
 
+
+  if (!hasPermission('CONFIG_PRICE')) return <ForbiddenPage />
   return (
     <div className="p-6 space-y-5">
       <div className="flex items-start justify-between">
@@ -91,15 +149,31 @@ export default function PricesPage() {
           <h1 className="text-2xl font-bold">{t('title')}</h1>
           <p className="text-muted-foreground text-sm">{t('subtitle')}</p>
         </div>
-        {!editing && (
-          <Button size="sm" variant="outline" onClick={startEdit} disabled={isLoading || !prices?.items.length}>
-            <Pencil className="h-3.5 w-3.5 mr-1.5" />
-            {t('updateButton')}
-          </Button>
+        {!comparing && !viewingHistory && (
+          <div className="flex gap-2">
+            <Button size="sm" variant="outline" onClick={openHistory} disabled={isLoading}>
+              <History className="h-3.5 w-3.5 mr-1.5" />
+              {t('historyButton')}
+            </Button>
+            <Button size="sm" variant="outline" onClick={openAddDialog} disabled={isLoading}>
+              <Plus className="h-3.5 w-3.5 mr-1.5" />
+              {t('addRowButton')}
+            </Button>
+            {!editing && (
+              <Button size="sm" variant="outline" onClick={startEdit} disabled={isLoading || !prices?.items.length}>
+                <Pencil className="h-3.5 w-3.5 mr-1.5" />
+                {t('updateButton')}
+              </Button>
+            )}
+          </div>
         )}
       </div>
 
-      {isLoading ? <TablePageSkeleton cols={5} rows={4} /> : (
+      {comparing ? (
+        <PriceComparison onClose={() => setComparing(false)} />
+      ) : viewingHistory ? (
+        <PriceHistory onClose={() => setViewingHistory(false)} />
+      ) : isLoading ? <TablePageSkeleton cols={5} rows={4} /> : (
         <>
           {prices && (
             <p className="text-xs text-muted-foreground">
@@ -150,20 +224,18 @@ export default function PricesPage() {
                     {editing ? (
                       <>
                         <td className="px-4 py-2">
-                          <Input
-                            type="number"
-                            min="0"
+                          <NumberInput
+                            min={0}
                             value={row.buyPrice}
-                            onChange={(e) => setCell(idx, 'buyPrice', e.target.value)}
+                            onChange={(v) => setCell(idx, 'buyPrice', v)}
                             className="h-7 text-right text-xs w-full"
                           />
                         </td>
                         <td className="px-4 py-2">
-                          <Input
-                            type="number"
-                            min="0"
+                          <NumberInput
+                            min={0}
                             value={row.sellPrice}
-                            onChange={(e) => setCell(idx, 'sellPrice', e.target.value)}
+                            onChange={(v) => setCell(idx, 'sellPrice', v)}
                             className="h-7 text-right text-xs w-full"
                           />
                         </td>
@@ -182,7 +254,7 @@ export default function PricesPage() {
                     )}
                   </tr>
                 ))}
-                {currentRows.length === 0 && (
+                {(editing ? rows : currentRows).length === 0 && (
                   <tr>
                     <td colSpan={5} className="px-4 py-8 text-center text-muted-foreground text-xs">
                       {t('noPurities')}
@@ -206,6 +278,13 @@ export default function PricesPage() {
           )}
         </>
       )}
+
+      <PriceRowAddDialog
+        open={addOpen}
+        existingKeys={existingKeys}
+        onAdd={handleAddRow}
+        onClose={() => setAddOpen(false)}
+      />
     </div>
   )
 }

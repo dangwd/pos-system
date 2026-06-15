@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useLogout } from "@/hooks/useAuth";
 import { LocaleSwitcher } from "@/components/shared/LocaleSwitcher";
 import {
@@ -18,7 +18,6 @@ import {
   ArrowLeftRight,
   ArrowUpFromLine,
   BarChart3,
-  Boxes,
   Building2,
   ChevronDown,
   ClipboardList,
@@ -38,6 +37,7 @@ import {
   UserCog,
   Users,
   Wallet,
+  type LucideIcon,
 } from "lucide-react";
 import { AnimatePresence, motion } from "motion/react";
 import { useTranslations } from "next-intl";
@@ -55,6 +55,10 @@ function getInitials(name: string | undefined | null) {
     .slice(0, 2);
 }
 
+type NavChild = { href: string; label: string };
+type NavItem = { href: string; label: string; icon: LucideIcon; children?: NavChild[] };
+type NavGroup = { label: string | null; items: NavItem[] };
+
 export default function AdminLayout({
   children,
 }: {
@@ -70,8 +74,9 @@ export default function AdminLayout({
   const [collapsed, setCollapsed] = useState(false);
   const [search, setSearch] = useState("");
   const [openGroups, setOpenGroups] = useState<Set<number>>(() => new Set([0, 1, 2, 3, 4, 5]));
+  const [expandedItems, setExpandedItems] = useState<Set<string>>(() => new Set());
 
-  const NAV_GROUPS = useMemo(
+  const NAV_GROUPS = useMemo<NavGroup[]>(
     () => [
       {
         label: null as string | null,
@@ -98,9 +103,8 @@ export default function AdminLayout({
       {
         label: t("nav.groupWarehouse"),
         items: [
-          { href: "/admin/inventory", label: t("nav.inventory"), icon: Boxes },
-          { href: "/admin/stock-in", label: t("nav.stockIn"), icon: ArrowDownToLine },
-          { href: "/admin/stock-out", label: t("nav.stockOut"), icon: ArrowUpFromLine },
+          { href: "/admin/inventory/stock-in", label: t("nav.stockIn"), icon: ArrowDownToLine },
+          { href: "/admin/inventory/stock-out", label: t("nav.stockOut"), icon: ArrowUpFromLine },
         ],
       },
       {
@@ -108,7 +112,13 @@ export default function AdminLayout({
         items: [
           { href: "/admin/trade", label: t("nav.trade"), icon: ArrowLeftRight },
           { href: "/admin/cash-ledger", label: t("nav.cashLedger"), icon: Wallet },
-          { href: "/admin/reports", label: t("nav.reports"), icon: BarChart3 },
+          {
+            href: "/admin/reports", label: t("nav.reports"), icon: BarChart3,
+            children: [
+              { href: "/admin/reports/inventory", label: t("nav.reportInventory") },
+              { href: "/admin/reports/revenue", label: t("nav.reportRevenue") },
+            ],
+          },
         ],
       },
       {
@@ -124,6 +134,26 @@ export default function AdminLayout({
     ],
     [t],
   );
+
+  // Tự mở mục cha khi điều hướng vào một mục con của nó (vẫn cho phép đóng tay).
+  useEffect(() => {
+    setExpandedItems((prev) => {
+      const next = new Set(prev);
+      let changed = false;
+      for (const g of NAV_GROUPS) {
+        for (const it of g.items) {
+          const inSection = it.children?.some(
+            (c) => pathname === c.href || pathname.startsWith(c.href + "/"),
+          );
+          if (inSection && !next.has(it.href)) {
+            next.add(it.href);
+            changed = true;
+          }
+        }
+      }
+      return changed ? next : prev;
+    });
+  }, [pathname, NAV_GROUPS]);
 
   const filteredGroups = useMemo(() => {
     if (!search.trim()) return NAV_GROUPS;
@@ -238,7 +268,90 @@ export default function AdminLayout({
                       className="overflow-hidden"
                     >
                       <div className="space-y-0.5 pt-0.5">
-                        {group.items.map(({ href, label, icon: Icon }) => {
+                        {group.items.map(({ href, label, icon: Icon, children }) => {
+                          // ── Mục cha có submenu: chỉ toggle đóng/mở, KHÔNG điều hướng ──
+                          if (children && children.length) {
+                            const childActive = children.some(
+                              (c) => pathname === c.href || pathname.startsWith(c.href + "/"),
+                            );
+                            const open = expandedItems.has(href);
+                            return (
+                              <div key={href}>
+                                <button
+                                  type="button"
+                                  onClick={() =>
+                                    setExpandedItems((prev) => {
+                                      const next = new Set(prev);
+                                      if (next.has(href)) next.delete(href);
+                                      else next.add(href);
+                                      return next;
+                                    })
+                                  }
+                                  title={collapsed ? label : undefined}
+                                  className={cn(
+                                    "w-full flex items-center gap-2.5 px-2.5 py-2 rounded-md text-sm font-medium transition-colors",
+                                    collapsed && "justify-center px-2",
+                                    childActive
+                                      ? "text-sidebar-accent-foreground"
+                                      : "text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground",
+                                  )}
+                                >
+                                  <Icon className="h-4 w-4 shrink-0" />
+                                  {!collapsed && <span className="flex-1 text-left">{label}</span>}
+                                  {!collapsed && (
+                                    <ChevronDown
+                                      className={cn(
+                                        "h-3.5 w-3.5 shrink-0 transition-transform duration-200",
+                                        open && "rotate-180",
+                                      )}
+                                    />
+                                  )}
+                                </button>
+
+                                <AnimatePresence initial={false}>
+                                  {open && !collapsed && (
+                                    <motion.div
+                                      key="subitems"
+                                      initial={{ height: 0, opacity: 0 }}
+                                      animate={{ height: "auto", opacity: 1 }}
+                                      exit={{ height: 0, opacity: 0 }}
+                                      transition={{ duration: 0.2, ease: "easeInOut" }}
+                                      className="overflow-hidden"
+                                    >
+                                      <div className="mt-0.5 ml-[1.35rem] pl-3 border-l border-sidebar-border space-y-0.5">
+                                        {children.map((c) => {
+                                          const cActive = pathname === c.href || pathname.startsWith(c.href + "/");
+                                          return (
+                                            <Link
+                                              key={c.href}
+                                              href={c.href}
+                                              className={cn(
+                                                "relative flex items-center px-2.5 py-1.5 rounded-md text-[13px] font-medium transition-colors",
+                                                cActive
+                                                  ? "text-sidebar-primary-foreground"
+                                                  : "text-sidebar-foreground/80 hover:bg-sidebar-accent hover:text-sidebar-accent-foreground",
+                                              )}
+                                            >
+                                              {cActive && (
+                                                <motion.div
+                                                  layoutId="nav-highlight"
+                                                  className="absolute inset-0 rounded-md bg-sidebar-primary pointer-events-none"
+                                                  transition={{ type: "spring", stiffness: 380, damping: 32 }}
+                                                />
+                                              )}
+                                              <span className="relative">{c.label}</span>
+                                            </Link>
+                                          );
+                                        })}
+                                      </div>
+                                    </motion.div>
+                                  )}
+                                </AnimatePresence>
+                              </div>
+                            );
+                          }
+
+                          // ── Mục thường: link điều hướng ──
                           const isActive = pathname === href || pathname.startsWith(href + "/");
                           return (
                             <Link

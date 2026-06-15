@@ -57,9 +57,18 @@ export function useUpdatePrices() {
     mutationFn: (dto) => configRepository.updatePrices(dto),
     onSuccess: () => {
       invalidate(PRICES_KEY)
-      toast.success(locale === 'lo' ? 'ອັບເດດລາຄາສຳເລັດ' : locale === 'vi' ? 'Cập nhật bảng giá thành công' : 'Prices updated')
+      toast.success(locale === 'lo' ? 'ສ້າງຕາຕະລາງລາຄາສຳເລັດ' : locale === 'vi' ? 'Tạo bảng giá thành công' : 'Price table created')
     },
     onError: (err) => toast.error(getErrorMessage(err.code, locale)),
+  })
+}
+
+/** Lịch sử bảng giá (mới nhất trước) — dùng để so sánh bản vừa tạo với bản trước. */
+export function useConfigPriceHistory(limit = 2) {
+  return useQuery({
+    queryKey: [...PRICES_KEY, 'history', limit],
+    queryFn: () => configRepository.getPriceHistory(limit),
+    staleTime: 0,
   })
 }
 

@@ -1,11 +1,14 @@
 'use client'
 
+import { usePermission } from '@/hooks/usePermission'
+import { ForbiddenPage } from '@/components/shared/ForbiddenPage'
 import { useState } from 'react'
 import { useTranslations } from 'next-intl'
 import { Plus, Pencil, Trash2 } from 'lucide-react'
 import { Select } from 'antd'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
+import { NumberInput } from '@/components/ui/number-input'
 import { Badge } from '@/components/ui/badge'
 import { Spinner } from '@/components/ui/spinner'
 import { Dialog, DialogContent, DialogFooter } from '@/components/ui/dialog'
@@ -24,6 +27,7 @@ type DialogState = { mode: 'create' } | { mode: 'edit'; purity: GoldPurity } | n
 const EMPTY_FORM = { ma: '', hamLuong: '', category: 'Gold' as 'Gold' | 'Silver' }
 
 export default function GoldPuritiesPage() {
+  const { hasPermission } = usePermission()
   const t = useTranslations('admin.config.goldPurities')
   const [dialog, setDialog] = useState<DialogState>(null)
   const [form, setForm] = useState(EMPTY_FORM)
@@ -58,6 +62,8 @@ export default function GoldPuritiesPage() {
     }
   }
 
+
+  if (!hasPermission('CONFIG_GOLD_PURITY')) return <ForbiddenPage />
   return (
     <div className="p-6 space-y-4">
       <div className="flex items-start justify-between">
@@ -94,12 +100,22 @@ export default function GoldPuritiesPage() {
                     <td className="px-4 py-3 text-right">{p.hamLuong}%</td>
                     <td className="px-4 py-3 text-right">
                       <div className="flex justify-end gap-1">
-                        <Button size="icon" variant="ghost" className="h-7 w-7" onClick={() => openEdit(p)}>
+                        <button
+                          type="button"
+                          title={t('edit')}
+                          onClick={() => openEdit(p)}
+                          className="inline-flex h-7 w-7 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-accent hover:text-foreground"
+                        >
                           <Pencil className="h-3.5 w-3.5" />
-                        </Button>
-                        <Button size="icon" variant="ghost" className="h-7 w-7 text-destructive hover:text-destructive" onClick={() => remove(p.id)}>
+                        </button>
+                        <button
+                          type="button"
+                          title={t('delete')}
+                          onClick={() => remove(p.id)}
+                          className="inline-flex h-7 w-7 items-center justify-center rounded-md text-destructive transition-colors hover:bg-destructive/10"
+                        >
                           <Trash2 className="h-3.5 w-3.5" />
-                        </Button>
+                        </button>
                       </div>
                     </td>
                   </tr>
@@ -132,7 +148,7 @@ export default function GoldPuritiesPage() {
             <div className="grid grid-cols-2 gap-3">
               <Field>
                 <FieldLabel>{t('form.hamLuong')}</FieldLabel>
-                <Input type="number" min="0" max="100" step="0.01" value={form.hamLuong} onChange={(e) => setForm((f) => ({ ...f, hamLuong: e.target.value }))} placeholder="99.99" />
+                <NumberInput decimals={2} min={0} max={100} value={form.hamLuong} onChange={(v) => setForm((f) => ({ ...f, hamLuong: v }))} placeholder="99.99" />
               </Field>
               <Field>
                 <FieldLabel>{t('form.category')}</FieldLabel>

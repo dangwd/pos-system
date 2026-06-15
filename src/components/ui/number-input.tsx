@@ -1,0 +1,72 @@
+'use client'
+
+import React, { useEffect, useState } from 'react'
+import { cn } from '@/lib/utils'
+import { Input } from '@/components/ui/input'
+
+interface NumberInputProps extends Omit<
+  React.ComponentProps<typeof Input>,
+  'type' | 'onChange' | 'value'
+> {
+  value?: string | number
+  onChange?: (value: string) => void
+  /** Max decimal places. 0 = integers only (default) */
+  decimals?: number
+}
+
+function formatDisplay(raw: string, dec: number): string {
+  const s = raw.replace(/[^0-9.]/g, '')
+  if (!s) return ''
+  const n = parseFloat(s)
+  if (isNaN(n)) return s
+  return n.toLocaleString('en', { minimumFractionDigits: 0, maximumFractionDigits: dec })
+}
+
+export function NumberInput({
+  value = '',
+  onChange,
+  decimals = 0,
+  className,
+  onFocus,
+  onBlur,
+  ...props
+}: NumberInputProps) {
+  const [focused, setFocused] = useState(false)
+  const [raw, setRaw] = useState(() => String(value ?? ''))
+
+  useEffect(() => {
+    if (!focused) setRaw(String(value ?? ''))
+  }, [value, focused])
+
+  function handleChange(e: React.ChangeEvent<HTMLInputElement>) {
+    const v = decimals > 0
+      ? e.target.value.replace(/[^0-9.]/g, '')
+      : e.target.value.replace(/[^0-9]/g, '')
+    setRaw(v)
+    onChange?.(v)
+  }
+
+  function handleFocus(e: React.FocusEvent<HTMLInputElement>) {
+    setFocused(true)
+    requestAnimationFrame(() => e.target.select())
+    onFocus?.(e)
+  }
+
+  function handleBlur(e: React.FocusEvent<HTMLInputElement>) {
+    setFocused(false)
+    onBlur?.(e)
+  }
+
+  return (
+    <Input
+      {...props}
+      type="text"
+      inputMode={decimals > 0 ? 'decimal' : 'numeric'}
+      value={focused ? raw : formatDisplay(raw, decimals)}
+      onChange={handleChange}
+      onFocus={handleFocus}
+      onBlur={handleBlur}
+      className={cn('tabular-nums', className)}
+    />
+  )
+}

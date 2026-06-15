@@ -14,6 +14,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { type PaymentMethodKey } from "@/lib/strategies/payment.strategy";
+import { usePrintStore } from "@/stores/print.store";
 import type { Transaction } from "@/types/transaction";
 import { CheckCircle2, Printer, XCircle } from "lucide-react";
 import { useTranslations } from "next-intl";
@@ -41,6 +42,7 @@ export function Receipt({ open, transaction, onClose }: ReceiptProps) {
   const tMethods = useTranslations("pos.payment.methods");
   const [cancelOpen, setCancelOpen] = useState(false);
   const [isCancelled, setIsCancelled] = useState(false);
+  const openPrint = usePrintStore((s) => s.openPrint);
 
   if (!transaction) return null;
 
@@ -95,7 +97,7 @@ export function Receipt({ open, transaction, onClose }: ReceiptProps) {
                   {t("cancelInvoiceButton")}
                 </Button>
               )}
-              <Button variant="outline" onClick={() => window.print()}>
+              <Button variant="outline" onClick={() => openPrint(transaction)}>
                 <Printer className="h-4 w-4 mr-2" />
                 {t("printButton")}
               </Button>

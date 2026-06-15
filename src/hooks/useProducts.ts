@@ -116,6 +116,18 @@ export function useDeactivateProduct() {
   })
 }
 
+export function useActivateProduct() {
+  const { locale, t, invalidate } = useProductMutationBase()
+  return useMutation<void, ApiError, string>({
+    mutationFn: (id) => productRepository.activate(id),
+    onSuccess: () => {
+      invalidate()
+      toast.success(t('activateSuccess'))
+    },
+    onError: (err) => toast.error(getErrorMessage(err.code, locale)),
+  })
+}
+
 // ─── Category mutations ───────────────────────────────────────────────────────
 
 export function useCreateCategory() {

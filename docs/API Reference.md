@@ -1,7 +1,7 @@
-# API Reference — Khamphuvong POS
+# API Reference — Khamphouvong POS
 
-> Base URL: `https://<host>/api`  
-> Xác thực: **JWT Bearer Token** — gửi qua header `Authorization: Bearer <accessToken>`  
+> Base URL: `https://<host>/api`
+> Xác thực: **JWT Bearer Token** — gửi qua header `Authorization: Bearer <accessToken>`
 > Content-Type: `application/json`
 
 ---
@@ -210,11 +210,11 @@ DELETE /api/config/weight-units/{id}
 
 ### Phân quyền theo Role
 
-| Role | Mô tả |
-|---|---|
-| `Cashier` | Lập đơn bán/mua/đổi, xem lịch sử GD của mình |
-| `ThuQuy` | Mở/chốt quỹ, kiểm đếm tiền mặt, ghi thu–chi thủ công |
-| `Manager` | Duyệt/từ chối GD, cấu hình giá, xem báo cáo & lãi lỗ, quản lý kho |
+| Role          | Mô tả                                                             |
+| ------------- | ----------------------------------------------------------------- |
+| `Cashier`     | Lập đơn bán/mua/đổi, xem lịch sử GD của mình                      |
+| `ThuQuy`      | Mở/chốt quỹ, kiểm đếm tiền mặt, ghi thu–chi thủ công              |
+| `Manager`     | Duyệt/từ chối GD, cấu hình giá, xem báo cáo & lãi lỗ, quản lý kho |
 | `SystemAdmin` | Toàn quyền: quản lý tài khoản, phân quyền, cấu hình toàn hệ thống |
 
 ---
@@ -252,10 +252,10 @@ DELETE /api/config/weight-units/{id}
 
 **Lỗi:**
 
-| Mã lỗi | HTTP | Mô tả |
-|---|---|---|
-| `AUTH_INVALID_CREDENTIALS` | 401 | Sai mã nhân viên hoặc mật khẩu |
-| `AUTH_ACCOUNT_INACTIVE` | 403 | Tài khoản bị vô hiệu hoá |
+| Mã lỗi                     | HTTP | Mô tả                          |
+| -------------------------- | ---- | ------------------------------ |
+| `AUTH_INVALID_CREDENTIALS` | 401  | Sai mã nhân viên hoặc mật khẩu |
+| `AUTH_ACCOUNT_INACTIVE`    | 403  | Tài khoản bị vô hiệu hoá       |
 
 ---
 
@@ -284,9 +284,9 @@ Lấy access token mới từ refresh token.
 
 **Lỗi:**
 
-| Mã lỗi | HTTP | Mô tả |
-|---|---|---|
-| `AUTH_REFRESH_TOKEN_INVALID` | 401 | Refresh token không hợp lệ hoặc đã hết hạn |
+| Mã lỗi                       | HTTP | Mô tả                                      |
+| ---------------------------- | ---- | ------------------------------------------ |
+| `AUTH_REFRESH_TOKEN_INVALID` | 401  | Refresh token không hợp lệ hoặc đã hết hạn |
 
 ---
 
@@ -408,9 +408,9 @@ Tạo quầy giao dịch mới trong chi nhánh.
 
 **Response `200 OK`:** Object counter vừa tạo (cấu trúc giống GET).
 
-| Mã lỗi | HTTP | Mô tả |
-|---|---|---|
-| `BRANCH_NOT_FOUND` | 404 | Chi nhánh không tồn tại hoặc đã vô hiệu hóa |
+| Mã lỗi             | HTTP | Mô tả                                       |
+| ------------------ | ---- | ------------------------------------------- |
+| `BRANCH_NOT_FOUND` | 404  | Chi nhánh không tồn tại hoặc đã vô hiệu hóa |
 
 ---
 
@@ -422,9 +422,9 @@ Tạo quầy giao dịch mới trong chi nhánh.
 
 **Response `200 OK`:** Object counter đã cập nhật.
 
-| Mã lỗi | HTTP | Mô tả |
-|---|---|---|
-| `COUNTER_NOT_FOUND` | 404 | Quầy không tồn tại |
+| Mã lỗi              | HTTP | Mô tả              |
+| ------------------- | ---- | ------------------ |
+| `COUNTER_NOT_FOUND` | 404  | Quầy không tồn tại |
 
 ---
 
@@ -444,7 +444,14 @@ Các API danh sách lớn (`users`, `products`, `customers`, `inventory`, `trans
 - **Có `page`** (≥1) → trả về `PagedResult`:
 
 ```json
-{ "total": 137, "page": 2, "pageSize": 20, "data": [ /* … */ ] }
+{
+  "total": 137,
+  "page": 2,
+  "pageSize": 20,
+  "data": [
+    /* … */
+  ]
+}
 ```
 
 `pageSize` mặc định **20**. Tìm kiếm/lọc (`search`, `branchId`, …) áp dụng trước khi phân trang nên `total` là tổng **sau khi lọc**.
@@ -471,7 +478,7 @@ Các API danh sách lớn (`users`, `products`, `customers`, `inventory`, `trans
     "username": "NV001",
     "fullName": "Trần Văn Nhân Viên",
     "phone": "020-99998888",
-    "email": "nv001@khamphuvong.la",
+    "email": "nv001@Khamphouvong.la",
     "address": "Bản Phonxay, Vientiane",
     "dateOfBirth": "1995-03-20",
     "branchId": "3fa85f64-5717-4562-b3fc-2c963f66afa6",
@@ -486,7 +493,7 @@ Các API danh sách lớn (`users`, `products`, `customers`, `inventory`, `trans
 ]
 ```
 
-> `email`, `address`, `dateOfBirth`, `counterId`, `counterName` — trả về `null` nếu chưa được thiết lập.  
+> `email`, `address`, `dateOfBirth`, `counterId`, `counterName` — trả về `null` nếu chưa được thiết lập.
 > `GET /api/users/{id}` trả về cùng cấu trúc cho một người dùng.
 
 ---
@@ -505,7 +512,7 @@ Tạo tài khoản người dùng mới.
   "password": "Cashier@123",
   "branchId": "3fa85f64-5717-4562-b3fc-2c963f66afa6",
   "roleId": "3fa85f64-5717-4562-b3fc-2c963f66afa6",
-  "email": "ltbh@khamphuvong.la",
+  "email": "ltbh@Khamphouvong.la",
   "address": "123 Đường Setthathirath, Vientiane",
   "dateOfBirth": "1998-07-15",
   "counterId": "3fa85f64-5717-4562-b3fc-2c963f66afa6"
@@ -518,13 +525,13 @@ Tạo tài khoản người dùng mới.
 
 **Lỗi:**
 
-| Mã lỗi | HTTP | Mô tả |
-|---|---|---|
-| `USER_EMPLOYEE_CODE_DUPLICATE` | 422 | Mã nhân viên đã tồn tại |
-| `BRANCH_NOT_FOUND` | 404 | Chi nhánh không tồn tại |
-| `ROLE_NOT_FOUND` | 404 | Role không tồn tại |
-| `COUNTER_NOT_FOUND` | 404 | Quầy không tồn tại hoặc đã ngừng hoạt động |
-| `COUNTER_BRANCH_MISMATCH` | 422 | Quầy không thuộc chi nhánh của nhân viên |
+| Mã lỗi                         | HTTP | Mô tả                                      |
+| ------------------------------ | ---- | ------------------------------------------ |
+| `USER_EMPLOYEE_CODE_DUPLICATE` | 422  | Mã nhân viên đã tồn tại                    |
+| `BRANCH_NOT_FOUND`             | 404  | Chi nhánh không tồn tại                    |
+| `ROLE_NOT_FOUND`               | 404  | Role không tồn tại                         |
+| `COUNTER_NOT_FOUND`            | 404  | Quầy không tồn tại hoặc đã ngừng hoạt động |
+| `COUNTER_BRANCH_MISMATCH`      | 422  | Quầy không thuộc chi nhánh của nhân viên   |
 
 ---
 
@@ -539,7 +546,7 @@ Cập nhật thông tin người dùng.
   "fullName": "Tên mới",
   "phone": "020-33334444",
   "branchId": "3fa85f64-5717-4562-b3fc-2c963f66afa6",
-  "email": "email@khamphuvong.la",
+  "email": "email@Khamphouvong.la",
   "address": "456 Đường Lan Xang, Vientiane",
   "dateOfBirth": "1998-07-15"
 }
@@ -561,17 +568,17 @@ Phân công (hoặc gỡ) quầy giao dịch cho nhân viên.
 
 **Lỗi:**
 
-| Mã lỗi | HTTP | Mô tả |
-|---|---|---|
-| `USER_NOT_FOUND` | 404 | Người dùng không tồn tại |
-| `COUNTER_NOT_FOUND` | 404 | Quầy không tồn tại hoặc đã ngừng hoạt động |
-| `COUNTER_BRANCH_MISMATCH` | 422 | Quầy không thuộc chi nhánh của nhân viên |
+| Mã lỗi                    | HTTP | Mô tả                                      |
+| ------------------------- | ---- | ------------------------------------------ |
+| `USER_NOT_FOUND`          | 404  | Người dùng không tồn tại                   |
+| `COUNTER_NOT_FOUND`       | 404  | Quầy không tồn tại hoặc đã ngừng hoạt động |
+| `COUNTER_BRANCH_MISMATCH` | 422  | Quầy không thuộc chi nhánh của nhân viên   |
 
 ---
 
 ### `PATCH /api/users/{id}/role`
 
-Thay đổi role. **Request body:** `{ "roleId": "..." }`  **Response `204 No Content`.**
+Thay đổi role. **Request body:** `{ "roleId": "..." }` **Response `204 No Content`.**
 
 ### `PATCH /api/users/{id}/activate` / `PATCH /api/users/{id}/deactivate`
 
@@ -593,26 +600,26 @@ Kích hoạt / vô hiệu hoá tài khoản. **Response `204 No Content`.**
 
 #### `CustomerSummary` — dùng trong danh sách & chọn nhanh
 
-| Trường | Kiểu | Mô tả |
-|---|---|---|
-| `id` | `string (uuid)` | Mã định danh khách hàng |
-| `name` | `string` | Họ tên đầy đủ |
-| `phoneNumber` | `string` | Số điện thoại (rỗng nếu không có) |
-| `email` | `string \| null` | Email |
-| `loyaltyTier` | `"silver" \| "gold" \| "platinum"` | Hạng thành viên |
-| `accumulatedPoints` | `number` | Điểm tích lũy |
-| `isActive` | `boolean` | Trạng thái hoạt động |
-| `createdAt` | `string (ISO 8601)` | Thời điểm tạo (UTC) |
+| Trường              | Kiểu                               | Mô tả                             |
+| ------------------- | ---------------------------------- | --------------------------------- |
+| `id`                | `string (uuid)`                    | Mã định danh khách hàng           |
+| `name`              | `string`                           | Họ tên đầy đủ                     |
+| `phoneNumber`       | `string`                           | Số điện thoại (rỗng nếu không có) |
+| `email`             | `string \| null`                   | Email                             |
+| `loyaltyTier`       | `"silver" \| "gold" \| "platinum"` | Hạng thành viên                   |
+| `accumulatedPoints` | `number`                           | Điểm tích lũy                     |
+| `isActive`          | `boolean`                          | Trạng thái hoạt động              |
+| `createdAt`         | `string (ISO 8601)`                | Thời điểm tạo (UTC)               |
 
 #### `CustomerDetail` — dùng khi xem chi tiết / sau khi tạo / cập nhật
 
 Bao gồm tất cả trường của `CustomerSummary`, cộng thêm:
 
-| Trường | Kiểu | Mô tả |
-|---|---|---|
-| `address` | `string \| null` | Địa chỉ |
-| `dateOfBirth` | `string \| null` | Ngày sinh, định dạng `YYYY-MM-DD` |
-| `totalCompletedInvoices` | `number` | Tổng số hóa đơn đã hoàn thành |
+| Trường                   | Kiểu             | Mô tả                             |
+| ------------------------ | ---------------- | --------------------------------- |
+| `address`                | `string \| null` | Địa chỉ                           |
+| `dateOfBirth`            | `string \| null` | Ngày sinh, định dạng `YYYY-MM-DD` |
+| `totalCompletedInvoices` | `number`         | Tổng số hóa đơn đã hoàn thành     |
 
 #### TypeScript interfaces
 
@@ -622,7 +629,7 @@ export interface CustomerSummary {
   name: string;
   phoneNumber: string;
   email: string | null;
-  loyaltyTier: 'silver' | 'gold' | 'platinum';
+  loyaltyTier: "silver" | "gold" | "platinum";
   accumulatedPoints: number;
   isActive: boolean;
   createdAt: string;
@@ -637,7 +644,7 @@ export interface CustomerDetail extends CustomerSummary {
 export interface CreateCustomerRequest {
   name: string;
   phoneNumber?: string;
-  loyaltyTier?: 'silver' | 'gold' | 'platinum';
+  loyaltyTier?: "silver" | "gold" | "platinum";
   email?: string;
   address?: string;
   dateOfBirth?: string; // "YYYY-MM-DD"
@@ -651,23 +658,23 @@ export type UpdateCustomerRequest = CreateCustomerRequest;
 
 ### `GET /api/customers`
 
-Tìm kiếm khách hàng theo tên hoặc số điện thoại.  
+Tìm kiếm khách hàng theo tên hoặc số điện thoại.
 **Hoạt động theo 2 chế độ** tuỳ vào có truyền `page` hay không:
 
-| Chế độ | Điều kiện | Kết quả | Dùng khi |
-|---|---|---|---|
+| Chế độ         | Điều kiện           | Kết quả                                                | Dùng khi                     |
+| -------------- | ------------------- | ------------------------------------------------------ | ---------------------------- |
 | **Chọn nhanh** | Không truyền `page` | Mảng phẳng `CustomerSummary[]`, tối đa `limit` bản ghi | Dropdown chọn KH khi lập đơn |
-| **Phân trang** | Truyền `page` | `PagedResult<CustomerSummary>` | Màn hình quản lý khách hàng |
+| **Phân trang** | Truyền `page`       | `PagedResult<CustomerSummary>`                         | Màn hình quản lý khách hàng  |
 
 **Query params:**
 
-| Tham số | Kiểu | Mặc định | Mô tả |
-|---|---|---|---|
-| `search` | `string` | — | Từ khoá tìm theo tên hoặc SĐT |
-| `q` | `string` | — | Alias cũ của `search` (tương thích ngược) |
-| `limit` | `number` | `10` | Số bản ghi tối đa (chỉ có hiệu lực ở chế độ chọn nhanh) |
-| `page` | `number` | — | Số trang (bắt đầu từ 1) — **khi truyền → kích hoạt phân trang** |
-| `pageSize` | `number` | `20` | Số bản ghi mỗi trang (chỉ có hiệu lực khi có `page`) |
+| Tham số    | Kiểu     | Mặc định | Mô tả                                                           |
+| ---------- | -------- | -------- | --------------------------------------------------------------- |
+| `search`   | `string` | —        | Từ khoá tìm theo tên hoặc SĐT                                   |
+| `q`        | `string` | —        | Alias cũ của `search` (tương thích ngược)                       |
+| `limit`    | `number` | `10`     | Số bản ghi tối đa (chỉ có hiệu lực ở chế độ chọn nhanh)         |
+| `page`     | `number` | —        | Số trang (bắt đầu từ 1) — **khi truyền → kích hoạt phân trang** |
+| `pageSize` | `number` | `20`     | Số bản ghi mỗi trang (chỉ có hiệu lực khi có `page`)            |
 
 > Chỉ trả về khách hàng có `isActive = true`, sắp xếp theo tên A→Z.
 
@@ -750,8 +757,8 @@ Lấy thông tin đầy đủ của một khách hàng theo ID. Kèm tổng số
 
 **Lỗi:**
 
-| Mã lỗi | HTTP | Mô tả |
-|---|---|---|
+| Mã lỗi               | HTTP  | Mô tả                                |
+| -------------------- | ----- | ------------------------------------ |
 | `CUSTOMER_NOT_FOUND` | `404` | Không tìm thấy khách hàng với ID này |
 
 ---
@@ -775,28 +782,28 @@ Tạo khách hàng mới. Trả về `CustomerDetail` của khách hàng vừa t
 
 **Quy tắc các trường:**
 
-| Trường | Bắt buộc | Mặc định | Ghi chú |
-|---|---|---|---|
-| `name` | ✅ | — | Tên khách hàng, tự động trim |
-| `phoneNumber` | ❌ | `""` | Nếu cung cấp → phải duy nhất trong hệ thống |
-| `loyaltyTier` | ❌ | `"silver"` | Chỉ nhận: `silver` \| `gold` \| `platinum` |
-| `email` | ❌ | `null` | |
-| `address` | ❌ | `null` | |
-| `dateOfBirth` | ❌ | `null` | Định dạng `YYYY-MM-DD` |
+| Trường        | Bắt buộc | Mặc định   | Ghi chú                                     |
+| ------------- | -------- | ---------- | ------------------------------------------- |
+| `name`        | ✅       | —          | Tên khách hàng, tự động trim                |
+| `phoneNumber` | ❌       | `""`       | Nếu cung cấp → phải duy nhất trong hệ thống |
+| `loyaltyTier` | ❌       | `"silver"` | Chỉ nhận: `silver` \| `gold` \| `platinum`  |
+| `email`       | ❌       | `null`     |                                             |
+| `address`     | ❌       | `null`     |                                             |
+| `dateOfBirth` | ❌       | `null`     | Định dạng `YYYY-MM-DD`                      |
 
 **Response `200 OK`:** `CustomerDetail` (kèm `totalCompletedInvoices: 0`).
 
 **Lỗi:**
 
-| Mã lỗi | HTTP | Mô tả |
-|---|---|---|
+| Mã lỗi                     | HTTP  | Mô tả                                   |
+| -------------------------- | ----- | --------------------------------------- |
 | `CUSTOMER_PHONE_DUPLICATE` | `422` | Số điện thoại đã tồn tại trong hệ thống |
 
 ---
 
 ### `PUT /api/customers/{id}`
 
-Cập nhật thông tin khách hàng. Request body có cùng cấu trúc với `POST`.  
+Cập nhật thông tin khách hàng. Request body có cùng cấu trúc với `POST`.
 Trả về `CustomerDetail` sau khi cập nhật.
 
 **Path param:** `id` — UUID của khách hàng.
@@ -820,16 +827,16 @@ Trả về `CustomerDetail` sau khi cập nhật.
 
 **Lỗi:**
 
-| Mã lỗi | HTTP | Mô tả |
-|---|---|---|
-| `CUSTOMER_NOT_FOUND` | `404` | Không tìm thấy khách hàng với ID này |
+| Mã lỗi                     | HTTP  | Mô tả                                          |
+| -------------------------- | ----- | ---------------------------------------------- |
+| `CUSTOMER_NOT_FOUND`       | `404` | Không tìm thấy khách hàng với ID này           |
 | `CUSTOMER_PHONE_DUPLICATE` | `422` | Số điện thoại đã được dùng bởi khách hàng khác |
 
 ---
 
 ## 5. Products — Sản phẩm & Danh mục
 
-> **Quan trọng:** Từ phiên bản hiện tại, trọng lượng sản phẩm được lưu bằng **gram** (`weightGram`).  
+> **Quan trọng:** Từ phiên bản hiện tại, trọng lượng sản phẩm được lưu bằng **gram** (`weightGram`).
 > Mỗi sản phẩm có thể gắn đơn vị tham chiếu (`weightUnitId`) và loại cân (`productType`).
 
 ### `GET /api/products/categories`
@@ -879,8 +886,8 @@ Lấy danh sách sản phẩm đang hoạt động.
 ]
 ```
 
-> `weightGram`: Trọng lượng mỗi đơn vị tính bằng **gram** (ví dụ: 1 Chỉ = 3.75g).  
-> `weightUnitId`: Đơn vị trọng lượng tham chiếu mặc định (tùy chọn).  
+> `weightGram`: Trọng lượng mỗi đơn vị tính bằng **gram** (ví dụ: 1 Chỉ = 3.75g).
+> `weightUnitId`: Đơn vị trọng lượng tham chiếu mặc định (tùy chọn).
 > `productType`: `NguyenKhoi` (cố định) | `CanThucTe` (cân thực tế).
 
 ---
@@ -909,27 +916,28 @@ Lấy chi tiết sản phẩm (kèm `isActive`).
 }
 ```
 
-> `goldPurityId`: **FK → hàm lượng** (`GET /api/config/gold-purities`). **Null** cho hàng không có hàm lượng (Đá, Ngoại tệ).  
-> `weightUnitId`: **FK → đơn vị** (`GET /api/config/weight-units`). Vàng/Bạc **cần** đặt để hệ thống tự tra giá khi bán (khớp dòng bảng giá theo `goldPurityId` + `weightUnitId`).  
-> `weightGram`: Trọng lượng **mỗi món** tính bằng **gram** (khác `weightGram` tổng-cả-lô ở [§7 Inventory](#7-inventory--kho-hàng)).  
+> `goldPurityId`: **FK → hàm lượng** (`GET /api/config/gold-purities`). **Null** cho hàng không có hàm lượng (Đá, Ngoại tệ).
+> `weightUnitId`: **FK → đơn vị** (`GET /api/config/weight-units`). Vàng/Bạc **cần** đặt để hệ thống tự tra giá khi bán (khớp dòng bảng giá theo `goldPurityId` + `weightUnitId`).
+> `weightGram`: Trọng lượng **mỗi món** tính bằng **gram** (khác `weightGram` tổng-cả-lô ở [§7 Inventory](#7-inventory--kho-hàng)).
 > `productType`: `NguyenKhoi` (mặc định) | `CanThucTe`.
 
 > **⚙️ Lưu ý tích hợp Kho & phí (backend xác nhận) — ranh giới hiện tại:**
+>
 > - **Tạo sản phẩm sẽ tự sinh bản ghi tồn kho `quantity = 0` cho TẤT CẢ quầy đang hoạt động** (chạy **ngầm, fire-and-forget** — API trả `201` ngay, không đợi seed; lỗi seed chỉ ghi log). Nhờ vậy `POST /api/inventory/{id}/adjust` (chiều `IN`) **dùng được ngay** để **nhập tồn ban đầu** mà không cần tạo mục kho thủ công. Thao tác này **idempotent** (bỏ qua quầy đã có item). Tồn cũng tăng qua **giao dịch nhập kho** (chiều `IN`: `BuyGold` / `BuyMoreGold` / item-vào khi thu đổi — xem [§8](#8-transactions--giao-dịch-bán-hàng-pos)).
 > - **Tiền công** và **tiền đá KHÔNG phải field của sản phẩm** — nhập tại thời điểm bán (`TransactionItem.laborFee` / `stoneFee`). Nếu form khai báo SP có 2 ô này thì chỉ để **preview/gợi ý**, **chưa được lưu**.
 > - **ĐVT** (`weightUnitId`) **CÓ** được lưu trên sản phẩm — không nằm trong nhóm "chưa lưu".
-> - Còn lại: muốn **tiền công / tiền đá mặc định theo từng SP** thì cần **backend bổ sung field** (hiện chỉ nhập lúc bán). *(Riêng tồn kho ban đầu đã xử lý qua auto-seed + `adjust` ở bullet 1.)*
+> - Còn lại: muốn **tiền công / tiền đá mặc định theo từng SP** thì cần **backend bổ sung field** (hiện chỉ nhập lúc bán). _(Riêng tồn kho ban đầu đã xử lý qua auto-seed + `adjust` ở bullet 1.)_
 
 **Response `201 Created`:** `{ "id": "...", "productCode": "..." }`
 
 **Lỗi:**
 
-| Mã lỗi | HTTP | Mô tả |
-|---|---|---|
-| `PRODUCT_CODE_DUPLICATE` | 422 | Mã sản phẩm đã tồn tại |
-| `PRODUCT_CATEGORY_NOT_FOUND` | 404 | Danh mục không tồn tại |
-| `CONFIG_GOLD_PURITY_NOT_FOUND` | 404 | Hàm lượng không tồn tại |
-| `CONFIG_WEIGHT_UNIT_NOT_FOUND` | 404 | Đơn vị không tồn tại |
+| Mã lỗi                         | HTTP | Mô tả                   |
+| ------------------------------ | ---- | ----------------------- |
+| `PRODUCT_CODE_DUPLICATE`       | 422  | Mã sản phẩm đã tồn tại  |
+| `PRODUCT_CATEGORY_NOT_FOUND`   | 404  | Danh mục không tồn tại  |
+| `CONFIG_GOLD_PURITY_NOT_FOUND` | 404  | Hàm lượng không tồn tại |
+| `CONFIG_WEIGHT_UNIT_NOT_FOUND` | 404  | Đơn vị không tồn tại    |
 
 ---
 
@@ -974,14 +982,26 @@ Lấy bảng giá hiện tại — danh sách dòng giá theo **từng (hàm lư
   "updatedAt": "2026-06-10T07:00:00Z",
   "items": [
     {
-      "goldPurityId": "...", "purityCode": "9999", "hamLuong": 99.99, "category": "Gold",
-      "weightUnitId": "...", "weightUnitCode": "chi", "gramPerUnit": 3.75,
-      "buyPrice": 5000000, "sellPrice": 5700000
+      "goldPurityId": "...",
+      "purityCode": "9999",
+      "hamLuong": 99.99,
+      "category": "Gold",
+      "weightUnitId": "...",
+      "weightUnitCode": "chi",
+      "gramPerUnit": 3.75,
+      "buyPrice": 5000000,
+      "sellPrice": 5700000
     },
     {
-      "goldPurityId": "...", "purityCode": "925", "hamLuong": 92.5, "category": "Silver",
-      "weightUnitId": "...", "weightUnitCode": "gram", "gramPerUnit": 1,
-      "buyPrice": 20000, "sellPrice": 23000
+      "goldPurityId": "...",
+      "purityCode": "925",
+      "hamLuong": 92.5,
+      "category": "Silver",
+      "weightUnitId": "...",
+      "weightUnitCode": "gram",
+      "gramPerUnit": 1,
+      "buyPrice": 20000,
+      "sellPrice": 23000
     }
   ]
 }
@@ -1002,9 +1022,24 @@ Cập nhật bảng giá (mỗi lần tạo bản ghi mới — không ghi đè)
 ```json
 {
   "items": [
-    { "goldPurityId": "...", "weightUnitId": "<chi>",  "buyPrice": 5000000, "sellPrice": 5700000 },
-    { "goldPurityId": "...", "weightUnitId": "<bath>", "buyPrice": 3625000, "sellPrice": 3670000 },
-    { "goldPurityId": "...", "weightUnitId": "<gram>", "buyPrice": 20000,   "sellPrice": 23000 }
+    {
+      "goldPurityId": "...",
+      "weightUnitId": "<chi>",
+      "buyPrice": 5000000,
+      "sellPrice": 5700000
+    },
+    {
+      "goldPurityId": "...",
+      "weightUnitId": "<bath>",
+      "buyPrice": 3625000,
+      "sellPrice": 3670000
+    },
+    {
+      "goldPurityId": "...",
+      "weightUnitId": "<gram>",
+      "buyPrice": 20000,
+      "sellPrice": 23000
+    }
   ]
 }
 ```
@@ -1013,10 +1048,10 @@ Cập nhật bảng giá (mỗi lần tạo bản ghi mới — không ghi đè)
 
 **Lỗi:**
 
-| Mã lỗi | HTTP | Mô tả |
-|---|---|---|
-| `CONFIG_GOLD_PURITY_NOT_FOUND` | 404 | Hàm lượng không tồn tại |
-| `CONFIG_WEIGHT_UNIT_NOT_FOUND` | 404 | Đơn vị không tồn tại |
+| Mã lỗi                         | HTTP | Mô tả                   |
+| ------------------------------ | ---- | ----------------------- |
+| `CONFIG_GOLD_PURITY_NOT_FOUND` | 404  | Hàm lượng không tồn tại |
+| `CONFIG_WEIGHT_UNIT_NOT_FOUND` | 404  | Đơn vị không tồn tại    |
 
 **Response `200 OK`:** Bản ghi giá vừa tạo.
 
@@ -1070,14 +1105,38 @@ Lấy danh sách đơn vị trọng lượng và hệ số quy đổi.
 
 ```json
 [
-  { "id": "...", "maTocDoc": "chi",   "tenDonVi": "Chỉ",   "gramPerUnit": 3.75,  "isSystem": true  },
-  { "id": "...", "maTocDoc": "luong", "tenDonVi": "Lượng",  "gramPerUnit": 37.5,  "isSystem": true  },
-  { "id": "...", "maTocDoc": "cay",   "tenDonVi": "Cây",    "gramPerUnit": 375.0, "isSystem": true  },
-  { "id": "...", "maTocDoc": "bath",  "tenDonVi": "Bath",   "gramPerUnit": 15.0,  "isSystem": true  }
+  {
+    "id": "...",
+    "maTocDoc": "chi",
+    "tenDonVi": "Chỉ",
+    "gramPerUnit": 3.75,
+    "isSystem": true
+  },
+  {
+    "id": "...",
+    "maTocDoc": "luong",
+    "tenDonVi": "Lượng",
+    "gramPerUnit": 37.5,
+    "isSystem": true
+  },
+  {
+    "id": "...",
+    "maTocDoc": "cay",
+    "tenDonVi": "Cây",
+    "gramPerUnit": 375.0,
+    "isSystem": true
+  },
+  {
+    "id": "...",
+    "maTocDoc": "bath",
+    "tenDonVi": "Bath",
+    "gramPerUnit": 15.0,
+    "isSystem": true
+  }
 ]
 ```
 
-> `gramPerUnit`: Hệ số quy đổi — số gram tương ứng với 1 đơn vị.  
+> `gramPerUnit`: Hệ số quy đổi — số gram tương ứng với 1 đơn vị.
 > `isSystem`: Đơn vị hệ thống (`true`) không thể xoá qua API.
 
 ---
@@ -1102,9 +1161,9 @@ Thêm đơn vị trọng lượng mới (ví dụ: Troy Ounce).
 
 **Lỗi:**
 
-| Mã lỗi | HTTP | Mô tả |
-|---|---|---|
-| `CONFIG_WEIGHT_UNIT_CODE_DUPLICATE` | 422 | Mã đơn vị (`maTocDoc`) đã tồn tại |
+| Mã lỗi                              | HTTP | Mô tả                             |
+| ----------------------------------- | ---- | --------------------------------- |
+| `CONFIG_WEIGHT_UNIT_CODE_DUPLICATE` | 422  | Mã đơn vị (`maTocDoc`) đã tồn tại |
 
 ---
 
@@ -1142,10 +1201,10 @@ Xoá đơn vị trọng lượng.
 
 **Lỗi:**
 
-| Mã lỗi | HTTP | Mô tả |
-|---|---|---|
-| `CONFIG_WEIGHT_UNIT_NOT_FOUND` | 404 | Đơn vị không tồn tại |
-| `CONFIG_WEIGHT_UNIT_SYSTEM_PROTECTED` | 422 | Đơn vị hệ thống, không thể xoá |
+| Mã lỗi                                | HTTP | Mô tả                          |
+| ------------------------------------- | ---- | ------------------------------ |
+| `CONFIG_WEIGHT_UNIT_NOT_FOUND`        | 404  | Đơn vị không tồn tại           |
+| `CONFIG_WEIGHT_UNIT_SYSTEM_PROTECTED` | 422  | Đơn vị hệ thống, không thể xoá |
 
 ---
 
@@ -1203,8 +1262,8 @@ Lấy danh sách độ tinh khiết vàng.
 ```json
 [
   { "id": "...", "ma": "9999", "hamLuong": 99.99 },
-  { "id": "...", "ma": "24K",  "hamLuong": 99.9  },
-  { "id": "...", "ma": "18K",  "hamLuong": 75.0  }
+  { "id": "...", "ma": "24K", "hamLuong": 99.9 },
+  { "id": "...", "ma": "18K", "hamLuong": 75.0 }
 ]
 ```
 
@@ -1262,11 +1321,11 @@ Tạo role tùy biến mới (luôn có `isSystem = false`). Yêu cầu policy `
 
 **Lỗi:**
 
-| Mã lỗi | HTTP | Mô tả |
-|---|---|---|
-| `ROLE_CODE_REQUIRED` | 422 | Thiếu mã role |
-| `ROLE_NAME_REQUIRED` | 422 | Thiếu tên role |
-| `ROLE_CODE_DUPLICATE` | 422 | Mã role đã tồn tại |
+| Mã lỗi                | HTTP | Mô tả              |
+| --------------------- | ---- | ------------------ |
+| `ROLE_CODE_REQUIRED`  | 422  | Thiếu mã role      |
+| `ROLE_NAME_REQUIRED`  | 422  | Thiếu tên role     |
+| `ROLE_CODE_DUPLICATE` | 422  | Mã role đã tồn tại |
 
 ---
 
@@ -1280,10 +1339,10 @@ Cập nhật tên / mô tả role. Không sửa được role hệ thống.
 
 **Lỗi:**
 
-| Mã lỗi | HTTP | Mô tả |
-|---|---|---|
-| `ROLE_NOT_FOUND` | 404 | Role không tồn tại |
-| `ROLE_SYSTEM_PROTECTED` | 422 | Không sửa được role hệ thống |
+| Mã lỗi                  | HTTP | Mô tả                        |
+| ----------------------- | ---- | ---------------------------- |
+| `ROLE_NOT_FOUND`        | 404  | Role không tồn tại           |
+| `ROLE_SYSTEM_PROTECTED` | 422  | Không sửa được role hệ thống |
 
 ---
 
@@ -1293,11 +1352,11 @@ Xóa role tùy biến. **Response `204 No Content`.** Quyền liên quan (`role_
 
 **Lỗi:**
 
-| Mã lỗi | HTTP | Mô tả |
-|---|---|---|
-| `ROLE_NOT_FOUND` | 404 | Role không tồn tại |
-| `ROLE_SYSTEM_PROTECTED` | 422 | Không xóa được role hệ thống |
-| `ROLE_IN_USE` | 422 | Role vẫn còn người dùng được gán |
+| Mã lỗi                  | HTTP | Mô tả                            |
+| ----------------------- | ---- | -------------------------------- |
+| `ROLE_NOT_FOUND`        | 404  | Role không tồn tại               |
+| `ROLE_SYSTEM_PROTECTED` | 422  | Không xóa được role hệ thống     |
+| `ROLE_IN_USE`           | 422  | Role vẫn còn người dùng được gán |
 
 ---
 
@@ -1309,18 +1368,18 @@ Lấy danh sách hàng tồn kho, hỗ trợ tìm kiếm theo từ khóa và ph�
 
 **Query params:**
 
-| Tham số | Kiểu | Mặc định | Mô tả |
-|---|---|---|---|
-| `branchId` | GUID | — | Lọc theo chi nhánh |
-| `counterId` | GUID | — | Lọc theo quầy giao dịch |
-| `category` | string | — | Lọc theo mã danh mục |
-| `status` | string | — | `TiepNhan` \| `DaDinhGia` \| `TrenQuay` \| `ChuyenXuong` \| `DaBan` |
-| `nguonGoc` | string | — | `Quan` \| `Ngoai` |
-| `keyword` | string | — | Tìm theo mã sản phẩm, tên, loại, tên quầy |
-| `page` | int | `1` | Trang hiện tại |
-| `pageSize` | int | `20` | Số bản ghi/trang (tối đa 100) |
+| Tham số     | Kiểu   | Mặc định | Mô tả                                                               |
+| ----------- | ------ | -------- | ------------------------------------------------------------------- |
+| `branchId`  | GUID   | —        | Lọc theo chi nhánh                                                  |
+| `counterId` | GUID   | —        | Lọc theo quầy giao dịch                                             |
+| `category`  | string | —        | Lọc theo mã danh mục                                                |
+| `status`    | string | —        | `TiepNhan` \| `DaDinhGia` \| `TrenQuay` \| `ChuyenXuong` \| `DaBan` |
+| `nguonGoc`  | string | —        | `Quan` \| `Ngoai`                                                   |
+| `keyword`   | string | —        | Tìm theo mã sản phẩm, tên, loại, tên quầy                           |
+| `page`      | int    | `1`      | Trang hiện tại                                                      |
+| `pageSize`  | int    | `20`     | Số bản ghi/trang (tối đa 100)                                       |
 
-> `status` tương ứng enum `ItemTrangThai`: `TiepNhan` (vừa tiếp nhận) · `DaDinhGia` (đã định giá) · `TrenQuay` (đang trưng bày) · `ChuyenXuong` (chuyển xưởng) · `DaBan` (đã bán).  
+> `status` tương ứng enum `ItemTrangThai`: `TiepNhan` (vừa tiếp nhận) · `DaDinhGia` (đã định giá) · `TrenQuay` (đang trưng bày) · `ChuyenXuong` (chuyển xưởng) · `DaBan` (đã bán).
 > `nguonGoc` tương ứng enum `ItemNguonGoc`: `Quan` (vàng của quán) · `Ngoai` (vàng ngoài).
 
 **Response `200 OK`:**
@@ -1380,13 +1439,13 @@ Lấy chi tiết một mục kho. **Lỗi:** `INVENTORY_NOT_FOUND` 404
 }
 ```
 
-| Trường | Bắt buộc | Mô tả |
-|---|---|---|
-| `direction` | ✔ | `IN` (nhập kho) \| `OUT` (xuất kho) |
-| `quantity` | ✔ | Số lượng điều chỉnh (số dương) |
-| `reason` | ✔ | Lý do điều chỉnh |
-| `paymentMethod` | — | `CASH` \| `BANK` — phương thức thanh toán (nếu có) |
-| `actualValue` | — | Giá trị thực tế của lô hàng (LAK) |
+| Trường          | Bắt buộc | Mô tả                                              |
+| --------------- | -------- | -------------------------------------------------- |
+| `direction`     | ✔        | `IN` (nhập kho) \| `OUT` (xuất kho)                |
+| `quantity`      | ✔        | Số lượng điều chỉnh (số dương)                     |
+| `reason`        | ✔        | Lý do điều chỉnh                                   |
+| `paymentMethod` | —        | `CASH` \| `BANK` — phương thức thanh toán (nếu có) |
+| `actualValue`   | —        | Giá trị thực tế của lô hàng (LAK)                  |
 
 **Response `200 OK`:**
 
@@ -1425,13 +1484,13 @@ Lấy chi tiết một mục kho. **Lỗi:** `INVENTORY_NOT_FOUND` 404
 
 **Lỗi:**
 
-| Mã lỗi | HTTP | Mô tả |
-|---|---|---|
-| `INVENTORY_NOT_FOUND` | 404 | Mục kho không tồn tại |
-| `INVENTORY_INSUFFICIENT_STOCK` | 422 | Số lượng xuất vượt quá tồn kho |
-| `INVENTORY_INVALID_DIRECTION` | 422 | `direction` phải là `IN` hoặc `OUT` |
-| `INVENTORY_INVALID_QUANTITY` | 422 | Số lượng phải lớn hơn 0 |
-| `INVENTORY_REASON_REQUIRED` | 422 | Lý do điều chỉnh bắt buộc |
+| Mã lỗi                         | HTTP | Mô tả                               |
+| ------------------------------ | ---- | ----------------------------------- |
+| `INVENTORY_NOT_FOUND`          | 404  | Mục kho không tồn tại               |
+| `INVENTORY_INSUFFICIENT_STOCK` | 422  | Số lượng xuất vượt quá tồn kho      |
+| `INVENTORY_INVALID_DIRECTION`  | 422  | `direction` phải là `IN` hoặc `OUT` |
+| `INVENTORY_INVALID_QUANTITY`   | 422  | Số lượng phải lớn hơn 0             |
+| `INVENTORY_REASON_REQUIRED`    | 422  | Lý do điều chỉnh bắt buộc           |
 
 ---
 
@@ -1465,11 +1524,11 @@ Cập nhật trạng thái nhiều mục kho cùng lúc. Mỗi item trong danh s
 }
 ```
 
-| Trường | Bắt buộc | Mô tả |
-|---|---|---|
-| `items` | ✔ | Danh sách items cần cập nhật (không được rỗng) |
-| `items[].id` | ✔ | GUID của mục kho |
-| `items[].trangThai` | ✔ | Trạng thái mới: `TiepNhan` \| `DaDinhGia` \| `TrenQuay` \| `ChuyenXuong` \| `DaBan` |
+| Trường              | Bắt buộc | Mô tả                                                                               |
+| ------------------- | -------- | ----------------------------------------------------------------------------------- |
+| `items`             | ✔        | Danh sách items cần cập nhật (không được rỗng)                                      |
+| `items[].id`        | ✔        | GUID của mục kho                                                                    |
+| `items[].trangThai` | ✔        | Trạng thái mới: `TiepNhan` \| `DaDinhGia` \| `TrenQuay` \| `ChuyenXuong` \| `DaBan` |
 
 **Response `200 OK`:**
 
@@ -1484,10 +1543,10 @@ Cập nhật trạng thái nhiều mục kho cùng lúc. Mỗi item trong danh s
 
 **Lỗi:**
 
-| Mã lỗi | HTTP | Mô tả |
-|---|---|---|
-| `INVENTORY_BULK_EMPTY` | 422 | Danh sách `items` rỗng |
-| `INVENTORY_INVALID_STATUS` | 422 | Giá trị `trangThai` không hợp lệ |
+| Mã lỗi                     | HTTP | Mô tả                            |
+| -------------------------- | ---- | -------------------------------- |
+| `INVENTORY_BULK_EMPTY`     | 422  | Danh sách `items` rỗng           |
+| `INVENTORY_INVALID_STATUS` | 422  | Giá trị `trangThai` không hợp lệ |
 
 ---
 
@@ -1497,13 +1556,13 @@ Lấy lịch sử điều chỉnh tồn kho, hỗ trợ tìm kiếm và phân tr
 
 **Query params:**
 
-| Tham số | Kiểu | Mặc định | Mô tả |
-|---|---|---|---|
-| `branchId` | GUID | — | Lọc theo chi nhánh |
-| `counterId` | GUID | — | Lọc theo quầy giao dịch |
-| `keyword` | string | — | Tìm theo mã điều chỉnh, tên sản phẩm, lý do, tên chi nhánh |
-| `page` | int | `1` | Trang hiện tại |
-| `pageSize` | int | `20` | Số bản ghi/trang (tối đa 100) |
+| Tham số     | Kiểu   | Mặc định | Mô tả                                                      |
+| ----------- | ------ | -------- | ---------------------------------------------------------- |
+| `branchId`  | GUID   | —        | Lọc theo chi nhánh                                         |
+| `counterId` | GUID   | —        | Lọc theo quầy giao dịch                                    |
+| `keyword`   | string | —        | Tìm theo mã điều chỉnh, tên sản phẩm, lý do, tên chi nhánh |
+| `page`      | int    | `1`      | Trang hiện tại                                             |
+| `pageSize`  | int    | `20`     | Số bản ghi/trang (tối đa 100)                              |
 
 **Response `200 OK`:**
 
@@ -1589,24 +1648,24 @@ Tạo và hoàn thành giao dịch bán hàng ngay lập tức (trạng thái: `
 }
 ```
 
-| Trường | Bắt buộc | Mô tả |
-|---|---|---|
-| `type` | ✔ | `SellGold` \| `SellSilver` \| `BuyGold` \| `ExchangeGold` \| `ExchangeCurrency` \| `BuyMoreGold` \| `ExchangeFree` \| `ExchangeToMoney` |
-| `paymentMethod` | ✔ | `CASH` \| `BANK` \| `COMBINED` |
-| `cashAmount` | — | Số tiền mặt (LAK). **Bắt buộc khi `paymentMethod = COMBINED`** |
-| `bankAmount` | — | Số tiền chuyển khoản (LAK). **Bắt buộc khi `paymentMethod = COMBINED`** |
-| `items[].productId` | ✔ | ID sản phẩm |
-| `items[].quantity` | ✔ | Số lượng |
-| `items[].weightUnitId` | — | ID đơn vị tính (lấy từ `GET /api/config/weight-units`). `null` khi `ExchangeCurrency` |
-| `items[].weightGramOverride` | — | **Bắt buộc cho `CanThucTe`** — trọng lượng thực đo (grams). `null` cho `NguyenKhoi` |
-| `items[].unitPriceLak` | ✔ | Giá snapshot tại thời điểm GD (LAK/đơn vị) |
-| `items[].itemRole` | — | `Normal` (mặc định) — dùng cho luồng đổi hàng |
-| `items[].laborFee` | — | Phí gia công thợ (LAK, mặc định 0) |
-| `items[].stoneFee` | — | Phí đá (LAK, mặc định 0) |
-| `items[].haoHutGram` | — | Trọng lượng hao hụt (grams, mặc định 0) |
-| `items[].phiHuHai` | — | Phí hủy hoại (LAK, mặc định 0) |
-| `customerId` | — | ID khách hàng (tuỳ chọn) |
-| `referenceInvoiceCode` | — | Mã hóa đơn gốc — dùng cho luồng đổi hàng (`ExchangeGold`) |
+| Trường                       | Bắt buộc | Mô tả                                                                                                                                   |
+| ---------------------------- | -------- | --------------------------------------------------------------------------------------------------------------------------------------- |
+| `type`                       | ✔        | `SellGold` \| `SellSilver` \| `BuyGold` \| `ExchangeGold` \| `ExchangeCurrency` \| `BuyMoreGold` \| `ExchangeFree` \| `ExchangeToMoney` |
+| `paymentMethod`              | ✔        | `CASH` \| `BANK` \| `COMBINED`                                                                                                          |
+| `cashAmount`                 | —        | Số tiền mặt (LAK). **Bắt buộc khi `paymentMethod = COMBINED`**                                                                          |
+| `bankAmount`                 | —        | Số tiền chuyển khoản (LAK). **Bắt buộc khi `paymentMethod = COMBINED`**                                                                 |
+| `items[].productId`          | ✔        | ID sản phẩm                                                                                                                             |
+| `items[].quantity`           | ✔        | Số lượng                                                                                                                                |
+| `items[].weightUnitId`       | —        | ID đơn vị tính (lấy từ `GET /api/config/weight-units`). `null` khi `ExchangeCurrency`                                                   |
+| `items[].weightGramOverride` | —        | **Bắt buộc cho `CanThucTe`** — trọng lượng thực đo (grams). `null` cho `NguyenKhoi`                                                     |
+| `items[].unitPriceLak`       | ✔        | Giá snapshot tại thời điểm GD (LAK/đơn vị)                                                                                              |
+| `items[].itemRole`           | —        | `Normal` (mặc định) — dùng cho luồng đổi hàng                                                                                           |
+| `items[].laborFee`           | —        | Phí gia công thợ (LAK, mặc định 0)                                                                                                      |
+| `items[].stoneFee`           | —        | Phí đá (LAK, mặc định 0)                                                                                                                |
+| `items[].haoHutGram`         | —        | Trọng lượng hao hụt (grams, mặc định 0)                                                                                                 |
+| `items[].phiHuHai`           | —        | Phí hủy hoại (LAK, mặc định 0)                                                                                                          |
+| `customerId`                 | —        | ID khách hàng (tuỳ chọn)                                                                                                                |
+| `referenceInvoiceCode`       | —        | Mã hóa đơn gốc — dùng cho luồng đổi hàng (`ExchangeGold`)                                                                               |
 
 > **Ví dụ thanh toán kết hợp:** khách trả 5,000,000 ₭ tiền mặt + 6,500,000 ₭ chuyển khoản cho đơn tổng 11,500,000 ₭ → `"paymentMethod": "COMBINED", "cashAmount": 5000000, "bankAmount": 6500000`. Tổng `cashAmount + bankAmount` phải **bằng chính xác** `totalAmount`.
 
@@ -1621,13 +1680,13 @@ lineTotal  = quantity × unitPriceLak
 
 **Lỗi:**
 
-| Mã lỗi | HTTP | Mô tả |
-|---|---|---|
-| `CONFIG_WEIGHT_UNIT_NOT_FOUND` | 404 | Đơn vị trọng lượng không tồn tại |
-| `CONFIG_PRICE_NOT_FOUND` | 422 | Chưa có bảng giá hiệu lực |
-| `INVENTORY_NOT_FOUND` | 404 | Sản phẩm không có trong kho quầy |
-| `INVENTORY_INSUFFICIENT_STOCK` | 422 | Không đủ số lượng trong kho |
-| `VALIDATION_FAILED` | 422 | Dữ liệu không hợp lệ (kèm `errors{}`) |
+| Mã lỗi                         | HTTP | Mô tả                                 |
+| ------------------------------ | ---- | ------------------------------------- |
+| `CONFIG_WEIGHT_UNIT_NOT_FOUND` | 404  | Đơn vị trọng lượng không tồn tại      |
+| `CONFIG_PRICE_NOT_FOUND`       | 422  | Chưa có bảng giá hiệu lực             |
+| `INVENTORY_NOT_FOUND`          | 404  | Sản phẩm không có trong kho quầy      |
+| `INVENTORY_INSUFFICIENT_STOCK` | 422  | Không đủ số lượng trong kho           |
+| `VALIDATION_FAILED`            | 422  | Dữ liệu không hợp lệ (kèm `errors{}`) |
 
 ---
 
@@ -1637,20 +1696,20 @@ Lấy danh sách giao dịch với phân trang hoặc không phân trang.
 
 **Query params:**
 
-| Tham số | Kiểu | Mặc định | Mô tả |
-|---|---|---|---|
-| `branchId` | GUID | — | Lọc theo chi nhánh |
-| `status` | string | — | `Completed` \| `Cancelled` |
-| `type` | string | — | `SellGold` \| `SellSilver` \| `BuyGold` \| `ExchangeGold` \| `ExchangeCurrency` \| ... |
-| `from` | DateTime | — | Ngày bắt đầu |
-| `to` | DateTime | — | Ngày kết thúc |
-| `invoiceCode` | string | — | Tìm chính xác theo mã hóa đơn |
-| `q` | string | — | Tìm kiếm chung |
-| `limit` | int | — | Trả mảng phẳng không phân trang (dùng cho POS lookup). **Khi truyền `limit`, bỏ qua `page`/`pageSize`** |
-| `page` | int | `1` | Trang hiện tại (chế độ phân trang) |
-| `pageSize` | int | `20` | Số bản ghi/trang |
+| Tham số       | Kiểu     | Mặc định | Mô tả                                                                                                   |
+| ------------- | -------- | -------- | ------------------------------------------------------------------------------------------------------- |
+| `branchId`    | GUID     | —        | Lọc theo chi nhánh                                                                                      |
+| `status`      | string   | —        | `Completed` \| `Cancelled`                                                                              |
+| `type`        | string   | —        | `SellGold` \| `SellSilver` \| `BuyGold` \| `ExchangeGold` \| `ExchangeCurrency` \| ...                  |
+| `from`        | DateTime | —        | Ngày bắt đầu                                                                                            |
+| `to`          | DateTime | —        | Ngày kết thúc                                                                                           |
+| `invoiceCode` | string   | —        | Tìm chính xác theo mã hóa đơn                                                                           |
+| `q`           | string   | —        | Tìm kiếm chung                                                                                          |
+| `limit`       | int      | —        | Trả mảng phẳng không phân trang (dùng cho POS lookup). **Khi truyền `limit`, bỏ qua `page`/`pageSize`** |
+| `page`        | int      | `1`      | Trang hiện tại (chế độ phân trang)                                                                      |
+| `pageSize`    | int      | `20`     | Số bản ghi/trang                                                                                        |
 
-> Khi truyền `limit`: response là **mảng phẳng** `[...]`.  
+> Khi truyền `limit`: response là **mảng phẳng** `[...]`.
 > Khi không truyền `limit`: response là **object phân trang** `{ total, page, pageSize, data }`.
 
 **Response `200 OK`** (chế độ phân trang):
@@ -1721,15 +1780,15 @@ Xuất danh sách giao dịch ra file Excel (`.xlsx`). Áp dụng cùng bộ fil
 
 **Query params:** Giống `GET /api/transactions` (trừ `limit`, `page`, `pageSize`).
 
-| Tham số | Kiểu | Mô tả |
-|---|---|---|
-| `branchId` | GUID | Lọc theo chi nhánh |
-| `status` | string | Lọc theo trạng thái |
-| `type` | string | Lọc theo loại giao dịch |
-| `from` | DateTime | Từ ngày |
-| `to` | DateTime | Đến ngày |
-| `invoiceCode` | string | Tìm theo mã hóa đơn |
-| `q` | string | Tìm kiếm chung |
+| Tham số       | Kiểu     | Mô tả                   |
+| ------------- | -------- | ----------------------- |
+| `branchId`    | GUID     | Lọc theo chi nhánh      |
+| `status`      | string   | Lọc theo trạng thái     |
+| `type`        | string   | Lọc theo loại giao dịch |
+| `from`        | DateTime | Từ ngày                 |
+| `to`          | DateTime | Đến ngày                |
+| `invoiceCode` | string   | Tìm theo mã hóa đơn     |
+| `q`           | string   | Tìm kiếm chung          |
 
 **Response `200 OK`:**
 
@@ -1753,6 +1812,7 @@ Chi tiết giao dịch (cấu trúc giống item trong danh sách, bao gồm `it
 Hủy hóa đơn đã hoàn thành. Thao tác **không thể khôi phục**.
 
 **Nghiệp vụ khi hủy:**
+
 1. Kiểm tra hóa đơn chưa ở trạng thái `Cancelled` — lỗi `TRANSACTION_ALREADY_CANCELLED` nếu đã hủy.
 2. **Đảo kho**: mỗi `TransactionItem` tạo một `InventoryAdjustmentLog` với hướng ngược lại giao dịch gốc (hàng bán ra → nhập lại kho; hàng mua vào → xuất ra khỏi kho).
 3. **Sổ quỹ**: tự động tạo `ManualCashEntry` hoàn tiền:
@@ -1766,19 +1826,19 @@ Hủy hóa đơn đã hoàn thành. Thao tác **không thể khôi phục**.
 { "reason": "Khách đổi ý" }
 ```
 
-| Trường | Bắt buộc | Mô tả |
-|---|---|---|
-| `reason` | — | Lý do hủy (tối đa 500 ký tự, tuỳ chọn) |
+| Trường   | Bắt buộc | Mô tả                                  |
+| -------- | -------- | -------------------------------------- |
+| `reason` | —        | Lý do hủy (tối đa 500 ký tự, tuỳ chọn) |
 
 **Response `204 No Content`** khi thành công.
 
 **Lỗi:**
 
-| Mã lỗi | HTTP | Mô tả |
-|---|---|---|
-| `TRANSACTION_NOT_FOUND` | 404 | Hóa đơn không tồn tại |
-| `TRANSACTION_ALREADY_CANCELLED` | 422 | Hóa đơn đã bị hủy trước đó |
-| `INVENTORY_INSUFFICIENT_STOCK` | 422 | Không đủ tồn kho để đảo hàng (trường hợp hàng đã bán lại được bán đi nơi khác) |
+| Mã lỗi                          | HTTP | Mô tả                                                                          |
+| ------------------------------- | ---- | ------------------------------------------------------------------------------ |
+| `TRANSACTION_NOT_FOUND`         | 404  | Hóa đơn không tồn tại                                                          |
+| `TRANSACTION_ALREADY_CANCELLED` | 422  | Hóa đơn đã bị hủy trước đó                                                     |
+| `INVENTORY_INSUFFICIENT_STOCK`  | 422  | Không đủ tồn kho để đảo hàng (trường hợp hàng đã bán lại được bán đi nơi khác) |
 
 ---
 
@@ -1817,8 +1877,8 @@ Tạo giao dịch mua vào hoặc đổi hàng.
 }
 ```
 
-> `haoHutGram`: Trọng lượng hao hụt tính bằng **gram** (trước đây là `haoHutMg`).  
-> `itemMoiId`: Bắt buộc cho `DoiHang`, `MuaThem`, `DoiMienPhi`. Tùy chọn cho `DoiThanhTien`.  
+> `haoHutGram`: Trọng lượng hao hụt tính bằng **gram** (trước đây là `haoHutMg`).
+> `itemMoiId`: Bắt buộc cho `DoiHang`, `MuaThem`, `DoiMienPhi`. Tùy chọn cho `DoiThanhTien`.
 > `ngayMuaCu`: Bắt buộc cho `DoiMienPhi` (kiểm tra ≤ 31 ngày).
 
 **Response `200 OK`:**
@@ -1845,19 +1905,19 @@ Tạo giao dịch mua vào hoặc đổi hàng.
 }
 ```
 
-> `chenhLech > 0`: Khách phải trả thêm | `chenhLech < 0`: Cửa hàng hoàn tiền.  
+> `chenhLech > 0`: Khách phải trả thêm | `chenhLech < 0`: Cửa hàng hoàn tiền.
 > `itemCuWeightGram` / `itemMoiWeightGram`: Trọng lượng tính bằng **gram**.
 
 **Lỗi:**
 
-| Mã lỗi | HTTP | Mô tả |
-|---|---|---|
-| `INVENTORY_NOT_FOUND` | 404 | Sản phẩm kho không tồn tại |
-| `TRADE_ITEM_NOT_QUAN` | 422 | Sản phẩm không phải của quán |
-| `INVENTORY_ITEM_NOT_AVAILABLE` | 422 | Sản phẩm mới không ở trạng thái trên quầy |
-| `TRADE_FREE_EXCHANGE_EXPIRED` | 422 | Hết thời hạn đổi miễn phí (> 31 ngày) |
-| `TRADE_FREE_EXCHANGE_INVALID_VALUE` | 422 | Chênh lệch giá trị vượt 1% |
-| `CONFIG_PRICE_NOT_FOUND` | 422 | Chưa có bảng giá hiệu lực |
+| Mã lỗi                              | HTTP | Mô tả                                     |
+| ----------------------------------- | ---- | ----------------------------------------- |
+| `INVENTORY_NOT_FOUND`               | 404  | Sản phẩm kho không tồn tại                |
+| `TRADE_ITEM_NOT_QUAN`               | 422  | Sản phẩm không phải của quán              |
+| `INVENTORY_ITEM_NOT_AVAILABLE`      | 422  | Sản phẩm mới không ở trạng thái trên quầy |
+| `TRADE_FREE_EXCHANGE_EXPIRED`       | 422  | Hết thời hạn đổi miễn phí (> 31 ngày)     |
+| `TRADE_FREE_EXCHANGE_INVALID_VALUE` | 422  | Chênh lệch giá trị vượt 1%                |
+| `CONFIG_PRICE_NOT_FOUND`            | 422  | Chưa có bảng giá hiệu lực                 |
 
 ---
 
@@ -1968,55 +2028,55 @@ Lấy báo cáo chi tiết theo ngày.
 
 ## 12. Mã lỗi chung
 
-| Nhóm | Mã lỗi | HTTP | Mô tả |
-|---|---|---|---|
-| **Auth** | `AUTH_INVALID_CREDENTIALS` | 401 | Sai mã nhân viên hoặc mật khẩu |
-| | `AUTH_TOKEN_EXPIRED` | 401 | Access token đã hết hạn |
-| | `AUTH_REFRESH_TOKEN_INVALID` | 401 | Refresh token không hợp lệ |
-| | `AUTH_ACCOUNT_INACTIVE` | 403 | Tài khoản bị vô hiệu hoá |
-| | `AUTH_FORBIDDEN` | 403 | Không có quyền thực hiện thao tác |
-| **Branch** | `BRANCH_NOT_FOUND` | 404 | Chi nhánh không tồn tại |
-| | `COUNTER_NOT_FOUND` | 404 | Quầy giao dịch không tồn tại |
-| **User** | `USER_NOT_FOUND` | 404 | Người dùng không tồn tại |
-| | `USER_EMPLOYEE_CODE_DUPLICATE` | 422 | Mã nhân viên đã tồn tại |
-| | `ROLE_NOT_FOUND` | 404 | Role không tồn tại |
-| | `ROLE_CODE_DUPLICATE` | 422 | Mã role đã tồn tại |
-| | `ROLE_CODE_REQUIRED` | 422 | Thiếu mã role |
-| | `ROLE_NAME_REQUIRED` | 422 | Thiếu tên role |
-| | `ROLE_SYSTEM_PROTECTED` | 422 | Không sửa/xóa được role hệ thống |
-| | `ROLE_IN_USE` | 422 | Role vẫn còn người dùng được gán |
-| | `COUNTER_BRANCH_MISMATCH` | 422 | Quầy không thuộc chi nhánh của nhân viên |
-| **Customer** | `CUSTOMER_NOT_FOUND` | 404 | Khách hàng không tồn tại |
-| | `CUSTOMER_PHONE_DUPLICATE` | 422 | Số điện thoại đã được đăng ký |
-| **Product** | `PRODUCT_NOT_FOUND` | 404 | Sản phẩm không tồn tại |
-| | `PRODUCT_CODE_DUPLICATE` | 422 | Mã sản phẩm đã tồn tại |
-| | `PRODUCT_CATEGORY_NOT_FOUND` | 404 | Danh mục sản phẩm không tồn tại |
-| | `PRODUCT_CATEGORY_CODE_DUPLICATE` | 422 | Mã danh mục đã tồn tại |
-| | `PRODUCT_CATEGORY_HAS_PRODUCTS` | 422 | Danh mục còn sản phẩm, không thể xoá |
-| | `PRODUCT_PRICE_NOT_CONFIGURED` | 422 | Sản phẩm chưa có giá (đúng hàm lượng + đơn vị) trong bảng giá — không thể bán |
-| | `PRODUCT_WEIGHT_UNIT_REQUIRED` | 422 | Sản phẩm có hàm lượng (Vàng/Bạc) phải chọn đơn vị tính giá |
-| **Config** | `CONFIG_PRICE_NOT_FOUND` | 404 | Chưa có bảng giá hiệu lực |
-| | `CONFIG_RATE_NOT_FOUND` | 404 | Chưa có tỷ giá hiệu lực |
-| | `CONFIG_GOLD_PURITY_NOT_FOUND` | 404 | Độ tinh khiết không tồn tại |
-| | `CONFIG_GOLD_PURITY_CODE_DUPLICATE` | 422 | Mã độ tinh khiết đã tồn tại |
-| | `CONFIG_GOLD_PURITY_IN_USE` | 422 | Hàm lượng đang được dùng (sản phẩm/bảng giá), không thể xóa |
-| | `CONFIG_WEIGHT_UNIT_IN_USE` | 422 | Đơn vị đang được dùng (sản phẩm/bảng giá), không thể xóa |
-| | `CONFIG_STONE_RULE_NOT_FOUND` | 404 | Quy tắc giá đá không tồn tại |
-| | `CONFIG_WEIGHT_UNIT_NOT_FOUND` | 404 | Đơn vị trọng lượng không tồn tại |
-| | `CONFIG_WEIGHT_UNIT_CODE_DUPLICATE` | 422 | Mã đơn vị (`maTocDoc`) đã tồn tại |
-| | `CONFIG_WEIGHT_UNIT_SYSTEM_PROTECTED` | 422 | Đơn vị hệ thống, không thể xoá |
-| **Inventory** | `INVENTORY_NOT_FOUND` | 404 | Mục kho không tồn tại |
-| | `INVENTORY_INSUFFICIENT_STOCK` | 422 | Không đủ số lượng trong kho |
-| | `INVENTORY_ITEM_NOT_AVAILABLE` | 422 | Sản phẩm không ở trạng thái trên quầy |
-| | `INVENTORY_INVALID_DIRECTION` | 422 | Direction phải là IN hoặc OUT |
-| **Transaction** | `TRANSACTION_NOT_FOUND` | 404 | Hóa đơn không tồn tại |
-| | `TRANSACTION_ALREADY_CANCELLED` | 422 | Hóa đơn đã bị hủy trước đó |
-| | `PAYMENT_COMBINED_AMOUNTS_REQUIRED` | 422 | Thiếu `cashAmount` hoặc `bankAmount` khi `COMBINED` |
-| | `PAYMENT_COMBINED_AMOUNTS_INVALID` | 422 | `cashAmount` hoặc `bankAmount` là số âm |
-| | `PAYMENT_COMBINED_AMOUNTS_MISMATCH` | 422 | `cashAmount + bankAmount` ≠ `totalAmount` |
-| **Trade** | `TRADE_NOT_FOUND` | 404 | Giao dịch Trade không tồn tại |
-| | `TRADE_ITEM_NOT_QUAN` | 422 | Sản phẩm không phải của quán |
-| | `TRADE_FREE_EXCHANGE_EXPIRED` | 422 | Hết thời hạn đổi miễn phí (> 31 ngày) |
-| | `TRADE_FREE_EXCHANGE_INVALID_VALUE` | 422 | Chênh lệch giá trị vượt 1% |
-| **Validation** | `VALIDATION_FAILED` | 422 | Dữ liệu đầu vào không hợp lệ (kèm `errors{}`) |
-| **System** | `SYSTEM_INTERNAL_ERROR` | 500 | Lỗi hệ thống nội bộ |
+| Nhóm            | Mã lỗi                                | HTTP | Mô tả                                                                         |
+| --------------- | ------------------------------------- | ---- | ----------------------------------------------------------------------------- |
+| **Auth**        | `AUTH_INVALID_CREDENTIALS`            | 401  | Sai mã nhân viên hoặc mật khẩu                                                |
+|                 | `AUTH_TOKEN_EXPIRED`                  | 401  | Access token đã hết hạn                                                       |
+|                 | `AUTH_REFRESH_TOKEN_INVALID`          | 401  | Refresh token không hợp lệ                                                    |
+|                 | `AUTH_ACCOUNT_INACTIVE`               | 403  | Tài khoản bị vô hiệu hoá                                                      |
+|                 | `AUTH_FORBIDDEN`                      | 403  | Không có quyền thực hiện thao tác                                             |
+| **Branch**      | `BRANCH_NOT_FOUND`                    | 404  | Chi nhánh không tồn tại                                                       |
+|                 | `COUNTER_NOT_FOUND`                   | 404  | Quầy giao dịch không tồn tại                                                  |
+| **User**        | `USER_NOT_FOUND`                      | 404  | Người dùng không tồn tại                                                      |
+|                 | `USER_EMPLOYEE_CODE_DUPLICATE`        | 422  | Mã nhân viên đã tồn tại                                                       |
+|                 | `ROLE_NOT_FOUND`                      | 404  | Role không tồn tại                                                            |
+|                 | `ROLE_CODE_DUPLICATE`                 | 422  | Mã role đã tồn tại                                                            |
+|                 | `ROLE_CODE_REQUIRED`                  | 422  | Thiếu mã role                                                                 |
+|                 | `ROLE_NAME_REQUIRED`                  | 422  | Thiếu tên role                                                                |
+|                 | `ROLE_SYSTEM_PROTECTED`               | 422  | Không sửa/xóa được role hệ thống                                              |
+|                 | `ROLE_IN_USE`                         | 422  | Role vẫn còn người dùng được gán                                              |
+|                 | `COUNTER_BRANCH_MISMATCH`             | 422  | Quầy không thuộc chi nhánh của nhân viên                                      |
+| **Customer**    | `CUSTOMER_NOT_FOUND`                  | 404  | Khách hàng không tồn tại                                                      |
+|                 | `CUSTOMER_PHONE_DUPLICATE`            | 422  | Số điện thoại đã được đăng ký                                                 |
+| **Product**     | `PRODUCT_NOT_FOUND`                   | 404  | Sản phẩm không tồn tại                                                        |
+|                 | `PRODUCT_CODE_DUPLICATE`              | 422  | Mã sản phẩm đã tồn tại                                                        |
+|                 | `PRODUCT_CATEGORY_NOT_FOUND`          | 404  | Danh mục sản phẩm không tồn tại                                               |
+|                 | `PRODUCT_CATEGORY_CODE_DUPLICATE`     | 422  | Mã danh mục đã tồn tại                                                        |
+|                 | `PRODUCT_CATEGORY_HAS_PRODUCTS`       | 422  | Danh mục còn sản phẩm, không thể xoá                                          |
+|                 | `PRODUCT_PRICE_NOT_CONFIGURED`        | 422  | Sản phẩm chưa có giá (đúng hàm lượng + đơn vị) trong bảng giá — không thể bán |
+|                 | `PRODUCT_WEIGHT_UNIT_REQUIRED`        | 422  | Sản phẩm có hàm lượng (Vàng/Bạc) phải chọn đơn vị tính giá                    |
+| **Config**      | `CONFIG_PRICE_NOT_FOUND`              | 404  | Chưa có bảng giá hiệu lực                                                     |
+|                 | `CONFIG_RATE_NOT_FOUND`               | 404  | Chưa có tỷ giá hiệu lực                                                       |
+|                 | `CONFIG_GOLD_PURITY_NOT_FOUND`        | 404  | Độ tinh khiết không tồn tại                                                   |
+|                 | `CONFIG_GOLD_PURITY_CODE_DUPLICATE`   | 422  | Mã độ tinh khiết đã tồn tại                                                   |
+|                 | `CONFIG_GOLD_PURITY_IN_USE`           | 422  | Hàm lượng đang được dùng (sản phẩm/bảng giá), không thể xóa                   |
+|                 | `CONFIG_WEIGHT_UNIT_IN_USE`           | 422  | Đơn vị đang được dùng (sản phẩm/bảng giá), không thể xóa                      |
+|                 | `CONFIG_STONE_RULE_NOT_FOUND`         | 404  | Quy tắc giá đá không tồn tại                                                  |
+|                 | `CONFIG_WEIGHT_UNIT_NOT_FOUND`        | 404  | Đơn vị trọng lượng không tồn tại                                              |
+|                 | `CONFIG_WEIGHT_UNIT_CODE_DUPLICATE`   | 422  | Mã đơn vị (`maTocDoc`) đã tồn tại                                             |
+|                 | `CONFIG_WEIGHT_UNIT_SYSTEM_PROTECTED` | 422  | Đơn vị hệ thống, không thể xoá                                                |
+| **Inventory**   | `INVENTORY_NOT_FOUND`                 | 404  | Mục kho không tồn tại                                                         |
+|                 | `INVENTORY_INSUFFICIENT_STOCK`        | 422  | Không đủ số lượng trong kho                                                   |
+|                 | `INVENTORY_ITEM_NOT_AVAILABLE`        | 422  | Sản phẩm không ở trạng thái trên quầy                                         |
+|                 | `INVENTORY_INVALID_DIRECTION`         | 422  | Direction phải là IN hoặc OUT                                                 |
+| **Transaction** | `TRANSACTION_NOT_FOUND`               | 404  | Hóa đơn không tồn tại                                                         |
+|                 | `TRANSACTION_ALREADY_CANCELLED`       | 422  | Hóa đơn đã bị hủy trước đó                                                    |
+|                 | `PAYMENT_COMBINED_AMOUNTS_REQUIRED`   | 422  | Thiếu `cashAmount` hoặc `bankAmount` khi `COMBINED`                           |
+|                 | `PAYMENT_COMBINED_AMOUNTS_INVALID`    | 422  | `cashAmount` hoặc `bankAmount` là số âm                                       |
+|                 | `PAYMENT_COMBINED_AMOUNTS_MISMATCH`   | 422  | `cashAmount + bankAmount` ≠ `totalAmount`                                     |
+| **Trade**       | `TRADE_NOT_FOUND`                     | 404  | Giao dịch Trade không tồn tại                                                 |
+|                 | `TRADE_ITEM_NOT_QUAN`                 | 422  | Sản phẩm không phải của quán                                                  |
+|                 | `TRADE_FREE_EXCHANGE_EXPIRED`         | 422  | Hết thời hạn đổi miễn phí (> 31 ngày)                                         |
+|                 | `TRADE_FREE_EXCHANGE_INVALID_VALUE`   | 422  | Chênh lệch giá trị vượt 1%                                                    |
+| **Validation**  | `VALIDATION_FAILED`                   | 422  | Dữ liệu đầu vào không hợp lệ (kèm `errors{}`)                                 |
+| **System**      | `SYSTEM_INTERNAL_ERROR`               | 500  | Lỗi hệ thống nội bộ                                                           |

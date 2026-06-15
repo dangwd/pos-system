@@ -247,6 +247,11 @@ const ERROR_MESSAGES: Record<string, ErrorMap> = {
     vi: "Sản phẩm vàng/bạc phải chọn đơn vị tính giá",
     en: "Gold/silver product must have a weight unit configured",
   },
+  PRODUCT_PURITY_OR_UNIT_LOCKED: {
+    lo: "ສິນຄ້ານີ້ມີທຸລະກຳແລ້ວ ບໍ່ສາມາດແກ້ໄຂຄວາມບໍລິສຸດ ຫຼື ໜ່ວຍໄດ້",
+    vi: "Sản phẩm đã phát sinh giao dịch, không thể sửa hàm lượng hoặc đơn vị tính",
+    en: "Product already has transactions; purity and unit cannot be changed",
+  },
 
   // ── USER ──────────────────────────────────────────────────────────────────
   USER_NOT_FOUND: {
@@ -306,6 +311,11 @@ const ERROR_MESSAGES: Record<string, ErrorMap> = {
   },
 
   // ── CUSTOMER ──────────────────────────────────────────────────────────────
+  CUSTOMER_REQUIRED: {
+    lo: "ກະລຸນາເລືອກລູກຄ້າກ່ອນລ້າງໃບບິນ",
+    vi: "Vui lòng chọn khách hàng trước khi lập hóa đơn",
+    en: "Please select a customer before creating an invoice",
+  },
   CUSTOMER_NOT_FOUND: {
     lo: "ບໍ່ພົບລູກຄ້າ",
     vi: "Không tìm thấy khách hàng",

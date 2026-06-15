@@ -2,8 +2,10 @@
 
 import { useMemo, useRef, useState } from 'react'
 import { useTranslations } from 'next-intl'
-import { Plus, ShieldCheck, MoreHorizontal, Pencil, Trash2 } from 'lucide-react'
-import { Button, Form } from 'antd'
+import { ShieldCheck, MoreHorizontal, Pencil, Trash2 } from 'lucide-react'
+import { Table, Button, Card, Tag } from 'antd'
+import { PlusOutlined } from '@ant-design/icons'
+import type { TableColumnsType } from 'antd'
 import { Badge } from '@/components/ui/badge'
 import { Checkbox } from '@/components/ui/checkbox'
 import { Input } from '@/components/ui/input'
@@ -14,18 +16,19 @@ import {
   DropdownMenu, DropdownMenuTrigger, DropdownMenuContent,
   DropdownMenuItem, DropdownMenuSeparator,
 } from '@/components/ui/dropdown-menu'
-import { TablePageSkeleton } from '@/components/shared/PageSkeleton'
 import { cn } from '@/lib/utils'
 import {
   useRoles, usePermissions,
   useUpdateRolePermissions, useCreateRole, useUpdateRole, useDeleteRole,
 } from '@/hooks/useConfig'
 import type { AppRole, Permission } from '@/types/config'
+import { usePermission } from '@/hooks/usePermission'
+import { ForbiddenPage } from '@/components/shared/ForbiddenPage'
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
 type PermEditTarget = AppRole | null
-type InfoEditTarget = AppRole | null   // null = create mode
+type InfoEditTarget = AppRole | null
 type DeleteTarget  = AppRole | null
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
@@ -257,9 +260,10 @@ function RoleFormBody({ isCreate, role, submitRef }: {
     name.trim() && (!isCreate || code.trim()) ? { code, name, description } : null
 
   return (
-    <Form layout="vertical" className="py-2">
+    <div className="space-y-4 py-2">
       {isCreate && (
-        <Form.Item label={t('fields.code')}>
+        <div className="space-y-1.5">
+          <label className="text-sm font-medium">{t('fields.code')}</label>
           <Input
             value={code}
             onChange={(e) => setCode(e.target.value)}
@@ -267,24 +271,26 @@ function RoleFormBody({ isCreate, role, submitRef }: {
             className="font-mono uppercase"
             autoFocus
           />
-        </Form.Item>
+        </div>
       )}
-      <Form.Item label={t('fields.name')}>
+      <div className="space-y-1.5">
+        <label className="text-sm font-medium">{t('fields.name')}</label>
         <Input
           value={name}
           onChange={(e) => setName(e.target.value)}
           placeholder={t('fields.namePlaceholder')}
           autoFocus={!isCreate}
         />
-      </Form.Item>
-      <Form.Item label={t('fields.description')} style={{ marginBottom: 0 }}>
+      </div>
+      <div className="space-y-1.5">
+        <label className="text-sm font-medium">{t('fields.description')}</label>
         <Input
           value={description}
           onChange={(e) => setDescription(e.target.value)}
           placeholder={t('fields.descriptionPlaceholder')}
         />
-      </Form.Item>
-    </Form>
+      </div>
+    </div>
   )
 }
 
@@ -321,100 +327,173 @@ function DeleteConfirmDialog({ role, onClose }: { role: DeleteTarget; onClose: (
 
 // ─── Page ─────────────────────────────────────────────────────────────────────
 
+type RoleRow = AppRole | { id: string; _divider: true; _label: string }
+
+const PAGE_STYLE: React.CSSProperties = { padding: '24px 24px 32px' }
+const CARD_STYLE: React.CSSProperties = {
+  borderRadius: 10,
+  boxShadow: '0 1px 4px rgba(0,0,0,0.07), 0 4px 12px rgba(0,0,0,0.04)',
+  border: '1px solid #e5e7eb',
+}
+const CODE_STYLE: React.CSSProperties = {
+  fontFamily: 'monospace', fontSize: 13,
+  color: '#4f46e5', fontWeight: 600, letterSpacing: '0.01em',
+}
+
+function isDivider(row: RoleRow): row is { id: string; _divider: true; _label: string } {
+  return '_divider' in row
+}
+
+// colSpan = 0 ẩn cell, colSpan = 5 = tổng số cột → row header chiếm toàn bộ chiều ngang
+const DIVIDER_CELL = { colSpan: 5 }
+const HIDDEN_CELL  = { colSpan: 0 }
+
 export default function RolesPage() {
+  const { hasPermission } = usePermission()
   const t = useTranslations('admin.roles')
 
   const [permEditTarget, setPermEditTarget] = useState<PermEditTarget>(null)
   const [infoEditTarget, setInfoEditTarget] = useState<InfoEditTarget | 'create'>(null)
-  const [deleteTarget, setDeleteTarget] = useState<DeleteTarget>(null)
+  const [deleteTarget,   setDeleteTarget]   = useState<DeleteTarget>(null)
 
   const { data: roles = [], isLoading: rolesLoading } = useRoles()
   const { data: allPermissions = [], isLoading: permsLoading } = usePermissions()
   const isLoading = rolesLoading || permsLoading
 
+  // System roles trước, custom roles sau — mỗi nhóm có divider header
+  const tableData = useMemo((): RoleRow[] => {
+    const system = roles.filter(r => r.isSystem)
+    const custom = roles.filter(r => !r.isSystem)
+    const rows: RoleRow[] = []
+    if (system.length > 0) {
+      rows.push({ id: '__div_system', _divider: true, _label: t('sectionSystem') })
+      rows.push(...system)
+    }
+    if (custom.length > 0) {
+      rows.push({ id: '__div_custom', _divider: true, _label: t('sectionCustom') })
+      rows.push(...custom)
+    }
+    return rows
+  }, [roles, t])
+
+  const columns = useMemo((): TableColumnsType<RoleRow> => [
+    {
+      title: t('columns.code'), dataIndex: 'code', width: 200,
+      onCell: (row) => isDivider(row) ? DIVIDER_CELL : {},
+      render: (_: unknown, row: RoleRow) => {
+        if (isDivider(row)) {
+          return (
+            <span style={{ fontSize: 11, fontWeight: 700, color: '#9ca3af', textTransform: 'uppercase', letterSpacing: '0.08em' }}>
+              {row._label}
+            </span>
+          )
+        }
+        return (
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+            <span style={CODE_STYLE}>{row.code}</span>
+          </div>
+        )
+      },
+    },
+    {
+      title: t('columns.name'), dataIndex: 'name',
+      onCell: (row) => isDivider(row) ? HIDDEN_CELL : {},
+      render: (_: unknown, row: RoleRow) => isDivider(row) ? null
+        : <span style={{ fontWeight: 500 }}>{row.name}</span>,
+    },
+    {
+      title: t('columns.description'), dataIndex: 'description', ellipsis: true,
+      onCell: (row) => isDivider(row) ? HIDDEN_CELL : {},
+      render: (_: unknown, row: RoleRow) => {
+        if (isDivider(row)) return null
+        return row.description
+          ? <span style={{ color: '#6b7280', fontSize: 13 }}>{row.description}</span>
+          : <span style={{ color: '#d1d5db' }}>—</span>
+      },
+    },
+    {
+      title: t('columns.permissions'), dataIndex: 'permissions', width: 150,
+      onCell: (row) => isDivider(row) ? HIDDEN_CELL : {},
+      render: (_: unknown, row: RoleRow) => {
+        if (isDivider(row)) return null
+        return (
+          <div style={{ display: 'flex', alignItems: 'center', gap: 6, color: '#6b7280' }}>
+            <ShieldCheck style={{ width: 14, height: 14, color: '#6366f1' }} />
+            <span style={{ fontSize: 13 }}>{t('permissionsCount', { count: row.permissions.length })}</span>
+          </div>
+        )
+      },
+    },
+    {
+      title: '', key: 'actions', width: 160, align: 'right' as const,
+      onCell: (row) => isDivider(row) ? HIDDEN_CELL : {},
+      render: (_: unknown, row: RoleRow) => {
+        if (isDivider(row)) return null
+        return (
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: 4 }}>
+            <Button size="small" onClick={() => setPermEditTarget(row)}>
+              {t('editButton')}
+            </Button>
+            {!row.isSystem && (
+              <DropdownMenu>
+                <DropdownMenuTrigger className="inline-flex h-7 w-7 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-accent hover:text-accent-foreground focus-visible:outline-none">
+                  <MoreHorizontal className="h-3.5 w-3.5" />
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end" className="min-w-44">
+                  <DropdownMenuItem onClick={() => setInfoEditTarget(row)}>
+                    <Pencil className="h-3.5 w-3.5" />
+                    {t('editInfoButton')}
+                  </DropdownMenuItem>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem variant="destructive" onClick={() => setDeleteTarget(row)}>
+                    <Trash2 className="h-3.5 w-3.5" />
+                    {t('deleteButton')}
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            )}
+          </div>
+        )
+      },
+    },
+  ], [t])
+
+
+  if (!hasPermission('USER_MANAGE')) return <ForbiddenPage />
   return (
-    <div className="p-6 space-y-4">
-      <div className="flex items-start justify-between">
+    <div style={PAGE_STYLE}>
+      {/* ── Tiêu đề + actions ── */}
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 18 }}>
         <div>
-          <h1 className="text-2xl font-bold">{t('title')}</h1>
-          <p className="text-sm text-muted-foreground mt-0.5">{t('subtitle', { count: roles.length })}</p>
+          <h2 style={{ margin: 0, fontSize: 22, fontWeight: 700, color: '#111827' }}>{t('title')}</h2>
+          <p style={{ margin: '2px 0 0', fontSize: 13, color: '#6b7280' }}>
+            {t('subtitle', { count: roles.length })}
+          </p>
         </div>
-        <Button
-          type="primary"
-          icon={<Plus size={14} />}
-          onClick={() => setInfoEditTarget('create')}
-        >
+        <Button type="primary" icon={<PlusOutlined />} onClick={() => setInfoEditTarget('create')}>
           {t('createButton')}
         </Button>
       </div>
 
-      {isLoading ? <TablePageSkeleton cols={4} rows={5} /> : (
-        <div className="rounded-md border">
-          <table className="w-full text-sm">
-            <thead className="border-b bg-muted/40">
-              <tr>
-                <th className="px-4 py-3 text-left font-medium text-muted-foreground">{t('columns.code')}</th>
-                <th className="px-4 py-3 text-left font-medium text-muted-foreground">{t('columns.name')}</th>
-                <th className="px-4 py-3 text-left font-medium text-muted-foreground">{t('columns.description')}</th>
-                <th className="px-4 py-3 text-left font-medium text-muted-foreground">{t('columns.permissions')}</th>
-                <th className="px-4 py-3" />
-              </tr>
-            </thead>
-            <tbody>
-              {roles.length === 0 ? (
-                <tr><td colSpan={5} className="px-4 py-8 text-center text-muted-foreground">—</td></tr>
-              ) : roles.map((role) => (
-                <tr key={role.id} className="border-b last:border-0 hover:bg-muted/20">
-                  <td className="px-4 py-3">
-                    <div className="flex items-center gap-2">
-                      <span className="font-mono text-xs">{role.code}</span>
-                      {role.isSystem && (
-                        <Badge variant="secondary" className="text-[10px] px-1.5 py-0">{t('systemBadge')}</Badge>
-                      )}
-                    </div>
-                  </td>
-                  <td className="px-4 py-3 font-medium">{role.name}</td>
-                  <td className="px-4 py-3 text-muted-foreground text-xs max-w-xs">{role.description}</td>
-                  <td className="px-4 py-3">
-                    <div className="flex items-center gap-1.5 text-muted-foreground">
-                      <ShieldCheck className="h-3.5 w-3.5 text-primary/60" />
-                      <span className="text-xs">{t('permissionsCount', { count: role.permissions.length })}</span>
-                    </div>
-                  </td>
-                  <td className="px-4 py-3 text-right">
-                    <div className="flex items-center justify-end gap-1">
-                      <Button
-                        size="small"
-                        onClick={() => setPermEditTarget(role)}
-                      >
-                        {t('editButton')}
-                      </Button>
-                      {!role.isSystem && (
-                        <DropdownMenu>
-                          <DropdownMenuTrigger className="inline-flex h-7 w-7 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-accent hover:text-accent-foreground focus-visible:outline-none">
-                            <MoreHorizontal className="h-3.5 w-3.5" />
-                          </DropdownMenuTrigger>
-                          <DropdownMenuContent align="end" className="min-w-44">
-                            <DropdownMenuItem onClick={() => setInfoEditTarget(role)}>
-                              <Pencil className="h-3.5 w-3.5" />
-                              {t('editInfoButton')}
-                            </DropdownMenuItem>
-                            <DropdownMenuSeparator />
-                            <DropdownMenuItem variant="destructive" onClick={() => setDeleteTarget(role)}>
-                              <Trash2 className="h-3.5 w-3.5" />
-                              {t('deleteButton')}
-                            </DropdownMenuItem>
-                          </DropdownMenuContent>
-                        </DropdownMenu>
-                      )}
-                    </div>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      )}
+      {/* ── Bảng ── */}
+      <Card style={CARD_STYLE} styles={{ body: { padding: 0 } }}>
+        <Table<RoleRow>
+          rowKey="id"
+          columns={columns}
+          dataSource={tableData}
+          loading={isLoading}
+          bordered
+          size="middle"
+          scroll={{ x: 800 }}
+          rowClassName={(row) => isDivider(row) ? 'roles-divider-row' : ''}
+          pagination={false}
+        />
+      </Card>
+
+      <style>{`
+        .roles-divider-row > td { background: #f8f9fb !important; padding-top: 8px !important; padding-bottom: 8px !important; border-bottom: 1px solid #e5e7eb !important; }
+        .roles-divider-row:first-child > td { border-top: none !important; }
+      `}</style>
 
       <PermissionsDialog
         key={permEditTarget?.id ?? 'none'}

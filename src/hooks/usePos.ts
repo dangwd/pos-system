@@ -17,13 +17,11 @@
 
 import { useState } from 'react'
 import { useQuery } from '@tanstack/react-query'
-import { useProductsWithStock } from './useProducts'
 import { useActiveTab } from './useActiveTab'
 import { useCheckout } from './useCheckout'
 import { useCoupon } from './useCoupon'
 import { useWeightUnits } from './useConfig'
 import { useInvoiceTabStore } from '@/stores/invoice-tab.store'
-import { useAuthStore } from '@/stores/auth.store'
 import { CashStrategy, BankTransferStrategy, CombinedStrategy } from '@/lib/strategies'
 import { configRepository } from '@/lib/repositories/config.repository'
 
@@ -42,10 +40,6 @@ const STRATEGIES = {
 export function usePos() {
   // ── UI local state ──────────────────────────────────────────────────────────
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethodKey>('cash')
-  const [search, setSearch] = useState('')
-  const [category, setCategory] = useState('all')
-
-  const { user } = useAuthStore()
 
   // ── Bảng giá hiện tại (cache 1 phút — giá cập nhật theo giờ) ────────────────
   const { data: priceConfig } = useQuery({
@@ -56,11 +50,6 @@ export function usePos() {
 
   // ── Đơn vị trọng lượng (cache 10 phút — hiếm khi thay đổi) ─────────────────
   const { data: weightUnits = [] } = useWeightUnits()
-
-  // ── Server state (sản phẩm kèm tồn kho theo quầy của cashier) ──────────────
-  const { data: products = [], isLoading: productsLoading } = useProductsWithStock(
-    user?.counterId ? { counterId: user.counterId } : undefined
-  )
 
   // ── Active tab state (cart, giảm giá, v.v.) ─────────────────────────────────
   const {
@@ -79,19 +68,6 @@ export function usePos() {
   const strategy = STRATEGIES[paymentMethod]
   const { mutateAsync: checkoutMutate, isPending: isCheckingOut, data: lastTransaction } =
     useCheckout(strategy)
-
-  // ── Product filtering ───────────────────────────────────────────────────────
-  const categories = ['all', ...Array.from(new Set(
-    products.map(p => p.categoryName)
-  ))]
-
-  const filteredProducts = products.filter(p => {
-    const q = search.toLowerCase()
-    const matchSearch = p.productName.toLowerCase().includes(q) ||
-                        p.productCode.toLowerCase().includes(q)
-    const matchCategory = category === 'all' || p.categoryName === category
-    return matchSearch && matchCategory
-  })
 
   // ── Actions ─────────────────────────────────────────────────────────────────
 
@@ -153,7 +129,7 @@ export function usePos() {
 
   const checkout = (params: {
     type: TransactionType
-    customerId?: string
+    customerId: string
     note?: string
     cashAmount?: number
     bankAmount?: number
@@ -170,14 +146,6 @@ export function usePos() {
 
   // ── Return API ──────────────────────────────────────────────────────────────
   return {
-    // Products
-    products: filteredProducts,
-    productsLoading,
-    categories,
-    search, setSearch,
-    category,
-    setCategory: (v: string | null) => setCategory(v ?? 'all'),
-
     // Price config
     priceConfig,
 
@@ -203,6 +171,9 @@ export function usePos() {
     checkout,
     isCheckingOut,
     lastTransaction,
+
+    // Tab
+    customerId: tab?.customerId ?? null,
 
     // Tab status (cho payment modal lifecycle)
     setTabPaying,

@@ -1,118 +1,86 @@
 'use client'
 
-import { useRef, useState } from 'react'
+import { useEffect } from 'react'
+import { useForm, Controller } from 'react-hook-form'
+import { zodResolver } from '@hookform/resolvers/zod'
+import { z } from 'zod'
 import { useTranslations } from 'next-intl'
-import { Select } from 'antd'
+import { Select, DatePicker } from 'antd'
+import dayjs from 'dayjs'
 import { useUpdateUser } from '@/hooks/useUsers'
 import { useBranches } from '@/hooks/useBranches'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
+import { FieldError } from '@/components/ui/field'
 import {
   Dialog, DialogContent, DialogFooter,
 } from '@/components/ui/dialog'
-import { Field, FieldGroup, FieldLabel } from '@/components/ui/field'
 import { Spinner } from '@/components/ui/spinner'
 import type { AdminUser } from '@/types/admin-user'
+
+const schema = z.object({
+  fullName:    z.string().min(1, 'Vui lòng nhập họ và tên'),
+  phone:       z.string().min(1, 'Vui lòng nhập số điện thoại'),
+  branchId:    z.string().min(1, 'Vui lòng chọn chi nhánh'),
+  email:       z.string().refine(
+    val => !val || /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(val),
+    'Email không hợp lệ',
+  ),
+  address:     z.string().optional(),
+  dateOfBirth: z.string().optional(),
+})
+
+type FormValues = z.infer<typeof schema>
 
 interface Props {
   user: AdminUser | null
   onClose: () => void
 }
 
-type FormData = {
-  fullName: string
-  phone: string
-  branchId: string
-  email: string
-  address: string
-  dateOfBirth: string
-}
-
-// Keyed inner component — remounts when `user` changes so form state
-// always initializes from the current entity without a useEffect.
-// submitRef is populated so the outer footer button can trigger submission.
-function EditInfoForm({
-  user,
-  submitRef,
-}: {
-  user: AdminUser
-  submitRef: React.MutableRefObject<(() => FormData | null)>
-}) {
-  const t = useTranslations('admin.users.editInfoDialog')
-  const { data: branches = [] } = useBranches()
-
-  const [form, setForm] = useState<FormData>(() => ({
-    fullName: user.fullName,
-    phone: user.phone,
-    branchId: user.branchId,
-    email: user.email ?? '',
-    address: user.address ?? '',
-    dateOfBirth: user.dateOfBirth ?? '',
-  }))
-
-  const set = (k: keyof FormData) => (e: React.ChangeEvent<HTMLInputElement>) =>
-    setForm(f => ({ ...f, [k]: e.target.value }))
-
-  submitRef.current = () => (form.fullName && form.phone && form.branchId ? form : null)
-
-  return (
-    <FieldGroup className="py-1 gap-3">
-      <Field>
-        <FieldLabel htmlFor="ei-fullName">{t('fullName')}</FieldLabel>
-        <Input id="ei-fullName" className="h-9" value={form.fullName} onChange={set('fullName')} />
-      </Field>
-      <Field>
-        <FieldLabel htmlFor="ei-phone">{t('phone')}</FieldLabel>
-        <Input id="ei-phone" className="h-9" value={form.phone} onChange={set('phone')} />
-      </Field>
-      <Field>
-        <FieldLabel>{t('branch')}</FieldLabel>
-        <Select
-          value={form.branchId || undefined}
-          onChange={v => v && setForm(f => ({ ...f, branchId: v }))}
-          placeholder={t('branchPlaceholder')}
-          options={branches.map(b => ({ value: b.id, label: b.name }))}
-          showSearch
-          filterOption={(input, opt) => (opt?.label as string ?? '').toLowerCase().includes(input.toLowerCase())}
-          notFoundContent="Không tìm thấy"
-          className="w-full"
-          popupMatchSelectWidth={false}
-        />
-      </Field>
-      <Field>
-        <FieldLabel htmlFor="ei-email">{t('email')}</FieldLabel>
-        <Input id="ei-email" className="h-9" value={form.email} onChange={set('email')} />
-      </Field>
-      <Field>
-        <FieldLabel htmlFor="ei-address">{t('address')}</FieldLabel>
-        <Input id="ei-address" className="h-9" value={form.address} onChange={set('address')} />
-      </Field>
-      <Field>
-        <FieldLabel htmlFor="ei-dob">{t('dateOfBirth')}</FieldLabel>
-        <Input id="ei-dob" type="date" className="h-9" value={form.dateOfBirth} onChange={set('dateOfBirth')} />
-      </Field>
-    </FieldGroup>
-  )
-}
-
 export function UserEditInfoDialog({ user, onClose }: Props) {
   const t = useTranslations('admin.users.editInfoDialog')
   const { mutate: update, isPending } = useUpdateUser()
-  const submitRef = useRef<() => FormData | null>(() => null)
+  const { data: branches = [] } = useBranches()
 
-  function handleSubmit() {
-    if (!user) return
-    const form = submitRef.current()
-    if (!form) return
-    const dto = {
-      fullName: form.fullName,
-      phone: form.phone,
-      branchId: form.branchId,
-      ...(form.email && { email: form.email }),
-      ...(form.address && { address: form.address }),
-      ...(form.dateOfBirth && { dateOfBirth: form.dateOfBirth }),
+  const form = useForm<FormValues>({
+    resolver: zodResolver(schema),
+    defaultValues: {
+      fullName: '', phone: '', branchId: '', email: '', address: '', dateOfBirth: '',
+    },
+  })
+  const { errors } = form.formState
+
+  useEffect(() => {
+    if (user) {
+      form.reset({
+        fullName:    user.fullName,
+        phone:       user.phone,
+        branchId:    user.branchId,
+        email:       user.email ?? '',
+        address:     user.address ?? '',
+        dateOfBirth: user.dateOfBirth ?? '',
+      })
     }
-    update({ id: user.id, dto }, { onSuccess: onClose })
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [user])
+
+  function handleSubmit(values: FormValues) {
+    if (!user) return
+    update(
+      {
+        id: user.id,
+        dto: {
+          fullName:  values.fullName,
+          phone:     values.phone,
+          branchId:  values.branchId,
+          ...(values.email       && { email:       values.email }),
+          ...(values.address     && { address:     values.address }),
+          ...(values.dateOfBirth && { dateOfBirth: values.dateOfBirth }),
+        },
+      },
+      { onSuccess: onClose },
+    )
   }
 
   return (
@@ -123,20 +91,92 @@ export function UserEditInfoDialog({ user, onClose }: Props) {
         footer={
           <DialogFooter>
             <Button variant="outline" onClick={onClose} disabled={isPending}>{t('cancel')}</Button>
-            <Button onClick={handleSubmit} disabled={isPending}>
+            <Button onClick={form.handleSubmit(handleSubmit)} disabled={isPending}>
               {isPending && <Spinner className="mr-2" />}
               {t('submit')}
             </Button>
           </DialogFooter>
         }
       >
-        {user && (
-          <EditInfoForm
-            key={user.id}
-            user={user}
-            submitRef={submitRef}
-          />
-        )}
+        <div className="flex flex-col gap-4 py-1">
+
+          <div className="flex flex-col gap-1.5">
+            <Label htmlFor="ei-fullName" className="text-sm font-medium">
+              {t('fullName')} <span className="text-destructive ml-0.5">*</span>
+            </Label>
+            <Input id="ei-fullName" className="h-9" status={errors.fullName ? 'error' : undefined} {...form.register('fullName')} />
+            <FieldError errors={[errors.fullName]} />
+          </div>
+
+          <div className="flex flex-col gap-1.5">
+            <Label htmlFor="ei-phone" className="text-sm font-medium">
+              {t('phone')} <span className="text-destructive ml-0.5">*</span>
+            </Label>
+            <Input id="ei-phone" className="h-9" status={errors.phone ? 'error' : undefined} {...form.register('phone')} />
+            <FieldError errors={[errors.phone]} />
+          </div>
+
+          <div className="flex flex-col gap-1.5">
+            <Label className="text-sm font-medium">
+              {t('branch')} <span className="text-destructive ml-0.5">*</span>
+            </Label>
+            <Controller
+              control={form.control}
+              name="branchId"
+              render={({ field }) => (
+                <Select
+                  value={field.value || undefined}
+                  onChange={v => field.onChange(v ?? '')}
+                  placeholder={t('branchPlaceholder')}
+                  options={branches.map(b => ({ value: b.id, label: b.name }))}
+                  showSearch={{ filterOption: (input, opt) =>
+                    (opt?.label as string ?? '').toLowerCase().includes(input.toLowerCase())
+                  }}
+                  notFoundContent="Không tìm thấy"
+                  className="w-full"
+                  popupMatchSelectWidth={false}
+                />
+              )}
+            />
+            <FieldError errors={[errors.branchId]} />
+          </div>
+
+          <div className="flex flex-col gap-1.5">
+            <Label htmlFor="ei-email" className="text-sm font-medium text-muted-foreground">
+              {t('email')}
+            </Label>
+            <Input id="ei-email" className="h-9" type="email" placeholder="example@email.com" status={errors.email ? 'error' : undefined} {...form.register('email')} />
+            <FieldError errors={[errors.email]} />
+          </div>
+
+          <div className="flex flex-col gap-1.5">
+            <Label htmlFor="ei-address" className="text-sm font-medium text-muted-foreground">
+              {t('address')}
+            </Label>
+            <Input id="ei-address" className="h-9" {...form.register('address')} />
+          </div>
+
+          <div className="flex flex-col gap-1.5">
+            <Label htmlFor="ei-dob" className="text-sm font-medium text-muted-foreground">
+              {t('dateOfBirth')}
+            </Label>
+            <Controller
+              control={form.control}
+              name="dateOfBirth"
+              render={({ field }) => (
+                <DatePicker
+                  value={field.value ? dayjs(field.value) : null}
+                  onChange={d => field.onChange(d ? d.format('YYYY-MM-DD') : '')}
+                  format="DD/MM/YYYY"
+                  placeholder="DD/MM/YYYY"
+                  allowClear
+                  className="w-full h-9"
+                />
+              )}
+            />
+          </div>
+
+        </div>
       </DialogContent>
     </Dialog>
   )

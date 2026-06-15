@@ -1,19 +1,22 @@
 'use client'
 
+import { usePermission } from '@/hooks/usePermission'
+import { ForbiddenPage } from '@/components/shared/ForbiddenPage'
 import { useState } from 'react'
 import { useTranslations } from 'next-intl'
-import { Building2, Layers, Pencil, Plus, PowerOff } from 'lucide-react'
+import { Building2, Layers, Pencil, Plus, Power, PowerOff } from 'lucide-react'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Spinner } from '@/components/ui/spinner'
 import { TablePageSkeleton } from '@/components/shared/PageSkeleton'
 import { BranchUpsertDialog } from '@/components/admin/branches/BranchUpsertDialog'
 import { CounterUpsertDialog } from '@/components/admin/branches/CounterUpsertDialog'
-import { useBranches, useCounters, useDeactivateCounter } from '@/hooks/useBranches'
+import { useBranches, useCounters, useDeactivateCounter, useActivateCounter } from '@/hooks/useBranches'
 import { cn } from '@/lib/utils'
 import type { Branch, Counter } from '@/types/branch'
 
 export default function BranchesPage() {
+  const { hasPermission } = usePermission()
   const t = useTranslations('admin.branches')
 
   const [selectedBranch, setSelectedBranch] = useState<Branch | null>(null)
@@ -25,6 +28,7 @@ export default function BranchesPage() {
   const { data: branches = [], isLoading } = useBranches()
   const { data: counters = [], isLoading: countersLoading } = useCounters(selectedBranch?.id ?? null)
   const { mutate: deactivateCounter, isPending: deactivating } = useDeactivateCounter()
+  const { mutate: activateCounter, isPending: activating } = useActivateCounter()
 
   function openCreateBranch() {
     setEditingBranch(null)
@@ -52,6 +56,13 @@ export default function BranchesPage() {
     deactivateCounter({ branchId: selectedBranch.id, counterId: counter.id })
   }
 
+  function handleActivateCounter(counter: Counter) {
+    if (!selectedBranch) return
+    activateCounter({ branchId: selectedBranch.id, counterId: counter.id })
+  }
+
+
+  if (!hasPermission('BRANCH_MANAGE')) return <ForbiddenPage />
   return (
     <div className="p-6 space-y-4">
       {/* Header */}
@@ -175,7 +186,9 @@ export default function BranchesPage() {
               {counters.map(counter => (
                 <li key={counter.id} className="flex items-center gap-3 px-4 py-3 group">
                   <div className="flex-1 min-w-0">
-                    <p className="text-sm font-medium">{counter.counterName}</p>
+                    <p className={cn('text-sm font-medium', !counter.isActive && 'text-muted-foreground')}>
+                      {counter.counterName}
+                    </p>
                   </div>
                   <Badge
                     variant={counter.isActive ? 'default' : 'secondary'}
@@ -183,15 +196,15 @@ export default function BranchesPage() {
                   >
                     {counter.isActive ? t('counters.active') : t('counters.inactive')}
                   </Badge>
-                  {counter.isActive && (
-                    <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                      <button
-                        onClick={() => openEditCounter(counter)}
-                        className="h-6 w-6 flex items-center justify-center rounded hover:bg-muted"
-                        title={t('counters.edit')}
-                      >
-                        <Pencil className="h-3 w-3 text-muted-foreground" />
-                      </button>
+                  <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                    <button
+                      onClick={() => openEditCounter(counter)}
+                      className="h-6 w-6 flex items-center justify-center rounded hover:bg-muted"
+                      title={t('counters.edit')}
+                    >
+                      <Pencil className="h-3 w-3 text-muted-foreground" />
+                    </button>
+                    {counter.isActive ? (
                       <button
                         onClick={() => handleDeactivateCounter(counter)}
                         disabled={deactivating}
@@ -202,8 +215,19 @@ export default function BranchesPage() {
                           ? <Spinner className="h-3 w-3" />
                           : <PowerOff className="h-3 w-3 text-destructive" />}
                       </button>
-                    </div>
-                  )}
+                    ) : (
+                      <button
+                        onClick={() => handleActivateCounter(counter)}
+                        disabled={activating}
+                        className="h-6 w-6 flex items-center justify-center rounded hover:bg-primary/10"
+                        title={t('counters.activate')}
+                      >
+                        {activating
+                          ? <Spinner className="h-3 w-3" />
+                          : <Power className="h-3 w-3 text-primary" />}
+                      </button>
+                    )}
+                  </div>
                 </li>
               ))}
             </ul>

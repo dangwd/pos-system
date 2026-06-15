@@ -1,6 +1,6 @@
 'use client'
 
-import type { ColumnDef } from '@tanstack/react-table'
+import type { TableColumnsType } from 'antd'
 import { Badge } from '@/components/ui/badge'
 import type { InventoryAdjustment } from '@/types/inventory'
 
@@ -24,33 +24,37 @@ interface Options {
 
 const lak = (n: number) => n.toLocaleString('lo-LA')
 
-/**
- * Columns cho lịch sử điều chỉnh kho (InventoryAdjustmentLog, mã ADJ-xxx) —
- * dùng ở 2 màn Nhập kho / Xuất kho. `variant` quyết định dấu/màu số lượng và
- * có hiển thị cột thanh toán/giá trị (chỉ có ý nghĩa với phiếu nhập).
- */
-export function createAdjustmentColumns({ variant, labels }: Options): ColumnDef<InventoryAdjustment>[] {
-  const columns: ColumnDef<InventoryAdjustment>[] = [
+/** Tóm tắt sản phẩm của một phiếu nhiều dòng: "Tên SP đầu +N". */
+function productSummary(a: InventoryAdjustment): string {
+  if (a.lines.length === 0) return '—'
+  const first = a.lines[0].productName
+  return a.lines.length > 1 ? `${first} +${a.lines.length - 1}` : first
+}
+
+export function createAdjustmentColumns({ variant, labels }: Options): TableColumnsType<InventoryAdjustment> {
+  const columns: TableColumnsType<InventoryAdjustment> = [
     {
-      accessorKey: 'adjustmentCode',
-      header: labels.code,
-      cell: ({ row }) => (
+      title: labels.code,
+      dataIndex: 'adjustmentCode',
+      key: 'adjustmentCode',
+      render: (value: string) => (
         <span className="rounded bg-primary/10 px-1.5 py-0.5 font-mono text-xs font-semibold text-primary">
-          {row.original.adjustmentCode}
+          {value}
         </span>
       ),
     },
     {
-      accessorKey: 'productName',
-      header: labels.product,
-      cell: ({ row }) => <span className="font-medium">{row.original.productName}</span>,
+      title: labels.product,
+      key: 'product',
+      render: (_: unknown, record: InventoryAdjustment) => <span className="font-medium">{productSummary(record)}</span>,
     },
     {
-      accessorKey: 'quantity',
-      header: labels.quantity,
-      cell: ({ row }) => (
+      title: labels.quantity,
+      dataIndex: 'totalQuantity',
+      key: 'totalQuantity',
+      render: (value: number) => (
         <span className={`font-semibold tabular-nums ${variant === 'IN' ? 'text-primary' : 'text-destructive'}`}>
-          {variant === 'IN' ? '+' : '−'}{row.original.quantity}
+          {variant === 'IN' ? '+' : '−'}{value}
         </span>
       ),
     },
@@ -59,20 +63,24 @@ export function createAdjustmentColumns({ variant, labels }: Options): ColumnDef
   if (variant === 'IN') {
     columns.push(
       {
-        id: 'payment',
-        header: labels.payment,
-        cell: ({ row }) => {
-          const p = row.original.paymentMethod
+        title: labels.payment,
+        key: 'payment',
+        render: (_: unknown, record: InventoryAdjustment) => {
+          const p = record.paymentMethod
           if (!p) return <span className="text-muted-foreground">—</span>
-          return <Badge variant="secondary" className="text-[10px]">{p === 'CASH' ? labels.cash : labels.bank}</Badge>
+          return (
+            <Badge variant="secondary" className="text-[10px]">
+              {p === 'CASH' ? labels.cash : labels.bank}
+            </Badge>
+          )
         },
       },
       {
-        id: 'value',
-        header: labels.value,
-        cell: ({ row }) =>
-          row.original.actualValue != null
-            ? <span className="tabular-nums">{lak(row.original.actualValue)} ₭</span>
+        title: labels.value,
+        key: 'value',
+        render: (_: unknown, record: InventoryAdjustment) =>
+          record.totalValue != null
+            ? <span className="tabular-nums">{lak(record.totalValue)} ₭</span>
             : <span className="text-muted-foreground">—</span>,
       },
     )
@@ -80,18 +88,22 @@ export function createAdjustmentColumns({ variant, labels }: Options): ColumnDef
 
   columns.push(
     {
-      accessorKey: 'reason',
-      header: labels.reason,
-      cell: ({ row }) => (
-        <span className="line-clamp-1 max-w-[280px] text-sm text-muted-foreground">{row.original.reason || '—'}</span>
+      title: labels.reason,
+      dataIndex: 'reason',
+      key: 'reason',
+      render: (value: string) => (
+        <span className="line-clamp-1 max-w-70 text-sm text-muted-foreground">
+          {value || '—'}
+        </span>
       ),
     },
     {
-      accessorKey: 'createdAt',
-      header: labels.date,
-      cell: ({ row }) => (
+      title: labels.date,
+      dataIndex: 'createdAt',
+      key: 'createdAt',
+      render: (value: string) => (
         <span className="whitespace-nowrap text-xs text-muted-foreground">
-          {new Date(row.original.createdAt).toLocaleString('lo-LA')}
+          {new Date(value).toLocaleString('lo-LA')}
         </span>
       ),
     },

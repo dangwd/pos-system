@@ -16,20 +16,30 @@ export function useLogin() {
 
   return useMutation<Awaited<ReturnType<typeof AuthRepository.login>>, ApiError, LoginRequest>({
     mutationFn: (dto) => AuthRepository.login(dto),
-    onSuccess: (data) => {
+    onSuccess: async (data) => {
+      // Lưu token trước để getMe có thể dùng Authorization header
+      localStorage.setItem('accessToken', data.accessToken)
+      localStorage.setItem('refreshToken', data.refreshToken)
+      // Gọi /me để lấy branchName, counterName, employeeCode đầy đủ
+      const me = await AuthRepository.getMe()
       setAuth(
         {
-          userId: data.userId,
-          fullName: data.fullName,
-          role: data.role,
-          permissions: data.permissions,
-          branchId: data.branchId,
-          counterId: data.counterId,
+          userId: me.id,
+          employeeCode: me.employeeCode,
+          fullName: me.fullName,
+          phone: me.phone,
+          role: me.role,
+          permissions: me.permissions,
+          branchId: me.branchId,
+          branchName: me.branchName,
+          counterId: me.counterId,
+          counterName: me.counterName,
+          lastLoginAt: me.lastLoginAt,
         },
         data.accessToken,
         data.refreshToken,
       )
-      router.replace(data.role === 'Cashier' ? '/pos' : '/admin/dashboard')
+      router.replace(me.role === 'Cashier' ? '/pos' : '/admin/dashboard')
     },
     onError: (err) => {
       toast.error(getErrorMessage(err.code, locale))

@@ -1,6 +1,6 @@
 # Quy ước API: Phân trang · Truyền Param · Filter · Response
 
-> Tài liệu chuẩn hoá cách viết các endpoint kiểu **danh sách (list)** trong backend Khamphuvong POS.
+> Tài liệu chuẩn hoá cách viết các endpoint kiểu **danh sách (list)** trong backend Khamphouvong POS.
 > Mọi API list mới **phải** tuân theo quy ước trong tài liệu này để đảm bảo nhất quán giữa các module và với frontend.
 
 ---
@@ -13,6 +13,7 @@ Backend áp dụng mô hình **phân trang tuỳ chọn (optional pagination)**:
 - **Không có `page`** → trả về **mảng phẳng** toàn bộ dữ liệu (hoặc giới hạn bởi `limit` ở chế độ lookup).
 
 Điều này cho phép **một endpoint duy nhất** phục vụ 2 nhu cầu:
+
 - Màn hình bảng dữ liệu (journal, danh sách quản trị) → cần phân trang.
 - Dropdown / autocomplete / POS lookup → chỉ cần một mảng ngắn gọn.
 
@@ -22,11 +23,11 @@ Backend áp dụng mô hình **phân trang tuỳ chọn (optional pagination)**:
 
 ### 2.1. Tham số phân trang chuẩn
 
-| Tham số | Kiểu | Mặc định | Bắt buộc | Ý nghĩa |
-|---|---|---|---|---|
-| `page` | `int?` | `null` | Không | Trang cần lấy (**1-indexed**). `null` ⇒ **không** phân trang. |
-| `pageSize` | `int` | `20` | Không | Số bản ghi mỗi trang. |
-| `limit` | `int` | `10`–`20` | Không | (Chỉ chế độ lookup, ở một số endpoint) Số bản ghi tối đa khi **không** phân trang. |
+| Tham số    | Kiểu   | Mặc định  | Bắt buộc | Ý nghĩa                                                                            |
+| ---------- | ------ | --------- | -------- | ---------------------------------------------------------------------------------- |
+| `page`     | `int?` | `null`    | Không    | Trang cần lấy (**1-indexed**). `null` ⇒ **không** phân trang.                      |
+| `pageSize` | `int`  | `20`      | Không    | Số bản ghi mỗi trang.                                                              |
+| `limit`    | `int`  | `10`–`20` | Không    | (Chỉ chế độ lookup, ở một số endpoint) Số bản ghi tối đa khi **không** phân trang. |
 
 ### 2.2. Quy tắc
 
@@ -75,14 +76,14 @@ GET /api/users?page=2&search=an         → PagedResult trang 2, đã lọc
 
 ### 3.2. Bộ filter theo module (tham chiếu)
 
-| Module | Filter params |
-|---|---|
-| Users | `branchId`, `search`, `isActive` |
-| Products | `categoryCode`, `search` |
-| Customers | `search` / `q` |
-| Inventory | `branchId`, `category`, `trayId`, `status` (enum), `nguonGoc` (enum) |
-| Transactions | `branchId`, `status`, `type`, `from`, `to`, `invoiceCode`, `q` |
-| Trade | `branchId`, `loai`, `from`, `to` |
+| Module       | Filter params                                                        |
+| ------------ | -------------------------------------------------------------------- |
+| Users        | `branchId`, `search`, `isActive`                                     |
+| Products     | `categoryCode`, `search`                                             |
+| Customers    | `search` / `q`                                                       |
+| Inventory    | `branchId`, `category`, `trayId`, `status` (enum), `nguonGoc` (enum) |
+| Transactions | `branchId`, `status`, `type`, `from`, `to`, `invoiceCode`, `q`       |
+| Trade        | `branchId`, `loai`, `from`, `to`                                     |
 
 ### 3.3. Query-builder pattern (Repository)
 
@@ -184,12 +185,12 @@ public record PagedResult<T>(IEnumerable<T> Data, PaginationMeta Pagination)
 }
 ```
 
-| Trường | Ý nghĩa |
-|---|---|
-| `data` | Mảng bản ghi của trang hiện tại. |
-| `pagination.page` | Trang hiện tại (1-indexed). |
-| `pagination.pageSize` | Kích thước trang. |
-| `pagination.totalItems` | **Tổng** số bản ghi khớp filter (không phải số phần tử trong trang). |
+| Trường                  | Ý nghĩa                                                                 |
+| ----------------------- | ----------------------------------------------------------------------- |
+| `data`                  | Mảng bản ghi của trang hiện tại.                                        |
+| `pagination.page`       | Trang hiện tại (1-indexed).                                             |
+| `pagination.pageSize`   | Kích thước trang.                                                       |
+| `pagination.totalItems` | **Tổng** số bản ghi khớp filter (không phải số phần tử trong trang).    |
 | `pagination.totalPages` | Tổng số trang — `ceil(totalItems / pageSize)`, backend tính sẵn cho FE. |
 
 ### 5.2. Hai dạng body trả về
@@ -198,7 +199,7 @@ public record PagedResult<T>(IEnumerable<T> Data, PaginationMeta Pagination)
 
 ```json
 {
-  "data": [ { "id": "...", "employeeCode": "NV001", "fullName": "..." } ],
+  "data": [{ "id": "...", "employeeCode": "NV001", "fullName": "..." }],
   "pagination": {
     "page": 1,
     "pageSize": 20,
@@ -267,11 +268,12 @@ public async Task<IActionResult> List(
 ```
 
 Còn khác chuẩn ở chỗ:
+
 - `page` **mặc định = 1** (luôn phân trang, không có chế độ mảng phẳng — Trade không phục vụ lookup).
 - Dùng `limit` làm tên tham số kích thước trang thay cho `pageSize`.
 
 > ✅ Response của Trade nay giống hệt các API khác: `{ data, pagination: { page, pageSize, totalItems, totalPages } }`.
-> **Khuyến nghị cho API mới:** theo **Mục 2–5** (dùng `pageSize` + optional pagination). Riêng `page=1` mặc định của Trade là chấp nhận được khi API *luôn* cần phân trang.
+> **Khuyến nghị cho API mới:** theo **Mục 2–5** (dùng `pageSize` + optional pagination). Riêng `page=1` mặc định của Trade là chấp nhận được khi API _luôn_ cần phân trang.
 
 ---
 
@@ -289,16 +291,16 @@ Còn khác chuẩn ở chỗ:
 
 ## 8. Bảng tra nhanh (Quick Reference)
 
-| Khía cạnh | Quy ước |
-|---|---|
-| Bật phân trang | Truyền `?page=N` |
-| Page index | Bắt đầu từ **1** |
-| pageSize mặc định | **20** |
-| Cờ "không phân trang" | `Total == null` |
-| Wrapper | `{ data, pagination: { page, pageSize, totalItems, totalPages } }` |
-| Factory | `PagedResult<T>.Create(data, page, pageSize, totalItems)` |
-| Skip/Take | `Skip((page-1)*pageSize).Take(pageSize)` |
-| Filter | `[FromQuery]` nullable, áp dụng trong Repository builder |
-| Search | `Contains`, không phân biệt hoa thường |
-| Lỗi | Chỉ `errorCode`, không message tự nhiên |
-| Khác chuẩn tham số | **Trade** dùng `limit` + `page=1` mặc định (xem Mục 6) |
+| Khía cạnh             | Quy ước                                                            |
+| --------------------- | ------------------------------------------------------------------ |
+| Bật phân trang        | Truyền `?page=N`                                                   |
+| Page index            | Bắt đầu từ **1**                                                   |
+| pageSize mặc định     | **20**                                                             |
+| Cờ "không phân trang" | `Total == null`                                                    |
+| Wrapper               | `{ data, pagination: { page, pageSize, totalItems, totalPages } }` |
+| Factory               | `PagedResult<T>.Create(data, page, pageSize, totalItems)`          |
+| Skip/Take             | `Skip((page-1)*pageSize).Take(pageSize)`                           |
+| Filter                | `[FromQuery]` nullable, áp dụng trong Repository builder           |
+| Search                | `Contains`, không phân biệt hoa thường                             |
+| Lỗi                   | Chỉ `errorCode`, không message tự nhiên                            |
+| Khác chuẩn tham số    | **Trade** dùng `limit` + `page=1` mặc định (xem Mục 6)             |

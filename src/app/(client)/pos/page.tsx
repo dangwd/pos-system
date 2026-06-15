@@ -5,113 +5,91 @@
  * Mọi state đến từ usePos() facade (R-ARCH-5).
  */
 
-'use client'
+"use client";
 
-import { useState } from 'react'
-import { usePos } from '@/hooks/usePos'
-import { PosTopBar } from '@/components/pos/PosTopBar'
-import { TransactionTable } from '@/components/pos/TransactionTable'
-import { PaymentPanel } from '@/components/pos/PaymentPanel'
-import { PaymentModal } from '@/components/pos/PaymentModal'
-import { Receipt } from '@/components/pos/Receipt'
-import { toast } from 'sonner'
-import { useTranslations } from 'next-intl'
-import type { Transaction } from '@/types/transaction'
+import { PaymentPanel } from "@/components/pos/PaymentPanel";
+import { PrintInvoiceModal } from "@/components/pos/PrintInvoiceModal";
+import { PosTopBar } from "@/components/pos/PosTopBar";
+import { Receipt } from "@/components/pos/Receipt";
+import { TransactionTable } from "@/components/pos/TransactionTable";
+import { usePos } from "@/hooks/usePos";
+import type { Transaction } from "@/types/transaction";
+import { Splitter } from "antd";
+import { useTranslations } from "next-intl";
+import { useState } from "react";
+import { toast } from "sonner";
 
 export default function PosPage() {
-  const t = useTranslations('pos.errors')
-  const [paymentOpen, setPaymentOpen] = useState(false)
-  const [receiptTransaction, setReceiptTransaction] = useState<Transaction | null>(null)
+  const t = useTranslations("pos.errors");
+  const [receiptTransaction, setReceiptTransaction] =
+    useState<Transaction | null>(null);
+  const pos = usePos();
 
-  const pos = usePos()
+  const isFx = pos.txnType === "ExchangeCurrency";
 
-  // ── Payment modal lifecycle ─────────────────────────────────────────────────
-
-  const isFx = pos.txnType === 'ExchangeCurrency'
-
-  const handleOpenPayment = () => {
+  const handleCheckout = async (combined?: {
+    cashAmount: number;
+    bankAmount: number;
+  }) => {
     if (!isFx && pos.cartItems.length === 0) {
-      toast.error(t('emptyCart'))
-      return
+      toast.error(t("emptyCart"));
+      return;
     }
-    pos.setTabPaying()
-    setPaymentOpen(true)
-  }
-
-  const handleClosePayment = () => {
-    pos.resetTabStatus()
-    setPaymentOpen(false)
-  }
-
-  const handleCheckout = async (combined?: { cashAmount: number; bankAmount: number }) => {
+    pos.setTabPaying();
     try {
       const transaction = await pos.checkout({
         type: pos.txnType,
-        customerId: undefined,
+        customerId: pos.customerId ?? '',
         note: pos.note || undefined,
         cashAmount: combined?.cashAmount,
         bankAmount: combined?.bankAmount,
-      })
-      setPaymentOpen(false)
-      pos.resetTabStatus()
-      if (transaction) setReceiptTransaction(transaction)
+      });
+      pos.resetTabStatus();
+      if (transaction) setReceiptTransaction(transaction);
     } catch {
-      // Toast lỗi hiển thị từ useCheckout onError — giữ modal mở để thử lại
+      pos.resetTabStatus();
     }
-  }
+  };
 
-  // FX: bypass modal, checkout trực tiếp
   const handleDirectCheckout = async () => {
-    pos.setTabPaying()
+    pos.setTabPaying();
     try {
-      const transaction = await pos.checkout({ type: 'ExchangeCurrency' })
-      pos.resetTabStatus()
-      if (transaction) setReceiptTransaction(transaction)
+      const transaction = await pos.checkout({ type: "ExchangeCurrency", customerId: pos.customerId ?? '' });
+      pos.resetTabStatus();
+      if (transaction) setReceiptTransaction(transaction);
     } catch {
-      pos.resetTabStatus()
+      pos.resetTabStatus();
     }
-  }
-
-  // ─────────────────────────────────────────────────────────────────────────────
+  };
 
   return (
     <div className="flex flex-col h-full overflow-hidden">
-
       <PosTopBar onAddProduct={pos.addToCart} />
 
-      <div className="flex flex-1 min-h-0 overflow-hidden">
-
-        <TransactionTable />
-
-        <PaymentPanel
-          subtotal={pos.subtotal}
-          total={pos.total}
-          discount={pos.discount}
-          isCheckingOut={pos.isCheckingOut}
-          cartEmpty={pos.cartItems.length === 0}
-          onOpenPayment={handleOpenPayment}
-          onDirectCheckout={handleDirectCheckout}
-          onApplyDiscount={pos.applyDiscount}
-          onClearDiscount={pos.clearDiscount}
-        />
-      </div>
-
-      <PaymentModal
-        open={paymentOpen}
-        onClose={handleClosePayment}
-        paymentMethod={pos.paymentMethod}
-        onPaymentMethodChange={pos.setPaymentMethod}
-        onCheckout={handleCheckout}
-        isCheckingOut={pos.isCheckingOut}
-        onApplyDiscount={pos.applyDiscount}
-        onClearDiscount={pos.clearDiscount}
-      />
+      <Splitter className="flex-1 min-h-0">
+        <Splitter.Panel defaultSize="70%" min="40%" style={{ overflow: 'hidden' }}>
+          <TransactionTable />
+        </Splitter.Panel>
+        <Splitter.Panel min={300} max={500} style={{ overflow: 'hidden' }}>
+          <PaymentPanel
+            isCheckingOut={pos.isCheckingOut}
+            paymentMethod={pos.paymentMethod}
+            onPaymentMethodChange={pos.setPaymentMethod}
+            onCheckout={handleCheckout}
+            onDirectCheckout={handleDirectCheckout}
+            onApplyDiscount={pos.applyDiscount}
+            onClearDiscount={pos.clearDiscount}
+          />
+        </Splitter.Panel>
+      </Splitter>
 
       <Receipt
         open={!!receiptTransaction}
         transaction={receiptTransaction}
         onClose={() => setReceiptTransaction(null)}
       />
+
+      <PrintInvoiceModal />
     </div>
-  )
+  );
 }
