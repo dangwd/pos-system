@@ -1,75 +1,88 @@
-'use client'
+"use client";
 
-import { useState, useEffect } from 'react'
-import { useActiveTab } from '@/hooks/useActiveTab'
-import { useExchangeRates } from '@/hooks/useExchangeRates'
-import { Input } from '@/components/ui/input'
-import { NumberInput } from '@/components/ui/number-input'
-import { cn } from '@/lib/utils'
-import { Select } from 'antd'
-import type { ExchangeRate } from '@/types/config'
-import { ArrowDown, ArrowLeftRight, RefreshCw } from 'lucide-react'
+import { Input } from "@/components/ui/input";
+import { NumberInput } from "@/components/ui/number-input";
+import { useActiveTab } from "@/hooks/useActiveTab";
+import { useExchangeRates } from "@/hooks/useExchangeRates";
+import { cn } from "@/lib/utils";
+import type { ExchangeRate } from "@/types/config";
+import { Select } from "antd";
+import { ArrowDown, ArrowLeftRight, RefreshCw } from "lucide-react";
+import { useEffect, useState } from "react";
 
 function getRateLak(currency: string, rates: ExchangeRate[]): number {
-  if (currency === 'LAK') return 1
-  return rates.find(r => r.currencyCode === currency)?.effectiveRate ?? 1
+  if (currency === "LAK") return 1;
+  return rates.find((r) => r.currencyCode === currency)?.effectiveRate ?? 1;
 }
 
 export function CurrencyExchangeForm() {
-  const { tab, setFxData } = useActiveTab()
-  const { data: rates = [], isLoading } = useExchangeRates()
+  const { tab, setFxData } = useActiveTab();
+  const { data: rates = [], isLoading } = useExchangeRates();
 
-  const [fromCurrency, setFromCurrency] = useState(tab?.fxFromCurrency ?? 'USD')
-  const [toCurrency, setToCurrency] = useState(tab?.fxToCurrency ?? 'LAK')
+  const [fromCurrency, setFromCurrency] = useState(
+    tab?.fxFromCurrency ?? "USD",
+  );
+  const [toCurrency, setToCurrency] = useState(tab?.fxToCurrency ?? "LAK");
   const [fromInput, setFromInput] = useState(
-    tab?.fxFromAmount ? String(tab.fxFromAmount) : ''
-  )
+    tab?.fxFromAmount ? String(tab.fxFromAmount) : "",
+  );
 
-  const currencies = ['LAK', ...rates.map(r => r.currencyCode)]
-  const fromRateLak = getRateLak(fromCurrency, rates)
-  const toRateLak = getRateLak(toCurrency, rates)
-  const crossRate = toRateLak > 0 ? fromRateLak / toRateLak : 0
+  const currencies = ["LAK", ...rates.map((r) => r.currencyCode)];
+  const fromRateLak = getRateLak(fromCurrency, rates);
+  const toRateLak = getRateLak(toCurrency, rates);
+  const crossRate = toRateLak > 0 ? fromRateLak / toRateLak : 0;
 
-  const fromAmount = parseFloat(fromInput) || 0
-  const toAmount = fromAmount * crossRate
-  const lakAmount = Math.round(fromAmount * fromRateLak)
+  const fromAmount = parseFloat(fromInput) || 0;
+  const toAmount = fromAmount * crossRate;
+  const lakAmount = Math.round(fromAmount * fromRateLak);
 
   useEffect(() => {
-    setFxData(fromCurrency, toCurrency, fromAmount, toAmount, lakAmount, fromRateLak, toRateLak)
+    setFxData(
+      fromCurrency,
+      toCurrency,
+      fromAmount,
+      toAmount,
+      lakAmount,
+      fromRateLak,
+      toRateLak,
+    );
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [fromCurrency, toCurrency, fromAmount])
+  }, [fromCurrency, toCurrency, fromAmount]);
 
   const handleFromCurrencyChange = (curr: string) => {
-    setFromCurrency(curr)
+    setFromCurrency(curr);
     if (curr === toCurrency) {
-      setToCurrency(curr === 'LAK' ? (rates[0]?.currencyCode ?? 'USD') : 'LAK')
+      setToCurrency(curr === "LAK" ? (rates[0]?.currencyCode ?? "USD") : "LAK");
     }
-  }
+  };
 
   const handleToCurrencyChange = (curr: string) => {
-    setToCurrency(curr)
+    setToCurrency(curr);
     if (curr === fromCurrency) {
-      setFromCurrency(curr === 'LAK' ? (rates[0]?.currencyCode ?? 'USD') : 'LAK')
+      setFromCurrency(
+        curr === "LAK" ? (rates[0]?.currencyCode ?? "USD") : "LAK",
+      );
     }
-  }
+  };
 
   const swap = () => {
-    const prev = fromCurrency
-    setFromCurrency(toCurrency)
-    setToCurrency(prev)
-    setFromInput('')
-  }
+    const prev = fromCurrency;
+    setFromCurrency(toCurrency);
+    setToCurrency(prev);
+    setFromInput("");
+  };
 
-  const toDisplay = toAmount > 0
-    ? toCurrency === 'LAK'
-      ? Math.round(toAmount).toLocaleString('lo-LA')
-      : toAmount.toLocaleString('en', { maximumFractionDigits: 6 })
-    : ''
+  const toDisplay =
+    toAmount > 0
+      ? toCurrency === "LAK"
+        ? Math.round(toAmount).toLocaleString("lo-LA")
+        : toAmount.toLocaleString("en", { maximumFractionDigits: 6 })
+      : "";
 
   const currencyOptions = (exclude: string) =>
     currencies
-      .filter(c => c !== exclude)
-      .map(c => ({ value: c, label: c }))
+      .filter((c) => c !== exclude)
+      .map((c) => ({ value: c, label: c }));
 
   if (isLoading) {
     return (
@@ -77,12 +90,11 @@ export function CurrencyExchangeForm() {
         <RefreshCw className="h-4 w-4 animate-spin mr-2" />
         <span className="text-xs">Đang tải tỷ giá...</span>
       </div>
-    )
+    );
   }
 
   return (
     <div className="flex flex-col h-full overflow-y-auto">
-
       {/* ── Header label ── */}
       <div className="px-4 pt-4 pb-3 border-b shrink-0 space-y-3">
         <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
@@ -91,7 +103,6 @@ export function CurrencyExchangeForm() {
 
         {/* ── Amount row ── */}
         <div className="flex items-end gap-2">
-
           {/* FROM */}
           <div className="flex-1 space-y-1 min-w-0">
             <p className="text-[10px] text-muted-foreground uppercase tracking-wide">
@@ -103,7 +114,7 @@ export function CurrencyExchangeForm() {
                 min={0}
                 placeholder="0"
                 value={fromInput}
-                onChange={v => setFromInput(v)}
+                onChange={(v) => setFromInput(v)}
                 className="h-9 text-right font-mono font-bold tabular-nums text-sm flex-1 min-w-0"
                 autoFocus
               />
@@ -157,13 +168,14 @@ export function CurrencyExchangeForm() {
         {/* ── Cross-rate label ── */}
         {crossRate > 0 && (
           <p className="text-[11px] text-muted-foreground text-center">
-            1{' '}
-            <span className="font-semibold text-foreground">{fromCurrency}</span>
-            {' = '}
-            <span className="font-semibold text-foreground tabular-nums">
-              {crossRate.toLocaleString('en', { maximumFractionDigits: 6 })}
+            1{" "}
+            <span className="font-semibold text-foreground">
+              {fromCurrency}
             </span>
-            {' '}
+            {" = "}
+            <span className="font-semibold text-foreground tabular-nums">
+              {crossRate.toLocaleString("en", { maximumFractionDigits: 6 })}
+            </span>{" "}
             <span className="font-semibold text-foreground">{toCurrency}</span>
           </p>
         )}
@@ -177,7 +189,7 @@ export function CurrencyExchangeForm() {
             <div className="flex items-center justify-between text-sm">
               <span className="text-muted-foreground">Khách đưa</span>
               <span className="font-bold tabular-nums">
-                {fromAmount.toLocaleString('en', { maximumFractionDigits: 2 })}{' '}
+                {fromAmount.toLocaleString("en", { maximumFractionDigits: 2 })}{" "}
                 <span className="text-primary">{fromCurrency}</span>
               </span>
             </div>
@@ -193,19 +205,19 @@ export function CurrencyExchangeForm() {
                 {toDisplay}
               </p>
               <p className="text-xs text-muted-foreground mt-1">
-                {toCurrency === 'LAK' ? '₭ Kip Lào' : toCurrency}
+                {toCurrency === "LAK" ? "₭ Kip Lào" : toCurrency}
               </p>
             </div>
 
             {/* LAK equivalent (only when cross-rate, i.e. to != LAK) */}
-            {toCurrency !== 'LAK' && lakAmount > 0 && (
+            {/* {toCurrency !== "LAK" && lakAmount > 0 && (
               <p className="text-[10px] text-muted-foreground text-center mt-2.5 border-t border-primary/10 pt-2">
-                Tương đương:{' '}
+                Tương đương:{" "}
                 <span className="font-semibold text-foreground">
-                  {lakAmount.toLocaleString('lo-LA')} ₭
+                  {lakAmount.toLocaleString("lo-LA")} ₭
                 </span>
               </p>
-            )}
+            )} */}
           </div>
         </div>
       )}
@@ -217,28 +229,33 @@ export function CurrencyExchangeForm() {
             Bảng tỷ giá hiện hành
           </p>
           <div className="space-y-1">
-            {rates.map(r => {
-              const isActive = fromCurrency === r.currencyCode || toCurrency === r.currencyCode
+            {rates.map((r) => {
+              const isActive =
+                fromCurrency === r.currencyCode ||
+                toCurrency === r.currencyCode;
               return (
                 <div
                   key={r.currencyCode}
                   className={cn(
-                    'flex justify-between items-center text-xs px-3 py-2 rounded-md border',
+                    "flex justify-between items-center text-xs px-3 py-2 rounded-md border",
                     isActive
-                      ? 'bg-primary/10 border-primary/30 font-semibold'
-                      : 'bg-background border-border',
+                      ? "bg-primary/10 border-primary/30 font-semibold"
+                      : "bg-background border-border",
                   )}
                 >
-                  <span className="font-mono font-bold text-primary">{r.currencyCode}</span>
+                  <span className="font-mono font-bold text-primary">
+                    {r.currencyCode}
+                  </span>
                   <span className="tabular-nums text-muted-foreground">
-                    1 {r.currencyCode} = {r.effectiveRate.toLocaleString('lo-LA')} ₭
+                    1 {r.currencyCode} ={" "}
+                    {r.effectiveRate.toLocaleString("lo-LA")} ₭
                   </span>
                 </div>
-              )
+              );
             })}
           </div>
         </div>
       )}
     </div>
-  )
+  );
 }

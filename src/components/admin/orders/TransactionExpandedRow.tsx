@@ -3,7 +3,7 @@
 import { useTranslations } from 'next-intl'
 import { Table, Button as AntBtn } from 'antd'
 import type { ColumnsType } from 'antd/es/table/interface'
-import { FileSpreadsheet, Printer, Barcode, ShieldCheck, ExternalLink } from 'lucide-react'
+import { /* FileSpreadsheet, Printer, Barcode, ShieldCheck, */ ExternalLink } from 'lucide-react'
 import type { Transaction, TransactionItem } from '@/types/transaction'
 
 interface Props { record: Transaction }
@@ -128,13 +128,14 @@ export function TransactionExpandedRow({ record }: Props) {
         />
       )}
 
-      {/* Nút hành động */}
+      {/* Nút hành động — tạm ẩn, chưa có tính năng
       <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
         <AntBtn icon={<FileSpreadsheet size={13} />}>{t('btnExport')}</AntBtn>
         <AntBtn icon={<ShieldCheck size={13} />}>{t('btnPrintGoldCert')}</AntBtn>
         <AntBtn type="primary" icon={<Printer size={13} />}>{t('btnRePrintInvoice')}</AntBtn>
         <AntBtn type="primary" icon={<Barcode size={13} />}>{t('btnPrintBarcode')}</AntBtn>
       </div>
+      */}
     </div>
   )
 }

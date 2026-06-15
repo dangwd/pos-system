@@ -381,11 +381,10 @@
         "loyalty": "Tier",
         "points": "Points",
         "status": "Status",
-        "openMenu": "Open menu",
-        "viewDetail": "View details",
         "edit": "Edit",
         "totalPurchase": "Total Purchase",
-        "lastVisit": "Last Visit"
+        "lastVisit": "Last Visit",
+        "actions": "Actions"
       },
       "toasts": {
         "createSuccess": "Customer added successfully",
@@ -914,7 +913,7 @@
       "addEntry": "Add Entry",
       "setOpeningBalance": "Set Opening Balance",
       "createIncome": "New Receipt",
-      "createExpense": "New Payment",
+      "createExpense": "New Voucher",
       "exportFile": "Export",
       "searchPlaceholder": "Search by voucher code",
       "filterTime": "Time",
@@ -968,7 +967,8 @@
       "cancel": "Cancel",
       "source": {
         "Transaction": "POS transaction",
-        "Manual": "Manual entry"
+        "Manual": "Manual entry",
+        "Cancellation": "Cancellation"
       }
     },
     "reports": {

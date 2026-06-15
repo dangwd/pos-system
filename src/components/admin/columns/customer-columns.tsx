@@ -2,13 +2,7 @@
 
 import type { TableColumnsType } from 'antd'
 import { Badge } from '@/components/ui/badge'
-import {
-  DropdownMenu,
-  DropdownMenuTrigger,
-  DropdownMenuContent,
-  DropdownMenuItem,
-} from '@/components/ui/dropdown-menu'
-import { MoreHorizontal } from 'lucide-react'
+import { EditOutlined } from '@ant-design/icons'
 import type { Customer } from '@/types/customer'
 
 export interface CustomerColumnLabels {
@@ -18,8 +12,7 @@ export interface CustomerColumnLabels {
   loyalty: string
   points: string
   status: string
-  openMenu: string
-  viewDetail: string
+  actions: string
   edit: string
   active: string
   inactive: string
@@ -88,21 +81,21 @@ export function createCustomerColumns(
       ),
     },
     {
-      title: '',
+      title: labels.actions,
       key: 'actions',
-      width: 48,
+      width: 80,
+      align: 'center' as const,
       render: (_: unknown, record: Customer) => (
-        <DropdownMenu>
-          <DropdownMenuTrigger className="inline-flex h-7 w-7 items-center justify-center rounded-md hover:bg-accent">
-            <MoreHorizontal className="h-4 w-4" />
-            <span className="sr-only">{labels.openMenu}</span>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="end">
-            <DropdownMenuItem onClick={() => onEdit(record)}>
-              {labels.edit}
-            </DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
+        <div className="flex items-center justify-center gap-1">
+          <button
+            type="button"
+            onClick={() => onEdit(record)}
+            title={labels.edit}
+            className="inline-flex h-7 w-7 items-center justify-center rounded-md text-base text-muted-foreground transition-colors hover:bg-accent hover:text-foreground"
+          >
+            <EditOutlined />
+          </button>
+        </div>
       ),
     },
   ]

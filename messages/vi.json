@@ -33,7 +33,7 @@
         "unit": "ĐV",
         "unitPrice": "Đơn giá",
         "laborFee": "Tiền công",
-        "stoneFee": "Phí đá",
+        "stoneFee": "Tiền đá",
         "total": "Thành tiền"
       },
       "unitLabel": "Chỉ",
@@ -70,7 +70,7 @@
         "customerRequired": "Vui lòng chọn khách hàng để lập đơn",
         "subtotalLabel": "Tổng hàng (A)",
         "laborFeeLabel": "Phí gia công",
-        "stoneFeeLabel": "Phí đá",
+        "stoneFeeLabel": "Tiền đá",
         "discountLabel": "Giảm giá (B)",
         "discountInput": "Nhập giảm giá ₭...",
         "applyDiscount": "Áp dụng",
@@ -205,7 +205,7 @@
         "status": "Trạng thái",
         "openMenu": "Mở menu",
         "viewDetail": "Xem chi tiết",
-        "refCode": "Số HDDT",
+        "refCode": "Mã HD gốc",
         "customer": "Khách hàng",
         "bank": "Ngân hàng"
       },
@@ -239,7 +239,7 @@
         "fieldCreatedAt": "Ngày tạo hóa đơn",
         "fieldSubtotal": "Giá trị nguyên giá",
         "fieldLaborFee": "Phí gia công",
-        "fieldStoneFee": "Phí đá",
+        "fieldStoneFee": "Tiền đá",
         "fieldTotal": "Thành tiền",
         "fieldCounter": "Mã quầy hàng",
         "fieldCashier": "Nhân viên quầy",
@@ -275,7 +275,7 @@
         "config": "Cấu hình",
         "prices": "Bảng giá",
         "exchangeRates": "Tỷ giá",
-        "stonePrices": "Phí đá",
+        "stonePrices": "Tiền đá",
         "weightUnits": "Đơn vị",
         "goldPurities": "Tuổi vàng",
         "users": "Người dùng",
@@ -381,9 +381,8 @@
         "loyalty": "Hạng",
         "points": "Điểm",
         "status": "Trạng thái",
-        "openMenu": "Mở menu",
-        "viewDetail": "Xem chi tiết",
-        "edit": "Chỉnh sửa"
+        "edit": "Chỉnh sửa",
+        "actions": "Thao tác"
       },
       "toasts": {
         "createSuccess": "Đã thêm khách hàng mới",
@@ -912,7 +911,7 @@
       "addEntry": "Thêm mục thu chi",
       "setOpeningBalance": "Đặt số dư đầu",
       "createIncome": "Lập phiếu thu",
-      "createExpense": "Lập phiếu chi",
+      "createExpense": "Lập phiếu",
       "exportFile": "Xuất File",
       "searchPlaceholder": "Tìm kiếm theo mã phiếu",
       "filterTime": "Thời gian",
@@ -966,7 +965,8 @@
       "cancel": "Hủy",
       "source": {
         "Transaction": "Giao dịch POS",
-        "Manual": "Nhập thủ công"
+        "Manual": "Nhập thủ công",
+        "Cancellation": "Hủy giao dịch"
       }
     },
     "reports": {
@@ -1097,7 +1097,7 @@
         }
       },
       "stonePrices": {
-        "title": "Bảng phí đá đính kèm",
+        "title": "Bảng tiền đá đính kèm",
         "addButton": "Thêm quy tắc",
         "editDialogTitle": "Sửa quy tắc",
         "edit": "Sửa",
@@ -1107,7 +1107,7 @@
         "columns": {
           "weightFrom": "Từ (chỉ)",
           "weightTo": "Đến (chỉ)",
-          "fee": "Phí đá (₭)"
+          "fee": "Tiền đá (₭)"
         }
       },
       "weightUnits": {

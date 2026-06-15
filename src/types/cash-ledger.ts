@@ -13,7 +13,7 @@ export type CashEntryType =
 
 export type CashMethod   = 'CASH' | 'BANK'
 export type CashCurrency = 'LAK' | 'THB' | 'USD'
-export type CashSource   = 'Transaction' | 'Manual'
+export type CashSource   = 'Transaction' | 'Manual' | 'Cancellation'
 export type CashSign     = 1 | -1
 
 // Bút toán trong GET /daily và GET /activities

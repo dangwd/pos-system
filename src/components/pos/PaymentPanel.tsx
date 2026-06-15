@@ -407,11 +407,17 @@ function FxBreakdown() {
       </div>
       <div className="border-t border-border" />
       <div className="rounded-lg border border-primary/20 bg-primary/5 px-4 py-4 text-center">
-        <p className="text-[10px] text-muted-foreground uppercase tracking-widest font-medium mb-1">Giá trị quy LAK</p>
-        <p className="text-3xl font-black tabular-nums tracking-tight leading-none text-foreground">
-          {total.toLocaleString("lo-LA")}
+        <p className="text-[10px] text-muted-foreground uppercase tracking-widest font-medium mb-1">
+          Khách hàng thực nhận
         </p>
-        <p className="text-xs text-muted-foreground mt-1">₭ (Kip Lào)</p>
+        <p className="text-3xl font-black tabular-nums tracking-tight leading-none text-foreground">
+          {to > 0
+            ? toCurr === "LAK"
+              ? Math.round(to).toLocaleString("lo-LA")
+              : to.toLocaleString("en", { maximumFractionDigits: 4 })
+            : "—"}
+        </p>
+        <p className="text-xs text-muted-foreground mt-1">{toCurr}</p>
       </div>
       <p className="text-[10px] text-muted-foreground text-center leading-relaxed">
         Bút toán hoán đổi ngoại tệ sẽ được ghi tự động vào Sổ Quỹ Kết.

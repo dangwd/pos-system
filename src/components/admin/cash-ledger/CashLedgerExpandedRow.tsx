@@ -28,7 +28,7 @@ export function CashLedgerExpandedRow({ record }: Props) {
   const entryTypeKey = `entryType.${record.entryType}` as Parameters<typeof t>[0]
 
   return (
-    <div style={{ padding: '16px 16px 16px 48px', background: '#f0fdfa', display: 'flex', gap: 40, flexWrap: 'wrap' }}>
+    <div style={{ padding: '16px 16px 16px 48px', background: '#f8faff', display: 'flex', gap: 40, flexWrap: 'wrap' }}>
       {/* Cột trái */}
       <div style={{ minWidth: 280, flex: 1 }}>
         <Field label={t('detail.time')}
@@ -44,7 +44,7 @@ export function CashLedgerExpandedRow({ record }: Props) {
         />
         <Field label={t('detail.source')}
           value={
-            <Tag color={record.source === 'Transaction' ? 'blue' : 'purple'} style={{ borderRadius: 10, fontSize: 11 }}>
+            <Tag color={record.source === 'Transaction' ? 'blue' : record.source === 'Cancellation' ? 'orange' : 'purple'} style={{ borderRadius: 10, fontSize: 11 }}>
               {t(`source.${record.source}` as Parameters<typeof t>[0])}
             </Tag>
           }

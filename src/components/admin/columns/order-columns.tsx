@@ -32,6 +32,8 @@ export interface OrderColumnLabels {
   transactionStatuses: Record<string, { label: string; variant: 'default' | 'secondary' | 'destructive' | 'outline' }>
 }
 
+const noWrapHeader = () => ({ style: { whiteSpace: 'nowrap' as const } })
+
 export function createOrderColumns(labels: OrderColumnLabels): TableColumnsType<Transaction> {
   return [
     {
@@ -39,6 +41,7 @@ export function createOrderColumns(labels: OrderColumnLabels): TableColumnsType<
       dataIndex: 'type',
       key: 'type',
       width: 150,
+      onHeaderCell: noWrapHeader,
       render: (value: TransactionType) => {
         const label = labels.transactionTypes[value] ?? value
         const cls = TYPE_STYLE[value] ?? 'bg-secondary text-secondary-foreground'
@@ -54,6 +57,7 @@ export function createOrderColumns(labels: OrderColumnLabels): TableColumnsType<
       dataIndex: 'invoiceCode',
       key: 'invoiceCode',
       width: 130,
+      onHeaderCell: noWrapHeader,
       render: (value: string | null, record: Transaction) => (
         <span style={{ fontFamily: 'monospace', fontSize: 13, fontWeight: 600, color: '#4f46e5' }}>
           {value ?? `#${record.id.slice(0, 8).toUpperCase()}`}
@@ -65,6 +69,7 @@ export function createOrderColumns(labels: OrderColumnLabels): TableColumnsType<
       dataIndex: 'referenceInvoiceCode',
       key: 'referenceInvoiceCode',
       width: 110,
+      onHeaderCell: noWrapHeader,
       render: (value: string | null) =>
         value
           ? <span style={{ fontFamily: 'monospace', fontSize: 12 }}>{value}</span>
@@ -76,12 +81,14 @@ export function createOrderColumns(labels: OrderColumnLabels): TableColumnsType<
       key: 'transactedAt',
       width: 140,
       sorter: true,
+      onHeaderCell: noWrapHeader,
       render: (value: string) =>
         new Date(value).toLocaleString('vi-VN', { dateStyle: 'short', timeStyle: 'short' }),
     },
     {
       title: labels.colCustomer,
       key: 'customer',
+      onHeaderCell: noWrapHeader,
       render: (_: unknown, record: Transaction) =>
         record.customer?.name
           ? <span style={{ fontSize: 13 }}>{record.customer.name}</span>
@@ -94,6 +101,7 @@ export function createOrderColumns(labels: OrderColumnLabels): TableColumnsType<
       width: 140,
       align: 'right' as const,
       sorter: true,
+      onHeaderCell: noWrapHeader,
       render: (value: number) => (
         <span style={{ fontWeight: 600, fontFamily: 'monospace' }}>{formatKip(value)}</span>
       ),
@@ -104,6 +112,7 @@ export function createOrderColumns(labels: OrderColumnLabels): TableColumnsType<
       key: 'bankAmount',
       width: 120,
       align: 'right' as const,
+      onHeaderCell: noWrapHeader,
       render: (value: number | null) =>
         value != null && value > 0
           ? <span style={{ fontFamily: 'monospace' }}>{formatKip(value)}</span>
@@ -114,6 +123,7 @@ export function createOrderColumns(labels: OrderColumnLabels): TableColumnsType<
       dataIndex: 'status',
       key: 'status',
       width: 100,
+      onHeaderCell: noWrapHeader,
       render: (value: TransactionStatus) => {
         const cfg = labels.transactionStatuses[value] ?? { label: value, variant: 'secondary' as const }
         return <Badge variant={cfg.variant}>{cfg.label}</Badge>

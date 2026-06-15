@@ -381,9 +381,8 @@
         "loyalty": "ລະດັບ",
         "points": "ຄະແນນ",
         "status": "ສະຖານະ",
-        "openMenu": "ເປີດເມນູ",
-        "viewDetail": "ເບິ່ງລາຍລະອຽດ",
-        "edit": "ແກ້ໄຂ"
+        "edit": "ແກ້ໄຂ",
+        "actions": "ການດຳເນີນການ"
       },
       "toasts": {
         "createSuccess": "ເພີ່ມລູກຄ້າໃໝ່ສຳເລັດ",
@@ -912,7 +911,7 @@
       "addEntry": "ເພີ່ມລາຍການ",
       "setOpeningBalance": "ຕັ້ງຍອດຕົ້ນ",
       "createIncome": "ສ້າງໃບຮັບ",
-      "createExpense": "ສ້າງໃບຈ່າຍ",
+      "createExpense": "ລັບໃບ",
       "exportFile": "ສົ່ງອອກໄຟລ",
       "searchPlaceholder": "ຄົ້ນຫາຕາມລະຫັດ",
       "filterTime": "ເວລາ",
@@ -966,7 +965,8 @@
       "cancel": "ຍົກເລີກ",
       "source": {
         "Transaction": "ກິດຈະກໍາ POS",
-        "Manual": "ປ້ອນດ້ວຍຕົນ"
+        "Manual": "ປ້ອນດ້ວຍຕົນ",
+        "Cancellation": "ຍົກເລີກການຊໍາລະ"
       }
     },
     "reports": {

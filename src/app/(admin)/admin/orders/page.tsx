@@ -191,7 +191,7 @@ export default function OrdersPage() {
         />
       </Card>
 
-      <style>{`.order-row-expanded > td { background: #eff6ff !important; }`}</style>
+      <style>{`.order-row-expanded > td { background: #eff6ff !important; } .ant-table-thead > tr > th { white-space: nowrap; }`}</style>
     </div>
   );
 }
