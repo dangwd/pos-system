@@ -3,6 +3,7 @@ import type {
   DashboardReport, DailyReport, ReportParams, DailyReportParams,
   InventoryReport, InventoryReportParams,
   RevenueReport, RevenueReportParams,
+  CurrencyExchangeReport, CurrencyExchangeReportParams,
 } from '@/types/report'
 
 export class ReportsRepository {
@@ -23,6 +24,11 @@ export class ReportsRepository {
 
   async getRevenue(params: RevenueReportParams): Promise<RevenueReport> {
     const { data } = await api.get<RevenueReport>('/api/reports/revenue', { params })
+    return data
+  }
+
+  async getCurrencyExchange(params?: CurrencyExchangeReportParams): Promise<CurrencyExchangeReport> {
+    const { data } = await api.get<CurrencyExchangeReport>('/api/reports/currency-exchange', { params })
     return data
   }
 }

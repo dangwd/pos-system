@@ -275,6 +275,7 @@
         "reports": "Reports",
         "reportInventory": "Inventory Report",
         "reportRevenue": "Revenue Report",
+        "reportCurrencyExchange": "Currency Exchange Report",
         "config": "Configuration",
         "prices": "Price Config",
         "exchangeRates": "Exchange Rates",
@@ -1060,6 +1061,27 @@
         "colLaiGop": "Gross profit",
         "colSoHoaDon": "Invoices",
         "colSoGiaoDichTrade": "Trades"
+      },
+      "currencyExchange": {
+        "title": "Currency Exchange Report",
+        "filterAllBranches": "All branches",
+        "filterAllCounters": "All counters",
+        "balanceTitle": "Currency Balance (Opening + In − Out = Closing)",
+        "txTitle": "Transaction list",
+        "colCurrency": "Currency",
+        "colOpening": "Opening",
+        "colTotalIn": "Total in",
+        "colTotalOut": "Total out",
+        "colClosing": "Closing",
+        "colInvoice": "Invoice #",
+        "colTime": "Time",
+        "colCustomer": "Customer",
+        "colGave": "Customer gave",
+        "colReceived": "Customer received",
+        "colRate": "Rate",
+        "colCounter": "Counter",
+        "colBranch": "Branch",
+        "colCashier": "Cashier"
       }
     },
     "config": {

@@ -140,6 +140,87 @@ Authorization: Bearer <token>  (policy: REPORT_DAILY)
 }
 ```
 
+
+---
+
+### `GET /api/reports/currency-exchange`
+
+Báo cáo thu đổi ngoại tệ trong kỳ: tổng hợp **tồn quỹ theo loại tiền** (Đầu kỳ / Thu vào / Chi ra / Cuối kỳ) và **danh sách giao dịch** chi tiết (`ExchangeCurrency`, trạng thái `Completed`).
+
+**Yêu cầu policy:** `ReportDashboard` (Manager, SystemAdmin).
+
+**Query params:**
+
+| Tham số | Kiểu | Mô tả |
+|---|---|---|
+| `from` | DateTime | Đầu kỳ (mặc định 00:00 hôm nay) |
+| `to` | DateTime | Cuối kỳ (mặc định 23:59:59 hôm nay) |
+| `branchId` | GUID | Lọc theo chi nhánh (tuỳ chọn) |
+| `counterId` | GUID | Lọc theo quầy (tuỳ chọn) |
+
+**Response `200 OK`:**
+
+```json
+{
+  "from": "2026-06-14T00:00:00Z",
+  "to": "2026-06-15T23:59:59Z",
+  "branchId": null,
+  "counterId": null,
+  "balanceSummary": [
+    {
+      "currencyCode": "THB",
+      "openingBalance": 80000,
+      "totalIn": 8000,
+      "totalOut": 9050,
+      "closingBalance": 78950
+    },
+    {
+      "currencyCode": "USD",
+      "openingBalance": 5000,
+      "totalIn": 1350,
+      "totalOut": 276,
+      "closingBalance": 6074
+    }
+  ],
+  "totalTransactions": 5,
+  "transactions": [
+    {
+      "id": "3fa85f64-...",
+      "invoiceCode": "DNT-20260615-0001",
+      "transactedAt": "2026-06-15T02:15:00Z",
+      "customerName": "Tanaka K.",
+      "sourceCurrency": "USD",
+      "sourceAmount": 500,
+      "targetCurrency": "JPY",
+      "targetAmount": 78500,
+      "displayRate": 157,
+      "counterName": "Q1",
+      "counterId": "...",
+      "branchName": "Vientiane",
+      "branchId": "...",
+      "cashierName": "Lan",
+      "status": "Completed"
+    }
+  ]
+}
+```
+
+**Mô tả các trường:**
+
+| Trường | Mô tả |
+|---|---|
+| `balanceSummary[].openingBalance` | Đầu kỳ — tổng tích lũy tất cả giao dịch **trước** `from` (thu vào − trả ra) của loại tiền này |
+| `balanceSummary[].totalIn` | Σ Thu vào — tổng tiền **khách đưa** (source) trong kỳ |
+| `balanceSummary[].totalOut` | Σ Chi ra — tổng tiền **cửa hàng trả** khách (target) trong kỳ |
+| `balanceSummary[].closingBalance` | Cuối kỳ = Đầu kỳ + Thu vào − Chi ra |
+| `transactions[].sourceAmount` | Số tiền khách đưa vào (đơn vị `sourceCurrency`) |
+| `transactions[].targetAmount` | Số tiền khách nhận (đơn vị `targetCurrency`) |
+| `transactions[].displayRate` | Tỷ giá hiển thị = `targetAmount / sourceAmount` (cross-rate) |
+
+> **Lưu ý tính Đầu kỳ:** `openingBalance` được tính từ toàn bộ lịch sử giao dịch `ExchangeCurrency` trước ngày `from` (có áp dụng filter `branchId` / `counterId`). Không cần nhập số dư ban đầu — hệ thống tự tính từ dữ liệu tích lũy.
+
+---
+
 ### Giải thích từng trường
 
 #### Doanh thu & Lãi/Lỗ

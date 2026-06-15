@@ -275,6 +275,7 @@
         "reports": "Báo cáo",
         "reportInventory": "Báo cáo tồn kho",
         "reportRevenue": "Báo cáo doanh thu",
+        "reportCurrencyExchange": "Báo cáo đổi ngoại tệ",
         "config": "Cấu hình",
         "prices": "Bảng giá",
         "exchangeRates": "Tỷ giá",
@@ -1058,6 +1059,27 @@
         "colLaiGop": "Lãi gộp",
         "colSoHoaDon": "Số hóa đơn",
         "colSoGiaoDichTrade": "Số GD Trade"
+      },
+      "currencyExchange": {
+        "title": "Báo cáo đổi ngoại tệ",
+        "filterAllBranches": "Mọi chi nhánh",
+        "filterAllCounters": "Mọi quầy",
+        "balanceTitle": "Tồn quỹ tất cả loại tiền (Đầu kỳ + Thu − Chi = Cuối kỳ)",
+        "txTitle": "Danh sách giao dịch",
+        "colCurrency": "Loại tiền",
+        "colOpening": "Đầu kỳ",
+        "colTotalIn": "Thu vào",
+        "colTotalOut": "Chi ra",
+        "colClosing": "Cuối kỳ",
+        "colInvoice": "Số phiếu",
+        "colTime": "Thời gian",
+        "colCustomer": "Khách hàng",
+        "colGave": "Khách đưa",
+        "colReceived": "Khách nhận",
+        "colRate": "Tỷ giá",
+        "colCounter": "Quầy",
+        "colBranch": "Chi nhánh",
+        "colCashier": "Nhân viên"
       }
     },
     "config": {

@@ -275,6 +275,7 @@
         "reports": "ລາຍງານ",
         "reportInventory": "ລາຍງານສິນຄ້າຄົງຄັງ",
         "reportRevenue": "ລາຍງານລາຍຮັບ",
+        "reportCurrencyExchange": "ລາຍງານແລກປ່ຽນເງິນຕາ",
         "config": "ການຕັ້ງຄ່າ",
         "prices": "ຕາຕະລາງລາຄາ",
         "exchangeRates": "ອັດຕາແລກປ່ຽນ",
@@ -1058,6 +1059,27 @@
         "colLaiGop": "ກຳໄລລວມ",
         "colSoHoaDon": "ໃບບິນ",
         "colSoGiaoDichTrade": "Trade"
+      },
+      "currencyExchange": {
+        "title": "ລາຍງານແລກປ່ຽນເງິນຕາ",
+        "filterAllBranches": "ທຸກສາຂາ",
+        "filterAllCounters": "ທຸກເຄົ້າເຕີ",
+        "balanceTitle": "ຍອດເງິນທຸກສະກຸນ (ຕົ້ນງວດ + ຮັບ − ຈ່າຍ = ປາຍງວດ)",
+        "txTitle": "ລາຍການທຸລະກຳ",
+        "colCurrency": "ສະກຸນເງິນ",
+        "colOpening": "ຕົ້ນງວດ",
+        "colTotalIn": "ຮັບເຂົ້າ",
+        "colTotalOut": "ຈ່າຍອອກ",
+        "colClosing": "ປາຍງວດ",
+        "colInvoice": "ເລກທີໃບບິນ",
+        "colTime": "ເວລາ",
+        "colCustomer": "ລູກຄ້າ",
+        "colGave": "ລູກຄ້າໃຫ້",
+        "colReceived": "ລູກຄ້າຮັບ",
+        "colRate": "ອັດຕາ",
+        "colCounter": "ເຄົ້າເຕີ",
+        "colBranch": "ສາຂາ",
+        "colCashier": "ພະນັກງານ"
       }
     },
     "config": {
