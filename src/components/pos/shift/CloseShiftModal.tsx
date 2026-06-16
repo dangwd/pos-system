@@ -11,7 +11,7 @@
 import { Button } from '@/components/ui/button'
 import { Dialog, DialogContent, DialogFooter } from '@/components/ui/dialog'
 import { Field, FieldError, FieldLabel } from '@/components/ui/field'
-import { NumberInput } from '@/components/ui/number-input'
+import { InputNumber } from 'antd'
 import { Separator } from '@/components/ui/separator'
 import { useCloseShift } from '@/hooks/useSalesShift'
 import { cn } from '@/lib/utils'
@@ -258,14 +258,15 @@ export function CloseShiftModal({
                   control={control}
                   name="closingCashLak"
                   render={({ field }) => (
-                    <NumberInput
-                      value={field.value}
-                      onChange={field.onChange}
+                    <InputNumber
+                      value={field.value ? Number(field.value) : null}
+                      onChange={(v) => field.onChange(String(v ?? ''))}
                       placeholder="0"
                       suffix={
                         <span className="text-xs font-semibold text-muted-foreground">₭</span>
                       }
                       status={errors.closingCashLak ? 'error' : undefined}
+                      style={{ width: '100%' }}
                     />
                   )}
                 />

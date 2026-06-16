@@ -16,7 +16,6 @@
 import { CustomerCreateDialog } from "@/components/admin/customers/CustomerCreateDialog";
 import { ExchangeInvoiceLookup } from "@/components/pos/ExchangeInvoiceLookup";
 import { Input } from "@/components/ui/input";
-import { NumberInput } from "@/components/ui/number-input";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
 import { useActiveTab } from "@/hooks/useActiveTab";
@@ -29,7 +28,7 @@ import {
 } from "@/lib/strategies/payment.strategy";
 import { cn } from "@/lib/utils";
 import type { Customer } from "@/types/customer";
-import { Button } from "antd";
+import { Button, InputNumber } from "antd";
 import {
   AlertCircle,
   Banknote,
@@ -524,12 +523,13 @@ function PaymentBreakdown({
             </div>
           ) : (
             <div className="flex gap-1.5">
-              <NumberInput
+              <InputNumber
                 placeholder={t("discountInput")}
-                value={discountInput}
-                onChange={(v) => setDiscountInput(v)}
+                value={discountInput ? Number(discountInput) : null}
+                onChange={(v) => setDiscountInput(String(v ?? ''))}
                 onKeyDown={(e) => e.key === "Enter" && handleApply()}
-                className="h-8 text-xs flex-1"
+                size="small"
+                style={{ width: '100%' }}
                 min={0}
               />
               <Button size="small" onClick={handleApply} disabled={!discountInput.trim()} className="h-8 text-xs px-3 shrink-0">
@@ -658,24 +658,22 @@ function PaymentMethodSection({
               <Label className="text-xs text-muted-foreground flex items-center gap-1">
                 <Banknote className="h-3 w-3" /> Tiền mặt
               </Label>
-              <NumberInput
-                min={0} placeholder="0" value={cashInput}
-                onChange={onCashChange}
-                className={cn("h-9 text-sm tabular-nums font-semibold",
-                  cashAmt > 0 && combinedSum === total && "border-green-500",
-                  cashAmt > 0 && combinedSum !== total && "border-amber-400")}
+              <InputNumber
+                min={0} placeholder="0" value={cashInput ? Number(cashInput) : null}
+                onChange={(v) => onCashChange(String(v ?? ''))}
+                size="small"
+                style={{ width: '100%' }}
               />
             </div>
             <div className="space-y-1">
               <Label className="text-xs text-muted-foreground flex items-center gap-1">
                 <Building2 className="h-3 w-3" /> Chuyển khoản
               </Label>
-              <NumberInput
-                min={0} placeholder="0" value={bankInput}
-                onChange={onBankChange}
-                className={cn("h-9 text-sm tabular-nums font-semibold",
-                  bankAmt > 0 && combinedSum === total && "border-green-500",
-                  bankAmt > 0 && combinedSum !== total && "border-amber-400")}
+              <InputNumber
+                min={0} placeholder="0" value={bankInput ? Number(bankInput) : null}
+                onChange={(v) => onBankChange(String(v ?? ''))}
+                size="small"
+                style={{ width: '100%' }}
               />
             </div>
           </div>

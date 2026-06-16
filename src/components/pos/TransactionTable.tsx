@@ -10,7 +10,6 @@
 "use client";
 
 import { Badge } from "@/components/ui/badge";
-import { NumberInput } from "@/components/ui/number-input";
 import { useActiveTab } from "@/hooks/useActiveTab";
 import { useAddToCart } from "@/hooks/useAddToCart";
 import { useConfigPrices, useWeightUnits } from "@/hooks/useConfig";
@@ -401,11 +400,11 @@ function SellTable({
                     {unitPrice.toLocaleString("lo-LA")} ₭
                   </span>
                 ) : (
-                  <NumberInput
+                  <InputNumber
                     key={item.weightUnitId ?? "default"}
-                    value={unitPrice || ""}
+                    value={unitPrice || null}
                     onChange={(v) => {
-                      const newPrice = Math.round(Number(v.replace(/,/g, "")) || 0);
+                      const newPrice = v ?? 0;
                       if (newPrice !== unitPrice) {
                         onUpdate(item.productId, {
                           unitPriceLakPerGram:
@@ -413,7 +412,8 @@ function SellTable({
                         });
                       }
                     }}
-                    className="h-7 w-32 text-right text-xs"
+                    size="small"
+                    style={{ width: 128 }}
                   />
                 )}
               </td>
@@ -426,14 +426,15 @@ function SellTable({
                       : "—"}
                   </span>
                 ) : (
-                  <NumberInput
+                  <InputNumber
                     min={0}
                     placeholder="0"
-                    value={item.laborFee || ""}
+                    value={item.laborFee || null}
                     onChange={(v) =>
-                      onUpdate(item.productId, { laborFee: Number(v) || 0 })
+                      onUpdate(item.productId, { laborFee: v ?? 0 })
                     }
-                    className="h-7 w-24 text-xs tabular-nums"
+                    size="small"
+                    style={{ width: 96 }}
                   />
                 )}
               </td>
@@ -446,14 +447,15 @@ function SellTable({
                       : "—"}
                   </span>
                 ) : (
-                  <NumberInput
+                  <InputNumber
                     min={0}
                     placeholder="0"
-                    value={item.stoneFee || ""}
+                    value={item.stoneFee || null}
                     onChange={(v) =>
-                      onUpdate(item.productId, { stoneFee: Number(v) || 0 })
+                      onUpdate(item.productId, { stoneFee: v ?? 0 })
                     }
-                    className="h-7 w-24 text-xs tabular-nums"
+                    size="small"
+                    style={{ width: 96 }}
                   />
                 )}
               </td>
@@ -542,11 +544,11 @@ function BuyGoldRow({
             {unitPrice.toLocaleString("lo-LA")} ₭
           </span>
         ) : (
-          <NumberInput
+          <InputNumber
             key={`price-${item.weightUnitId ?? "default"}`}
-            value={unitPrice || ""}
+            value={unitPrice || null}
             onChange={(v) => {
-              const newPrice = Math.round(Number(v.replace(/,/g, "")) || 0);
+              const newPrice = v ?? 0;
               if (newPrice !== unitPrice) {
                 onUpdate(item.productId, {
                   unitPriceLakPerGram:
@@ -554,7 +556,8 @@ function BuyGoldRow({
                 });
               }
             }}
-            className="h-6 w-28 text-right text-xs"
+            size="small"
+            style={{ width: 112 }}
           />
         )}
       </td>
@@ -568,35 +571,37 @@ function BuyGoldRow({
               : "—"}
           </span>
         ) : (
-          <NumberInput
+          <InputNumber
             min={0}
             placeholder="0"
-            value={item.perItemDamage || ""}
+            size="small"
+            value={item.perItemDamage || null}
             onChange={(v) =>
               onUpdate(item.productId, {
                 perItemDamage: Number(v) || 0,
               })
             }
-            className="h-5 w-24 text-[10px] px-1.5 tabular-nums"
+            style={{ width: 96 }}
           />
         )}
       </td>
 
       {/* HAO HỤT (số chỉ hao mòn) */}
       <td className="px-2 py-2 w-24">
-        <NumberInput
-          decimals={3}
+        <InputNumber
           min={0}
           max={parseFloat(((item.weightGramOverride ?? item.qty * item.weightGram) / 3.75).toFixed(3))}
+          precision={3}
           placeholder="0"
+          size="small"
           disabled={item.isReadOnly}
-          value={item.perItemWearChi || ""}
+          value={item.perItemWearChi || null}
           onChange={(v) =>
             onUpdate(item.productId, {
               perItemWearChi: Number(v) || 0,
             })
           }
-          className="h-5 w-20 text-[10px] px-1.5 tabular-nums"
+          style={{ width: 80 }}
         />
       </td>
 
@@ -824,50 +829,53 @@ function ExchangeInRow({
             {Math.round(item.unitPriceLakPerGram * item.weightGram).toLocaleString("lo-LA")} ₭
           </span>
         ) : (
-          <NumberInput
+          <InputNumber
             key={item.weightUnitId ?? "default"}
-            value={Math.round(item.unitPriceLakPerGram * item.weightGram) || ""}
+            value={Math.round(item.unitPriceLakPerGram * item.weightGram) || null}
             onChange={(v) => {
-              const newPrice = Math.round(Number(v.replace(/,/g, "")) || 0);
+              const newPrice = v ?? 0;
               onUpdate(item.productId, {
                 unitPriceLakPerGram:
                   item.weightGram > 0 ? newPrice / item.weightGram : 0,
               });
             }}
-            className="h-6 w-32 text-right text-xs"
+            size="small"
+            style={{ width: 128 }}
           />
         )}
       </td>
 
       {/* Lỗi/Hỏng — luôn nhập được (đánh giá tại thời điểm nhận hàng, không phụ thuộc isReadOnly) */}
       <td className="px-2 py-2 w-32">
-        <NumberInput
+        <InputNumber
           min={0}
           placeholder="0"
-          value={item.perItemDamage || ""}
+          size="small"
+          value={item.perItemDamage || null}
           onChange={(v) =>
             onUpdate(item.productId, {
               perItemDamage: Number(v) || 0,
             })
           }
-          className="h-5 w-24 text-[10px] px-1.5 tabular-nums"
+          style={{ width: 96 }}
         />
       </td>
 
       {/* Hao mòn — luôn nhập được */}
       <td className="px-2 py-2 w-24">
-        <NumberInput
-          decimals={3}
+        <InputNumber
           min={0}
           max={parseFloat(((item.weightGramOverride ?? item.qty * item.weightGram) / 3.75).toFixed(3))}
+          precision={3}
           placeholder="0"
-          value={item.perItemWearChi || ""}
+          size="small"
+          value={item.perItemWearChi || null}
           onChange={(v) =>
             onUpdate(item.productId, {
               perItemWearChi: Number(v) || 0,
             })
           }
-          className="h-5 w-20 text-[10px] px-1.5 tabular-nums"
+          style={{ width: 80 }}
         />
       </td>
 

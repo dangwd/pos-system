@@ -7,7 +7,7 @@ import { useTranslations } from 'next-intl'
 import { Pencil, RefreshCw, Search, ArrowLeftRight, Check, X } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
-import { NumberInput } from '@/components/ui/number-input'
+import { InputNumber } from 'antd'
 import { Spinner } from '@/components/ui/spinner'
 import { Dialog, DialogContent, DialogFooter } from '@/components/ui/dialog'
 import { Field, FieldLabel } from '@/components/ui/field'
@@ -217,16 +217,17 @@ function RatePreviewPanel({ rates, currencies: currenciesData }: { rates: Exchan
             <span className="text-sm font-semibold text-muted-foreground shrink-0">
               1 {displayBase} =
             </span>
-            <NumberInput
-              decimals={displayDecimals}
+            <InputNumber
+              precision={displayDecimals}
               min={0}
-              value={rateInput}
-              onChange={setRateInput}
+              value={rateInput ? Number(rateInput) : null}
+              onChange={(v) => setRateInput(String(v ?? ''))}
               onKeyDown={(e) => {
                 if (e.key === 'Enter') saveRate()
                 if (e.key === 'Escape') resetEdit()
               }}
-              className="h-8 flex-1 text-sm font-mono text-center border-primary"
+              size="small"
+              style={{ flex: 1 }}
               autoFocus
             />
             <span className="text-sm font-semibold text-muted-foreground shrink-0">
@@ -281,12 +282,12 @@ function RatePreviewPanel({ rates, currencies: currenciesData }: { rates: Exchan
           {t('inputAmount')} ({fromMeta.flag} {fromCurrency})
         </p>
         <div className="relative">
-          <NumberInput
-            decimals={2}
+          <InputNumber
+            precision={2}
             min={0}
-            value={amount}
-            onChange={setAmount}
-            className="pr-14"
+            value={amount ? Number(amount) : null}
+            onChange={(v) => setAmount(String(v ?? ''))}
+            style={{ width: '100%' }}
           />
           <span className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-sm font-semibold text-muted-foreground">
             {fromMeta.flag}
@@ -486,19 +487,21 @@ export default function ExchangeRatesPage() {
           <div className="space-y-4 py-2">
             <Field>
               <FieldLabel>{t('columns.rate')} (1 {editing?.currencyCode} = ? ₭)</FieldLabel>
-              <NumberInput
+              <InputNumber
                 min={0}
-                decimals={2}
-                value={form.rateToLak}
-                onChange={(v) => setForm((f) => ({ ...f, rateToLak: v }))}
+                precision={2}
+                value={form.rateToLak ? Number(form.rateToLak) : null}
+                onChange={(v) => setForm((f) => ({ ...f, rateToLak: String(v ?? '') }))}
+                style={{ width: '100%' }}
               />
             </Field>
             <Field>
               <FieldLabel>{t('columns.adjustment')}</FieldLabel>
-              <NumberInput
-                decimals={2}
-                value={form.adjustment}
-                onChange={(v) => setForm((f) => ({ ...f, adjustment: v }))}
+              <InputNumber
+                precision={2}
+                value={form.adjustment ? Number(form.adjustment) : null}
+                onChange={(v) => setForm((f) => ({ ...f, adjustment: String(v ?? '') }))}
+                style={{ width: '100%' }}
               />
             </Field>
             {(Number(form.rateToLak) > 0) && (

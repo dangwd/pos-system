@@ -14,7 +14,6 @@ import { cn } from '@/lib/utils'
 import type { LucideIcon } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
-import { NumberInput } from '@/components/ui/number-input'
 import { Badge } from '@/components/ui/badge'
 import { Spinner } from '@/components/ui/spinner'
 import { Dialog, DialogContent, DialogFooter } from '@/components/ui/dialog'
@@ -29,7 +28,7 @@ import {
   useDeleteCurrency,
 } from '@/hooks/useConfig'
 import type { Currency } from '@/types/config'
-import { Button as AntBtn, Popover as AntPopover } from 'antd'
+import { Button as AntBtn, InputNumber, Popover as AntPopover } from 'antd'
 
 // ─── Shared panel styles (matches branches / users pages) ─────────────────────
 
@@ -488,11 +487,12 @@ export default function CurrenciesPage() {
             <div className="grid grid-cols-2 gap-3 items-end">
               <Field>
                 <FieldLabel>{t('form.sortOrder')}</FieldLabel>
-                <NumberInput
-                  decimals={0}
+                <InputNumber
+                  precision={0}
                   min={1}
-                  value={form.sortOrder}
-                  onChange={(v) => setForm((f) => ({ ...f, sortOrder: v }))}
+                  value={form.sortOrder ? Number(form.sortOrder) : null}
+                  onChange={(v) => setForm((f) => ({ ...f, sortOrder: String(v ?? '') }))}
+                  style={{ width: '100%' }}
                 />
               </Field>
               <div className="flex items-center gap-2 pb-1">

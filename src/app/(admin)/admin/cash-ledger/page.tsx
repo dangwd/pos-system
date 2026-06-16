@@ -5,7 +5,6 @@ import { ForbiddenPage } from "@/components/shared/ForbiddenPage";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogFooter } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
-import { NumberInput } from "@/components/ui/number-input";
 import {
   Select,
   SelectContent,
@@ -23,6 +22,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
   Button as AntBtn,
   Input as AntInput,
+  InputNumber,
   Select as AntSelect,
   Card,
   DatePicker,
@@ -158,10 +158,11 @@ function AddEntryDialog({
           </div>
           <div className="grid grid-cols-2 gap-3">
             <Form.Item label={t("columns.amount")}>
-              <NumberInput
+              <InputNumber
                 min={0}
-                value={form.originalAmount}
-                onChange={(v) => setForm((p) => ({ ...p, originalAmount: v }))}
+                value={form.originalAmount ? Number(form.originalAmount) : null}
+                onChange={(v) => setForm((p) => ({ ...p, originalAmount: String(v ?? '') }))}
+                style={{ width: '100%' }}
               />
             </Form.Item>
             <Form.Item
@@ -190,10 +191,11 @@ function AddEntryDialog({
               label={t("columns.exchangeRate")}
               style={{ marginBottom: 0 }}
             >
-              <NumberInput
+              <InputNumber
                 min={1}
-                value={form.exchangeRate}
-                onChange={(v) => setForm((p) => ({ ...p, exchangeRate: v }))}
+                value={form.exchangeRate ? Number(form.exchangeRate) : null}
+                onChange={(v) => setForm((p) => ({ ...p, exchangeRate: String(v ?? '') }))}
+                style={{ width: '100%' }}
               />
             </Form.Item>
           )}

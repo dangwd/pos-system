@@ -1,11 +1,10 @@
 "use client";
 
-import { NumberInput } from "@/components/ui/number-input";
 import { useActiveTab } from "@/hooks/useActiveTab";
 import { useExchangeRates, useUpdateExchangeRate } from "@/hooks/useConfig";
 import { cn } from "@/lib/utils";
 import type { ExchangeRate } from "@/types/config";
-import { Select } from "antd";
+import { InputNumber, Select } from "antd";
 import { ArrowRight, Check, Pencil, X } from "lucide-react";
 import { useEffect, useState } from "react";
 
@@ -203,16 +202,17 @@ export function CurrencyExchangeForm() {
                 <span className="text-sm font-semibold text-muted-foreground shrink-0">
                   1 {rateBase} =
                 </span>
-                <NumberInput
-                  decimals={rateDecimals}
+                <InputNumber
+                  precision={rateDecimals}
                   min={0}
-                  value={rateInput}
-                  onChange={setRateInput}
-                  onKeyDown={(e) => {
+                  value={rateInput ? Number(rateInput) : null}
+                  onChange={(v) => setRateInput(String(v ?? ''))}
+                  onKeyDown={(e: React.KeyboardEvent) => {
                     if (e.key === "Enter") saveRate();
                     if (e.key === "Escape") setEditingRate(false);
                   }}
-                  className="h-8 flex-1 text-sm font-mono text-center border-primary"
+                  size="small"
+                  style={{ width: '100%' }}
                   autoFocus
                 />
                 <span className="text-sm font-semibold text-muted-foreground shrink-0">
@@ -258,13 +258,14 @@ export function CurrencyExchangeForm() {
           <span className="px-3 py-2 text-xs font-bold font-mono text-muted-foreground bg-muted/50 border-r shrink-0">
             {fromCurrency}
           </span>
-          <NumberInput
-            decimals={2}
+          <InputNumber
+            precision={2}
             min={0}
             placeholder="Nhập số tiền"
-            value={fromInput}
-            onChange={(v) => setFromInput(v)}
-            className="h-9 text-right font-mono font-semibold tabular-nums text-sm flex-1 border-0 rounded-none focus:ring-0"
+            value={fromInput ? Number(fromInput) : null}
+            onChange={(v) => setFromInput(String(v ?? ''))}
+            size="small"
+            style={{ width: '100%' }}
             autoFocus
           />
         </div>

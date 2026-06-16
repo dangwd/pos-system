@@ -2,13 +2,11 @@
 
 import { useState } from 'react'
 import { useTranslations } from 'next-intl'
-import { Select } from 'antd'
+import { InputNumber, Select } from 'antd'
 import { Plus, Trash2 } from 'lucide-react'
-import { cn } from '@/lib/utils'
 import { Dialog, DialogContent, DialogFooter } from '@/components/ui/dialog'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
-import { NumberInput } from '@/components/ui/number-input'
 import { Badge } from '@/components/ui/badge'
 import { Spinner } from '@/components/ui/spinner'
 import { Empty, EmptyTitle } from '@/components/ui/empty'
@@ -188,21 +186,26 @@ export function InventoryBulkAdjustDialog({ open, direction, branchId, onClose }
                         <div className="text-[11px] text-muted-foreground">{t('rowStock', { qty: l.stock })}</div>
                       </TableCell>
                       <TableCell>
-                        <NumberInput
-                          min={1} value={l.quantity}
-                          onChange={v => patchLine(l.id, { quantity: v })}
+                        <InputNumber
+                          min={1}
+                          value={l.quantity ? Number(l.quantity) : null}
+                          onChange={(v) => patchLine(l.id, { quantity: String(v ?? '') })}
                           placeholder="0"
-                          className={cn('h-8 w-20', exceeds(l) && 'border-destructive')}
+                          size="small"
+                          style={{ width: 80 }}
+                          status={exceeds(l) ? 'error' : undefined}
                         />
                         {exceeds(l) && <p className="mt-0.5 text-[10px] text-destructive">{t('exceedsStock', { qty: l.stock })}</p>}
                       </TableCell>
                       {isIn && (
                         <TableCell>
-                          <NumberInput
-                            min={0} value={l.actualValue}
-                            onChange={v => patchLine(l.id, { actualValue: v })}
+                          <InputNumber
+                            min={0}
+                            value={l.actualValue ? Number(l.actualValue) : null}
+                            onChange={(v) => patchLine(l.id, { actualValue: String(v ?? '') })}
                             placeholder="0"
-                            className="h-8 w-32"
+                            size="small"
+                            style={{ width: 128 }}
                           />
                         </TableCell>
                       )}

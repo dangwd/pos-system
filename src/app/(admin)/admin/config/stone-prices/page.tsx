@@ -5,9 +5,9 @@ import { ForbiddenPage } from '@/components/shared/ForbiddenPage'
 import { useState } from 'react'
 import { useTranslations } from 'next-intl'
 import { Plus, Pencil, Trash2 } from 'lucide-react'
+import { InputNumber } from 'antd'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
-import { NumberInput } from '@/components/ui/number-input'
 import { Spinner } from '@/components/ui/spinner'
 import { Dialog, DialogContent, DialogFooter } from '@/components/ui/dialog'
 import { Field, FieldLabel } from '@/components/ui/field'
@@ -141,16 +141,16 @@ export default function StonePricesPage() {
             <div className="grid grid-cols-2 gap-3">
               <Field>
                 <FieldLabel>{t('columns.weightFrom')}</FieldLabel>
-                <NumberInput decimals={2} min={0} value={form.tuSoChi} onChange={(v) => setForm((f) => ({ ...f, tuSoChi: v }))} />
+                <InputNumber precision={2} min={0} value={form.tuSoChi ? Number(form.tuSoChi) : null} onChange={(v) => setForm((f) => ({ ...f, tuSoChi: String(v ?? '') }))} style={{ width: '100%' }} />
               </Field>
               <Field>
                 <FieldLabel>{t('columns.weightTo')}</FieldLabel>
-                <NumberInput decimals={2} min={0} value={form.denSoChi} onChange={(v) => setForm((f) => ({ ...f, denSoChi: v }))} />
+                <InputNumber precision={2} min={0} value={form.denSoChi ? Number(form.denSoChi) : null} onChange={(v) => setForm((f) => ({ ...f, denSoChi: String(v ?? '') }))} style={{ width: '100%' }} />
               </Field>
             </div>
             <Field>
               <FieldLabel>{t('columns.fee')}</FieldLabel>
-              <NumberInput min={0} value={form.giaDa} onChange={(v) => setForm((f) => ({ ...f, giaDa: v }))} />
+              <InputNumber min={0} value={form.giaDa ? Number(form.giaDa) : null} onChange={(v) => setForm((f) => ({ ...f, giaDa: String(v ?? '') }))} style={{ width: '100%' }} />
             </Field>
           </div>
         </DialogContent>

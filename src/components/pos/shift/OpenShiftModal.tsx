@@ -13,7 +13,7 @@
 import { Button } from "@/components/ui/button";
 import { Field, FieldError, FieldLabel } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
-import { NumberInput } from "@/components/ui/number-input";
+import { InputNumber } from "antd";
 import { Separator } from "@/components/ui/separator";
 import { Textarea } from "@/components/ui/textarea";
 import { useLogout } from "@/hooks/useAuth";
@@ -154,9 +154,9 @@ export function OpenShiftModal() {
                   control={control}
                   name="openingCashLak"
                   render={({ field }) => (
-                    <NumberInput
-                      value={field.value}
-                      onChange={field.onChange}
+                    <InputNumber
+                      value={field.value ? Number(field.value) : null}
+                      onChange={(v) => field.onChange(String(v ?? ''))}
                       placeholder="0"
                       prefix={
                         <Wallet className="h-3.5 w-3.5 text-muted-foreground" />
@@ -168,6 +168,7 @@ export function OpenShiftModal() {
                       }
                       status={errors.openingCashLak ? "error" : undefined}
                       disabled={noCounter}
+                      style={{ width: '100%' }}
                     />
                   )}
                 />

@@ -5,9 +5,9 @@ import { ForbiddenPage } from '@/components/shared/ForbiddenPage'
 import { useState } from 'react'
 import { useTranslations } from 'next-intl'
 import { Plus, Pencil, Check, X, Trash2 } from 'lucide-react'
+import { InputNumber } from 'antd'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
-import { NumberInput } from '@/components/ui/number-input'
 import { Badge } from '@/components/ui/badge'
 import { Spinner } from '@/components/ui/spinner'
 import { Dialog, DialogContent, DialogFooter } from '@/components/ui/dialog'
@@ -104,12 +104,13 @@ export default function WeightUnitsPage() {
                   </td>
                   <td className="px-4 py-3 text-right">
                     {editing?.id === unit.id ? (
-                      <NumberInput
-                        decimals={4}
+                      <InputNumber
+                        precision={4}
                         min={0}
-                        value={editing.gramPerUnit}
-                        onChange={(v) => setEditing((s) => s ? { ...s, gramPerUnit: v } : s)}
-                        className="h-7 w-24 text-right ml-auto text-xs"
+                        size="small"
+                        value={editing.gramPerUnit ? Number(editing.gramPerUnit) : null}
+                        onChange={(v) => setEditing((s) => s ? { ...s, gramPerUnit: String(v ?? '') } : s)}
+                        style={{ width: 96 }}
                       />                    ) : (
                       <span className="font-semibold">{unit.gramPerUnit}</span>
                     )}
@@ -190,7 +191,7 @@ export default function WeightUnitsPage() {
             </Field>
             <Field>
               <FieldLabel>{t('form.gramPerUnit')}</FieldLabel>
-              <NumberInput decimals={4} min={0} value={createForm.gramPerUnit} onChange={(v) => setCreateForm((f) => ({ ...f, gramPerUnit: v }))} placeholder="37.799" />
+              <InputNumber precision={4} min={0} value={createForm.gramPerUnit ? Number(createForm.gramPerUnit) : null} onChange={(v) => setCreateForm((f) => ({ ...f, gramPerUnit: String(v ?? '') }))} placeholder="37.799" style={{ width: '100%' }} />
             </Field>
           </div>
         </DialogContent>
