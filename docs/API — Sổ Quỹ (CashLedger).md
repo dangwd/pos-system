@@ -555,6 +555,40 @@ Dùng ở `GET /activities/{id}`, `POST /vouchers`, `GET /vouchers`, `GET /vouch
 
 ---
 
+---
+
+### `GET /api/cash-ledger/activities/export`
+
+Xuất file Excel danh sách hoạt động thu/chi sổ quỹ. Áp dụng cùng bộ lọc với `GET /activities` (không phân trang — toàn bộ kết quả).
+
+**Query params:**
+
+| Param | Kiểu | Mô tả |
+|---|---|---|
+| `branchId` | `Guid?` | Lọc theo chi nhánh (null = tất cả) |
+| `counterId` | `Guid?` | Lọc theo quầy |
+| `fromDate` | `DateOnly?` | Từ ngày (mặc định hôm nay) |
+| `toDate` | `DateOnly?` | Đến ngày (mặc định hôm nay) |
+| `keyword` | `string?` | Tìm theo `entryCode` hoặc `description` |
+
+**Response `200 OK`:** File `application/vnd.openxmlformats-officedocument.spreadsheetml.sheet`
+
+- Tên file: `so-quy-{yyyyMMdd-HHmmss}.xlsx`
+- Sheet: `Sổ quỹ`
+
+| Cột Excel | Nguồn dữ liệu |
+|---|---|
+| Chiều | `"Phiếu thu"` (IN) \| `"Phiếu chi"` (OUT) |
+| Mã phiếu | `entryCode` |
+| Thời gian | `timeLabel` |
+| Người tạo | `createdByName` |
+| Chi nhánh | `branchName` |
+| Phương thức | `methodLabel` |
+
+> Phân quyền: cùng policy `CashLedgerManage` với `GET /activities`. Cashier chỉ thấy dữ liệu quầy của mình; Manager/ThuQuy thấy toàn chi nhánh; SystemAdmin thấy tất cả.
+
+---
+
 ## 15. Enum & Hằng số
 
 ### `direction`

@@ -259,6 +259,24 @@ export default function CashLedgerPage() {
   const [expandedKeys, setExpandedKeys] = useState<string[]>([]);
   const [addOpen, setAddOpen] = useState(false);
   const [addDir, setAddDir] = useState<"IN" | "OUT">("IN");
+  const [isExporting, setIsExporting] = useState(false);
+
+  async function handleExport() {
+    setIsExporting(true);
+    try {
+      await cashLedgerRepository.exportActivities({
+        branchId,
+        counterId,
+        fromDate,
+        toDate,
+        keyword: keyword.trim() || undefined,
+      });
+    } catch {
+      toast.error(t("exportError"));
+    } finally {
+      setIsExporting(false);
+    }
+  }
 
   const fromDate = dateRange[0]?.format("YYYY-MM-DD");
   const toDate = dateRange[1]?.format("YYYY-MM-DD");
@@ -402,7 +420,11 @@ export default function CashLedgerPage() {
           >
             {t("createExpense")}
           </AntBtn>
-          <AntBtn icon={<FileSpreadsheet size={14} />}>
+          <AntBtn
+            icon={<FileSpreadsheet size={14} />}
+            loading={isExporting}
+            onClick={handleExport}
+          >
             {t("exportFile")}
           </AntBtn>
         </div>
