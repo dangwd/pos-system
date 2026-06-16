@@ -104,6 +104,7 @@ export function StockInProductPickerModal({ open, branchId, counterId, selectedI
       title: t('colUnit'), dataIndex: 'weightUnitId', width: 90,
       render: (v: string | null) => (v ? unitMap.get(v) : null) ?? '—',
     },
+    { title: t('colStock'), dataIndex: 'quantity', width: 70, align: 'right' as const },
     {
       title: t('colStatus'), width: 120,
       render: () => <Tag color="green">{t('statusActive')}</Tag>,
