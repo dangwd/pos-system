@@ -1,5 +1,6 @@
 "use client";
 
+import { CashCountPanel } from "@/components/admin/cash-ledger/CashCountPanel";
 import { CashLedgerExpandedRow } from "@/components/admin/cash-ledger/CashLedgerExpandedRow";
 import { ForbiddenPage } from "@/components/shared/ForbiddenPage";
 import { Button } from "@/components/ui/button";
@@ -14,7 +15,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Spinner } from "@/components/ui/spinner";
-import { useCounters } from "@/hooks/useBranches";
+import { useBranches, useCounters } from "@/hooks/useBranches";
 import { usePermission } from "@/hooks/usePermission";
 import { cashLedgerRepository } from "@/lib/repositories/cash-ledger.repository";
 import { useAuthStore } from "@/stores/auth.store";
@@ -252,8 +253,9 @@ export default function CashLedgerPage() {
   const today = dayjs();
   const [dateRange, setDateRange] = useState<
     [dayjs.Dayjs | null, dayjs.Dayjs | null]
-  >([today.subtract(30, "day"), today]);
+  >([today, today]);
   const [keyword, setKeyword] = useState("");
+  const [filterBranchId, setFilterBranchId] = useState<string | undefined>(branchId || undefined);
   const [counterId, setCounterId] = useState<string | undefined>();
   const [page, setPage] = useState(1);
   const [expandedKeys, setExpandedKeys] = useState<string[]>([]);
@@ -265,7 +267,7 @@ export default function CashLedgerPage() {
     setIsExporting(true);
     try {
       await cashLedgerRepository.exportActivities({
-        branchId,
+        branchId: filterBranchId,
         counterId,
         fromDate,
         toDate,
@@ -281,23 +283,15 @@ export default function CashLedgerPage() {
   const fromDate = dateRange[0]?.format("YYYY-MM-DD");
   const toDate = dateRange[1]?.format("YYYY-MM-DD");
 
-  const { data: counters = [] } = useCounters(branchId || null);
+  const { data: branches = [] } = useBranches();
+  const { data: counters = [] } = useCounters(filterBranchId ?? null);
 
-  // Summary: GET /daily dùng ngày "from" để lấy số dư đầu kỳ
-  const { data: daily } = useQuery({
-    queryKey: ["cash-ledger", "daily", branchId, counterId, fromDate],
-    queryFn: () =>
-      cashLedgerRepository.getDaily({ branchId, counterId, date: fromDate }),
-    staleTime: 30_000,
-    enabled: !!branchId,
-  });
-
-  // Table: GET /activities
+  // Table + summary: GET /activities (trả về cả summary fields đồng bộ với bộ lọc)
   const { data: activities, isLoading } = useQuery({
     queryKey: [
       "cash-ledger",
       "activities",
-      branchId,
+      filterBranchId,
       counterId,
       fromDate,
       toDate,
@@ -306,7 +300,7 @@ export default function CashLedgerPage() {
     ],
     queryFn: () =>
       cashLedgerRepository.getActivities({
-        branchId,
+        branchId: filterBranchId,
         counterId,
         fromDate,
         toDate,
@@ -315,17 +309,17 @@ export default function CashLedgerPage() {
         pageSize: PAGE_SIZE,
       }),
     staleTime: 30_000,
-    enabled: !!branchId,
+    enabled: !!filterBranchId,
   });
 
   const items = activities?.items ?? [];
   const totalCount = activities?.totalCount ?? 0;
 
   const summaryItems = [
-    { label: t("openingBalance"), value: daily?.openingBalanceLak ?? 0, color: "#111827" },
-    { label: t("totalIn"),        value: daily?.totalInLak ?? 0,        color: "#16A34A" },
-    { label: t("totalOut"),       value: daily?.totalOutLak ?? 0,       color: "#DC2626" },
-    { label: t("closingBalance"), value: daily?.closingBalanceLak ?? 0, color: "#16A34A" },
+    { label: t("openingBalance"), value: activities?.openingBalanceLak ?? 0, color: "#111827" },
+    { label: t("totalIn"),        value: activities?.totalInLak ?? 0,        color: "#16A34A" },
+    { label: t("totalOut"),       value: activities?.totalOutLak ?? 0,       color: "#DC2626" },
+    { label: t("closingBalance"), value: activities?.closingBalanceLak ?? 0, color: "#16A34A" },
   ];
 
   const columns = useMemo(
@@ -379,149 +373,178 @@ export default function CashLedgerPage() {
 
   return (
     <div style={PAGE_STYLE}>
-      {/* ── Header ── */}
-      <div
-        style={{
-          display: "flex",
-          alignItems: "flex-start",
-          justifyContent: "space-between",
-          marginBottom: 16,
-        }}
-      >
-        <div>
-          <h2
+      <div style={{ display: "flex", gap: 16, alignItems: "flex-start" }}>
+        {/* ── Left: main content ── */}
+        <div style={{ flex: 1, minWidth: 0 }}>
+          {/* ── Header ── */}
+          <div
             style={{
-              margin: 0,
-              fontSize: 22,
-              fontWeight: 700,
-              color: "#111827",
+              display: "flex",
+              alignItems: "flex-start",
+              justifyContent: "space-between",
+              marginBottom: 16,
             }}
           >
-            {t("title")}
-          </h2>
-          <p style={{ margin: "2px 0 0", fontSize: 13, color: "#6b7280" }}>
-            {totalCount > 0
-              ? t("showTotal", {
-                  from: (page - 1) * PAGE_SIZE + 1,
-                  to: Math.min(page * PAGE_SIZE, totalCount),
-                  total: totalCount,
-                })
-              : "—"}
-          </p>
+            <div>
+              <h2
+                style={{
+                  margin: 0,
+                  fontSize: 22,
+                  fontWeight: 700,
+                  color: "#111827",
+                }}
+              >
+                {t("title")}
+              </h2>
+              <p style={{ margin: "2px 0 0", fontSize: 13, color: "#6b7280" }}>
+                {totalCount > 0
+                  ? t("showTotal", {
+                      from: (page - 1) * PAGE_SIZE + 1,
+                      to: Math.min(page * PAGE_SIZE, totalCount),
+                      total: totalCount,
+                    })
+                  : "—"}
+              </p>
+            </div>
+            <div style={{ display: "flex", gap: 8 }}>
+              <AntBtn
+                type="primary"
+                icon={<Plus size={14} />}
+                onClick={() => {
+                  setAddDir("IN");
+                  setAddOpen(true);
+                }}
+              >
+                {t("createExpense")}
+              </AntBtn>
+              <AntBtn
+                icon={<FileSpreadsheet size={14} />}
+                loading={isExporting}
+                onClick={handleExport}
+              >
+                {t("exportFile")}
+              </AntBtn>
+            </div>
+          </div>
+
+          {/* ── Summary ── */}
+          <SummaryStrip items={summaryItems} />
+
+          {/* ── Table card ── */}
+          <Card
+            style={{
+              borderRadius: 10,
+              border: "1px solid #e5e7eb",
+              boxShadow: "0 1px 4px rgba(0,0,0,0.06)",
+            }}
+            styles={{ body: { padding: 0 } }}
+          >
+            <div style={FILTER_STYLE}>
+              <AntInput.Search
+                placeholder={t("searchPlaceholder")}
+                allowClear
+                style={{ width: 230 }}
+                onSearch={(v) => {
+                  setKeyword(v);
+                  setPage(1);
+                }}
+                onChange={(e) => {
+                  if (!e.target.value) {
+                    setKeyword("");
+                    setPage(1);
+                  }
+                }}
+              />
+              <DatePicker.RangePicker
+                value={[dateRange[0], dateRange[1]]}
+                onChange={(range) => {
+                  setDateRange([range?.[0] ?? null, range?.[1] ?? null]);
+                  setPage(1);
+                }}
+                format="DD/MM/YYYY"
+                allowEmpty={[true, true]}
+                style={{ height: 32 }}
+              />
+              <AntSelect
+                allowClear
+                placeholder="Chi nhánh"
+                value={filterBranchId}
+                onChange={(v) => {
+                  setFilterBranchId(v);
+                  setCounterId(undefined);
+                  setPage(1);
+                }}
+                style={{ width: 180 }}
+                options={branches.map((b) => ({
+                  value: b.id,
+                  label: b.name,
+                }))}
+              />
+              <AntSelect
+                allowClear
+                placeholder={t("filterCounter")}
+                value={counterId}
+                disabled={!filterBranchId}
+                onChange={(v) => {
+                  setCounterId(v);
+                  setPage(1);
+                }}
+                style={{ width: 160 }}
+                options={counters.map((c) => ({
+                  value: c.id,
+                  label: c.counterName,
+                }))}
+              />
+            </div>
+
+            <Table<ActivityItem>
+              rowKey="id"
+              columns={columns}
+              dataSource={items}
+              loading={isLoading}
+              size="middle"
+              bordered
+              scroll={{ x: 800 }}
+              rowClassName={(r) =>
+                expandedKeys.includes(r.id) ? "cash-row-expanded" : ""
+              }
+              expandable={{
+                expandedRowKeys: expandedKeys,
+                expandRowByClick: true,
+                showExpandColumn: false,
+                onExpand: (expanded, record) =>
+                  setExpandedKeys(
+                    expanded
+                      ? [...expandedKeys, record.id]
+                      : expandedKeys.filter((k) => k !== record.id),
+                  ),
+                expandedRowRender: (record) => (
+                  <CashLedgerExpandedRow activityId={record.id} />
+                ),
+              }}
+              pagination={{
+                current: page,
+                pageSize: PAGE_SIZE,
+                total: totalCount,
+                onChange: (p) => setPage(p),
+                showSizeChanger: true,
+                pageSizeOptions: ["20", "50", "100"],
+                showTotal: (tot, [from, to]) =>
+                  `${t("showTotal", { from, to, total: tot })}`,
+                style: { padding: "12px 16px", borderTop: "1px solid #f0f0f0" },
+              }}
+            />
+          </Card>
         </div>
-        <div style={{ display: "flex", gap: 8 }}>
-          <AntBtn
-            type="primary"
-            icon={<Plus size={14} />}
-            onClick={() => {
-              setAddDir("IN");
-              setAddOpen(true);
-            }}
-          >
-            {t("createExpense")}
-          </AntBtn>
-          <AntBtn
-            icon={<FileSpreadsheet size={14} />}
-            loading={isExporting}
-            onClick={handleExport}
-          >
-            {t("exportFile")}
-          </AntBtn>
+
+        {/* ── Right: cash count panel ── */}
+        <div style={{ width: 360, flexShrink: 0 }}>
+          <CashCountPanel
+            branchId={branchId}
+            date={today.format("YYYY-MM-DD")}
+          />
         </div>
       </div>
-
-      {/* ── Summary ── */}
-      <SummaryStrip items={summaryItems} />
-
-      {/* ── Table card ── */}
-      <Card
-        style={{
-          borderRadius: 10,
-          border: "1px solid #e5e7eb",
-          boxShadow: "0 1px 4px rgba(0,0,0,0.06)",
-        }}
-        styles={{ body: { padding: 0 } }}
-      >
-        <div style={FILTER_STYLE}>
-          <AntInput.Search
-            placeholder={t("searchPlaceholder")}
-            allowClear
-            style={{ width: 230 }}
-            onSearch={(v) => {
-              setKeyword(v);
-              setPage(1);
-            }}
-            onChange={(e) => {
-              if (!e.target.value) {
-                setKeyword("");
-                setPage(1);
-              }
-            }}
-          />
-          <DatePicker.RangePicker
-            value={[dateRange[0], dateRange[1]]}
-            onChange={(range) => {
-              setDateRange([range?.[0] ?? null, range?.[1] ?? null]);
-              setPage(1);
-            }}
-            format="DD/MM/YYYY"
-            allowEmpty={[true, true]}
-            style={{ height: 32 }}
-          />
-          <AntSelect
-            allowClear
-            placeholder={t("filterCounter")}
-            value={counterId}
-            onChange={(v) => {
-              setCounterId(v);
-              setPage(1);
-            }}
-            style={{ width: 160 }}
-            options={counters.map((c) => ({
-              value: c.id,
-              label: c.counterName,
-            }))}
-          />
-        </div>
-
-        <Table<ActivityItem>
-          rowKey="id"
-          columns={columns}
-          dataSource={items}
-          loading={isLoading}
-          size="middle"
-          bordered
-          scroll={{ x: 800 }}
-          rowClassName={(r) =>
-            expandedKeys.includes(r.id) ? "cash-row-expanded" : ""
-          }
-          expandable={{
-            expandedRowKeys: expandedKeys,
-            expandRowByClick: true,
-            showExpandColumn: false,
-            onExpand: (expanded, record) =>
-              setExpandedKeys(
-                expanded
-                  ? [...expandedKeys, record.id]
-                  : expandedKeys.filter((k) => k !== record.id),
-              ),
-            expandedRowRender: (record) => (
-              <CashLedgerExpandedRow activityId={record.id} />
-            ),
-          }}
-          pagination={{
-            current: page,
-            pageSize: PAGE_SIZE,
-            total: totalCount,
-            onChange: (p) => setPage(p),
-            showSizeChanger: true,
-            pageSizeOptions: ["20", "50", "100"],
-            showTotal: (tot, [from, to]) =>
-              `${t("showTotal", { from, to, total: tot })}`,
-            style: { padding: "12px 16px", borderTop: "1px solid #f0f0f0" },
-          }}
-        />
-      </Card>
 
       <style>{`.cash-row-expanded > td { background: #eff6ff !important; } .ant-table-thead > tr > th { white-space: nowrap; }`}</style>
 
