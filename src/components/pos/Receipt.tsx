@@ -63,8 +63,10 @@ export function Receipt({ open, transaction, onClose }: ReceiptProps) {
   const isCompleted = !isCancelled && transaction.status === "Completed";
   const isBuy = transaction.type === "BuyGold";
   const isFx = transaction.type === "ExchangeCurrency";
-  const fxParsed = isFx ? parseFxNote(transaction.note) : null;
   const isFxToNonLak = isFx && !!transaction.targetCurrency && transaction.targetCurrency !== "LAK";
+  // Dùng foreignAmount từ DB (v2026-06-16+). Fallback sang note parsing cho GD cũ.
+  const fxHasDirect = isFx && transaction.foreignAmount != null;
+  const fxParsed = isFx && !fxHasDirect ? parseFxNote(transaction.note) : null;
 
   // ExchangeGold / ExchangeFree / BuyMoreGold / ExchangeToMoney: chia 2 panel
   const isExchange = ["ExchangeGold", "ExchangeFree", "BuyMoreGold", "ExchangeToMoney"].includes(transaction.type);
@@ -161,7 +163,20 @@ export function Receipt({ open, transaction, onClose }: ReceiptProps) {
               <div className="space-y-4">
                 {/* FX: hiển thị chiều đổi */}
                 <div className="rounded-lg border border-primary/20 bg-primary/5 px-4 py-5 text-center space-y-1">
-                  {fxParsed ? (
+                  {fxHasDirect ? (
+                    <>
+                      <p className="text-2xl font-black tabular-nums tracking-tight">
+                        {transaction.foreignAmount!.toLocaleString("en", { maximumFractionDigits: 4 })}{" "}
+                        <span className="text-primary">{transaction.currency}</span>
+                      </p>
+                      <p className="text-muted-foreground text-sm">↓</p>
+                      <p className="text-2xl font-black tabular-nums tracking-tight">
+                        {isFxToNonLak && transaction.targetAmount != null
+                          ? `${transaction.targetAmount.toLocaleString("en", { maximumFractionDigits: 4 })} ${transaction.targetCurrency}`
+                          : transaction.totalAmount.toLocaleString("lo-LA") + " ₭"}
+                      </p>
+                    </>
+                  ) : fxParsed ? (
                     <>
                       <p className="text-2xl font-black tabular-nums tracking-tight">
                         {fxParsed.fromAmt}{" "}

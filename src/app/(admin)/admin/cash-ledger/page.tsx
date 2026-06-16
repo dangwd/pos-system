@@ -1,6 +1,5 @@
 "use client";
 
-import { CashCountPanel } from "@/components/admin/cash-ledger/CashCountPanel";
 import { CashLedgerExpandedRow } from "@/components/admin/cash-ledger/CashLedgerExpandedRow";
 import { ForbiddenPage } from "@/components/shared/ForbiddenPage";
 import { Button } from "@/components/ui/button";
@@ -537,13 +536,13 @@ export default function CashLedgerPage() {
           </Card>
         </div>
 
-        {/* ── Right: cash count panel ── */}
-        <div style={{ width: 360, flexShrink: 0 }}>
+        {/* ── Right: cash count panel ── (tạm ẩn) */}
+        {/* <div style={{ width: 360, flexShrink: 0 }}>
           <CashCountPanel
             branchId={branchId}
             date={today.format("YYYY-MM-DD")}
           />
-        </div>
+        </div> */}
       </div>
 
       <style>{`.cash-row-expanded > td { background: #eff6ff !important; } .ant-table-thead > tr > th { white-space: nowrap; }`}</style>

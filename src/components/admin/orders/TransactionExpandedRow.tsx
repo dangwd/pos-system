@@ -284,7 +284,32 @@ export function TransactionExpandedRow({ record }: Props) {
 
         {/* Cột phải — phân biệt loại GD mua vàng vs bán vàng */}
         <div style={{ flex: 1, minWidth: 260 }}>
-          <Field label={t('fieldSubtotal')} value={formatKip(record.subtotalAmount)} />
+          {record.type === 'ExchangeCurrency' ? (
+            <>
+              {record.currency && record.exchangeRate && record.exchangeRate > 0 && (
+                <Field
+                  label="Tiền khách đưa"
+                  value={<b>{Math.round(record.totalAmount / record.exchangeRate).toLocaleString('lo-LA')} {record.currency}</b>}
+                />
+              )}
+              {record.exchangeRate && record.exchangeRate > 0 && (
+                <Field
+                  label="Tỷ giá quy đổi"
+                  value={<span style={{ fontVariantNumeric: 'tabular-nums' }}>{record.exchangeRate.toLocaleString('lo-LA')}</span>}
+                />
+              )}
+              {record.targetCurrency && record.targetAmount != null ? (
+                <Field
+                  label="Tiền trả khách"
+                  value={<b>{record.targetCurrency === 'LAK' ? formatKip(record.targetAmount) : `${record.targetAmount.toLocaleString('lo-LA')} ${record.targetCurrency}`}</b>}
+                />
+              ) : (
+                <Field label="Tiền trả khách" value={<b>{formatKip(record.totalAmount)}</b>} />
+              )}
+            </>
+          ) : (
+            <Field label={t('fieldSubtotal')} value={formatKip(record.subtotalAmount)} />
+          )}
           {isBuyType ? (
             <>
               {hasEncodedFees && (

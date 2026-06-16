@@ -1,6 +1,7 @@
 # API — Đổi Ngoại Tệ (ExchangeCurrency)
 
-> Tài liệu tích hợp API cho FE: request/response, 3 chiều đổi tiền, công thức tính, sổ quỹ, hủy phiếu.  
+> Tài liệu tích hợp API cho FE: request/response, 3 chiều đổi tiền, công thức tính, sổ quỹ, hủy phiếu.
+> Cập nhật: 2026-06-16 — `foreignAmount` nay được lưu thẳng vào DB và trả về trong response (không cần tính ngược từ `totalAmount / exchangeRate` nữa).
 > Cập nhật: 2026-06-12 (commit `f1786cd` — hỗ trợ 3 chiều: ngoại tệ↔LAK, cross-rate)
 
 ---
@@ -23,6 +24,7 @@ Từ commit `f1786cd`, ExchangeCurrency hỗ trợ **3 chiều đổi tiền**:
 - `targetCurrency` — loại tiền trả khách
 - `targetRateToLak` — tỷ giá tiền đích
 - `targetAmount` — số tiền trả khách (đã tính, 4 chữ số thập phân)
+- `foreignAmount` — số tiền nguồn khách đưa (snapshot, lưu trực tiếp, không cần tính ngược)
 
 ---
 
@@ -41,7 +43,7 @@ Response `200 OK`:
 ]
 ```
 
-> Luôn dùng `effectiveRate` (= `rateToLak + adjustment`) để tính và điền vào request.  
+> Luôn dùng `effectiveRate` (= `rateToLak + adjustment`) để tính và điền vào request.
 > Gọi endpoint này khi mount màn hình FX để lấy tỷ giá hiện hành.
 
 ---
@@ -191,6 +193,7 @@ Sau đó gọi `GET /api/transactions/{id}` để lấy đầy đủ:
   "counterId": "uuid...",
   "currency": "USD",
   "exchangeRate": 21500,
+  "foreignAmount": 100,
   "targetCurrency": "THB",
   "targetRateToLak": 600,
   "targetAmount": 3583.3333,
@@ -201,12 +204,12 @@ Sau đó gọi `GET /api/transactions/{id}` để lấy đầy đủ:
 }
 ```
 
+> `foreignAmount` là số tiền nguồn khách đưa, được lưu trực tiếp vào DB từ phiên bản này — FE đọc thẳng, không cần tính ngược `totalAmount / exchangeRate`.
+
 **Hiển thị trên phiếu từ response:**
 ```typescript
-// Số tiền nguồn — tính ngược từ totalAmount / exchangeRate
-const sourceAmount = tx.exchangeRate > 0
-  ? Math.round((tx.totalAmount / tx.exchangeRate) * 10000) / 10000
-  : tx.foreignAmount;
+// Số tiền nguồn — đọc trực tiếp từ foreignAmount (đã lưu vào DB)
+const sourceAmount = tx.foreignAmount;
 
 // Dòng hiển thị chính
 const displayLine = tx.targetCurrency === "LAK"

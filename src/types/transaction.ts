@@ -75,6 +75,7 @@ export interface Transaction {
   totalAmount: number;
   currency: string | null;
   exchangeRate: number | null;
+  foreignAmount: number | null;  // Số tiền nguồn khách đưa — lưu trực tiếp vào DB
   targetCurrency: string | null;
   targetRateToLak: number | null;
   targetAmount: number | null;

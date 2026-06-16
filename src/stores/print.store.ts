@@ -85,6 +85,7 @@ export interface PrintInvoice {
   // ── Ngoại tệ (ExchangeCurrency) ─────────────────────────────────────────────
   currency: string | null
   exchangeRate: number | null
+  foreignAmount: number | null     // Số tiền nguồn khách đưa (snapshot từ DB)
   targetCurrency: string | null
   targetRateToLak: number | null
   targetAmount: number | null
@@ -153,6 +154,7 @@ function normalize(tx: Transaction, ctx?: PrintContext): PrintInvoice {
 
     currency:        tx.currency,
     exchangeRate:    tx.exchangeRate,
+    foreignAmount:   tx.foreignAmount,
     targetCurrency:  tx.targetCurrency,
     targetRateToLak: tx.targetRateToLak,
     targetAmount:    tx.targetAmount,

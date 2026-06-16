@@ -107,7 +107,7 @@ function InvoiceTemplate({ inv }: { inv: PrintInvoice }) {
 
       {/* ── Metadata ─────────────────────────────────────── */}
       <div className="grid grid-cols-2 gap-x-6 mb-3 text-[11px]">
-        <div className="space-y-[2px]">
+        <div className="space-y-0.5">
           <Row label="Số HĐ / ເລກທີ" value={inv.invoiceCode} />
           <Row label="Ngày / ວັນທີ" value={fmtDate(inv.transactedAt)} />
           <Row label="Giờ / ເວລາ" value={fmtTime(inv.transactedAt)} />
@@ -115,7 +115,7 @@ function InvoiceTemplate({ inv }: { inv: PrintInvoice }) {
             <Row label="HĐ gốc / ໃບບິນເດີມ" value={inv.referenceInvoiceCode} />
           )}
         </div>
-        <div className="space-y-[2px]">
+        <div className="space-y-0.5">
           <Row label="Chi nhánh / ສາຂາ" value={inv.branchName} />
           <Row label="Quầy / ຕູ້" value={inv.counterName} />
           <Row label="Thu ngân / NV" value={inv.cashierName} />
@@ -136,28 +136,54 @@ function InvoiceTemplate({ inv }: { inv: PrintInvoice }) {
       {isFx && (
         <div className="border border-gray-400 rounded p-3 mb-3 text-center space-y-1">
           <div className="flex justify-center items-center gap-6">
+            {/* Tiền nguồn */}
             <div>
               <p className="text-[10px] text-gray-500">
                 Ngoại tệ / ເງິນຕ່າງປະເທດ
               </p>
               <p className="font-black text-base tabular-nums">
-                {(inv.cashAmount ?? 0).toLocaleString("lo-LA")} {inv.currency}
+                {(inv.foreignAmount ?? 0).toLocaleString("en", { maximumFractionDigits: 4 })}{" "}
+                {inv.currency}
               </p>
             </div>
             <p className="text-xl font-bold">→</p>
+            {/* Tiền đích */}
             <div>
-              <p className="text-[10px] text-gray-500">Tiền LAK / ເງິນກີບ</p>
-              <p className="font-black text-base tabular-nums">
-                {kip(inv.totalAmount)}
-              </p>
+              {inv.targetCurrency && inv.targetCurrency !== "LAK" ? (
+                <>
+                  <p className="text-[10px] text-gray-500">
+                    {inv.targetCurrency} / ເງິນ{inv.targetCurrency}
+                  </p>
+                  <p className="font-black text-base tabular-nums">
+                    {(inv.targetAmount ?? 0).toLocaleString("en", { maximumFractionDigits: 4 })}{" "}
+                    {inv.targetCurrency}
+                  </p>
+                </>
+              ) : (
+                <>
+                  <p className="text-[10px] text-gray-500">Tiền LAK / ເງິນກີບ</p>
+                  <p className="font-black text-base tabular-nums">
+                    {kip(inv.totalAmount)}
+                  </p>
+                </>
+              )}
             </div>
           </div>
-          {inv.exchangeRate && inv.currency && (
-            <p className="text-[10px] text-gray-500">
-              Tỷ giá: 1 {inv.currency} ={" "}
-              {inv.exchangeRate.toLocaleString("lo-LA")} ₭
-            </p>
-          )}
+          {/* Tỷ giá — hiển thị tỷ giá nguồn và/hoặc tỷ giá đích */}
+          <div className="text-[10px] text-gray-500 space-y-px">
+            {inv.exchangeRate && inv.currency && inv.currency !== "LAK" && (
+              <p>
+                Tỷ giá: 1 {inv.currency} ={" "}
+                {inv.exchangeRate.toLocaleString("lo-LA")} ₭
+              </p>
+            )}
+            {inv.targetRateToLak && inv.targetCurrency && inv.targetCurrency !== "LAK" && (
+              <p>
+                Tỷ giá: 1 {inv.targetCurrency} ={" "}
+                {inv.targetRateToLak.toLocaleString("lo-LA")} ₭
+              </p>
+            )}
+          </div>
         </div>
       )}
 
@@ -218,7 +244,7 @@ function InvoiceTemplate({ inv }: { inv: PrintInvoice }) {
 
       {/* ── Totals ────────────────────────────────────────── */}
       <div className="flex justify-end mb-3">
-        <div className="w-72 text-[11px] space-y-[2px]">
+        <div className="w-72 text-[11px] space-y-0.5">
           {isExchange ? (
             <>
               <div className="flex justify-between">
@@ -272,7 +298,7 @@ function InvoiceTemplate({ inv }: { inv: PrintInvoice }) {
       </div>
 
       {/* ── Amount in words ───────────────────────────────── */}
-      <div className="border border-gray-400 p-2 mb-3 text-[11px] space-y-[2px]">
+      <div className="border border-gray-400 p-2 mb-3 text-[11px] space-y-0.5">
         <p>
           <span className="font-semibold">Số tiền bằng chữ (VN): </span>
           {inv.totalInWordsVi}

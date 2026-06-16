@@ -80,6 +80,26 @@ export function TransactionLogContent({ fixedType }: Props) {
   const transactions = data?.data ?? [];
   const revenue = transactions.reduce((s, tx) => s + (tx.totalAmount ?? 0), 0);
 
+  const fxSummary = useMemo(() => {
+    if (resolvedType !== 'ExchangeCurrency') return null;
+    const sourceByCode: Record<string, number> = {};
+    const targetByCode: Record<string, number> = {};
+    let latestRate: number | null = null;
+    for (const tx of transactions) {
+      const srcCode = tx.currency ?? 'LAK';
+      if (tx.exchangeRate && tx.exchangeRate > 0) {
+        sourceByCode[srcCode] = (sourceByCode[srcCode] ?? 0) + tx.totalAmount / tx.exchangeRate;
+        if (latestRate === null) latestRate = tx.exchangeRate;
+      }
+      if (tx.targetCurrency && tx.targetAmount) {
+        targetByCode[tx.targetCurrency] = (targetByCode[tx.targetCurrency] ?? 0) + tx.targetAmount;
+      } else {
+        targetByCode['LAK'] = (targetByCode['LAK'] ?? 0) + tx.totalAmount;
+      }
+    }
+    return { sourceByCode, targetByCode, latestRate };
+  }, [resolvedType, transactions]);
+
   const columns = useMemo(() => createOrderColumns({
     colType:        t("columns.type"),
     colInvoiceCode: t("columns.invoiceCode"),
@@ -97,14 +117,45 @@ export function TransactionLogContent({ fixedType }: Props) {
 
   return (
     <div style={{ padding: '24px 24px 32px' }}>
-      <div style={{ marginBottom: 16 }}>
-        <h2 style={{ margin: 0, fontSize: 22, fontWeight: 700, color: '#111827' }}>
-          {t("title")}
-        </h2>
-        <p style={{ margin: '2px 0 0', fontSize: 13, color: '#6b7280' }}>
-          {t("summary", { count: data?.total ?? 0 })}{" "}
-          <span style={{ fontWeight: 600, color: '#111827' }}>{formatKip(revenue)}</span>
-        </p>
+      <div style={{ marginBottom: 16, display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 16, flexWrap: 'wrap' }}>
+        <div>
+          <h2 style={{ margin: 0, fontSize: 22, fontWeight: 700, color: '#111827' }}>
+            {t("title")}
+          </h2>
+          <p style={{ margin: '2px 0 0', fontSize: 13, color: '#6b7280' }}>
+            {t("summary", { count: data?.total ?? 0 })}{" "}
+            <span style={{ fontWeight: 600, color: '#111827' }}>{formatKip(revenue)}</span>
+          </p>
+        </div>
+
+        {fxSummary && (
+          <div style={{ display: 'flex', gap: 24, flexWrap: 'wrap' }}>
+            <div style={{ textAlign: 'right' }}>
+              <div style={{ fontSize: 11, color: '#6b7280', fontWeight: 500, marginBottom: 2 }}>Tiền khách đưa</div>
+              {Object.entries(fxSummary.sourceByCode).map(([code, amt]) => (
+                <div key={code} style={{ fontSize: 14, fontWeight: 700, color: '#dc2626', fontVariantNumeric: 'tabular-nums' }}>
+                  {Math.round(amt).toLocaleString('lo-LA')} {code}
+                </div>
+              ))}
+            </div>
+            <div style={{ textAlign: 'right' }}>
+              <div style={{ fontSize: 11, color: '#6b7280', fontWeight: 500, marginBottom: 2 }}>Tiền trả khách</div>
+              {Object.entries(fxSummary.targetByCode).map(([code, amt]) => (
+                <div key={code} style={{ fontSize: 14, fontWeight: 700, color: '#dc2626', fontVariantNumeric: 'tabular-nums' }}>
+                  {code === 'LAK' ? formatKip(Math.round(amt)) : `${Math.round(amt).toLocaleString('lo-LA')} ${code}`}
+                </div>
+              ))}
+            </div>
+            {fxSummary.latestRate !== null && (
+              <div style={{ textAlign: 'right' }}>
+                <div style={{ fontSize: 11, color: '#6b7280', fontWeight: 500, marginBottom: 2 }}>Tỷ giá quy đổi</div>
+                <div style={{ fontSize: 14, fontWeight: 700, color: '#dc2626', fontVariantNumeric: 'tabular-nums' }}>
+                  {fxSummary.latestRate.toLocaleString('lo-LA')}
+                </div>
+              </div>
+            )}
+          </div>
+        )}
       </div>
 
       <Card
