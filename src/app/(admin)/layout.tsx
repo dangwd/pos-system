@@ -15,7 +15,6 @@ import { useAuthStore } from "@/stores/auth.store";
 import {
   ArrowDownToLine,
   ArrowLeft,
-  ArrowLeftRight,
   ArrowUpFromLine,
   BarChart3,
   Building2,
@@ -118,7 +117,6 @@ export default function AdminLayout({
       {
         label: t("nav.groupFinance"),
         items: [
-          { href: "/admin/trade", label: t("nav.trade"), icon: ArrowLeftRight },
           { href: "/admin/cash-ledger", label: t("nav.cashLedger"), icon: Wallet },
           {
             href: "/admin/reports", label: t("nav.reports"), icon: BarChart3,
