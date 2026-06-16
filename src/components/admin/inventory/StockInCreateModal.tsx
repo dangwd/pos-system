@@ -106,7 +106,7 @@ export function StockInCreateModal({ open, branchId, onClose, onSuccess }: Props
         <Form form={form} layout="vertical" style={{ marginTop: 8 }}>
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0 16px' }}>
             <Form.Item name="counterId" label={t('counterLabel')} rules={[{ required: true, message: t('counterRequired') }]}>
-              <Select placeholder={t('counterPlaceholder')} options={counters.map(c => ({ value: c.id, label: c.counterName }))} />
+              <Select placeholder={t('counterPlaceholder')} options={counters.filter(c => c.isActive).map(c => ({ value: c.id, label: c.counterName }))} />
             </Form.Item>
             <Form.Item name="nguonHang" label={t('nguonHangLabel')} rules={[{ required: true, message: t('nguonHangRequired') }]}>
               <Select placeholder={t('nguonHangPlaceholder')} options={[
