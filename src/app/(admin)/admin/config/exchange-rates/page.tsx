@@ -13,9 +13,9 @@ import { Dialog, DialogContent, DialogFooter } from '@/components/ui/dialog'
 import { Field, FieldLabel } from '@/components/ui/field'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { TablePageSkeleton } from '@/components/shared/PageSkeleton'
-import { useExchangeRates, useUpdateExchangeRate } from '@/hooks/useConfig'
+import { useExchangeRates, useUpdateExchangeRate, useCurrencies } from '@/hooks/useConfig'
 import { cn } from '@/lib/utils'
-import type { ExchangeRate } from '@/types/config'
+import type { ExchangeRate, Currency } from '@/types/config'
 
 const CURRENCY_META: Record<string, { flag: string; name: string }> = {
   LAK: { flag: '₭', name: 'Kip Lào' },
@@ -40,10 +40,16 @@ function formatDateShort(iso: string) {
 
 // ─── Preview panel ─────────────────────────────────────────────────────────────
 
-function RatePreviewPanel({ rates }: { rates: ExchangeRate[] }) {
+function RatePreviewPanel({ rates, currencies: currenciesData }: { rates: ExchangeRate[]; currencies: Currency[] }) {
   const t = useTranslations('admin.config.exchangeRates')
   const { mutate: updateRate, isPending: isSavingRate } = useUpdateExchangeRate()
-  const currencies = ['LAK', ...rates.map(r => r.currencyCode)]
+
+  const activeCurrencies = currenciesData.filter(c => c.isActive).sort((a, b) => a.sortOrder - b.sortOrder)
+  const currencyCodes = activeCurrencies.length > 0
+    ? activeCurrencies.map(c => c.code)
+    : ['LAK', ...rates.map(r => r.currencyCode)]
+
+  const currencyInfoMap = Object.fromEntries(activeCurrencies.map(c => [c.code, c]))
 
   const [fromCurrency, setFromCurrency] = useState<string>(rates[0]?.currencyCode ?? 'THB')
   const [toCurrency, setToCurrency]     = useState<string>('LAK')
@@ -73,8 +79,14 @@ function RatePreviewPanel({ rates }: { rates: ExchangeRate[] }) {
   const displayDecimals  = isBothForeign ? 4 : 0
   const displayTarget    = (isToLak || isFromLak) ? '₭' : toCurrency
 
-  const fromMeta = CURRENCY_META[fromCurrency] ?? { flag: '💱', name: fromCurrency }
-  const toMeta   = CURRENCY_META[toCurrency]   ?? { flag: '💱', name: toCurrency }
+  const fromMeta = {
+    flag: currencyInfoMap[fromCurrency]?.flag ?? CURRENCY_META[fromCurrency]?.flag ?? currencyInfoMap[fromCurrency]?.symbol ?? '💱',
+    name: currencyInfoMap[fromCurrency]?.name ?? CURRENCY_META[fromCurrency]?.name ?? fromCurrency,
+  }
+  const toMeta = {
+    flag: currencyInfoMap[toCurrency]?.flag ?? CURRENCY_META[toCurrency]?.flag ?? currencyInfoMap[toCurrency]?.symbol ?? '💱',
+    name: currencyInfoMap[toCurrency]?.name ?? CURRENCY_META[toCurrency]?.name ?? toCurrency,
+  }
 
   const resultDisplay = toCurrency === 'LAK'
     ? Math.round(result).toLocaleString('lo-LA')
@@ -140,7 +152,7 @@ function RatePreviewPanel({ rates }: { rates: ExchangeRate[] }) {
   const lastUpdated = detailRate?.effectiveFrom
 
   return (
-    <div className="rounded-xl border bg-card p-6 flex flex-col gap-5">
+    <div className="rounded-xl border bg-card p-6 flex flex-col gap-5 shadow-card">
       <h2 className="text-base font-semibold">{t('previewTitle')}</h2>
 
       {/* From / To selectors */}
@@ -152,11 +164,12 @@ function RatePreviewPanel({ rates }: { rates: ExchangeRate[] }) {
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
-              {currencies.map(c => {
-                const m = CURRENCY_META[c] ?? { flag: '💱', name: c }
+              {currencyCodes.map(code => {
+                const flag = currencyInfoMap[code]?.flag ?? CURRENCY_META[code]?.flag ?? currencyInfoMap[code]?.symbol ?? '💱'
+                const name = currencyInfoMap[code]?.name ?? CURRENCY_META[code]?.name ?? code
                 return (
-                  <SelectItem key={c} value={c}>
-                    <span className="mr-1">{m.flag}</span> {c} — {m.name}
+                  <SelectItem key={code} value={code}>
+                    <span className="mr-1">{flag}</span> {code} — {name}
                   </SelectItem>
                 )
               })}
@@ -180,11 +193,12 @@ function RatePreviewPanel({ rates }: { rates: ExchangeRate[] }) {
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
-              {currencies.map(c => {
-                const m = CURRENCY_META[c] ?? { flag: '💱', name: c }
+              {currencyCodes.map(code => {
+                const flag = currencyInfoMap[code]?.flag ?? CURRENCY_META[code]?.flag ?? currencyInfoMap[code]?.symbol ?? '💱'
+                const name = currencyInfoMap[code]?.name ?? CURRENCY_META[code]?.name ?? code
                 return (
-                  <SelectItem key={c} value={c}>
-                    <span className="mr-1">{m.flag}</span> {c} — {m.name}
+                  <SelectItem key={code} value={code}>
+                    <span className="mr-1">{flag}</span> {code} — {name}
                   </SelectItem>
                 )
               })}
@@ -311,17 +325,19 @@ function RatePreviewPanel({ rates }: { rates: ExchangeRate[] }) {
 
 // ─── Currency card ──────────────────────────────────────────────────────────────
 
-function CurrencyCard({ rate, onEdit }: { rate: ExchangeRate; onEdit: () => void }) {
+function CurrencyCard({ rate, currencyName, currencyFlag, onEdit }: { rate: ExchangeRate; currencyName?: string; currencyFlag?: string; onEdit: () => void }) {
   const t = useTranslations('admin.config.exchangeRates')
   const meta = CURRENCY_META[rate.currencyCode] ?? { flag: '💱', name: rate.currencyCode }
+  const displayName = currencyName ?? meta.name
+  const displayFlag = currencyFlag ?? meta.flag
 
   return (
     <div className="flex items-center justify-between rounded-xl border bg-card px-4 py-3 hover:border-primary/40 hover:bg-muted/20 transition-colors">
       <div className="flex items-center gap-3">
-        <span className="text-2xl">{meta.flag}</span>
+        <span className="text-2xl">{displayFlag}</span>
         <div>
           <div className="font-bold text-sm">{rate.currencyCode}</div>
-          <div className="text-xs text-muted-foreground">{meta.name}</div>
+          <div className="text-xs text-muted-foreground">{displayName}</div>
         </div>
       </div>
 
@@ -354,16 +370,27 @@ export default function ExchangeRatesPage() {
   const [search, setSearch] = useState('')
 
   const { data: rates = [], isLoading, refetch, isFetching } = useExchangeRates()
+  const { data: currencies = [] } = useCurrencies()
   const { mutate: update, isPending } = useUpdateExchangeRate()
+
+  const currencyNameMap = useMemo(() =>
+    Object.fromEntries(currencies.map(c => [c.code, c.name]))
+  , [currencies])
+
+  const currencyFlagMap = useMemo(() =>
+    Object.fromEntries(currencies.filter(c => c.flag).map(c => [c.code, c.flag!]))
+  , [currencies])
 
   const filtered = useMemo(() => {
     if (!search.trim()) return rates
     const q = search.trim().toUpperCase()
+    const qLower = search.toLowerCase()
     return rates.filter(r =>
       r.currencyCode.includes(q) ||
-      (CURRENCY_META[r.currencyCode]?.name.toLowerCase().includes(search.toLowerCase()))
+      (currencyNameMap[r.currencyCode]?.toLowerCase().includes(qLower)) ||
+      (CURRENCY_META[r.currencyCode]?.name.toLowerCase().includes(qLower))
     )
-  }, [rates, search])
+  }, [rates, search, currencyNameMap])
 
   function openEdit(rate: ExchangeRate) {
     setEditing(rate)
@@ -395,13 +422,13 @@ export default function ExchangeRatesPage() {
           {/* Left: preview calculator */}
           {rates.length > 0 && (
             <div className="w-full xl:w-105 shrink-0">
-              <RatePreviewPanel rates={rates} />
+              <RatePreviewPanel rates={rates} currencies={currencies} />
             </div>
           )}
 
           {/* Right: management list */}
           <div className="flex-1 min-w-0">
-            <div className="rounded-xl border bg-card flex flex-col h-full">
+            <div className="rounded-xl border bg-card flex flex-col h-full shadow-card">
               {/* Header */}
               <div className="flex items-center justify-between px-4 py-3 border-b gap-3">
                 <h2 className="text-base font-semibold shrink-0">{t('managementTitle')}</h2>
@@ -432,7 +459,7 @@ export default function ExchangeRatesPage() {
                   <p className="text-sm text-muted-foreground py-6 text-center">{t('noData')}</p>
                 ) : (
                   filtered.map(rate => (
-                    <CurrencyCard key={rate.id} rate={rate} onEdit={() => openEdit(rate)} />
+                    <CurrencyCard key={rate.id} rate={rate} currencyName={currencyNameMap[rate.currencyCode]} currencyFlag={currencyFlagMap[rate.currencyCode]} onEdit={() => openEdit(rate)} />
                   ))
                 )}
               </div>

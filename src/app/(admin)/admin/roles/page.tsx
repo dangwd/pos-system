@@ -134,7 +134,7 @@ function PermissionsDialog({
                 const allChecked = checkedCount === perms.length
                 const someChecked = checkedCount > 0 && checkedCount < perms.length
                 return (
-                  <div key={group} className="rounded-lg border border-l-4 border-l-primary bg-card overflow-hidden">
+                  <div key={group} className="rounded-lg border border-l-4 border-l-primary bg-card overflow-hidden shadow-card">
                     <div
                       className="flex items-center gap-3 px-4 py-3 border-b bg-muted/30 cursor-pointer select-none hover:bg-muted/50 transition-colors"
                       onClick={() => toggleGroup(perms)}
@@ -476,7 +476,7 @@ export default function RolesPage() {
       </div>
 
       {/* ── Bảng ── */}
-      <Card style={CARD_STYLE} styles={{ body: { padding: 0 } }}>
+      <Card style={CARD_STYLE} styles={{ body: { padding: 0, overflow: 'hidden' } }}>
         <Table<RoleRow>
           rowKey="id"
           columns={columns}

@@ -160,6 +160,12 @@
 
 
 
+@layer utilities {
+  .shadow-card {
+    box-shadow: 0 1px 4px rgba(0,0,0,0.07), 0 4px 12px rgba(0,0,0,0.04);
+  }
+}
+
 /* ── Ant Design Splitter — ẩn drag handle pill, reset background ────────── */
 .ant-splitter,
 .ant-splitter-panel {

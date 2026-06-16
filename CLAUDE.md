@@ -5,7 +5,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 # POS System — Rules cho AI
 
 Project: **FoxAI POS · Khamphuvong Jewelry**  
-Stack: Next.js 16 (frontend) · ASP.NET Core 9 (backend) · shadcn/ui · TanStack Query · Zustand · TypeScript strict
+Stack: Next.js 16 (frontend) · ASP.NET Core 9 (backend) · Ant Design + Tailwind CSS · TanStack Query · Zustand · TypeScript strict
 
 ---
 

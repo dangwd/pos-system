@@ -15,6 +15,7 @@
 "use client";
 
 import { LocaleSwitcher } from "@/components/shared/LocaleSwitcher";
+import { ShiftStatusBadge } from "@/components/pos/shift/ShiftStatusBadge";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 import {
   DropdownMenu,
@@ -546,6 +547,7 @@ export function PosTopBar({ onAddProduct }: PosTopBarProps) {
 
         {/* ── Right: Locale + User menu ───────────────────────────────────── */}
         <div className="flex items-center gap-2 px-3">
+          <ShiftStatusBadge />
           <LocaleSwitcher />
 
           {user && (

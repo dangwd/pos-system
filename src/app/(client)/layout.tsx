@@ -11,10 +11,10 @@
 
 'use client'
 
+import { ShiftGuard } from '@/components/pos/shift/ShiftGuard'
 import { useInvoiceTabShortcuts } from '@/hooks/useInvoiceTabShortcuts'
 
 function ShortcutsProvider() {
-  // Hook chỉ đăng ký event listener, không render gì
   useInvoiceTabShortcuts()
   return null
 }
@@ -22,9 +22,10 @@ function ShortcutsProvider() {
 export default function ClientLayout({ children }: { children: React.ReactNode }) {
   return (
     <div className="h-screen overflow-hidden flex flex-col">
-      {/* Keyboard shortcuts được đăng ký ở layout level */}
       <ShortcutsProvider />
-      {children}
+      <ShiftGuard>
+        {children}
+      </ShiftGuard>
     </div>
   )
 }

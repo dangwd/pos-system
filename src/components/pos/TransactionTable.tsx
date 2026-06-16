@@ -21,7 +21,7 @@ import type { CartItem } from "@/types/cart";
 import { lineTotal } from "@/types/cart";
 import type { PriceConfig, WeightUnit } from "@/types/config";
 import type { ProductWithStock } from "@/types/product";
-import { Select } from "antd";
+import { InputNumber, Select } from "antd";
 import {
   ArrowDownToLine,
   ArrowLeftRight,
@@ -30,10 +30,8 @@ import {
   Coins,
   Equal,
   Gem,
-  Minus,
   Package,
   PackagePlus,
-  Plus,
   Search,
   ShoppingCart,
   Trash2,
@@ -235,8 +233,6 @@ function InfoBar({
 
 function QtyControl({
   qty,
-  onDecrease,
-  onIncrease,
   onSetQty,
   disabled,
 }: {
@@ -247,51 +243,15 @@ function QtyControl({
   disabled?: boolean;
 }) {
   return (
-    <div className="flex items-center">
-      <button
-        onClick={onDecrease}
-        disabled={disabled || qty <= 1}
-        className="h-6 w-6 flex items-center justify-center rounded-l-sm border border-r-0 bg-muted hover:bg-accent disabled:opacity-40 transition-colors"
-      >
-        <Minus className="h-2.5 w-2.5" />
-      </button>
-      <input
-        key={qty}
-        type="number"
-        min={0.001}
-        step="any"
-        defaultValue={qty}
-        disabled={disabled}
-        onFocus={(e) => e.target.select()}
-        onKeyDown={(e) => {
-          if (e.key === "Enter") {
-            e.preventDefault();
-            const n = parseFloat(e.currentTarget.value);
-            if (!isNaN(n) && n > 0) {
-              onSetQty?.(n);
-              e.currentTarget.blur();
-            } else e.currentTarget.value = String(qty);
-          }
-          if (e.key === "Escape") {
-            e.currentTarget.value = String(qty);
-            e.currentTarget.blur();
-          }
-        }}
-        onBlur={(e) => {
-          const n = parseFloat(e.currentTarget.value);
-          if (isNaN(n) || n <= 0) e.currentTarget.value = String(qty);
-          else onSetQty?.(n);
-        }}
-        className="h-6 w-10 text-center border-y text-xs font-semibold tabular-nums bg-background outline-none focus:ring-1 focus:ring-inset focus:ring-primary disabled:opacity-40"
-      />
-      <button
-        onClick={onIncrease}
-        disabled={disabled}
-        className="h-6 w-6 flex items-center justify-center rounded-r-sm border border-l-0 bg-muted hover:bg-accent disabled:opacity-40 transition-colors"
-      >
-        <Plus className="h-2.5 w-2.5" />
-      </button>
-    </div>
+    <InputNumber
+      value={qty}
+      min={0.001}
+      step={1}
+      size="small"
+      disabled={disabled}
+      style={{ width: 80 }}
+      onChange={(v) => { if (v != null && v > 0) onSetQty?.(v) }}
+    />
   );
 }
 
@@ -807,11 +767,17 @@ function ExchangeInRow({
   index,
   onUpdate,
   onDelete,
+  onQtyChange,
+  priceConfig,
+  weightUnits,
 }: {
   item: CartItem;
   index: number;
   onUpdate: (id: string, patch: Partial<CartItem>) => void;
   onDelete: (id: string) => void;
+  onQtyChange: (id: string, qty: number, itemRole?: 'Normal' | 'ExchangeIn') => void;
+  priceConfig: PriceConfig | undefined;
+  weightUnits: WeightUnit[];
 }) {
   const rowTotal = lineTotal(item);
   return (
@@ -826,17 +792,31 @@ function ExchangeInRow({
       </td>
       <td className="px-3 py-2 min-w-32 max-w-40">
         <p className="text-xs font-medium truncate">{item.name}</p>
-        <div className="flex items-center gap-1.5 mt-0.5">
-          <p className="text-[10px] text-muted-foreground font-mono">
-            {(item.weightGramOverride ?? item.qty * item.weightGram).toFixed(2)}
-            g
-          </p>
-          {item.weightUnitName && (
-            <span className="text-[9px] font-semibold px-1 py-0.5 rounded bg-amber-100/60 dark:bg-amber-950/40 text-amber-700 dark:text-amber-400 uppercase tracking-wide">
-              /{item.weightUnitName}
-            </span>
-          )}
-        </div>
+        <p className="text-[10px] text-muted-foreground font-mono mt-0.5">
+          {item.purity}
+        </p>
+      </td>
+      <td className="px-2 py-2">
+        <UnitSelect
+          item={item}
+          priceConfig={priceConfig}
+          weightUnits={weightUnits}
+          isBuyMode={true}
+          onUpdate={onUpdate}
+          disabled={item.isReadOnly}
+        />
+      </td>
+      <td className="px-3 py-2">
+        {item.isReadOnly ? (
+          <span className="text-xs tabular-nums font-semibold">{item.qty}</span>
+        ) : (
+          <QtyControl
+            qty={item.qty}
+            onDecrease={() => onQtyChange(item.productId, item.qty - 1, 'ExchangeIn')}
+            onIncrease={() => onQtyChange(item.productId, item.qty + 1, 'ExchangeIn')}
+            onSetQty={(q) => onQtyChange(item.productId, q, 'ExchangeIn')}
+          />
+        )}
       </td>
       <td className="px-3 py-2 w-36">
         {item.isReadOnly ? (
@@ -934,7 +914,7 @@ function ExchangeGoldTable({
   totalA: number;
   totalB: number;
   netTotal: number;
-  onQtyChange: (id: string, qty: number) => void;
+  onQtyChange: (id: string, qty: number, itemRole?: 'Normal' | 'ExchangeIn') => void;
   onDeleteExchangeIn: (id: string) => void;
   onDeleteNormal: (id: string) => void;
   onUpdate: (id: string, patch: Partial<CartItem>) => void;
@@ -972,10 +952,14 @@ function ExchangeGoldTable({
               <th className="px-3 py-1.5 text-[9px] font-semibold text-muted-foreground uppercase text-left">
                 Sản phẩm
               </th>
+              <th className="px-2 py-1.5 text-[9px] font-semibold text-muted-foreground uppercase text-left whitespace-nowrap">
+                Đơn vị
+              </th>
               <th className="px-3 py-1.5 text-[9px] font-semibold text-muted-foreground uppercase text-left whitespace-nowrap">
-                {exchangeItems[0]?.weightUnitName
-                  ? `Giá/${exchangeItems[0].weightUnitName}`
-                  : "Giá/đơn vị"}
+                SL
+              </th>
+              <th className="px-3 py-1.5 text-[9px] font-semibold text-muted-foreground uppercase text-left whitespace-nowrap">
+                Giá/chỉ
               </th>
               <th className="px-2 py-1.5 text-[9px] font-semibold text-orange-600 uppercase text-left whitespace-nowrap">
                 Lỗi/Hỏng (₭)
@@ -1000,6 +984,9 @@ function ExchangeGoldTable({
                 index={i}
                 onUpdate={onUpdate}
                 onDelete={onDeleteExchangeIn}
+                onQtyChange={onQtyChange}
+                priceConfig={priceConfig}
+                weightUnits={weightUnits}
               />
             ))}
           </tbody>

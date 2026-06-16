@@ -129,7 +129,7 @@ export default function ProductsPage() {
       </div>
 
       {/* ── Bảng ── */}
-      <Card style={CARD_STYLE} styles={{ body: { padding: 0 } }}>
+      <Card style={CARD_STYLE} styles={{ body: { padding: 0, overflow: 'hidden' } }}>
         <div style={FILTER_STYLE}>
           <Select
             allowClear

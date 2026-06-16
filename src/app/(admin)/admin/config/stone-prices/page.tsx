@@ -76,7 +76,7 @@ export default function StonePricesPage() {
       </div>
 
       {isLoading ? <TablePageSkeleton cols={4} rows={4} /> : (
-        <div className="rounded-md border">
+        <div className="rounded-md border shadow-card">
           <table className="w-full text-sm">
             <thead className="border-b bg-muted/40">
               <tr>

@@ -35,7 +35,7 @@ export const CHART_COLORS = [
 
 export function StatCard({ label, value, sub }: { label: string; value: ReactNode; sub?: string }) {
   return (
-    <div className="rounded-lg border bg-card p-4 space-y-1">
+    <div className="rounded-lg border bg-card p-4 space-y-1 shadow-card">
       <p className="text-[11px] font-medium uppercase tracking-wide text-muted-foreground">{label}</p>
       <p className="text-xl font-bold tabular-nums">{value}</p>
       {sub && <p className="text-[11px] text-muted-foreground">{sub}</p>}
@@ -50,7 +50,7 @@ export function Panel({ title, action, children, className }: {
   className?: string
 }) {
   return (
-    <div className={cn('rounded-lg border bg-card p-4 space-y-3', className)}>
+    <div className={cn('rounded-lg border bg-card p-4 space-y-3 shadow-card', className)}>
       <div className="flex items-center justify-between gap-2">
         <p className="text-sm font-semibold">{title}</p>
         {action}

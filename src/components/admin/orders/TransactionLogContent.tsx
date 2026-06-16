@@ -159,8 +159,8 @@ export function TransactionLogContent({ fixedType }: Props) {
       </div>
 
       <Card
-        style={{ borderRadius: 10, border: '1px solid #e5e7eb', boxShadow: '0 1px 4px rgba(0,0,0,0.06)' }}
-        styles={{ body: { padding: 0 } }}
+        style={{ borderRadius: 10, border: '1px solid #e5e7eb', boxShadow: '0 1px 4px rgba(0,0,0,0.07), 0 4px 12px rgba(0,0,0,0.04)' }}
+        styles={{ body: { padding: 0, overflow: 'hidden' } }}
       >
         <div style={FILTER_STYLE}>
           <AntInput.Search

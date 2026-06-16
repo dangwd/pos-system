@@ -65,7 +65,7 @@ export interface InvoiceTabStore {
   addItemToActive: (item: CartItem) => void;
   removeItemFromActive: (productId: string) => void;
   deleteItemFromActive: (productId: string, itemRole?: 'Normal' | 'ExchangeIn') => void;
-  setItemQtyInActive: (productId: string, qty: number) => void;
+  setItemQtyInActive: (productId: string, qty: number, itemRole?: 'Normal' | 'ExchangeIn') => void;
   clearActiveCart: () => void;
 
   /** Cập nhật một số trường của CartItem trong active tab (dùng cho Tiền công/ HAO HỤT) */

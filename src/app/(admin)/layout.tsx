@@ -20,6 +20,7 @@ import {
   Building2,
   ChevronDown,
   ClipboardList,
+  Coins,
   Gem,
   LayoutDashboard,
   LogOut,
@@ -73,6 +74,7 @@ export default function AdminLayout({
   const [search, setSearch] = useState("");
   const [openGroups, setOpenGroups] = useState<Set<number>>(() => new Set([0, 1, 2, 3, 4, 5]));
   const [expandedItems, setExpandedItems] = useState<Set<string>>(() => new Set());
+
 
   const NAV_GROUPS = useMemo<NavGroup[]>(
     () => [
@@ -136,6 +138,7 @@ export default function AdminLayout({
           { href: "/admin/config/stone-prices", label: t("nav.stonePrices"), icon: Gem },
           { href: "/admin/config/weight-units", label: t("nav.weightUnits"), icon: Scale },
           { href: "/admin/config/gold-purities", label: t("nav.goldPurities"), icon: Sparkles },
+          { href: "/admin/config/currencies", label: t("nav.currencies"), icon: Coins },
         ],
       },
     ],

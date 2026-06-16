@@ -81,7 +81,7 @@ export default function CustomersPage() {
       </div>
 
       {/* ── Bảng ── */}
-      <Card style={CARD_STYLE} styles={{ body: { padding: 0 } }}>
+      <Card style={CARD_STYLE} styles={{ body: { padding: 0, overflow: 'hidden' } }}>
         <Table
           rowKey="id"
           columns={columns}

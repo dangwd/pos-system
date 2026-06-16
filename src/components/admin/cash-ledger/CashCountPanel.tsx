@@ -162,7 +162,7 @@ export function CashCountPanel({ branchId, date }: Props) {
         background: "#fff",
         border: "1px solid #e5e7eb",
         borderRadius: 10,
-        boxShadow: "0 1px 4px rgba(0,0,0,0.06)",
+        boxShadow: "0 1px 4px rgba(0,0,0,0.07), 0 4px 12px rgba(0,0,0,0.04)",
         display: "flex",
         flexDirection: "column",
         maxHeight: "calc(100vh - 120px)",

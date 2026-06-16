@@ -190,7 +190,7 @@ export default function InventoryReportPage() {
                 </ResponsiveContainer>
                 <div className="flex flex-wrap gap-3">
                   {(data.byNguonGoc ?? []).map((r) => (
-                    <div key={r.nguonGoc} className="rounded-lg border bg-card px-4 py-3 min-w-44 space-y-1">
+                    <div key={r.nguonGoc} className="rounded-lg border bg-card px-4 py-3 min-w-44 space-y-1 shadow-card">
                       <p className="text-[11px] font-medium uppercase tracking-wide text-muted-foreground">{sourceLabel(r.nguonGoc)}</p>
                       <p className="text-lg font-bold tabular-nums">{formatNum(r.itemCount)}</p>
                       <p className="text-[11px] text-muted-foreground">{formatNum(r.totalQuantity)} · {formatGram(r.totalWeightGram)}</p>

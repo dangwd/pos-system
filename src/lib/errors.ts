@@ -369,6 +369,60 @@ const ERROR_MESSAGES: Record<string, ErrorMap> = {
     en: "Reason code is invalid or does not match the voucher direction",
   },
 
+  // ── SALES SHIFT ───────────────────────────────────────────────────────────
+  COUNTER_NOT_ASSIGNED: {
+    lo: 'ພະນັກງານຍັງບໍ່ໄດ້ຮັບການຈັດສັນເຄົ້າເຕີ ກະລຸນາຕິດຕໍ່ຜູ້ຈັດການ',
+    vi: 'Nhân viên chưa được phân công quầy, liên hệ quản lý',
+    en: 'Employee has not been assigned to a counter, contact manager',
+  },
+  SALES_SHIFT_NOT_OPEN: {
+    lo: 'ບໍ່ມີກະທີ່ເປີດຢູ່ ກະລຸນາເປີດກະກ່ອນດຳເນີນການ',
+    vi: 'Không có ca đang mở, vui lòng mở ca trước khi thực hiện giao dịch',
+    en: 'No open shift found. Please open a shift before performing transactions',
+  },
+  SALES_SHIFT_ALREADY_OPEN_FOR_USER: {
+    lo: 'ທ່ານມີກະທີ່ກຳລັງເປີດຢູ່ ບໍ່ສາມາດເປີດກະໃໝ່ໄດ້',
+    vi: 'Nhân viên đang có ca mở, không thể mở ca mới',
+    en: 'You already have an open shift',
+  },
+  SALES_SHIFT_ALREADY_OPEN_FOR_COUNTER: {
+    lo: 'ເຄົ້າເຕີນີ້ກຳລັງຖືກໃຊ້ງານໂດຍພະນັກງານອື່ນ',
+    vi: 'Quầy này đang có ca mở bởi nhân viên khác',
+    en: 'This counter already has an open shift by another employee',
+  },
+  SALES_SHIFT_ALREADY_CLOSED: {
+    lo: 'ກະນີ້ໄດ້ຖືກປິດໄປແລ້ວ',
+    vi: 'Ca bán hàng đã được đóng trước đó',
+    en: 'This shift has already been closed',
+  },
+  SALES_SHIFT_NOT_FOUND: {
+    lo: 'ບໍ່ພົບກະບ່ານຂາຍ',
+    vi: 'Không tìm thấy ca bán hàng',
+    en: 'Sales shift not found',
+  },
+  SALES_SHIFT_COUNTER_MISMATCH: {
+    lo: 'ກະນີ້ບໍ່ໄດ້ສັງກັດເຄົ້າເຕີຂອງທ່ານ',
+    vi: 'Ca bán hàng không thuộc quầy của nhân viên',
+    en: 'Shift does not belong to your assigned counter',
+  },
+
+  // ── CURRENCY ──────────────────────────────────────────────────────────────
+  CURRENCY_NOT_FOUND: {
+    lo: 'ບໍ່ພົບສະກຸນເງິນ',
+    vi: 'Không tìm thấy loại tiền tệ',
+    en: 'Currency not found',
+  },
+  CURRENCY_CODE_DUPLICATE: {
+    lo: 'ລະຫັດສະກຸນເງິນນີ້ມີຢູ່ແລ້ວ',
+    vi: 'Mã tiền tệ đã tồn tại trong hệ thống',
+    en: 'Currency code already exists',
+  },
+  CURRENCY_IN_USE: {
+    lo: 'ສະກຸນເງິນກຳລັງຖືກໃຊ້ງານໃນກະ ບໍ່ສາມາດລຶບໄດ້',
+    vi: 'Tiền tệ đang được dùng trong ca bán hàng, không thể xóa',
+    en: 'Currency is in use by sales shifts and cannot be deleted',
+  },
+
   // ── SYSTEM ────────────────────────────────────────────────────────────────
   SYSTEM_INTERNAL_ERROR: {
     lo: "ເກີດຂໍ້ຜິດພາດທີ່ລະບົບ ກະລຸນາລອງໃໝ່",

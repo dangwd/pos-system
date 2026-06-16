@@ -321,7 +321,8 @@
         "orderExchangeGold": "Exchange",
         "orderExchangeFree": "Free Exchange",
         "orderExchangeToMoney": "Exchange to Cash",
-        "orderExchangeCurrency": "Currency Exchange"
+        "orderExchangeCurrency": "Currency Exchange",
+        "currencies": "Currencies"
       },
       "collapse": "Collapse sidebar",
       "expand": "Expand sidebar",
@@ -1231,6 +1232,39 @@
           "ma": "Purity code",
           "hamLuong": "Fineness (%)",
           "category": "Type"
+        }
+      },
+      "currencies": {
+        "title": "Currency Management",
+        "addButton": "Add Currency",
+        "createDialogTitle": "Add New Currency",
+        "editDialogTitle": "Update Currency",
+        "saveButton": "Save",
+        "cancel": "Cancel",
+        "edit": "Edit",
+        "delete": "Delete",
+        "activeBadge": "Active",
+        "inactiveBadge": "Inactive",
+        "deleteConfirmTitle": "Delete Currency",
+        "deleteConfirmDesc": "Are you sure you want to delete <bold>{code}</bold>? This action cannot be undone.",
+        "deleteConfirmButton": "Delete",
+        "codeReadonly": "Currency code (cannot be changed after creation)",
+        "noData": "No currencies configured yet",
+        "columns": {
+          "sortOrder": "#",
+          "flag": "Flag",
+          "symbol": "Symbol",
+          "code": "Code",
+          "name": "Name",
+          "status": "Status"
+        },
+        "form": {
+          "code": "Currency code (ISO 4217, uppercase)",
+          "name": "Full name",
+          "flag": "Flag (emoji)",
+          "symbol": "Symbol",
+          "sortOrder": "Sort order",
+          "isActive": "Active"
         }
       }
     },

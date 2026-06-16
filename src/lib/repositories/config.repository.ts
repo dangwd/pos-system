@@ -20,6 +20,9 @@ import type {
   UpdateRolePermissionsDto,
   CreateRoleDto,
   UpdateRoleDto,
+  Currency,
+  CreateCurrencyDto,
+  UpdateCurrencyDto,
 } from '@/types/config'
 
 export class ConfigRepository {
@@ -196,6 +199,36 @@ export class ConfigRepository {
   async deleteRole(roleId: string): Promise<void> {
     try {
       await api.delete(`/api/config/roles/${roleId}`)
+    } catch (err) { throw handleAxiosError(err) }
+  }
+
+  // ─── Currencies — Ngoại tệ ─────────────────────────────────────────────────
+
+  async getCurrencies(): Promise<Currency[]> {
+    try {
+      const { data } = await api.get<Currency[] | RawPagedResult<Currency>>('/api/currencies')
+      if (Array.isArray(data)) return data
+      return normalizePaged(data).data
+    } catch (err) { throw handleAxiosError(err) }
+  }
+
+  async createCurrency(dto: CreateCurrencyDto): Promise<Currency> {
+    try {
+      const { data } = await api.post<Currency>('/api/currencies', dto)
+      return data
+    } catch (err) { throw handleAxiosError(err) }
+  }
+
+  async updateCurrency(id: string, dto: UpdateCurrencyDto): Promise<Currency> {
+    try {
+      const { data } = await api.put<Currency>(`/api/currencies/${id}`, dto)
+      return data
+    } catch (err) { throw handleAxiosError(err) }
+  }
+
+  async deleteCurrency(id: string): Promise<void> {
+    try {
+      await api.delete(`/api/currencies/${id}`)
     } catch (err) { throw handleAxiosError(err) }
   }
 }

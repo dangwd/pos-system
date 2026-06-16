@@ -24,6 +24,9 @@ import type {
   UpdateRolePermissionsDto,
   CreateRoleDto,
   UpdateRoleDto,
+  Currency,
+  CreateCurrencyDto,
+  UpdateCurrencyDto,
 } from '@/types/config'
 
 // ─── Query keys ───────────────────────────────────────────────────────────────
@@ -201,6 +204,54 @@ export function useDeleteGoldPurity() {
   return useMutation<void, ApiError, string>({
     mutationFn: (id) => configRepository.deleteGoldPurity(id),
     onSuccess: () => invalidate(GOLD_PURITIES_KEY),
+    onError: (err) => toast.error(getErrorMessage(err.code, locale)),
+  })
+}
+
+// ─── Currencies ────────────────────────────────────────────────────────────────
+
+const CURRENCIES_KEY = ['currencies'] as const
+
+export function useCurrencies() {
+  return useQuery({
+    queryKey: CURRENCIES_KEY,
+    queryFn: () => configRepository.getCurrencies(),
+    staleTime: 300_000,
+  })
+}
+
+export function useCreateCurrency() {
+  const { locale, invalidate } = useConfigBase()
+  return useMutation<Currency, ApiError, CreateCurrencyDto>({
+    mutationFn: (dto) => configRepository.createCurrency(dto),
+    onSuccess: () => {
+      invalidate(CURRENCIES_KEY)
+      toast.success(locale === 'lo' ? 'ເພີ່ມສະກຸນເງິນສຳເລັດ' : locale === 'vi' ? 'Thêm tiền tệ thành công' : 'Currency added')
+    },
+    onError: (err) => toast.error(getErrorMessage(err.code, locale)),
+  })
+}
+
+export function useUpdateCurrency() {
+  const { locale, invalidate } = useConfigBase()
+  return useMutation<Currency, ApiError, { id: string; dto: UpdateCurrencyDto }>({
+    mutationFn: ({ id, dto }) => configRepository.updateCurrency(id, dto),
+    onSuccess: () => {
+      invalidate(CURRENCIES_KEY)
+      toast.success(locale === 'lo' ? 'ອັບເດດສະກຸນເງິນສຳເລັດ' : locale === 'vi' ? 'Cập nhật tiền tệ thành công' : 'Currency updated')
+    },
+    onError: (err) => toast.error(getErrorMessage(err.code, locale)),
+  })
+}
+
+export function useDeleteCurrency() {
+  const { locale, invalidate } = useConfigBase()
+  return useMutation<void, ApiError, string>({
+    mutationFn: (id) => configRepository.deleteCurrency(id),
+    onSuccess: () => {
+      invalidate(CURRENCIES_KEY)
+      toast.success(locale === 'lo' ? 'ລຶບສະກຸນເງິນສຳເລັດ' : locale === 'vi' ? 'Xóa tiền tệ thành công' : 'Currency deleted')
+    },
     onError: (err) => toast.error(getErrorMessage(err.code, locale)),
   })
 }

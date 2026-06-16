@@ -52,7 +52,7 @@ function Card({
   emphasis?: boolean
 }) {
   return (
-    <div className={`rounded-lg border p-3.5 ${emphasis ? 'border-primary/30 bg-primary/5' : 'bg-muted/30'}`}>
+    <div className={`rounded-lg border p-3.5 shadow-card ${emphasis ? 'border-primary/30 bg-primary/5' : 'bg-muted/30'}`}>
       <div className="flex items-center gap-1.5 text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">
         {icon}
         {label}

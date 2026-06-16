@@ -171,19 +171,19 @@ export const useInvoiceTabStore = create<InvoiceTabStore>()(
         });
       },
 
-      setItemQtyInActive(productId: string, qty: number) {
+      setItemQtyInActive(productId: string, qty: number, itemRole?: 'Normal' | 'ExchangeIn') {
         const { tabs } = get();
         const activeId = resolveActiveId(tabs, get().activeTabId);
         if (!activeId) return;
         set({
           tabs: tabs.map((t) => {
             if (t.id !== activeId) return t;
+            const matches = (i: CartItem) =>
+              i.productId === productId && (itemRole == null || i.itemRole === itemRole);
             const items = qty <= 0
-              ? t.items.filter((i) => i.productId !== productId)
+              ? t.items.filter((i) => !matches(i))
               : t.items.map((i) =>
-                  i.productId === productId && i.itemRole === 'Normal'
-                    ? { ...i, qty, weightGramOverride: null }
-                    : i,
+                  matches(i) ? { ...i, qty, weightGramOverride: null } : i,
                 );
             return { ...t, items };
           }),

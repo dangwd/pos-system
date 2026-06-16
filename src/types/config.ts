@@ -133,6 +133,38 @@ export interface UpdateGoldPurityDto {
   category?: 'Gold' | 'Silver'
 }
 
+// ─── Currencies — Ngoại tệ ────────────────────────────────────────────────────
+
+/** GET /api/currencies */
+export interface Currency {
+  id: string
+  code: string      // ISO 4217, viết hoa, bất biến sau khi tạo
+  name: string
+  symbol: string
+  flag?: string     // Emoji cờ quốc gia, e.g. "🇺🇸", "🇹🇭"
+  isActive: boolean
+  sortOrder: number
+}
+
+/** POST /api/currencies */
+export interface CreateCurrencyDto {
+  code: string
+  name: string
+  symbol: string
+  flag?: string
+  sortOrder: number
+  isActive?: boolean
+}
+
+/** PUT /api/currencies/{id} — code không được phép thay đổi */
+export interface UpdateCurrencyDto {
+  name: string
+  symbol: string
+  flag?: string
+  isActive: boolean
+  sortOrder: number
+}
+
 // ─── Roles & Permissions ──────────────────────────────────────────────────────
 
 /** GET /api/config/permissions */

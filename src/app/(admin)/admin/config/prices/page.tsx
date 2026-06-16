@@ -182,7 +182,7 @@ export default function PricesPage() {
             </p>
           )}
 
-          <div className="rounded-md border overflow-hidden">
+          <div className="rounded-md border overflow-hidden shadow-card">
             <table className="w-full text-sm table-fixed">
               <colgroup>
                 <col className="w-[16%]" />

@@ -135,7 +135,7 @@ export function StockInListPage() {
       {/* ── Bảng ── */}
       <Card
         style={{ borderRadius: 10, boxShadow: '0 1px 4px rgba(0,0,0,0.07), 0 4px 12px rgba(0,0,0,0.04)', border: '1px solid #e5e7eb' }}
-        styles={{ body: { padding: 0 } }}
+        styles={{ body: { padding: 0, overflow: 'hidden' } }}
       >
         <div style={FILTER_STYLE}>
           <Select allowClear placeholder={t('filterBranch')} style={{ width: 180 }}

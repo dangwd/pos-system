@@ -321,7 +321,8 @@
         "orderExchangeGold": "ປ່ຽນສິນຄ້າ",
         "orderExchangeFree": "ປ່ຽນຟຣີ",
         "orderExchangeToMoney": "ປ່ຽນເປັນເງິນ",
-        "orderExchangeCurrency": "ແລກປ່ຽນເງິນຕ່າງປະເທດ"
+        "orderExchangeCurrency": "ແລກປ່ຽນເງິນຕ່າງປະເທດ",
+        "currencies": "ສະກຸນເງິນ"
       },
       "collapse": "ຫຍໍ້ແຖບດ້ານຂ້າງ",
       "expand": "ຂະຫຍາຍແຖບດ້ານຂ້າງ",
@@ -1229,6 +1230,39 @@
           "ma": "ລະຫັດຄວາມບໍລິສຸດ",
           "hamLuong": "ຄວາມບໍລິສຸດ (%)",
           "category": "ປະເພດ"
+        }
+      },
+      "currencies": {
+        "title": "ຈັດການສະກຸນເງິນ",
+        "addButton": "ເພີ່ມສະກຸນເງິນ",
+        "createDialogTitle": "ເພີ່ມສະກຸນເງິນໃໝ່",
+        "editDialogTitle": "ອັບເດດສະກຸນເງິນ",
+        "saveButton": "ບັນທຶກ",
+        "cancel": "ຍົກເລີກ",
+        "edit": "ແກ້ໄຂ",
+        "delete": "ລຶບ",
+        "activeBadge": "ໃຊ້ງານ",
+        "inactiveBadge": "ປິດໃຊ້",
+        "deleteConfirmTitle": "ລຶບສະກຸນເງິນ",
+        "deleteConfirmDesc": "ທ່ານແນ່ໃຈບໍ່ວ່າຕ້ອງການລຶບ <bold>{code}</bold>? ການດຳເນີນການນີ້ບໍ່ສາມາດຍ້ອນຄືນໄດ້.",
+        "deleteConfirmButton": "ລຶບ",
+        "codeReadonly": "ລະຫັດສະກຸນເງິນ (ບໍ່ສາມາດປ່ຽນໄດ້ຫຼັງຈາກສ້າງ)",
+        "noData": "ຍັງບໍ່ມີສະກຸນເງິນ",
+        "columns": {
+          "sortOrder": "#",
+          "flag": "ທຸງ",
+          "symbol": "ສັນຍາລັກ",
+          "code": "ລະຫັດ",
+          "name": "ຊື່",
+          "status": "ສະຖານະ"
+        },
+        "form": {
+          "code": "ລະຫັດ (ISO 4217, ຕົວໃຫຍ່)",
+          "name": "ຊື່ເຕັມ",
+          "flag": "ທຸງ (emoji)",
+          "symbol": "ສັນຍາລັກ",
+          "sortOrder": "ລຳດັບ",
+          "isActive": "ກຳລັງໃຊ້ງານ"
         }
       }
     },

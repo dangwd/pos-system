@@ -321,7 +321,8 @@
         "orderExchangeGold": "Đổi Hàng",
         "orderExchangeFree": "Đổi Miễn Phí",
         "orderExchangeToMoney": "Đổi Thành Tiền",
-        "orderExchangeCurrency": "Thu Đổi Ngoại Tệ"
+        "orderExchangeCurrency": "Thu Đổi Ngoại Tệ",
+        "currencies": "Loại tiền tệ"
       },
       "collapse": "Thu gọn sidebar",
       "expand": "Mở rộng sidebar",
@@ -1229,6 +1230,39 @@
           "ma": "Mã hàm lượng",
           "hamLuong": "Độ tinh khiết (%)",
           "category": "Loại"
+        }
+      },
+      "currencies": {
+        "title": "Quản lý loại tiền tệ",
+        "addButton": "Thêm tiền tệ",
+        "createDialogTitle": "Thêm tiền tệ mới",
+        "editDialogTitle": "Cập nhật tiền tệ",
+        "saveButton": "Lưu",
+        "cancel": "Hủy",
+        "edit": "Sửa",
+        "delete": "Xóa",
+        "activeBadge": "Hoạt động",
+        "inactiveBadge": "Tạm ẩn",
+        "deleteConfirmTitle": "Xóa tiền tệ",
+        "deleteConfirmDesc": "Bạn có chắc muốn xóa tiền tệ <bold>{code}</bold>? Thao tác này không thể hoàn tác.",
+        "deleteConfirmButton": "Xóa",
+        "codeReadonly": "Mã tiền tệ (không thể thay đổi sau khi tạo)",
+        "noData": "Chưa có loại tiền tệ nào",
+        "columns": {
+          "sortOrder": "#",
+          "flag": "Cờ",
+          "symbol": "Ký hiệu",
+          "code": "Mã",
+          "name": "Tên",
+          "status": "Trạng thái"
+        },
+        "form": {
+          "code": "Mã tiền tệ (ISO 4217, viết hoa)",
+          "name": "Tên đầy đủ",
+          "flag": "Cờ (emoji)",
+          "symbol": "Ký hiệu",
+          "sortOrder": "Thứ tự sắp xếp",
+          "isActive": "Đang hoạt động"
         }
       }
     },
