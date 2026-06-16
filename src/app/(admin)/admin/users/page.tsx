@@ -12,6 +12,7 @@ import { UserEditInfoDialog } from '@/components/admin/users/UserEditInfoDialog'
 import { UserEditRoleDialog } from '@/components/admin/users/UserEditRoleDialog'
 import { UserResetPasswordDialog } from '@/components/admin/users/UserResetPasswordDialog'
 import { UserAssignCounterDialog } from '@/components/admin/users/UserAssignCounterDialog'
+import { UserExpandedRow } from '@/components/admin/users/UserExpandedRow'
 import { useUsersPaged, useActivateUser, useDeactivateUser } from '@/hooks/useUsers'
 import { useBranches } from '@/hooks/useBranches'
 import type { AdminUser } from '@/types/admin-user'
@@ -39,6 +40,7 @@ export default function UsersPage() {
   const [editRoleUser,        setEditRoleUser]        = useState<AdminUser | null>(null)
   const [resetPwUser,         setResetPwUser]         = useState<AdminUser | null>(null)
   const [assignCounterUser,   setAssignCounterUser]   = useState<AdminUser | null>(null)
+  const [expandedKeys,        setExpandedKeys]        = useState<string[]>([])
 
   const [keyword,         setKeyword]         = useState('')
   const [filterBranchId,  setFilterBranchId]  = useState<string | null>(null)
@@ -63,42 +65,26 @@ export default function UsersPage() {
   const { mutate: activate }   = useActivateUser()
   const { mutate: deactivate } = useDeactivateUser()
 
-  const columns = useMemo(() => createUserColumns(
-    {
-      employeeCode:   t('columns.employeeCode'),
-      fullName:       t('columns.fullName'),
-      phone:          t('columns.phone'),
-      branch:         t('columns.branch'),
-      counter:        t('columns.counter'),
-      role:           t('columns.role'),
-      status:         t('columns.status'),
-      lastLogin:      t('columns.lastLogin'),
-      openMenu:       t('columns.openMenu'),
-      viewDetail:     t('columns.viewDetail'),
-      editInfo:       t('columns.editInfo'),
-      editRole:       t('columns.editRole'),
-      activate:       t('columns.activate'),
-      deactivate:     t('columns.deactivate'),
-      resetPassword:  t('columns.resetPassword'),
-      assignCounter:  t('columns.assignCounter'),
-      active:         t('status.active'),
-      inactive:       t('status.inactive'),
-      branchMap,
-      roleLabels: {
-        Cashier:     t('roles.Cashier'),
-        ThuQuy:      t('roles.ThuQuy'),
-        Manager:     t('roles.Manager'),
-        SystemAdmin: t('roles.SystemAdmin'),
-      },
+  const columns = useMemo(() => createUserColumns({
+    employeeCode: t('columns.employeeCode'),
+    fullName:     t('columns.fullName'),
+    phone:        t('columns.phone'),
+    branch:       t('columns.branch'),
+    counter:      t('columns.counter'),
+    role:         t('columns.role'),
+    status:       t('columns.status'),
+    lastLogin:    t('columns.lastLogin'),
+    active:       t('status.active'),
+    inactive:     t('status.inactive'),
+    branchMap,
+    roleLabels: {
+      Cashier:     t('roles.Cashier'),
+      ThuQuy:      t('roles.ThuQuy'),
+      Manager:     t('roles.Manager'),
+      SystemAdmin: t('roles.SystemAdmin'),
     },
-    (user) => setEditInfoUser(user),
-    (user) => setEditRoleUser(user),
-    (user) => activate(user.id),
-    (user) => deactivate(user.id),
-    (user) => setResetPwUser(user),
-    (user) => setAssignCounterUser(user),
-  ), [t, branchMap, activate, deactivate])
-
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }), [t, branchMap])
 
   if (!hasPermission('USER_MANAGE')) return <ForbiddenPage />
   return (
@@ -161,7 +147,29 @@ export default function UsersPage() {
           bordered
           size="middle"
           scroll={{ x: 1000 }}
-          rowClassName={(_, i) => i % 2 !== 0 ? 'users-row-alt' : ''}
+          rowClassName={(r) => expandedKeys.includes(r.id) ? 'users-row-expanded' : ''}
+          expandable={{
+            expandedRowKeys: expandedKeys,
+            expandRowByClick: true,
+            showExpandColumn: false,
+            onExpand: (expanded, record) =>
+              setExpandedKeys(expanded
+                ? [...expandedKeys, record.id]
+                : expandedKeys.filter(k => k !== record.id),
+              ),
+            expandedRowRender: (record) => (
+              <UserExpandedRow
+                user={record}
+                branchMap={branchMap}
+                onEditInfo={setEditInfoUser}
+                onEditRole={setEditRoleUser}
+                onResetPassword={setResetPwUser}
+                onAssignCounter={setAssignCounterUser}
+                onActivate={(u) => activate(u.id)}
+                onDeactivate={(u) => deactivate(u.id)}
+              />
+            ),
+          }}
           pagination={{
             total:    data?.total,
             current:  page,
@@ -175,7 +183,10 @@ export default function UsersPage() {
         />
       </Card>
 
-      <style>{`.users-row-alt > td { background: #fafafa !important; }`}</style>
+      <style>{`
+        .users-row-expanded > td { background: #eff6ff !important; }
+        .ant-table-thead > tr > th { white-space: nowrap; }
+      `}</style>
 
       <UserCreateDialog          open={createOpen}              onClose={() => setCreateOpen(false)} />
       <UserEditInfoDialog        user={editInfoUser}            onClose={() => setEditInfoUser(null)} />

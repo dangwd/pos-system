@@ -166,7 +166,6 @@ export function TransactionLogContent({ fixedType }: Props) {
           expandable={{
             expandedRowKeys: expandedKeys,
             expandRowByClick: true,
-            showExpandColumn: false,
             onExpand: (expanded, record) =>
               setExpandedKeys(expanded
                 ? [...expandedKeys, record.id]
@@ -194,7 +193,7 @@ export function TransactionLogContent({ fixedType }: Props) {
         />
       </Card>
 
-      <style>{`.order-row-expanded > td { background: #eff6ff !important; } .ant-table-thead > tr > th { white-space: nowrap; }`}</style>
+      <style>{`.order-row-expanded > td { background: #eff6ff !important; } .ant-table-thead > tr > th { white-space: nowrap; } .exchange-in-row > td { background: #eff6ff !important; }`}</style>
     </div>
   );
 }

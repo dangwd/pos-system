@@ -118,13 +118,24 @@ export function useCheckout(strategy: PaymentStrategy) {
                   ? `${item.name} [PHÍ KHÒ: ${item.perItemDamage.toLocaleString("lo-LA")}₭ | HAO HỤT: ${item.perItemWearChi} Chỉ]`
                   : item.name;
 
+              // Backend tính lineTotal = qty × unitPriceLak − phiHuHai (không tự áp haoHutGram).
+              // Với ExchangeIn có hao hụt: gửi giá đã điều chỉnh để backend ra đúng lineTotal.
+              //   unitPriceLak_eff = effectiveWeightGram / qty × pricePerGram
+              // Giá gốc (5.700.000/chỉ) vẫn được backend lưu vào tableUnitPriceLak để in phiếu.
+              const unitPriceLak =
+                isExchangeIn && hasLaoSut
+                  ? Math.round(
+                      (effectiveWeightGram / item.qty) * item.unitPriceLakPerGram,
+                    )
+                  : item.unitPriceLakPerGram * item.weightGram;
+
               return {
                 productId: item.productId,
                 productName,
                 quantity: item.qty,
                 weightUnitId: item.weightUnitId ?? null,
                 weightGramOverride: effectiveWeightGram,
-                unitPriceLak: item.unitPriceLakPerGram * item.weightGram,
+                unitPriceLak,
                 itemRole: item.itemRole,
                 laborFee: isExchangeIn ? 0 : item.laborFee,
                 stoneFee: isExchangeIn ? 0 : item.stoneFee,

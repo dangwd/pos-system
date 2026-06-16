@@ -187,7 +187,17 @@
       },
       "recentTitle": "ໃບບິນລ່າສຸດ",
       "viewAll": "ເບິ່ງທັງໝົດ",
-      "empty": "ຍັງບໍ່ມີໃບບິນ"
+      "empty": "ຍັງບໍ່ມີໃບບິນ",
+      "charts": {
+        "financialOverview": "ການເງິນມື້ນີ້",
+        "typeDistribution": "ໂຄງສ້າງການຊື້ຂາຍ",
+        "revenueByType": "ລາຍຮັບຕາມປະເພດ",
+        "noData": "ຍັງບໍ່ມີຂໍ້ມູນ",
+        "labelRevenue": "ລາຍຮັບ",
+        "labelPurchase": "ຄ່າໃຊ້ຈ່າຍຊື້ເຂົ້າ",
+        "labelProfit": "ກໍາໄລຂັ້ນຕົ້ນ",
+        "unitTransaction": "ລາຍການ"
+      }
     },
     "orders": {
       "title": "ບັນທຶກທຸລະກຳ",
@@ -248,6 +258,11 @@
         "fieldBank": "ໂອນເງິນ",
         "fieldCounter": "ຕູ້",
         "fieldCashier": "ພະນັກງານ",
+        "fieldType": "ປະເພດ",
+        "fieldStatus": "ສະຖານະ",
+        "fieldCancelledAt": "ເວລາຍົກເລີກ",
+        "fieldCancelReason": "ເຫດຜົນຍົກເລີກ",
+        "labelExchangeIn": "ຮັບຄືນ",
         "colProductCode": "ລະຫັດ",
         "colProductName": "ຊື່ສິນຄ້າ",
         "colUnit": "ໜ່ວຍ",
@@ -1290,7 +1305,19 @@
         "deactivate": "ປິດໃຊ້ງານ",
         "activate": "ເປີດໃຊ້ງານ",
         "resetPassword": "ຕັ້ງລະຫັດໃໝ່",
-        "assignCounter": "ມອບໝາຍເຄົ້າເຕີ"
+        "assignCounter": "ມອບໝາຍເຄົ້າເຕີ",
+        "email": "ອີເມລ",
+        "dateOfBirth": "ວັນເດືອນປີເກີດ",
+        "address": "ທີ່ຢູ່",
+        "createdAt": "ສ້າງເມື່ອ",
+        "username": "ຊື່ຜູ້ໃຊ້",
+        "branchStore": "ສາຂາ/ຮ້ານຄ້າ"
+      },
+      "tabs": {
+        "info": "ຂໍ້ມູນ",
+        "permissions": "ສິດທິ",
+        "accessTime": "ເວລາເຂົ້າໃຊ້",
+        "deviceHistory": "ປະຫວັດອຸປະກອນ"
       },
       "roles": {
         "Cashier": "ພະນັກງານ",

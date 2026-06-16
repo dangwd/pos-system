@@ -187,7 +187,17 @@
       },
       "recentTitle": "Recent Invoices",
       "viewAll": "View all",
-      "empty": "No invoices yet"
+      "empty": "No invoices yet",
+      "charts": {
+        "financialOverview": "Today's finances",
+        "typeDistribution": "Transaction breakdown",
+        "revenueByType": "Revenue by type",
+        "noData": "No data available",
+        "labelRevenue": "Revenue",
+        "labelPurchase": "Purchase cost",
+        "labelProfit": "Gross profit",
+        "unitTransaction": "transactions"
+      }
     },
     "orders": {
       "title": "Transaction log",
@@ -248,6 +258,11 @@
         "fieldBank": "Bank transfer",
         "fieldCounter": "Counter",
         "fieldCashier": "Staff",
+        "fieldType": "Transaction type",
+        "fieldStatus": "Status",
+        "fieldCancelledAt": "Cancelled at",
+        "fieldCancelReason": "Cancel reason",
+        "labelExchangeIn": "Exchange in",
         "colProductCode": "Product code",
         "colProductName": "Product name",
         "colUnit": "Unit",
@@ -1292,7 +1307,19 @@
         "deactivate": "Deactivate",
         "activate": "Activate",
         "resetPassword": "Reset password",
-        "assignCounter": "Assign counter"
+        "assignCounter": "Assign counter",
+        "email": "Email",
+        "dateOfBirth": "Date of birth",
+        "address": "Address",
+        "createdAt": "Created at",
+        "username": "Username",
+        "branchStore": "Branch/Store"
+      },
+      "tabs": {
+        "info": "Info",
+        "permissions": "Permissions",
+        "accessTime": "Access time",
+        "deviceHistory": "Device history"
       },
       "roles": {
         "Cashier": "Cashier",

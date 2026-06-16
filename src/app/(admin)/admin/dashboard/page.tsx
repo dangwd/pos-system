@@ -2,10 +2,10 @@
 
 import { useDashboardReport } from '@/hooks/useReports'
 import { useTransactions } from '@/hooks/useTransactions'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Skeleton } from '@/components/ui/skeleton'
 import { TrendingUp, TrendingDown, XCircle, BarChart3 } from 'lucide-react'
 import { useTranslations } from 'next-intl'
+import { Card } from 'antd'
 import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip,
   ResponsiveContainer, Cell, PieChart, Pie, Legend,
@@ -13,6 +13,31 @@ import {
 import type { Transaction } from '@/types/transaction'
 import { usePermission } from '@/hooks/usePermission'
 import { ForbiddenPage } from '@/components/shared/ForbiddenPage'
+
+// ── Constants ─────────────────────────────────────────────────────────────────
+
+const PAGE_STYLE: React.CSSProperties  = { padding: '24px 24px 32px' }
+const CARD_STYLE: React.CSSProperties  = {
+  borderRadius: 10,
+  boxShadow: '0 1px 4px rgba(0,0,0,0.07), 0 4px 12px rgba(0,0,0,0.04)',
+  border: '1px solid #e5e7eb',
+}
+const CHART_HEAD: React.CSSProperties  = {
+  padding: '12px 16px', fontSize: 13, fontWeight: 600, color: '#111827',
+  minHeight: 'auto',
+}
+const CHART_BODY: React.CSSProperties  = { padding: '8px 16px 16px' }
+
+const TYPE_COLORS: Record<string, string> = {
+  SellGold:         '#22c55e',
+  SellSilver:       '#14b8a6',
+  BuyGold:          '#3b82f6',
+  ExchangeGold:     '#f59e0b',
+  ExchangeCurrency: '#8b5cf6',
+  BuyMoreGold:      '#0ea5e9',
+  ExchangeFree:     '#d97706',
+  ExchangeToMoney:  '#6366f1',
+}
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 
@@ -33,58 +58,47 @@ function fmtAxisKip(n: number) {
   return String(n)
 }
 
-const TYPE_COLORS: Record<string, string> = {
-  SellGold:        '#22c55e',
-  SellSilver:      '#14b8a6',
-  BuyGold:         '#3b82f6',
-  ExchangeGold:    '#f59e0b',
-  ExchangeCurrency:'#8b5cf6',
-  BuyMoreGold:     '#0ea5e9',
-  ExchangeFree:    '#d97706',
-  ExchangeToMoney: '#6366f1',
-}
-
 // ── Sub-components ────────────────────────────────────────────────────────────
 
+function ChartSkeleton({ height = 240 }: { height?: number }) {
+  return (
+    <div style={{ display: 'flex', alignItems: 'flex-end', gap: 8, padding: '0 8px', height }}>
+      {[60, 90, 40, 75, 55, 85, 45, 70].map((h, i) => (
+        <Skeleton key={i} style={{ flex: 1, height: `${h}%`, borderRadius: 4 }} />
+      ))}
+    </div>
+  )
+}
+
 function StatCard({
-  label, value, icon: Icon, iconClass,
+  label, value, icon: Icon, iconColor,
 }: {
-  label: string; value: string | number; icon: React.ElementType; iconClass: string
+  label: string; value: string | number; icon: React.ElementType; iconColor: string
 }) {
   return (
-    <Card>
-      <CardHeader className="flex flex-row items-center justify-between pb-2">
-        <CardTitle className="text-sm font-medium text-muted-foreground">{label}</CardTitle>
-        <Icon className={`h-4 w-4 ${iconClass}`} />
-      </CardHeader>
-      <CardContent>
-        <p className="text-2xl font-bold tabular-nums">{value}</p>
-      </CardContent>
+    <Card style={CARD_STYLE} styles={{ body: { padding: '16px 20px 20px' } }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
+        <span style={{ fontSize: 12, color: '#6b7280', fontWeight: 500 }}>{label}</span>
+        <Icon size={15} color={iconColor} />
+      </div>
+      <div style={{ fontSize: 22, fontWeight: 700, color: '#111827', fontVariantNumeric: 'tabular-nums', letterSpacing: '-0.02em' }}>
+        {value}
+      </div>
     </Card>
   )
 }
 
 function StatSkeleton() {
   return (
-    <div className="grid grid-cols-2 xl:grid-cols-4 gap-4">
+    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 16 }}>
       {[0, 1, 2, 3].map((i) => (
-        <div key={i} className="rounded-lg border p-4 space-y-3">
-          <div className="flex items-center justify-between">
-            <Skeleton className="h-4 w-28" />
-            <Skeleton className="h-4 w-4" />
+        <Card key={i} style={CARD_STYLE} styles={{ body: { padding: '16px 20px 20px' } }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 10 }}>
+            <Skeleton style={{ height: 12, width: 100, borderRadius: 4 }} />
+            <Skeleton style={{ height: 14, width: 14, borderRadius: 4 }} />
           </div>
-          <Skeleton className="h-8 w-32" />
-        </div>
-      ))}
-    </div>
-  )
-}
-
-function ChartSkeleton({ height = 260 }: { height?: number }) {
-  return (
-    <div className="flex items-end gap-2 px-2" style={{ height }}>
-      {[60, 90, 40, 75, 55, 85, 45, 70].map((h, i) => (
-        <Skeleton key={i} className="flex-1 rounded-t-sm" style={{ height: `${h}%` }} />
+          <Skeleton style={{ height: 28, width: 140, borderRadius: 4 }} />
+        </Card>
       ))}
     </div>
   )
@@ -93,51 +107,52 @@ function ChartSkeleton({ height = 260 }: { height?: number }) {
 // ── Chart 1: Tài chính tổng quan ─────────────────────────────────────────────
 
 function FinancialOverviewChart({
-  revenue, purchase, profit, loading,
+  revenue, purchase, profit, loading, labels,
 }: {
   revenue: number; purchase: number; profit: number; loading: boolean
+  labels: { revenue: string; purchase: string; profit: string }
 }) {
   const data = [
-    { name: 'Doanh thu',  value: revenue,  fill: '#22c55e' },
-    { name: 'Chi mua vào', value: purchase, fill: '#f97316' },
-    { name: 'Lãi gộp',    value: profit,   fill: '#6366f1' },
+    { name: labels.revenue,  value: revenue,  fill: '#22c55e' },
+    { name: labels.purchase, value: purchase, fill: '#f97316' },
+    { name: labels.profit,   value: profit,   fill: '#6366f1' },
   ]
 
   return (
-    <Card className="flex flex-col">
-      <CardHeader className="pb-2">
-        <CardTitle className="text-sm font-semibold">Tài chính hôm nay</CardTitle>
-      </CardHeader>
-      <CardContent className="flex-1 pt-0">
-        {loading ? (
-          <ChartSkeleton height={220} />
-        ) : (
-          <ResponsiveContainer width="100%" height={220}>
-            <BarChart data={data} margin={{ top: 4, right: 8, left: 0, bottom: 0 }}>
-              <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" />
-              <XAxis dataKey="name" tick={{ fontSize: 11 }} />
-              <YAxis tickFormatter={fmtAxisKip} tick={{ fontSize: 11 }} width={52} />
-              <Tooltip
-                formatter={(v) => [formatKip(v as number), '']}
-                contentStyle={{ fontSize: 12, borderRadius: 8 }}
-              />
-              <Bar dataKey="value" radius={[4, 4, 0, 0]} maxBarSize={72}>
-                {data.map((d, i) => <Cell key={i} fill={d.fill} />)}
-              </Bar>
-            </BarChart>
-          </ResponsiveContainer>
-        )}
-      </CardContent>
+    <Card
+      style={CARD_STYLE}
+      styles={{ header: CHART_HEAD, body: CHART_BODY }}
+      title={labels.revenue.replace('Doanh thu', '') || labels.revenue}
+    >
+      {loading ? (
+        <ChartSkeleton height={230} />
+      ) : (
+        <ResponsiveContainer width="100%" height={230}>
+          <BarChart data={data} margin={{ top: 4, right: 8, left: 0, bottom: 0 }}>
+            <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
+            <XAxis dataKey="name" tick={{ fontSize: 11 }} />
+            <YAxis tickFormatter={fmtAxisKip} tick={{ fontSize: 11 }} width={56} />
+            <Tooltip
+              formatter={(v) => [formatKip(v as number), '']}
+              contentStyle={{ fontSize: 12, borderRadius: 8, border: '1px solid #e5e7eb' }}
+            />
+            <Bar dataKey="value" radius={[4, 4, 0, 0]} maxBarSize={72}>
+              {data.map((d, i) => <Cell key={i} fill={d.fill} />)}
+            </Bar>
+          </BarChart>
+        </ResponsiveContainer>
+      )}
     </Card>
   )
 }
 
-// ── Chart 2: Cơ cấu loại giao dịch (Donut) ───────────────────────────────────
+// ── Chart 2: Cơ cấu loại giao dịch ───────────────────────────────────────────
 
 function TypeDistributionChart({
-  transactions, typeLabels, loading,
+  transactions, typeLabels, loading, noDataLabel, unitLabel, chartTitle,
 }: {
-  transactions: Transaction[]; typeLabels: Record<string, string>; loading: boolean
+  transactions: Transaction[]; typeLabels: Record<string, string>
+  loading: boolean; noDataLabel: string; unitLabel: string; chartTitle: string
 }) {
   const counts = transactions
     .filter(tx => tx.status === 'Completed')
@@ -152,50 +167,48 @@ function TypeDistributionChart({
   const total = data.reduce((s, d) => s + d.value, 0)
 
   return (
-    <Card className="flex flex-col">
-      <CardHeader className="pb-2">
-        <CardTitle className="text-sm font-semibold">Cơ cấu giao dịch</CardTitle>
-      </CardHeader>
-      <CardContent className="flex-1 pt-0">
-        {loading ? (
-          <div className="flex items-center justify-center" style={{ height: 220 }}>
-            <Skeleton className="h-36 w-36 rounded-full" />
+    <Card style={CARD_STYLE} styles={{ header: CHART_HEAD, body: CHART_BODY }} title={chartTitle}>
+      {loading ? (
+        <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: 230 }}>
+          <Skeleton style={{ height: 144, width: 144, borderRadius: '50%' }} />
+        </div>
+      ) : data.length === 0 ? (
+        <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: 230, fontSize: 13, color: '#9ca3af' }}>
+          {noDataLabel}
+        </div>
+      ) : (
+        <div style={{ position: 'relative' }}>
+          <ResponsiveContainer width="100%" height={230}>
+            <PieChart>
+              <Pie
+                data={data}
+                cx="50%" cy="44%"
+                innerRadius={60} outerRadius={88}
+                dataKey="value"
+                paddingAngle={2}
+              >
+                {data.map((d, i) => <Cell key={i} fill={d.fill} />)}
+              </Pie>
+              <Tooltip
+                formatter={(v, name) => [`${v} ${unitLabel}`, name as string]}
+                contentStyle={{ fontSize: 12, borderRadius: 8, border: '1px solid #e5e7eb' }}
+              />
+              <Legend
+                iconType="circle" iconSize={8}
+                wrapperStyle={{ fontSize: 11, paddingTop: 8 }}
+              />
+            </PieChart>
+          </ResponsiveContainer>
+          <div style={{
+            position: 'absolute', top: 0, left: 0, right: 0, bottom: 40,
+            display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
+            pointerEvents: 'none',
+          }}>
+            <span style={{ fontSize: 24, fontWeight: 700, lineHeight: 1, fontVariantNumeric: 'tabular-nums' }}>{total}</span>
+            <span style={{ fontSize: 10, color: '#6b7280', marginTop: 2 }}>{unitLabel}</span>
           </div>
-        ) : data.length === 0 ? (
-          <div className="flex items-center justify-center h-55 text-sm text-muted-foreground">
-            Chưa có dữ liệu
-          </div>
-        ) : (
-          <div className="relative">
-            <ResponsiveContainer width="100%" height={220}>
-              <PieChart>
-                <Pie
-                  data={data}
-                  cx="50%" cy="50%"
-                  innerRadius={60} outerRadius={90}
-                  dataKey="value"
-                  paddingAngle={2}
-                >
-                  {data.map((d, i) => <Cell key={i} fill={d.fill} />)}
-                </Pie>
-                <Tooltip
-                  formatter={(v, name) => [`${v} GD`, name as string]}
-                  contentStyle={{ fontSize: 12, borderRadius: 8 }}
-                />
-                <Legend
-                  iconType="circle" iconSize={8}
-                  wrapperStyle={{ fontSize: 11, paddingTop: 8 }}
-                />
-              </PieChart>
-            </ResponsiveContainer>
-            {/* Center label */}
-            <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none" style={{ top: -20 }}>
-              <p className="text-2xl font-bold tabular-nums leading-none">{total}</p>
-              <p className="text-[10px] text-muted-foreground mt-0.5">giao dịch</p>
-            </div>
-          </div>
-        )}
-      </CardContent>
+        </div>
+      )}
     </Card>
   )
 }
@@ -203,9 +216,10 @@ function TypeDistributionChart({
 // ── Chart 3: Doanh thu theo loại giao dịch ────────────────────────────────────
 
 function RevenueByTypeChart({
-  transactions, typeLabels, loading,
+  transactions, typeLabels, loading, noDataLabel, chartTitle,
 }: {
-  transactions: Transaction[]; typeLabels: Record<string, string>; loading: boolean
+  transactions: Transaction[]; typeLabels: Record<string, string>
+  loading: boolean; noDataLabel: string; chartTitle: string
 }) {
   const revenue = transactions
     .filter(tx => tx.status === 'Completed')
@@ -216,41 +230,36 @@ function RevenueByTypeChart({
 
   const data = Object.entries(revenue)
     .map(([type, amount]) => ({
-      name:   typeLabels?.[type] ?? type,
-      value:  amount,
-      fill:   TYPE_COLORS[type] ?? '#94a3b8',
+      name:  typeLabels?.[type] ?? type,
+      value: amount,
+      fill:  TYPE_COLORS[type] ?? '#94a3b8',
     }))
     .sort((a, b) => b.value - a.value)
 
   return (
-    <Card>
-      <CardHeader className="pb-2">
-        <CardTitle className="text-sm font-semibold">Doanh thu theo loại giao dịch</CardTitle>
-      </CardHeader>
-      <CardContent className="pt-0">
-        {loading ? (
-          <ChartSkeleton height={200} />
-        ) : data.length === 0 ? (
-          <div className="flex items-center justify-center h-50 text-sm text-muted-foreground">
-            Chưa có dữ liệu
-          </div>
-        ) : (
-          <ResponsiveContainer width="100%" height={200}>
-            <BarChart data={data} layout="vertical" margin={{ top: 0, right: 16, left: 0, bottom: 0 }}>
-              <CartesianGrid strokeDasharray="3 3" horizontal={false} stroke="var(--border)" />
-              <XAxis type="number" tickFormatter={fmtAxisKip} tick={{ fontSize: 11 }} />
-              <YAxis type="category" dataKey="name" width={110} tick={{ fontSize: 11 }} />
-              <Tooltip
-                formatter={(v) => [formatKip(v as number), 'Doanh thu']}
-                contentStyle={{ fontSize: 12, borderRadius: 8 }}
-              />
-              <Bar dataKey="value" radius={[0, 4, 4, 0]} maxBarSize={24}>
-                {data.map((d, i) => <Cell key={i} fill={d.fill} />)}
-              </Bar>
-            </BarChart>
-          </ResponsiveContainer>
-        )}
-      </CardContent>
+    <Card style={CARD_STYLE} styles={{ header: CHART_HEAD, body: CHART_BODY }} title={chartTitle}>
+      {loading ? (
+        <ChartSkeleton height={200} />
+      ) : data.length === 0 ? (
+        <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: 200, fontSize: 13, color: '#9ca3af' }}>
+          {noDataLabel}
+        </div>
+      ) : (
+        <ResponsiveContainer width="100%" height={200}>
+          <BarChart data={data} layout="vertical" margin={{ top: 0, right: 16, left: 0, bottom: 0 }}>
+            <CartesianGrid strokeDasharray="3 3" horizontal={false} stroke="#f0f0f0" />
+            <XAxis type="number" tickFormatter={fmtAxisKip} tick={{ fontSize: 11 }} />
+            <YAxis type="category" dataKey="name" width={120} tick={{ fontSize: 11 }} />
+            <Tooltip
+              formatter={(v) => [formatKip(v as number), '']}
+              contentStyle={{ fontSize: 12, borderRadius: 8, border: '1px solid #e5e7eb' }}
+            />
+            <Bar dataKey="value" radius={[0, 4, 4, 0]} maxBarSize={22}>
+              {data.map((d, i) => <Cell key={i} fill={d.fill} />)}
+            </Bar>
+          </BarChart>
+        </ResponsiveContainer>
+      )}
     </Card>
   )
 }
@@ -270,48 +279,57 @@ export default function DashboardPage() {
     ? txPage
     : (txPage as { data?: Transaction[] })?.data ?? []
 
-  const grossProfit = (stats?.totalRevenue ?? 0) - (stats?.totalPurchase ?? 0)
-
-  const typeLabels = tOrders.raw('transactionTypes') as Record<string, string>
+  const grossProfit  = (stats?.totalRevenue ?? 0) - (stats?.totalPurchase ?? 0)
+  const typeLabels   = tOrders.raw('transactionTypes') as Record<string, string>
+  const noDataLabel  = t('charts.noData')
 
   if (!hasPermission('REPORT_DASHBOARD')) return <ForbiddenPage />
 
   return (
-    <div className="p-6 space-y-6">
-      <div>
-        <h1 className="text-2xl font-bold">{t('title')}</h1>
-        <p className="text-muted-foreground text-sm">{t('subtitle')}</p>
+    <div style={PAGE_STYLE}>
+      {/* ── Header ── */}
+      <div style={{ marginBottom: 20 }}>
+        <h2 style={{ margin: 0, fontSize: 22, fontWeight: 700, color: '#111827' }}>
+          {t('title')}
+        </h2>
+        <p style={{ margin: '2px 0 0', fontSize: 13, color: '#6b7280' }}>
+          {t('subtitle')}
+        </p>
       </div>
 
       {/* ── Stat cards ── */}
       {statsLoading ? (
         <StatSkeleton />
       ) : (
-        <div className="grid grid-cols-2 xl:grid-cols-4 gap-4">
-          <StatCard label={t('stats.totalRevenue')}   value={formatKip(stats?.totalRevenue ?? 0)}  icon={TrendingUp}  iconClass="text-green-500" />
-          <StatCard label={t('stats.totalPurchase')}  value={formatKip(stats?.totalPurchase ?? 0)} icon={TrendingDown} iconClass="text-orange-500" />
-          <StatCard label={t('stats.grossProfit')}    value={formatKip(grossProfit)}               icon={BarChart3}   iconClass="text-primary" />
-          <StatCard label={t('stats.cancelledCount')} value={stats?.cancelledCount ?? 0}           icon={XCircle}     iconClass="text-destructive" />
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 16, marginBottom: 16 }}>
+          <StatCard label={t('stats.totalRevenue')}   value={formatKip(stats?.totalRevenue ?? 0)}  icon={TrendingUp}  iconColor="#22c55e" />
+          <StatCard label={t('stats.totalPurchase')}  value={formatKip(stats?.totalPurchase ?? 0)} icon={TrendingDown} iconColor="#f97316" />
+          <StatCard label={t('stats.grossProfit')}    value={formatKip(grossProfit)}               icon={BarChart3}   iconColor="#6366f1" />
+          <StatCard label={t('stats.cancelledCount')} value={stats?.cancelledCount ?? 0}           icon={XCircle}     iconColor="#ef4444" />
         </div>
       )}
 
       {/* ── Charts row ── */}
-      <div className="grid grid-cols-1 lg:grid-cols-5 gap-4">
-        <div className="lg:col-span-3">
-          <FinancialOverviewChart
-            revenue={stats?.totalRevenue ?? 0}
-            purchase={stats?.totalPurchase ?? 0}
-            profit={grossProfit}
-            loading={statsLoading}
-          />
-        </div>
-        <div className="lg:col-span-2">
-          <TypeDistributionChart
-            transactions={transactions}
-            typeLabels={typeLabels}
-            loading={txLoading}
-          />
-        </div>
+      <div style={{ display: 'grid', gridTemplateColumns: '3fr 2fr', gap: 16, marginBottom: 16 }}>
+        <FinancialOverviewChart
+          revenue={stats?.totalRevenue ?? 0}
+          purchase={stats?.totalPurchase ?? 0}
+          profit={grossProfit}
+          loading={statsLoading}
+          labels={{
+            revenue:  t('charts.labelRevenue'),
+            purchase: t('charts.labelPurchase'),
+            profit:   t('charts.labelProfit'),
+          }}
+        />
+        <TypeDistributionChart
+          transactions={transactions}
+          typeLabels={typeLabels}
+          loading={txLoading}
+          noDataLabel={noDataLabel}
+          unitLabel={t('charts.unitTransaction')}
+          chartTitle={t('charts.typeDistribution')}
+        />
       </div>
 
       {/* ── Revenue by type ── */}
@@ -319,6 +337,8 @@ export default function DashboardPage() {
         transactions={transactions}
         typeLabels={typeLabels}
         loading={txLoading}
+        noDataLabel={noDataLabel}
+        chartTitle={t('charts.revenueByType')}
       />
     </div>
   )

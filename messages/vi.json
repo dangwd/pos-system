@@ -187,7 +187,17 @@
       },
       "recentTitle": "Hóa đơn gần đây",
       "viewAll": "Xem tất cả",
-      "empty": "Chưa có hóa đơn nào"
+      "empty": "Chưa có hóa đơn nào",
+      "charts": {
+        "financialOverview": "Tài chính hôm nay",
+        "typeDistribution": "Cơ cấu giao dịch",
+        "revenueByType": "Doanh thu theo loại giao dịch",
+        "noData": "Chưa có dữ liệu",
+        "labelRevenue": "Doanh thu",
+        "labelPurchase": "Chi mua vào",
+        "labelProfit": "Lãi gộp",
+        "unitTransaction": "giao dịch"
+      }
     },
     "orders": {
       "title": "Nhật ký giao dịch",
@@ -248,6 +258,11 @@
         "fieldBank": "Chuyển khoản",
         "fieldCounter": "Mã quầy hàng",
         "fieldCashier": "Nhân viên quầy",
+        "fieldType": "Loại giao dịch",
+        "fieldStatus": "Trạng thái",
+        "fieldCancelledAt": "Thời gian hủy",
+        "fieldCancelReason": "Lý do hủy",
+        "labelExchangeIn": "Hàng đổi vào",
         "colProductCode": "Mã sản phẩm",
         "colProductName": "Tên sản phẩm",
         "colUnit": "ĐVT",
@@ -1290,7 +1305,19 @@
         "deactivate": "Vô hiệu hóa",
         "activate": "Kích hoạt",
         "resetPassword": "Đặt lại mật khẩu",
-        "assignCounter": "Phân công quầy"
+        "assignCounter": "Phân công quầy",
+        "email": "Email",
+        "dateOfBirth": "Ngày sinh",
+        "address": "Địa chỉ",
+        "createdAt": "Tạo lúc",
+        "username": "Tên đăng nhập",
+        "branchStore": "Chi nhánh/Cửa hàng"
+      },
+      "tabs": {
+        "info": "Thông tin",
+        "permissions": "Phân quyền",
+        "accessTime": "Thời gian truy cập",
+        "deviceHistory": "Lịch sử thiết bị"
       },
       "roles": {
         "Cashier": "Thu ngân",

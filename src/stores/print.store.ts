@@ -105,7 +105,9 @@ function normalize(tx: Transaction): PrintInvoice {
     unitName: item.weightUnitName,
     quantity: item.quantity,
     weightGram: item.weightGram,
-    unitPriceLak: item.unitPriceLak,
+    // tableUnitPriceLak = giá gốc từ bảng giá (backend lưu độc lập).
+    // Dùng cho in phiếu vì unitPriceLak có thể đã được điều chỉnh (hao hụt ExchangeIn).
+    unitPriceLak: item.tableUnitPriceLak || item.unitPriceLak,
     laborFee: item.laborFee,
     stoneFee: item.stoneFee,
     lineTotal: item.lineTotal,

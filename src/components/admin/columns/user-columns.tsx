@@ -2,14 +2,6 @@
 
 import type { TableColumnsType } from 'antd'
 import { Badge } from '@/components/ui/badge'
-import {
-  DropdownMenu,
-  DropdownMenuTrigger,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuSeparator,
-} from '@/components/ui/dropdown-menu'
-import { MoreHorizontal } from 'lucide-react'
 import type { AdminUser } from '@/types/admin-user'
 
 export interface UserColumnLabels {
@@ -21,14 +13,6 @@ export interface UserColumnLabels {
   role: string
   status: string
   lastLogin: string
-  openMenu: string
-  viewDetail: string
-  editInfo: string
-  editRole: string
-  activate: string
-  deactivate: string
-  resetPassword: string
-  assignCounter: string
   roleLabels: Record<string, string>
   branchMap: Record<string, string>
   active: string
@@ -37,18 +21,13 @@ export interface UserColumnLabels {
 
 export function createUserColumns(
   labels: UserColumnLabels,
-  onEditInfo: (user: AdminUser) => void,
-  onEditRole: (user: AdminUser) => void,
-  onActivate: (user: AdminUser) => void,
-  onDeactivate: (user: AdminUser) => void,
-  onResetPassword: (user: AdminUser) => void,
-  onAssignCounter: (user: AdminUser) => void,
 ): TableColumnsType<AdminUser> {
   return [
     {
       title: labels.employeeCode,
       dataIndex: 'employeeCode',
       key: 'employeeCode',
+      width: 120,
       render: (value: string) => (
         <span className="font-mono text-sm">{value}</span>
       ),
@@ -103,6 +82,7 @@ export function createUserColumns(
       title: labels.status,
       dataIndex: 'isActive',
       key: 'isActive',
+      width: 120,
       render: (value: boolean) => (
         <Badge variant={value ? 'default' : 'secondary'}>
           {value ? labels.active : labels.inactive}
@@ -121,46 +101,6 @@ export function createUserColumns(
           </span>
         )
       },
-    },
-    {
-      title: '',
-      key: 'actions',
-      width: 48,
-      render: (_: unknown, record: AdminUser) => (
-        <DropdownMenu>
-          <DropdownMenuTrigger className="inline-flex h-7 w-7 items-center justify-center rounded-md hover:bg-accent">
-            <MoreHorizontal className="h-4 w-4" />
-            <span className="sr-only">{labels.openMenu}</span>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="end">
-            <DropdownMenuItem onClick={() => onEditInfo(record)}>
-              {labels.editInfo}
-            </DropdownMenuItem>
-            <DropdownMenuItem onClick={() => onEditRole(record)}>
-              {labels.editRole}
-            </DropdownMenuItem>
-            <DropdownMenuItem onClick={() => onResetPassword(record)}>
-              {labels.resetPassword}
-            </DropdownMenuItem>
-            <DropdownMenuItem onClick={() => onAssignCounter(record)}>
-              {labels.assignCounter}
-            </DropdownMenuItem>
-            <DropdownMenuSeparator />
-            {record.isActive ? (
-              <DropdownMenuItem
-                className="text-destructive focus:text-destructive"
-                onClick={() => onDeactivate(record)}
-              >
-                {labels.deactivate}
-              </DropdownMenuItem>
-            ) : (
-              <DropdownMenuItem onClick={() => onActivate(record)}>
-                {labels.activate}
-              </DropdownMenuItem>
-            )}
-          </DropdownMenuContent>
-        </DropdownMenu>
-      ),
     },
   ]
 }
