@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect } from 'react'
-import { useForm } from 'react-hook-form'
+import { useForm, Controller } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
 import { useTranslations } from 'next-intl'
@@ -94,7 +94,14 @@ export function BranchUpsertDialog({ open, branch, onClose }: Props) {
             <Label htmlFor="b-name" className="text-sm font-medium">
               {t('name')} <span className="text-destructive ml-0.5">*</span>
             </Label>
-            <Input id="b-name" className="h-9" status={errors.name ? 'error' : undefined} {...form.register('name')} />
+            <Controller
+              control={form.control}
+              name="name"
+              render={({ field }) => (
+                <Input id="b-name" className="h-9" status={errors.name ? 'error' : undefined}
+                  value={field.value} onChange={field.onChange} onBlur={field.onBlur} name={field.name} />
+              )}
+            />
             <FieldError errors={[errors.name]} />
           </div>
 
@@ -102,7 +109,14 @@ export function BranchUpsertDialog({ open, branch, onClose }: Props) {
             <Label htmlFor="b-address" className="text-sm font-medium">
               {t('address')} <span className="text-destructive ml-0.5">*</span>
             </Label>
-            <Input id="b-address" className="h-9" status={errors.address ? 'error' : undefined} {...form.register('address')} />
+            <Controller
+              control={form.control}
+              name="address"
+              render={({ field }) => (
+                <Input id="b-address" className="h-9" status={errors.address ? 'error' : undefined}
+                  value={field.value} onChange={field.onChange} onBlur={field.onBlur} name={field.name} />
+              )}
+            />
             <FieldError errors={[errors.address]} />
           </div>
 
@@ -110,7 +124,14 @@ export function BranchUpsertDialog({ open, branch, onClose }: Props) {
             <Label htmlFor="b-phone" className="text-sm font-medium">
               {t('phone')} <span className="text-destructive ml-0.5">*</span>
             </Label>
-            <Input id="b-phone" className="h-9" status={errors.phone ? 'error' : undefined} {...form.register('phone')} />
+            <Controller
+              control={form.control}
+              name="phone"
+              render={({ field }) => (
+                <Input id="b-phone" className="h-9" status={errors.phone ? 'error' : undefined}
+                  value={field.value} onChange={field.onChange} onBlur={field.onBlur} name={field.name} />
+              )}
+            />
             <FieldError errors={[errors.phone]} />
           </div>
 

@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect } from 'react'
-import { useForm } from 'react-hook-form'
+import { useForm, Controller } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
 import { useTranslations } from 'next-intl'
@@ -82,7 +82,14 @@ export function CounterUpsertDialog({ open, branchId, branchName, counter, onClo
           <Label htmlFor="counter-name" className="text-sm font-medium">
             {t('counterName')} <span className="text-destructive ml-0.5">*</span>
           </Label>
-          <Input id="counter-name" className="h-9" status={errors.counterName ? 'error' : undefined} {...form.register('counterName')} />
+          <Controller
+            control={form.control}
+            name="counterName"
+            render={({ field }) => (
+              <Input id="counter-name" className="h-9" status={errors.counterName ? 'error' : undefined}
+                value={field.value} onChange={field.onChange} onBlur={field.onBlur} name={field.name} />
+            )}
+          />
           <FieldError errors={[errors.counterName]} />
         </div>
       </DialogContent>

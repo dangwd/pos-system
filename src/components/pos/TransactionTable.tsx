@@ -640,6 +640,15 @@ function BuyGoldRow({
         />
       </td>
 
+      {/* GIÁ TRỊ HAO MÒN (₭) — chỉ hiển thị, không nhập */}
+      <td className="px-2 py-2 w-28 text-right">
+        <span className="text-[10px] tabular-nums text-orange-600 dark:text-orange-400">
+          {item.perItemWearChi > 0
+            ? Math.round(item.perItemWearChi * 3.75 * item.unitPriceLakPerGram).toLocaleString("lo-LA") + " ₭"
+            : "—"}
+        </span>
+      </td>
+
       <td className="px-3 py-2 text-right text-sm font-semibold tabular-nums text-blue-600 dark:text-blue-400 whitespace-nowrap">
         {fmt(lineTotal(item))}
       </td>
@@ -698,6 +707,9 @@ function BuyGoldTable({
           </th>
           <th className="px-2 py-2 text-left text-[10px] font-semibold text-orange-600 uppercase tracking-wide whitespace-nowrap">
             Hao mòn (Chỉ)
+          </th>
+          <th className="px-2 py-2 text-right text-[10px] font-semibold text-orange-600 uppercase tracking-wide whitespace-nowrap">
+            Giá trị HM (₭)
           </th>
           <th className="px-3 py-2 text-right text-[10px] font-semibold text-blue-600 dark:text-blue-400 uppercase tracking-wide whitespace-nowrap">
             Tiệm chi
@@ -879,6 +891,15 @@ function ExchangeInRow({
         />
       </td>
 
+      {/* GIÁ TRỊ HAO MÒN (₭) — chỉ hiển thị, không nhập */}
+      <td className="px-2 py-2 w-28 text-right">
+        <span className="text-[10px] tabular-nums text-orange-600 dark:text-orange-400">
+          {item.perItemWearChi > 0
+            ? Math.round(item.perItemWearChi * 3.75 * item.unitPriceLakPerGram).toLocaleString("lo-LA") + " ₭"
+            : "—"}
+        </span>
+      </td>
+
       <td className="px-3 py-2 text-right text-xs font-semibold tabular-nums text-amber-700 dark:text-amber-400 whitespace-nowrap">
         {fmt(rowTotal)}
       </td>
@@ -961,6 +982,9 @@ function ExchangeGoldTable({
               </th>
               <th className="px-2 py-1.5 text-[9px] font-semibold text-orange-600 uppercase text-left whitespace-nowrap">
                 Hao mòn (Chỉ)
+              </th>
+              <th className="px-2 py-1.5 text-[9px] font-semibold text-orange-600 uppercase text-right whitespace-nowrap">
+                Giá trị HM (₭)
               </th>
               <th className="px-3 py-1.5 text-[9px] font-semibold text-muted-foreground uppercase text-right whitespace-nowrap">
                 Thành tiền

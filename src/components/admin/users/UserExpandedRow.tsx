@@ -1,8 +1,7 @@
 'use client'
 
 import { useTranslations } from 'next-intl'
-import { Button, Tabs } from 'antd'
-import type { TabsProps } from 'antd'
+import { Button } from 'antd'
 import {
   EditOutlined,
   SwapOutlined,
@@ -39,14 +38,6 @@ function Field({ label, value }: { label: string; value?: React.ReactNode }) {
   )
 }
 
-function ComingSoon() {
-  return (
-    <div style={{ padding: '24px 0', color: '#9ca3af', fontSize: 13, textAlign: 'center' }}>
-      Chưa triển khai
-    </div>
-  )
-}
-
 export function UserExpandedRow({
   user,
   branchMap,
@@ -59,7 +50,6 @@ export function UserExpandedRow({
 }: Props) {
   const t  = useTranslations('admin.users')
   const tc = useTranslations('admin.users.columns')
-  const tt = useTranslations('admin.users.tabs')
 
   const roleCode = typeof user.role === 'object' && user.role !== null
     ? user.role.code
@@ -70,72 +60,60 @@ export function UserExpandedRow({
 
   const branchName = branchMap[user.branchId] ?? user.branchId
 
-  const infoContent = (
-    <div style={{ display: 'flex', gap: 48, flexWrap: 'wrap', paddingTop: 4 }}>
-      {/* Cột trái */}
-      <div style={{ flex: 1, minWidth: 280 }}>
-        <Field label={tc('username')}   value={user.username} />
-        <Field label={tc('fullName')}   value={<b>{user.fullName}</b>} />
-        <Field label={tc('phone')}      value={user.phone} />
-        <Field label={tc('email')}      value={user.email} />
-        <Field label={tc('dateOfBirth')} value={
-          user.dateOfBirth
-            ? new Date(user.dateOfBirth).toLocaleDateString('vi-VN', { day: '2-digit', month: '2-digit', year: 'numeric' })
-            : undefined
-        } />
-        <Field label={tc('address')}    value={user.address} />
-      </div>
-
-      {/* Cột phải */}
-      <div style={{ flex: 1, minWidth: 280 }}>
-        <Field label={tc('role')}        value={<b>{roleName}</b>} />
-        <Field label={tc('branchStore')} value={<b>{branchName}</b>} />
-        <Field label={tc('counter')}     value={user.counterName} />
-        <Field label={tc('status')}      value={
-          <Badge variant={user.isActive ? 'default' : 'secondary'}>
-            {user.isActive ? t('status.active') : t('status.inactive')}
-          </Badge>
-        } />
-        <Field label={tc('createdAt')}   value={
-          user.createdAt
-            ? new Date(user.createdAt).toLocaleDateString('vi-VN', { day: '2-digit', month: '2-digit', year: 'numeric' })
-            : undefined
-        } />
-        <Field label={tc('lastLogin')}   value={
-          user.lastLoginAt
-            ? new Date(user.lastLoginAt).toLocaleDateString('vi-VN', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' })
-            : undefined
-        } />
-      </div>
-    </div>
-  )
-
-  const items: TabsProps['items'] = [
-    { key: 'info',          label: tt('info'),          children: infoContent },
-    { key: 'permissions',   label: tt('permissions'),   children: <ComingSoon /> },
-    { key: 'accessTime',    label: tt('accessTime'),    children: <ComingSoon /> },
-    { key: 'deviceHistory', label: tt('deviceHistory'), children: <ComingSoon /> },
-  ]
-
   return (
-    <div style={{ padding: '0 16px 4px 48px', background: '#f8faff' }}>
-      <Tabs size="small" items={items} style={{ marginBottom: 0 }} />
+    <div style={{ padding: '12px 16px 4px 48px', background: '#f8faff' }}>
+      {/* Thông tin chi tiết */}
+      <div style={{ display: 'flex', gap: 48, flexWrap: 'wrap', paddingBottom: 8 }}>
+        <div style={{ flex: 1, minWidth: 280 }}>
+          <Field label={tc('username')}    value={user.username} />
+          <Field label={tc('fullName')}    value={<b>{user.fullName}</b>} />
+          <Field label={tc('phone')}       value={user.phone} />
+          <Field label={tc('email')}       value={user.email} />
+          <Field label={tc('dateOfBirth')} value={
+            user.dateOfBirth
+              ? new Date(user.dateOfBirth).toLocaleDateString('vi-VN', { day: '2-digit', month: '2-digit', year: 'numeric' })
+              : undefined
+          } />
+          <Field label={tc('address')}     value={user.address} />
+        </div>
+
+        <div style={{ flex: 1, minWidth: 280 }}>
+          <Field label={tc('role')}        value={<b>{roleName}</b>} />
+          <Field label={tc('branchStore')} value={<b>{branchName}</b>} />
+          <Field label={tc('counter')}     value={user.counterName} />
+          <Field label={tc('status')}      value={
+            <Badge variant={user.isActive ? 'default' : 'secondary'}>
+              {user.isActive ? t('status.active') : t('status.inactive')}
+            </Badge>
+          } />
+          <Field label={tc('createdAt')}   value={
+            user.createdAt
+              ? new Date(user.createdAt).toLocaleDateString('vi-VN', { day: '2-digit', month: '2-digit', year: 'numeric' })
+              : undefined
+          } />
+          <Field label={tc('lastLogin')}   value={
+            user.lastLoginAt
+              ? new Date(user.lastLoginAt).toLocaleDateString('vi-VN', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' })
+              : undefined
+          } />
+        </div>
+      </div>
 
       {/* Actions */}
       <div style={{
         display: 'flex', gap: 8, flexWrap: 'wrap', alignItems: 'center',
         padding: '12px 0', borderTop: '1px solid #e5e7eb',
       }}>
-        <Button size="small" icon={<EditOutlined />}         onClick={() => onEditInfo(user)}>
+        <Button size="small" icon={<EditOutlined />}        onClick={() => onEditInfo(user)}>
           {tc('editInfo')}
         </Button>
-        <Button size="small" icon={<SwapOutlined />}         onClick={() => onEditRole(user)}>
+        <Button size="small" icon={<SwapOutlined />}        onClick={() => onEditRole(user)}>
           {tc('editRole')}
         </Button>
-        <Button size="small" icon={<LockOutlined />}         onClick={() => onResetPassword(user)}>
+        <Button size="small" icon={<LockOutlined />}        onClick={() => onResetPassword(user)}>
           {tc('resetPassword')}
         </Button>
-        <Button size="small" icon={<AppstoreAddOutlined />}  onClick={() => onAssignCounter(user)}>
+        <Button size="small" icon={<AppstoreAddOutlined />} onClick={() => onAssignCounter(user)}>
           {tc('assignCounter')}
         </Button>
 

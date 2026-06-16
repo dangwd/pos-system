@@ -93,7 +93,7 @@ interface PaymentModalProps {
 
 // ─── ItemRow ─────────────────────────────────────────────────────────────────
 
-function ItemRow({ item, index }: { item: CartItem; index: number }) {
+function ItemRow({ item, index, hideFees }: { item: CartItem; index: number; hideFees?: boolean }) {
   if (!item) return null;
   const gram = item.weightGramOverride ?? item.qty * item.weightGram;
   const total = lineTotal(item as Parameters<typeof lineTotal>[0]);
@@ -147,7 +147,7 @@ function ItemRow({ item, index }: { item: CartItem; index: number }) {
         >
           {fmt(total)}
         </span>
-        {(item.laborFee > 0 || item.stoneFee > 0) && (
+        {!hideFees && (item.laborFee > 0 || item.stoneFee > 0) && (
           <p className="text-[10px] text-muted-foreground">
             {item.laborFee > 0 && `GC +${(item.laborFee / 1000).toFixed(0)}k`}
             {item.stoneFee > 0 && ` Đá +${(item.stoneFee / 1000).toFixed(0)}k`}
@@ -355,7 +355,7 @@ export function PaymentModal({
                 </div>
                 <div className="flex-1 min-h-0 overflow-y-auto px-4">
                   {items.map((item, i) => (
-                    <ItemRow key={item.productId} item={item} index={i} />
+                    <ItemRow key={item.productId} item={item} index={i} hideFees={isBuy} />
                   ))}
                 </div>
               </>

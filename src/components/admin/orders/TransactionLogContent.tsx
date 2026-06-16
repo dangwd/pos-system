@@ -166,11 +166,9 @@ export function TransactionLogContent({ fixedType }: Props) {
           expandable={{
             expandedRowKeys: expandedKeys,
             expandRowByClick: true,
+            showExpandColumn: false,
             onExpand: (expanded, record) =>
-              setExpandedKeys(expanded
-                ? [...expandedKeys, record.id]
-                : expandedKeys.filter(k => k !== record.id),
-              ),
+              setExpandedKeys(expanded ? [record.id] : []),
             expandedRowRender: record => <TransactionExpandedRow record={record} />,
           }}
           onChange={(_pagination, _filters, sorter) => {
