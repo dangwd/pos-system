@@ -1,11 +1,14 @@
 'use client'
 
+import { useState } from 'react'
 import { useDashboardReport } from '@/hooks/useReports'
 import { useTransactions } from '@/hooks/useTransactions'
 import { Skeleton } from '@/components/ui/skeleton'
 import { TrendingUp, TrendingDown, XCircle, BarChart3 } from 'lucide-react'
 import { useTranslations } from 'next-intl'
-import { Card } from 'antd'
+import { Card, DatePicker } from 'antd'
+import type { Dayjs } from 'dayjs'
+import dayjs from 'dayjs'
 import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip,
   ResponsiveContainer, Cell, PieChart, Pie, Legend,
@@ -13,6 +16,8 @@ import {
 import type { Transaction } from '@/types/transaction'
 import { usePermission } from '@/hooks/usePermission'
 import { ForbiddenPage } from '@/components/shared/ForbiddenPage'
+
+const { RangePicker } = DatePicker
 
 // ── Constants ─────────────────────────────────────────────────────────────────
 
@@ -41,13 +46,6 @@ const TYPE_COLORS: Record<string, string> = {
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 
-function todayRange() {
-  const d = new Date()
-  return {
-    from: new Date(d.getFullYear(), d.getMonth(), d.getDate()).toISOString(),
-    to:   new Date(d.getFullYear(), d.getMonth(), d.getDate(), 23, 59, 59, 999).toISOString(),
-  }
-}
 
 function formatKip(n: number) { return n.toLocaleString('lo-LA') + ' ₭' }
 
@@ -266,12 +264,28 @@ function RevenueByTypeChart({
 
 // ── Page ─────────────────────────────────────────────────────────────────────
 
+const PRESETS: { label: string; value: [Dayjs, Dayjs] }[] = [
+  { label: 'Hôm nay',    value: [dayjs().startOf('day'), dayjs().endOf('day')] },
+  { label: 'Hôm qua',   value: [dayjs().subtract(1, 'day').startOf('day'), dayjs().subtract(1, 'day').endOf('day')] },
+  { label: 'Tuần này',   value: [dayjs().startOf('week'), dayjs().endOf('week')] },
+  { label: 'Tháng này',  value: [dayjs().startOf('month'), dayjs().endOf('month')] },
+]
+
 export default function DashboardPage() {
   const { hasPermission } = usePermission()
   const t       = useTranslations('admin.dashboard')
   const tOrders = useTranslations('admin.orders')
 
-  const range = todayRange()
+  const [dateRange, setDateRange] = useState<[Dayjs, Dayjs]>([
+    dayjs().startOf('day'),
+    dayjs().endOf('day'),
+  ])
+
+  const range = {
+    from: dateRange[0].toISOString(),
+    to:   dateRange[1].toISOString(),
+  }
+
   const { data: stats, isLoading: statsLoading } = useDashboardReport(range)
   const { data: txPage, isLoading: txLoading }   = useTransactions({ ...range, limit: 50 } as Parameters<typeof useTransactions>[0])
 
@@ -288,13 +302,23 @@ export default function DashboardPage() {
   return (
     <div style={PAGE_STYLE}>
       {/* ── Header ── */}
-      <div style={{ marginBottom: 20 }}>
-        <h2 style={{ margin: 0, fontSize: 22, fontWeight: 700, color: '#111827' }}>
-          {t('title')}
-        </h2>
-        <p style={{ margin: '2px 0 0', fontSize: 13, color: '#6b7280' }}>
-          {t('subtitle')}
-        </p>
+      <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: 20, gap: 16, flexWrap: 'wrap' }}>
+        <div>
+          <h2 style={{ margin: 0, fontSize: 22, fontWeight: 700, color: '#111827' }}>
+            {t('title')}
+          </h2>
+          <p style={{ margin: '2px 0 0', fontSize: 13, color: '#6b7280' }}>
+            {t('subtitle')}
+          </p>
+        </div>
+        <RangePicker
+          value={dateRange}
+          onChange={(vals) => { if (vals?.[0] && vals?.[1]) setDateRange([vals[0], vals[1]]) }}
+          presets={PRESETS}
+          format="DD/MM/YYYY"
+          allowClear={false}
+          style={{ fontSize: 13 }}
+        />
       </div>
 
       {/* ── Stat cards ── */}

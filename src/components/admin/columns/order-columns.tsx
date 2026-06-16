@@ -29,11 +29,24 @@ export interface OrderColumnLabels {
   colStatus: string
   transactionTypes: Record<string, string>
   transactionStatuses: Record<string, { label: string; variant: 'default' | 'secondary' | 'destructive' | 'outline' }>
+  showRefCode?: boolean
 }
 
 const noWrapHeader = () => ({ style: { whiteSpace: 'nowrap' as const } })
 
 export function createOrderColumns(labels: OrderColumnLabels): TableColumnsType<Transaction> {
+  const refCodeColumn: TableColumnsType<Transaction>[number] = {
+    title: labels.colRefCode,
+    dataIndex: 'referenceInvoiceCode',
+    key: 'referenceInvoiceCode',
+    width: 110,
+    onHeaderCell: noWrapHeader,
+    render: (value: string | null) =>
+      value
+        ? <span style={{ fontFamily: 'monospace', fontSize: 12 }}>{value}</span>
+        : <span style={{ color: '#d1d5db' }}>—</span>,
+  }
+
   return [
     {
       title: labels.colType,
@@ -63,17 +76,7 @@ export function createOrderColumns(labels: OrderColumnLabels): TableColumnsType<
         </span>
       ),
     },
-    {
-      title: labels.colRefCode,
-      dataIndex: 'referenceInvoiceCode',
-      key: 'referenceInvoiceCode',
-      width: 110,
-      onHeaderCell: noWrapHeader,
-      render: (value: string | null) =>
-        value
-          ? <span style={{ fontFamily: 'monospace', fontSize: 12 }}>{value}</span>
-          : <span style={{ color: '#d1d5db' }}>—</span>,
-    },
+    ...(labels.showRefCode ? [refCodeColumn] : []),
     {
       title: labels.colTime,
       dataIndex: 'transactedAt',

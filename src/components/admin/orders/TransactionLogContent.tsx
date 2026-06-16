@@ -63,6 +63,7 @@ export function TransactionLogContent({ fixedType }: Props) {
   }), [t]);
 
   const resolvedType = (fixedType ?? filterType as TransactionType) ?? undefined;
+  const isExchangeType = resolvedType === 'ExchangeGold' || resolvedType === 'ExchangeFree' || resolvedType === 'ExchangeToMoney';
 
   const { data, isLoading, isFetching } = useTransactions({
     status:    (filterStatus as TransactionStatus) ?? undefined,
@@ -89,7 +90,8 @@ export function TransactionLogContent({ fixedType }: Props) {
     colStatus:      t("columns.status"),
     transactionTypes: typeLabels,
     transactionStatuses,
-  }), [t, transactionStatuses, typeLabels]);
+    showRefCode: isExchangeType,
+  }), [t, transactionStatuses, typeLabels, isExchangeType]);
 
   if (!hasPermission('TRANSACTION_VIEW_ALL')) return <ForbiddenPage />
 
