@@ -625,9 +625,9 @@ function BuyGoldRow({
       {/* HAO HỤT (số chỉ hao mòn) */}
       <td className="px-2 py-2 w-24">
         <NumberInput
-          decimals={2}
+          decimals={3}
           min={0}
-          max={parseFloat(((item.weightGramOverride ?? item.qty * item.weightGram) / 3.75).toFixed(2))}
+          max={parseFloat(((item.weightGramOverride ?? item.qty * item.weightGram) / 3.75).toFixed(3))}
           placeholder="0"
           disabled={item.isReadOnly}
           value={item.perItemWearChi || ""}
@@ -865,9 +865,9 @@ function ExchangeInRow({
       {/* Hao mòn — luôn nhập được */}
       <td className="px-2 py-2 w-24">
         <NumberInput
-          decimals={2}
+          decimals={3}
           min={0}
-          max={parseFloat(((item.weightGramOverride ?? item.qty * item.weightGram) / 3.75).toFixed(2))}
+          max={parseFloat(((item.weightGramOverride ?? item.qty * item.weightGram) / 3.75).toFixed(3))}
           placeholder="0"
           value={item.perItemWearChi || ""}
           onChange={(v) =>

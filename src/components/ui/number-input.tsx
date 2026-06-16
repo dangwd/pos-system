@@ -21,7 +21,14 @@ function formatDisplay(raw: string, dec: number): string {
   if (!s) return ''
   const n = parseFloat(s)
   if (isNaN(n)) return s
-  return n.toLocaleString('en', { minimumFractionDigits: 0, maximumFractionDigits: dec })
+  if (dec === 0) return Math.round(n).toLocaleString('en')
+  const dotIdx = s.indexOf('.')
+  if (dotIdx < 0) return n.toLocaleString('en', { maximumFractionDigits: 0 })
+  // Tách phần nguyên (thêm dấu phẩy hàng nghìn) + phần thập phân từ raw string
+  // Dùng raw string thay vì toLocaleString để tránh làm tròn (ví dụ 0.125 → 0.13)
+  const intFormatted = Math.trunc(n).toLocaleString('en')
+  const decPart = s.slice(dotIdx + 1, dotIdx + 1 + dec)
+  return `${intFormatted}.${decPart}`
 }
 
 export function NumberInput({

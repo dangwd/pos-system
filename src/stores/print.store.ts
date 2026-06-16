@@ -98,7 +98,9 @@ export interface PrintInvoice {
 
 // ─── Normalize ────────────────────────────────────────────────────────────────
 
-function normalize(tx: Transaction): PrintInvoice {
+const EXCHANGE_TYPES: TransactionType[] = ['ExchangeGold', 'ExchangeFree', 'BuyMoreGold', 'ExchangeToMoney']
+
+function normalize(tx: Transaction, ctx?: PrintContext): PrintInvoice {
   const items: PrintItem[] = tx.items.map((item, idx) => ({
     stt: idx + 1,
     productName: item.productSnapshotName,
@@ -114,14 +116,20 @@ function normalize(tx: Transaction): PrintInvoice {
     itemRole: item.itemRole,
   }))
 
+  // Với ExchangeGold/ExchangeFree/BuyMoreGold/ExchangeToMoney, totalAmount = A - B (có thể âm).
+  // Số tiền bằng chữ luôn dùng giá trị tuyệt đối — chiều đổi được thể hiện bằng label riêng.
+  const isExchange = EXCHANGE_TYPES.includes(tx.type)
+  const printAmount = isExchange ? Math.abs(tx.totalAmount) : tx.totalAmount
+
   return {
     invoiceCode: tx.invoiceCode,
     txnType: tx.type,
     transactedAt: tx.transactedAt,
 
-    branchName: tx.branchName,
-    counterName: tx.counterName,
-    cashierName: tx.cashierName,
+    // Ưu tiên dữ liệu từ transaction; fallback sang ctx khi backend trả rỗng
+    branchName:  tx.branchName  || ctx?.branchName  || '',
+    counterName: tx.counterName || ctx?.counterName || '',
+    cashierName: tx.cashierName || ctx?.cashierName || '',
 
     customerName: tx.customer?.name ?? null,
     customerPhone: tx.customer?.phoneNumber ?? null,
@@ -135,9 +143,9 @@ function normalize(tx: Transaction): PrintInvoice {
     stoneFee:       tx.stoneFee,
     totalAmount:    tx.totalAmount,
 
-    totalInWordsLo: amountInWords(tx.totalAmount, 'lo'),
-    totalInWordsVi: amountInWords(tx.totalAmount, 'vi'),
-    totalInWordsEn: amountInWords(tx.totalAmount, 'en'),
+    totalInWordsLo: amountInWords(printAmount, 'lo'),
+    totalInWordsVi: amountInWords(printAmount, 'vi'),
+    totalInWordsEn: amountInWords(printAmount, 'en'),
 
     paymentMethod: tx.paymentMethod,
     cashAmount:    tx.cashAmount,
@@ -161,12 +169,20 @@ interface PrintState {
   invoice: PrintInvoice | null
 }
 
+/** Context bổ sung — fallback khi backend không trả branchName/counterName/cashierName */
+export interface PrintContext {
+  branchName?: string
+  counterName?: string
+  cashierName?: string
+}
+
 interface PrintActions {
   /**
    * Normalize Transaction → PrintInvoice và mở modal in.
    * Gọi sau khi checkout thành công hoặc từ trang Nhật ký hóa đơn.
+   * @param ctx Fallback info khi API response thiếu tên chi nhánh / quầy / nhân viên
    */
-  openPrint: (tx: Transaction) => void
+  openPrint: (tx: Transaction, ctx?: PrintContext) => void
 
   /** Đóng modal in, xóa dữ liệu hóa đơn */
   closePrint: () => void
@@ -185,7 +201,7 @@ export const usePrintStore = create<PrintState & PrintActions>()((set) => ({
   isOpen: false,
   invoice: null,
 
-  openPrint: (tx) => set({ isOpen: true, invoice: normalize(tx) }),
+  openPrint: (tx, ctx) => set({ isOpen: true, invoice: normalize(tx, ctx) }),
 
   closePrint: () => set({ isOpen: false, invoice: null }),
 

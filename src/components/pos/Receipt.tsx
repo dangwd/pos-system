@@ -15,8 +15,9 @@ import {
 } from "@/components/ui/table";
 import { type PaymentMethodKey } from "@/lib/strategies/payment.strategy";
 import { usePrintStore } from "@/stores/print.store";
+import { useAuthStore } from "@/stores/auth.store";
 import type { Transaction } from "@/types/transaction";
-import { CheckCircle2, Printer, XCircle } from "lucide-react";
+import { ArrowDownToLine, ArrowUpFromLine, CheckCircle2, Printer, XCircle } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { useState } from "react";
 
@@ -43,6 +44,7 @@ export function Receipt({ open, transaction, onClose }: ReceiptProps) {
   const [cancelOpen, setCancelOpen] = useState(false);
   const [isCancelled, setIsCancelled] = useState(false);
   const openPrint = usePrintStore((s) => s.openPrint);
+  const { user } = useAuthStore();
 
   if (!transaction) return null;
 
@@ -63,6 +65,14 @@ export function Receipt({ open, transaction, onClose }: ReceiptProps) {
   const fxParsed = isFx ? parseFxNote(transaction.note) : null;
   const isFxToNonLak = isFx && !!transaction.targetCurrency && transaction.targetCurrency !== "LAK";
 
+  // ExchangeGold / ExchangeFree / BuyMoreGold / ExchangeToMoney: chia 2 panel
+  const isExchange = ["ExchangeGold", "ExchangeFree", "BuyMoreGold", "ExchangeToMoney"].includes(transaction.type);
+  const exchangeInItems = isExchange ? transaction.items.filter((i) => i.itemRole === "ExchangeIn") : [];
+  const normalItems = isExchange ? transaction.items.filter((i) => i.itemRole === "Normal") : transaction.items;
+  // totalB = tổng giá trị vàng cũ thu vào; totalA = tổng hàng bán ra (= totalAmount + totalB)
+  const totalB = exchangeInItems.reduce((s, i) => s + i.lineTotal, 0);
+  const totalA = transaction.totalAmount + totalB;
+
   const handleClose = () => {
     setIsCancelled(false);
     onClose();
@@ -72,7 +82,7 @@ export function Receipt({ open, transaction, onClose }: ReceiptProps) {
     <>
       <Dialog open={open} onOpenChange={handleClose}>
         <DialogContent
-          className="sm:max-w-2xl min-w-2xl"
+          className={isExchange ? "sm:max-w-3xl min-w-3xl" : "sm:max-w-2xl min-w-2xl"}
           title={
             isCancelled ? (
               <span className="flex items-center gap-2 text-destructive">
@@ -98,7 +108,16 @@ export function Receipt({ open, transaction, onClose }: ReceiptProps) {
                   {t("cancelInvoiceButton")}
                 </Button>
               )}
-              <Button variant="outline" onClick={() => openPrint(transaction)}>
+              <Button
+                variant="outline"
+                onClick={() =>
+                  openPrint(transaction, {
+                    branchName: user?.branchName ?? undefined,
+                    counterName: user?.counterName ?? undefined,
+                    cashierName: user?.fullName ?? undefined,
+                  })
+                }
+              >
                 <Printer className="h-4 w-4 mr-2" />
                 {t("printButton")}
               </Button>
@@ -190,6 +209,94 @@ export function Receipt({ open, transaction, onClose }: ReceiptProps) {
                   )
                 )}
               </div>
+            ) : isExchange ? (
+              <div className="space-y-3">
+                {/* PANEL B — Vàng cũ thu vào */}
+                {exchangeInItems.length > 0 && (
+                  <div>
+                    <div className="flex items-center gap-1.5 px-2 py-1 rounded bg-amber-50 dark:bg-amber-950/30 text-amber-700 dark:text-amber-400 text-[10px] font-bold uppercase tracking-widest mb-1">
+                      <ArrowDownToLine className="h-3 w-3 shrink-0" />
+                      Vàng cũ thu vào (B)
+                    </div>
+                    <Table>
+                      <TableHeader>
+                        <TableRow>
+                          <TableHead>{t("columnProduct")}</TableHead>
+                          <TableHead className="text-center">{t("columnQty")}</TableHead>
+                          <TableHead className="text-right">Giá đơn vị</TableHead>
+                          <TableHead className="text-right text-amber-600">Giá trị</TableHead>
+                        </TableRow>
+                      </TableHeader>
+                      <TableBody>
+                        {exchangeInItems.map((item) => (
+                          <TableRow key={item.id}>
+                            <TableCell className="text-sm">{item.productSnapshotName}</TableCell>
+                            <TableCell className="text-center text-sm">
+                              {item.quantity}
+                              {item.weightUnitName ? ` ${item.weightUnitName}` : ""}
+                            </TableCell>
+                            <TableCell className="text-right text-sm">
+                              {formatKip(item.unitPriceLak)}
+                            </TableCell>
+                            <TableCell className="text-right text-sm font-semibold text-amber-700 dark:text-amber-400">
+                              {formatKip(item.lineTotal)}
+                            </TableCell>
+                          </TableRow>
+                        ))}
+                      </TableBody>
+                    </Table>
+                    <div className="flex justify-between text-xs font-semibold text-amber-700 dark:text-amber-400 px-1 pt-1.5 border-t border-amber-200 dark:border-amber-900">
+                      <span>Tổng cấn trừ (B)</span>
+                      <span>{formatKip(totalB)}</span>
+                    </div>
+                  </div>
+                )}
+
+                {/* PANEL A — Hàng bán ra mới */}
+                {normalItems.length > 0 && (
+                  <div>
+                    <div className="flex items-center gap-1.5 px-2 py-1 rounded bg-primary/5 text-primary text-[10px] font-bold uppercase tracking-widest mb-1">
+                      <ArrowUpFromLine className="h-3 w-3 shrink-0" />
+                      Hàng bán ra mới (A)
+                    </div>
+                    <Table>
+                      <TableHeader>
+                        <TableRow>
+                          <TableHead>{t("columnProduct")}</TableHead>
+                          <TableHead className="text-center">{t("columnQty")}</TableHead>
+                          <TableHead className="text-right">{t("columnLaborFee")}</TableHead>
+                          <TableHead className="text-right">{t("columnStoneFee")}</TableHead>
+                          <TableHead className="text-right">{t("columnTotal")}</TableHead>
+                        </TableRow>
+                      </TableHeader>
+                      <TableBody>
+                        {normalItems.map((item) => (
+                          <TableRow key={item.id}>
+                            <TableCell className="text-sm">{item.productSnapshotName}</TableCell>
+                            <TableCell className="text-center text-sm">
+                              {item.quantity}
+                              {item.weightUnitName ? ` ${item.weightUnitName}` : ""}
+                            </TableCell>
+                            <TableCell className="text-right text-sm">
+                              {item.laborFee > 0 ? formatKip(item.laborFee) : "—"}
+                            </TableCell>
+                            <TableCell className="text-right text-sm">
+                              {item.stoneFee > 0 ? formatKip(item.stoneFee) : "—"}
+                            </TableCell>
+                            <TableCell className="text-right text-sm font-semibold">
+                              {formatKip(item.lineTotal)}
+                            </TableCell>
+                          </TableRow>
+                        ))}
+                      </TableBody>
+                    </Table>
+                    <div className="flex justify-between text-xs font-semibold px-1 pt-1.5 border-t">
+                      <span>Tổng bán ra (A)</span>
+                      <span>{formatKip(totalA)}</span>
+                    </div>
+                  </div>
+                )}
+              </div>
             ) : (
               <Table>
                 <TableHeader>
@@ -236,7 +343,38 @@ export function Receipt({ open, transaction, onClose }: ReceiptProps) {
             <Separator />
 
             <div className="space-y-1 text-sm">
-              {!isFx && (
+              {isExchange ? (
+                <>
+                  <div className="flex justify-between text-muted-foreground">
+                    <span>(A) Hàng bán ra mới</span>
+                    <span>{formatKip(totalA)}</span>
+                  </div>
+                  <div className="flex justify-between text-amber-600 dark:text-amber-400">
+                    <span>(B) Vàng cũ cấn trừ</span>
+                    <span>−{formatKip(totalB)}</span>
+                  </div>
+                  <div className="flex justify-between font-bold text-base pt-1 border-t">
+                    <span>
+                      {transaction.totalAmount > 0
+                        ? "Khách trả thêm"
+                        : transaction.totalAmount < 0
+                          ? "Tiệm trả lại khách"
+                          : "Hoà vốn"}
+                    </span>
+                    <span
+                      className={
+                        transaction.totalAmount > 0
+                          ? "text-green-600 dark:text-green-400"
+                          : transaction.totalAmount < 0
+                            ? "text-blue-600 dark:text-blue-400"
+                            : "text-muted-foreground"
+                      }
+                    >
+                      {formatKip(Math.abs(transaction.totalAmount))}
+                    </span>
+                  </div>
+                </>
+              ) : !isFx ? (
                 <>
                   <div className="flex justify-between text-muted-foreground">
                     <span>{t("subtotalLabel")}</span>
@@ -254,22 +392,27 @@ export function Receipt({ open, transaction, onClose }: ReceiptProps) {
                       <span>{formatKip(transaction.stoneFee)}</span>
                     </div>
                   )}
+                  <div className="flex justify-between font-bold text-base pt-1">
+                    <span>{t("totalLabel")}</span>
+                    <span className="text-primary">
+                      {formatKip(transaction.totalAmount)}
+                    </span>
+                  </div>
                 </>
-              )}
-              <div className="flex justify-between font-bold text-base pt-1">
-                <span>
-                  {isFx
-                    ? isFxToNonLak
+              ) : (
+                <div className="flex justify-between font-bold text-base pt-1">
+                  <span>
+                    {isFxToNonLak
                       ? `TỔNG QUY ĐỔI (${transaction.targetCurrency})`
-                      : "TỔNG QUY ĐỔI (LAK)"
-                    : t("totalLabel")}
-                </span>
-                <span className="text-primary">
-                  {isFx && isFxToNonLak
-                    ? `${(transaction.targetAmount ?? 0).toLocaleString("en")} ${transaction.targetCurrency}`
-                    : formatKip(transaction.totalAmount)}
-                </span>
-              </div>
+                      : "TỔNG QUY ĐỔI (LAK)"}
+                  </span>
+                  <span className="text-primary">
+                    {isFxToNonLak
+                      ? `${(transaction.targetAmount ?? 0).toLocaleString("en")} ${transaction.targetCurrency}`
+                      : formatKip(transaction.totalAmount)}
+                  </span>
+                </div>
+              )}
             </div>
           </div>
         </DialogContent>
