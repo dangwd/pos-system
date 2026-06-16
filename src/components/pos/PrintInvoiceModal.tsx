@@ -72,9 +72,15 @@ function InvoiceRow({
 
 // ─── Print template ──────────────────────────────────────────────────────────
 
+const EXCHANGE_TYPES = ["ExchangeGold", "ExchangeFree", "BuyMoreGold", "ExchangeToMoney"];
+
 function InvoiceTemplate({ inv }: { inv: PrintInvoice }) {
   const title = INVOICE_TITLE[inv.txnType];
   const isFx = inv.txnType === "ExchangeCurrency";
+  const isExchange = EXCHANGE_TYPES.includes(inv.txnType);
+  // totalAmount = A - B (có thể âm với ExchangeGold). totalB = tổng vàng cũ cấn trừ.
+  const totalB = inv.exchangeInItems.reduce((s, i) => s + i.lineTotal, 0);
+  const totalA = inv.totalAmount + totalB;
 
   return (
     <div
@@ -212,31 +218,56 @@ function InvoiceTemplate({ inv }: { inv: PrintInvoice }) {
 
       {/* ── Totals ────────────────────────────────────────── */}
       <div className="flex justify-end mb-3">
-        <div className="w-60 text-[11px] space-y-[2px]">
-          {(inv.laborFee > 0 || inv.stoneFee > 0) && (
+        <div className="w-72 text-[11px] space-y-[2px]">
+          {isExchange ? (
             <>
               <div className="flex justify-between">
-                <span>Tiền hàng / ລາຄາສິນຄ້າ:</span>
-                <span className="tabular-nums">{kip(inv.subtotalAmount)}</span>
+                <span>(A) Hàng bán ra mới / ສິນຄ້າໃໝ່:</span>
+                <span className="tabular-nums">{kip(totalA)}</span>
               </div>
-              {inv.laborFee > 0 && (
-                <div className="flex justify-between">
-                  <span>Tiền công / ຄ່າແຮງງານ:</span>
-                  <span className="tabular-nums">{kip(inv.laborFee)}</span>
-                </div>
+              <div className="flex justify-between">
+                <span>(B) Vàng cũ cấn trừ / ຄຳເກົ່າຫັກລົບ:</span>
+                <span className="tabular-nums">−{kip(totalB)}</span>
+              </div>
+              <div className="flex justify-between font-black text-[13px] border-t-2 border-black pt-1">
+                <span>
+                  {inv.totalAmount > 0
+                    ? "KHÁCH TRẢ THÊM / ລູກຄ້າຈ່າຍເພີ່ມ:"
+                    : inv.totalAmount < 0
+                      ? "TIỆM TRẢ LẠI / ຮ້ານຄືນ:"
+                      : "HOÀ VỐN / ສົມດຸນ:"}
+                </span>
+                <span className="tabular-nums">{kip(Math.abs(inv.totalAmount))}</span>
+              </div>
+            </>
+          ) : (
+            <>
+              {(inv.laborFee > 0 || inv.stoneFee > 0) && (
+                <>
+                  <div className="flex justify-between">
+                    <span>Tiền hàng / ລາຄາສິນຄ້າ:</span>
+                    <span className="tabular-nums">{kip(inv.subtotalAmount)}</span>
+                  </div>
+                  {inv.laborFee > 0 && (
+                    <div className="flex justify-between">
+                      <span>Tiền công / ຄ່າແຮງງານ:</span>
+                      <span className="tabular-nums">{kip(inv.laborFee)}</span>
+                    </div>
+                  )}
+                  {inv.stoneFee > 0 && (
+                    <div className="flex justify-between">
+                      <span>Phí đá / ຄ່າຫີນ:</span>
+                      <span className="tabular-nums">{kip(inv.stoneFee)}</span>
+                    </div>
+                  )}
+                </>
               )}
-              {inv.stoneFee > 0 && (
-                <div className="flex justify-between">
-                  <span>Phí đá / ຄ່າຫີນ:</span>
-                  <span className="tabular-nums">{kip(inv.stoneFee)}</span>
-                </div>
-              )}
+              <div className="flex justify-between font-black text-[13px] border-t-2 border-black pt-1">
+                <span>TỔNG / ລວມ:</span>
+                <span className="tabular-nums">{kip(inv.totalAmount)}</span>
+              </div>
             </>
           )}
-          <div className="flex justify-between font-black text-[13px] border-t-2 border-black pt-1">
-            <span>TỔNG / ລວມ:</span>
-            <span className="tabular-nums">{kip(inv.totalAmount)}</span>
-          </div>
         </div>
       </div>
 
