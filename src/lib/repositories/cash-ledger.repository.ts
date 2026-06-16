@@ -90,6 +90,28 @@ export class CashLedgerRepository {
     const { data } = await api.post<{ handoverCode: string }>('/api/cash-ledger/handover', dto)
     return data
   }
+
+  /** GET /activities/export — xuất Excel toàn bộ bút toán (không phân trang) */
+  async exportActivities(params: Omit<CashLedgerActivitiesParams, 'page' | 'pageSize'>): Promise<void> {
+    const response = await api.get('/api/cash-ledger/activities/export', {
+      params,
+      responseType: 'blob',
+    })
+    const blob = new Blob([response.data], {
+      type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+    })
+    const url = URL.createObjectURL(blob)
+    const now = new Date()
+    const pad = (n: number) => String(n).padStart(2, '0')
+    const ts = `${now.getFullYear()}${pad(now.getMonth() + 1)}${pad(now.getDate())}-${pad(now.getHours())}${pad(now.getMinutes())}${pad(now.getSeconds())}`
+    const a = document.createElement('a')
+    a.href = url
+    a.download = `so-quy-${ts}.xlsx`
+    document.body.appendChild(a)
+    a.click()
+    document.body.removeChild(a)
+    URL.revokeObjectURL(url)
+  }
 }
 
 export const cashLedgerRepository = new CashLedgerRepository()
