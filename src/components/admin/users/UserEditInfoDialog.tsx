@@ -104,7 +104,21 @@ export function UserEditInfoDialog({ user, onClose }: Props) {
             <Label htmlFor="ei-fullName" className="text-sm font-medium">
               {t('fullName')} <span className="text-destructive ml-0.5">*</span>
             </Label>
-            <Input id="ei-fullName" className="h-9" status={errors.fullName ? 'error' : undefined} {...form.register('fullName')} />
+            <Controller
+              control={form.control}
+              name="fullName"
+              render={({ field }) => (
+                <Input
+                  id="ei-fullName"
+                  className="h-9"
+                  status={errors.fullName ? 'error' : undefined}
+                  value={field.value}
+                  onChange={field.onChange}
+                  onBlur={field.onBlur}
+                  name={field.name}
+                />
+              )}
+            />
             <FieldError errors={[errors.fullName]} />
           </div>
 
@@ -112,7 +126,21 @@ export function UserEditInfoDialog({ user, onClose }: Props) {
             <Label htmlFor="ei-phone" className="text-sm font-medium">
               {t('phone')} <span className="text-destructive ml-0.5">*</span>
             </Label>
-            <Input id="ei-phone" className="h-9" status={errors.phone ? 'error' : undefined} {...form.register('phone')} />
+            <Controller
+              control={form.control}
+              name="phone"
+              render={({ field }) => (
+                <Input
+                  id="ei-phone"
+                  className="h-9"
+                  status={errors.phone ? 'error' : undefined}
+                  value={field.value}
+                  onChange={field.onChange}
+                  onBlur={field.onBlur}
+                  name={field.name}
+                />
+              )}
+            />
             <FieldError errors={[errors.phone]} />
           </div>
 
@@ -145,7 +173,23 @@ export function UserEditInfoDialog({ user, onClose }: Props) {
             <Label htmlFor="ei-email" className="text-sm font-medium text-muted-foreground">
               {t('email')}
             </Label>
-            <Input id="ei-email" className="h-9" type="email" placeholder="example@email.com" status={errors.email ? 'error' : undefined} {...form.register('email')} />
+            <Controller
+              control={form.control}
+              name="email"
+              render={({ field }) => (
+                <Input
+                  id="ei-email"
+                  className="h-9"
+                  type="email"
+                  placeholder="example@email.com"
+                  status={errors.email ? 'error' : undefined}
+                  value={field.value}
+                  onChange={field.onChange}
+                  onBlur={field.onBlur}
+                  name={field.name}
+                />
+              )}
+            />
             <FieldError errors={[errors.email]} />
           </div>
 
@@ -153,7 +197,20 @@ export function UserEditInfoDialog({ user, onClose }: Props) {
             <Label htmlFor="ei-address" className="text-sm font-medium text-muted-foreground">
               {t('address')}
             </Label>
-            <Input id="ei-address" className="h-9" {...form.register('address')} />
+            <Controller
+              control={form.control}
+              name="address"
+              render={({ field }) => (
+                <Input
+                  id="ei-address"
+                  className="h-9"
+                  value={field.value}
+                  onChange={field.onChange}
+                  onBlur={field.onBlur}
+                  name={field.name}
+                />
+              )}
+            />
           </div>
 
           <div className="flex flex-col gap-1.5">

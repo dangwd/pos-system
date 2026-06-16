@@ -102,7 +102,6 @@ export function useCheckout(strategy: PaymentStrategy) {
           ? []
           : tab.items.map((item) => {
               const isExchangeIn = item.itemRole === "ExchangeIn";
-              const hasPhiKho = item.perItemDamage > 0;
               const hasLaoSut = item.perItemWearChi > 0;
 
               // Trọng lượng thực = tổng - hao hụt HAO HỤT (ExchangeIn & BuyGold)
@@ -111,12 +110,6 @@ export function useCheckout(strategy: PaymentStrategy) {
               const effectiveWeightGram = hasLaoSut
                 ? totalGram - item.perItemWearChi * 3.75
                 : totalGram;
-
-              // PHÍ KHÒ / HAO HỤT encode vào productName để in phiếu
-              const productName =
-                hasPhiKho || hasLaoSut
-                  ? `${item.name} [PHÍ KHÒ: ${item.perItemDamage.toLocaleString("lo-LA")}₭ | HAO HỤT: ${item.perItemWearChi} Chỉ]`
-                  : item.name;
 
               // Backend tính lineTotal = qty × unitPriceLak − phiHuHai (không tự áp haoHutGram).
               // Với ExchangeIn có hao hụt: gửi giá đã điều chỉnh để backend ra đúng lineTotal.
@@ -131,7 +124,7 @@ export function useCheckout(strategy: PaymentStrategy) {
 
               return {
                 productId: item.productId,
-                productName,
+                productName: item.name,
                 quantity: item.qty,
                 weightUnitId: item.weightUnitId ?? null,
                 weightGramOverride: effectiveWeightGram,

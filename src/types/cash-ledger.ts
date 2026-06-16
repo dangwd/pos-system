@@ -58,6 +58,10 @@ export interface CashLedgerActivitiesResult {
   page: number
   pageSize: number
   totalPages: number
+  openingBalanceLak: number
+  totalInLak: number
+  totalOutLak: number
+  closingBalanceLak: number
 }
 
 // ── GET /activities/{id} · POST /vouchers · GET /vouchers/{id} ─────────────────

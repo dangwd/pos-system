@@ -719,6 +719,7 @@ export function PaymentPanel({
   const isExchangeGold = tab?.txnType === "ExchangeGold"
     || tab?.txnType === "ExchangeFree"
     || tab?.txnType === "ExchangeToMoney";
+  const isBuyGold = tab?.txnType === "BuyGold";
   const isExchangeType = isFx || isExchangeGold;
   const isCancelMode = !!tab?.cancelTransactionId;
   const fxDisabled = isFx && (!tab?.fxFromAmount || tab.fxFromAmount <= 0);
@@ -824,7 +825,7 @@ export function PaymentPanel({
           </>
         )}
 
-        {!isExchangeType && (
+        {!isExchangeType && !isBuyGold && (
           <>
             <OrderLookup />
             <div className="mx-4 border-t border-dashed border-border/50" />

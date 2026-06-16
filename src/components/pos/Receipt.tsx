@@ -61,6 +61,7 @@ export function Receipt({ open, transaction, onClose }: ReceiptProps) {
     : (transaction.paymentMethod ?? "—");
 
   const isCompleted = !isCancelled && transaction.status === "Completed";
+  const isBuy = transaction.type === "BuyGold";
   const isFx = transaction.type === "ExchangeCurrency";
   const fxParsed = isFx ? parseFxNote(transaction.note) : null;
   const isFxToNonLak = isFx && !!transaction.targetCurrency && transaction.targetCurrency !== "LAK";
@@ -305,12 +306,16 @@ export function Receipt({ open, transaction, onClose }: ReceiptProps) {
                     <TableHead className="text-center">
                       {t("columnQty")}
                     </TableHead>
-                    <TableHead className="text-right">
-                      {t("columnLaborFee")}
-                    </TableHead>
-                    <TableHead className="text-right">
-                      {t("columnStoneFee")}
-                    </TableHead>
+                    {!isBuy && (
+                      <TableHead className="text-right">
+                        {t("columnLaborFee")}
+                      </TableHead>
+                    )}
+                    {!isBuy && (
+                      <TableHead className="text-right">
+                        {t("columnStoneFee")}
+                      </TableHead>
+                    )}
                     <TableHead className="text-right">
                       {t("columnTotal")}
                     </TableHead>
@@ -325,12 +330,16 @@ export function Receipt({ open, transaction, onClose }: ReceiptProps) {
                       <TableCell className="text-center text-sm">
                         {item.quantity}
                       </TableCell>
-                      <TableCell className="text-right text-sm">
-                        {item.laborFee > 0 ? formatKip(item.laborFee) : "—"}
-                      </TableCell>
-                      <TableCell className="text-right text-sm">
-                        {item.stoneFee > 0 ? formatKip(item.stoneFee) : "—"}
-                      </TableCell>
+                      {!isBuy && (
+                        <TableCell className="text-right text-sm">
+                          {item.laborFee > 0 ? formatKip(item.laborFee) : "—"}
+                        </TableCell>
+                      )}
+                      {!isBuy && (
+                        <TableCell className="text-right text-sm">
+                          {item.stoneFee > 0 ? formatKip(item.stoneFee) : "—"}
+                        </TableCell>
+                      )}
                       <TableCell className="text-right text-sm">
                         {formatKip(item.lineTotal)}
                       </TableCell>
@@ -380,13 +389,13 @@ export function Receipt({ open, transaction, onClose }: ReceiptProps) {
                     <span>{t("subtotalLabel")}</span>
                     <span>{formatKip(transaction.subtotalAmount)}</span>
                   </div>
-                  {transaction.laborFee > 0 && (
+                  {!isBuy && transaction.laborFee > 0 && (
                     <div className="flex justify-between text-muted-foreground">
                       <span>{t("columnLaborFee")}</span>
                       <span>{formatKip(transaction.laborFee)}</span>
                     </div>
                   )}
-                  {transaction.stoneFee > 0 && (
+                  {!isBuy && transaction.stoneFee > 0 && (
                     <div className="flex justify-between text-muted-foreground">
                       <span>{t("columnStoneFee")}</span>
                       <span>{formatKip(transaction.stoneFee)}</span>

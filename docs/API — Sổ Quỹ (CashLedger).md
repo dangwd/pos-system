@@ -162,27 +162,25 @@ Ghi một khoản thu hoặc chi nhanh, không cần chọn lý do từ danh m�
 
 ---
 
-## 5. GET /activities — Danh sách toàn bộ hoạt động
+### `GET /api/cash-ledger/activities`
 
-Lấy **toàn bộ** hoạt động thu/chi sổ quỹ, bao gồm:
+Danh sách **toàn bộ** hoạt động thu/chi sổ quỹ, bao gồm:
 - Phiếu PTTT/PCTT lập tay (`POST /manual-entry`, `POST /vouchers`)
 - Bút toán tự động phát sinh từ giao dịch POS
 
-Sắp xếp giảm dần theo thời gian (`createdAt DESC`).
+**Query params:**
 
-### Query params
+| Param | Kiểu | Mô tả |
+|---|---|---|
+| `branchId` | `Guid?` | Lọc theo chi nhánh (null = tất cả) |
+| `counterId` | `Guid?` | Lọc theo quầy |
+| `fromDate` | `DateOnly?` | Từ ngày (mặc định hôm nay) |
+| `toDate` | `DateOnly?` | Đến ngày (mặc định hôm nay) |
+| `keyword` | `string?` | Tìm theo `entryCode` hoặc `description` |
+| `page` | `int` | Trang (mặc định 1) |
+| `pageSize` | `int` | Số dòng/trang (mặc định 20) |
 
-| Param | Kiểu | Bắt buộc | Mặc định | Mô tả |
-|---|---|---|---|---|
-| `branchId` | `uuid` | ❌ | — | Lọc theo chi nhánh (null = tất cả) |
-| `counterId` | `uuid` | ❌ | — | Lọc theo quầy |
-| `fromDate` | `DateOnly` | ❌ | Hôm nay | Ngày bắt đầu |
-| `toDate` | `DateOnly` | ❌ | Hôm nay | Ngày kết thúc |
-| `keyword` | `string` | ❌ | — | Tìm theo `entryCode` hoặc `description` |
-| `page` | `int` | ❌ | `1` | |
-| `pageSize` | `int` | ❌ | `20` | |
-
-### Response `200 OK`
+**Response `200 OK`:**
 
 ```json
 {
@@ -192,7 +190,7 @@ Sắp xếp giảm dần theo thời gian (`createdAt DESC`).
       "entryCode": "PTTT000001",
       "timeLabel": "10:08:52 - 15/06/2026",
       "createdByName": "Nguyễn Đăng",
-      "branchName": "Vientiane Main",
+      "branchName": "15 Trần Nhân Tông",
       "methodLabel": "Tiền mặt",
       "direction": "IN"
     }
@@ -200,16 +198,22 @@ Sắp xếp giảm dần theo thời gian (`createdAt DESC`).
   "totalCount": 97,
   "page": 1,
   "pageSize": 20,
-  "totalPages": 5
+  "totalPages": 5,
+  "openingBalanceLak": 50000000,
+  "totalInLak": 42279167289,
+  "totalOutLak": 42526705288,
+  "closingBalanceLak": -247537999
 }
 ```
 
 | Field | Mô tả |
 |---|---|
-| `entryCode` | Mã phiếu: `PTTT…` (thu) hoặc `PCTT…` (chi) |
-| `timeLabel` | Giờ và ngày hiển thị: `"HH:mm:ss - dd/MM/yyyy"` |
 | `methodLabel` | `"Tiền mặt"` \| `"Chuyển khoản ngân hàng"` \| `"Tiền mặt & Chuyển khoản"` |
 | `direction` | `"IN"` (thu) \| `"OUT"` (chi) |
+| `openingBalanceLak` | Quỹ đầu kỳ = `SUM(IN) − SUM(OUT)` của toàn bộ bút toán có `date < fromDate`. Chỉ tính khi `branchId` được truyền; trả `0` khi lọc tất cả chi nhánh |
+| `totalInLak` | Tổng thu trong khoảng `[fromDate, toDate]`, cùng bộ lọc với danh sách `items` |
+| `totalOutLak` | Tổng chi trong khoảng `[fromDate, toDate]`, cùng bộ lọc với danh sách `items` |
+| `closingBalanceLak` | Tồn quỹ cuối kỳ = đầu kỳ + tổng thu − tổng chi |
 
 > Để xem chi tiết từng dòng → `GET /activities/{id}`.
 
@@ -552,6 +556,40 @@ Dùng ở `GET /activities/{id}`, `POST /vouchers`, `GET /vouchers`, `GET /vouch
 | `referenceInvoiceCode` | Với bút toán POS: mã hóa đơn gốc |
 | `fromCounterId/Name` | Quầy chi tiền ra (phiếu chi / bút toán OUT) |
 | `toCounterId/Name` | Quầy nhận tiền vào (phiếu thu / bút toán IN) |
+
+---
+
+---
+
+### `GET /api/cash-ledger/activities/export`
+
+Xuất file Excel danh sách hoạt động thu/chi sổ quỹ. Áp dụng cùng bộ lọc với `GET /activities` (không phân trang — toàn bộ kết quả).
+
+**Query params:**
+
+| Param | Kiểu | Mô tả |
+|---|---|---|
+| `branchId` | `Guid?` | Lọc theo chi nhánh (null = tất cả) |
+| `counterId` | `Guid?` | Lọc theo quầy |
+| `fromDate` | `DateOnly?` | Từ ngày (mặc định hôm nay) |
+| `toDate` | `DateOnly?` | Đến ngày (mặc định hôm nay) |
+| `keyword` | `string?` | Tìm theo `entryCode` hoặc `description` |
+
+**Response `200 OK`:** File `application/vnd.openxmlformats-officedocument.spreadsheetml.sheet`
+
+- Tên file: `so-quy-{yyyyMMdd-HHmmss}.xlsx`
+- Sheet: `Sổ quỹ`
+
+| Cột Excel | Nguồn dữ liệu |
+|---|---|
+| Chiều | `"Phiếu thu"` (IN) \| `"Phiếu chi"` (OUT) |
+| Mã phiếu | `entryCode` |
+| Thời gian | `timeLabel` |
+| Người tạo | `createdByName` |
+| Chi nhánh | `branchName` |
+| Phương thức | `methodLabel` |
+
+> Phân quyền: cùng policy `CashLedgerManage` với `GET /activities`. Cashier chỉ thấy dữ liệu quầy của mình; Manager/ThuQuy thấy toàn chi nhánh; SystemAdmin thấy tất cả.
 
 ---
 
