@@ -4,7 +4,7 @@ import { usePermission } from '@/hooks/usePermission'
 import { ForbiddenPage } from '@/components/shared/ForbiddenPage'
 import { useState, useMemo } from 'react'
 import { useTranslations } from 'next-intl'
-import { Pencil, RefreshCw, Search, ArrowLeftRight, Check, X } from 'lucide-react'
+import { EditOutlined, SyncOutlined, SearchOutlined, SwapOutlined, CheckOutlined, CloseOutlined } from '@ant-design/icons'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { InputNumber } from 'antd'
@@ -183,7 +183,7 @@ function RatePreviewPanel({ rates, currencies: currenciesData }: { rates: Exchan
           title="Đổi chiều quy đổi"
           className="h-9 w-9 flex items-center justify-center rounded-md border border-border text-muted-foreground hover:bg-muted hover:text-foreground transition-colors"
         >
-          <ArrowLeftRight className="h-4 w-4" />
+          <SwapOutlined className="h-4 w-4" />
         </button>
 
         <div>
@@ -238,14 +238,14 @@ function RatePreviewPanel({ rates, currencies: currenciesData }: { rates: Exchan
               disabled={isSavingRate || !rateInput}
               className="h-8 w-8 shrink-0 flex items-center justify-center rounded-md bg-primary text-primary-foreground hover:bg-primary/90 disabled:opacity-50 transition-colors"
             >
-              {isSavingRate ? <Spinner className="h-3.5 w-3.5" /> : <Check className="h-4 w-4" />}
+              {isSavingRate ? <Spinner className="h-3.5 w-3.5" /> : <CheckOutlined className="h-4 w-4" />}
             </button>
             <button
               onClick={resetEdit}
               disabled={isSavingRate}
               className="h-8 w-8 shrink-0 flex items-center justify-center rounded-md border border-border text-muted-foreground hover:bg-accent transition-colors"
             >
-              <X className="h-4 w-4" />
+              <CloseOutlined className="h-4 w-4" />
             </button>
           </div>
         ) : (
@@ -261,7 +261,7 @@ function RatePreviewPanel({ rates, currencies: currenciesData }: { rates: Exchan
               <span className="text-base font-normal text-muted-foreground ml-1">{displayTarget}</span>
             </span>
             <span className="shrink-0 flex items-center gap-1 text-xs text-muted-foreground group-hover:text-primary transition-colors">
-              <Pencil className="h-3.5 w-3.5" />
+              <EditOutlined className="h-3.5 w-3.5" />
               Sửa
             </span>
           </button>
@@ -354,7 +354,7 @@ function CurrencyCard({ rate, currencyName, currencyFlag, onEdit }: { rate: Exch
           onClick={onEdit}
           className="flex h-7 w-7 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-accent hover:text-foreground"
         >
-          <Pencil className="h-3.5 w-3.5" />
+          <EditOutlined className="h-3.5 w-3.5" />
         </button>
       </div>
     </div>
@@ -435,7 +435,7 @@ export default function ExchangeRatesPage() {
                 <h2 className="text-base font-semibold shrink-0">{t('managementTitle')}</h2>
                 <div className="flex items-center gap-2 flex-1">
                   <div className="relative flex-1">
-                    <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground pointer-events-none" />
+                    <SearchOutlined className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground pointer-events-none" />
                     <Input
                       placeholder={t('searchPlaceholder')}
                       value={search}
@@ -449,7 +449,7 @@ export default function ExchangeRatesPage() {
                     onClick={() => refetch()}
                     className="flex h-8 w-8 items-center justify-center rounded-md border text-muted-foreground hover:bg-muted transition-colors shrink-0"
                   >
-                    <RefreshCw className={['h-3.5 w-3.5', isFetching ? 'animate-spin' : ''].join(' ')} />
+                    <SyncOutlined className={['h-3.5 w-3.5', isFetching ? 'animate-spin' : ''].join(' ')} />
                   </button>
                 </div>
               </div>

@@ -2,7 +2,7 @@
 
 import type { TableColumnsType } from 'antd'
 import { Badge } from '@/components/ui/badge'
-import { ChevronRight } from 'lucide-react'
+import { RightOutlined } from '@ant-design/icons'
 import type { InventoryItem, InventoryStatus } from '@/types/inventory'
 
 // ─── Status badge config ─────────────────────────────────────────────────────
@@ -159,7 +159,7 @@ export function createInventoryListColumns({
           onClick={() => onView(record)}
           className="inline-flex h-7 w-7 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-accent hover:text-foreground"
         >
-          <ChevronRight className="h-4 w-4" />
+          <RightOutlined className="h-4 w-4" />
         </button>
       ),
     },

@@ -2,7 +2,7 @@
 
 import { useMemo, useState } from 'react'
 import { useTranslations } from 'next-intl'
-import { Search } from 'lucide-react'
+import { SearchOutlined } from '@ant-design/icons'
 import { Dialog, DialogContent, DialogFooter } from '@/components/ui/dialog'
 import { Button } from '@/components/ui/button'
 import { Checkbox } from '@/components/ui/checkbox'
@@ -83,7 +83,7 @@ export function InventoryProductPickerDialog({ open, branchId, counterId, exclud
       >
         <div className="space-y-3 py-1">
           <div className="relative">
-            <Search className="pointer-events-none absolute left-2.5 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+            <SearchOutlined className="pointer-events-none absolute left-2.5 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
             <Input value={search} onChange={e => setSearch(e.target.value)} placeholder={t('searchPlaceholder')} className="pl-8" />
           </div>
 

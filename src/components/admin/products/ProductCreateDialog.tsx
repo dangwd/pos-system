@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react'
 import { useTranslations } from 'next-intl'
 import { useQuery } from '@tanstack/react-query'
 import { Select } from 'antd'
-import { CheckCircle, AlertCircle, Loader2, Lock } from 'lucide-react'
+import { CheckCircleOutlined, ExclamationCircleOutlined, LoadingOutlined, LockOutlined } from '@ant-design/icons'
 import { Dialog, DialogContent, DialogFooter } from '@/components/ui/dialog'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -180,11 +180,11 @@ export function ProductCreateDialog({ open, onClose }: Props) {
             {form.productName.trim().length >= 2 && (
               <div className="flex items-center gap-1.5 mt-1 text-xs">
                 {isCheckingDup ? (
-                  <><Loader2 className="h-3 w-3 animate-spin text-muted-foreground" /><span className="text-muted-foreground">{t('form.duplicateChecking')}</span></>
+                  <><LoadingOutlined className="h-3 w-3 animate-spin text-muted-foreground" /><span className="text-muted-foreground">{t('form.duplicateChecking')}</span></>
                 ) : nameChecked && !isDuplicate ? (
-                  <><CheckCircle className="h-3 w-3 text-green-600" /><span className="text-green-600">{t('form.duplicateOk')}</span></>
+                  <><CheckCircleOutlined className="h-3 w-3 text-green-600" /><span className="text-green-600">{t('form.duplicateOk')}</span></>
                 ) : nameChecked && isDuplicate ? (
-                  <><AlertCircle className="h-3 w-3 text-destructive" /><span className="text-destructive">{t('form.duplicateError')}</span></>
+                  <><ExclamationCircleOutlined className="h-3 w-3 text-destructive" /><span className="text-destructive">{t('form.duplicateError')}</span></>
                 ) : null}
               </div>
             )}
@@ -206,7 +206,7 @@ export function ProductCreateDialog({ open, onClose }: Props) {
                   popupMatchSelectWidth={false}
                 />
                 <p className="flex items-center gap-1 mt-1 text-[11px] text-amber-600">
-                  <Lock className="h-3 w-3" />{t('form.lockedHint')}
+                  <LockOutlined className="h-3 w-3" />{t('form.lockedHint')}
                 </p>
               </Field>
             )}
@@ -223,7 +223,7 @@ export function ProductCreateDialog({ open, onClose }: Props) {
                 popupMatchSelectWidth={false}
               />
               <p className="flex items-center gap-1 mt-1 text-[11px] text-amber-600">
-                <Lock className="h-3 w-3" />{t('form.lockedHint')}
+                <LockOutlined className="h-3 w-3" />{t('form.lockedHint')}
               </p>
             </Field>
           </div>
@@ -231,7 +231,7 @@ export function ProductCreateDialog({ open, onClose }: Props) {
           {/* Locked fields warning banner */}
           {showLockedWarning && (
             <div className="flex items-start gap-2 rounded-md border border-amber-200 bg-amber-50 px-3 py-2 text-sm text-amber-800">
-              <AlertCircle className="h-4 w-4 mt-0.5 shrink-0" />
+              <ExclamationCircleOutlined className="h-4 w-4 mt-0.5 shrink-0" />
               <span>{t('warnings.lockedFields')}</span>
             </div>
           )}
@@ -239,7 +239,7 @@ export function ProductCreateDialog({ open, onClose }: Props) {
           {/* Duplicate error banner */}
           {isDuplicate && (
             <div className="flex items-start gap-2 rounded-md border border-destructive/30 bg-destructive/5 px-3 py-2 text-sm text-destructive">
-              <AlertCircle className="h-4 w-4 mt-0.5 shrink-0" />
+              <ExclamationCircleOutlined className="h-4 w-4 mt-0.5 shrink-0" />
               <span>{t('warnings.duplicate', { name: form.productName.trim() })}</span>
             </div>
           )}

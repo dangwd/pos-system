@@ -4,7 +4,7 @@ import { usePermission } from '@/hooks/usePermission'
 import { ForbiddenPage } from '@/components/shared/ForbiddenPage'
 import { useMemo, useState } from 'react'
 import { useTranslations } from 'next-intl'
-import { Pencil, Plus, History } from 'lucide-react'
+import { EditOutlined, PlusOutlined, HistoryOutlined } from '@ant-design/icons'
 import { InputNumber } from 'antd'
 import { Button } from '@/components/ui/button'
 import { Spinner } from '@/components/ui/spinner'
@@ -152,16 +152,16 @@ export default function PricesPage() {
         {!comparing && !viewingHistory && (
           <div className="flex gap-2">
             <Button size="sm" variant="outline" onClick={openHistory} disabled={isLoading}>
-              <History className="h-3.5 w-3.5 mr-1.5" />
+              <HistoryOutlined className="h-3.5 w-3.5 mr-1.5" />
               {t('historyButton')}
             </Button>
             <Button size="sm" variant="outline" onClick={openAddDialog} disabled={isLoading}>
-              <Plus className="h-3.5 w-3.5 mr-1.5" />
+              <PlusOutlined className="h-3.5 w-3.5 mr-1.5" />
               {t('addRowButton')}
             </Button>
             {!editing && (
               <Button size="sm" variant="outline" onClick={startEdit} disabled={isLoading || !prices?.items.length}>
-                <Pencil className="h-3.5 w-3.5 mr-1.5" />
+                <EditOutlined className="h-3.5 w-3.5 mr-1.5" />
                 {t('updateButton')}
               </Button>
             )}

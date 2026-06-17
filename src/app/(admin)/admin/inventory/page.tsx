@@ -3,7 +3,7 @@
 import { useMemo, useState } from 'react'
 import { useTranslations } from 'next-intl'
 import { useRouter } from 'next/navigation'
-import { ClipboardList } from 'lucide-react'
+import { OrderedListOutlined } from '@ant-design/icons'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { DataTable } from '@/components/shared/DataTable'
@@ -125,7 +125,7 @@ export default function InventoryPage() {
             className="gap-1.5"
             onClick={() => router.push('/admin/inventory/adjustments')}
           >
-            <ClipboardList className="h-4 w-4" />
+            <OrderedListOutlined className="h-4 w-4" />
             {t('list.adjustmentsLink')}
           </Button>
         )}

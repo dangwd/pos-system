@@ -2,7 +2,7 @@
 
 import { useMemo, useRef, useState } from 'react'
 import { useTranslations } from 'next-intl'
-import { ShieldCheck, MoreHorizontal, Pencil, Trash2 } from 'lucide-react'
+import { SafetyCertificateOutlined, MoreOutlined, EditOutlined, DeleteOutlined } from '@ant-design/icons'
 import { Table, Button, Card, Tag } from 'antd'
 import { PlusOutlined } from '@ant-design/icons'
 import type { TableColumnsType } from 'antd'
@@ -418,7 +418,7 @@ export default function RolesPage() {
         if (isDivider(row)) return null
         return (
           <div style={{ display: 'flex', alignItems: 'center', gap: 6, color: '#6b7280' }}>
-            <ShieldCheck style={{ width: 14, height: 14, color: '#6366f1' }} />
+            <SafetyCertificateOutlined style={{ width: 14, height: 14, color: '#6366f1' }} />
             <span style={{ fontSize: 13 }}>{t('permissionsCount', { count: row.permissions.length })}</span>
           </div>
         )
@@ -437,16 +437,16 @@ export default function RolesPage() {
             {!row.isSystem && (
               <DropdownMenu>
                 <DropdownMenuTrigger className="inline-flex h-7 w-7 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-accent hover:text-accent-foreground focus-visible:outline-none">
-                  <MoreHorizontal className="h-3.5 w-3.5" />
+                  <MoreOutlined className="h-3.5 w-3.5" />
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end" className="min-w-44">
                   <DropdownMenuItem onClick={() => setInfoEditTarget(row)}>
-                    <Pencil className="h-3.5 w-3.5" />
+                    <EditOutlined className="h-3.5 w-3.5" />
                     {t('editInfoButton')}
                   </DropdownMenuItem>
                   <DropdownMenuSeparator />
                   <DropdownMenuItem variant="destructive" onClick={() => setDeleteTarget(row)}>
-                    <Trash2 className="h-3.5 w-3.5" />
+                    <DeleteOutlined className="h-3.5 w-3.5" />
                     {t('deleteButton')}
                   </DropdownMenuItem>
                 </DropdownMenuContent>

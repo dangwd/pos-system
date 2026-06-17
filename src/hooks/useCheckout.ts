@@ -17,7 +17,7 @@ import type { PaymentStrategy } from "@/lib/strategies/payment.strategy";
 import type { PaymentMethod, TransactionType } from "@/types/transaction";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useLocale, useTranslations } from "next-intl";
-import { toast } from "sonner";
+import { toast } from "@/lib/toast";
 import { useActiveTab } from "./useActiveTab";
 
 interface CheckoutParams {

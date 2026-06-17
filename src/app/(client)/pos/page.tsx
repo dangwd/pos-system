@@ -17,7 +17,7 @@ import type { Transaction } from "@/types/transaction";
 import { Splitter } from "antd";
 import { useTranslations } from "next-intl";
 import { useState } from "react";
-import { toast } from "sonner";
+import { toast } from "@/lib/toast";
 
 export default function PosPage() {
   const t = useTranslations("pos.errors");

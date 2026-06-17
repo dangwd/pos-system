@@ -23,7 +23,7 @@ import {
   DialogFooter,
 } from '@/components/ui/dialog'
 import { Button } from '@/components/ui/button'
-import { Plus, X, PauseCircle, Copy } from 'lucide-react'
+import { PlusOutlined, CloseOutlined, PauseCircleOutlined, CopyOutlined } from '@ant-design/icons'
 import type { InvoiceTab } from '@/types/invoice-tab'
 import { lineTotal } from '@/types/cart'
 
@@ -123,14 +123,14 @@ function TabChip({ tab, isActive, onSwitch, onClose, onHold, onDuplicate, showCl
             className="p-0.5 rounded hover:bg-amber-100 hover:text-amber-600 text-muted-foreground"
             title="Tạm giữ (Ctrl+H)"
           >
-            <PauseCircle className="h-3 w-3" />
+            <PauseCircleOutlined className="h-3 w-3" />
           </button>
           <button
             onClick={e => { e.stopPropagation(); onDuplicate() }}
             className="p-0.5 rounded hover:bg-muted text-muted-foreground"
             title="Nhân bản (Ctrl+D)"
           >
-            <Copy className="h-3 w-3" />
+            <CopyOutlined className="h-3 w-3" />
           </button>
         </div>
 
@@ -143,7 +143,7 @@ function TabChip({ tab, isActive, onSwitch, onClose, onHold, onDuplicate, showCl
             )}
             title="Đóng (Ctrl+W)"
           >
-            <X className="h-3 w-3" />
+            <CloseOutlined className="h-3 w-3" />
           </button>
         )}
       </div>
@@ -238,7 +238,7 @@ export function InvoiceTabBar() {
           title="Hóa đơn mới (Ctrl+T)"
           aria-label="Mở hóa đơn mới"
         >
-          <Plus className="h-3.5 w-3.5" />
+          <PlusOutlined className="h-3.5 w-3.5" />
           <span>Hóa đơn mới</span>
         </button>
       </div>

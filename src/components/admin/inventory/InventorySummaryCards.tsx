@@ -1,7 +1,7 @@
 'use client'
 
 import { useTranslations } from 'next-intl'
-import { Coins, Gem, Wallet } from 'lucide-react'
+import { MoneyCollectOutlined, GoldOutlined, WalletOutlined } from '@ant-design/icons'
 import { GRAM_PER_CHI, type InventoryTotals } from '@/lib/inventory-valuation'
 
 interface Props {
@@ -20,19 +20,19 @@ export function InventorySummaryCards({ totals, totalAssetUsd }: Props) {
   return (
     <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
       <Card
-        icon={<Coins className="h-4 w-4" />}
+        icon={<MoneyCollectOutlined className="h-4 w-4" />}
         label={t('goldStock')}
         value={`${num(totals.goldStockChi)} Chỉ`}
         sub={`~${num(goldGram, 1)}g`}
       />
       <Card
-        icon={<Gem className="h-4 w-4" />}
+        icon={<GoldOutlined className="h-4 w-4" />}
         label={t('silverStock')}
         value={`${num(totals.silverStockGram)} g`}
         sub={`~${num(silverKg, 2)} Kg`}
       />
       <Card
-        icon={<Wallet className="h-4 w-4" />}
+        icon={<WalletOutlined className="h-4 w-4" />}
         label={t('assetValue')}
         value={`${num(totals.totalAssetLak, 0)} ₭`}
         sub={`~${totalAssetUsd == null ? 'N/A' : num(totalAssetUsd, 0)} USD`}

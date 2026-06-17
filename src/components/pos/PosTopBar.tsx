@@ -37,20 +37,20 @@ import type { ProductWithStock } from "@/types/product";
 import type { TransactionType } from "@/types/transaction";
 import { Button } from "antd";
 import {
-  ArrowLeftRight,
-  Banknote,
-  ChevronDown,
-  ChevronLeft,
-  ChevronRight,
-  Coins,
-  Gem,
-  LayoutDashboard,
-  LogOut,
-  PackagePlus,
-  Plus,
-  Search,
-  X,
-} from "lucide-react";
+  BankOutlined,
+  DashboardOutlined,
+  DownOutlined,
+  GoldOutlined,
+  LeftOutlined,
+  LogoutOutlined,
+  MoneyCollectOutlined,
+  PlusOutlined,
+  PlusSquareOutlined,
+  RightOutlined,
+  SearchOutlined,
+  CloseOutlined,
+  SwapOutlined,
+} from "@ant-design/icons";
 import { useTranslations } from "next-intl";
 import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
@@ -134,7 +134,7 @@ function ProductSearch({ onSelect }: ProductSearchProps) {
         id="pos-product-search"
         placeholder={t("searchPlaceholder")}
         className="h-8 text-xs"
-        prefix={<Search className="h-3.5 w-3.5 text-muted-foreground" />}
+        prefix={<SearchOutlined className="h-3.5 w-3.5 text-muted-foreground" />}
         suffix={isFetching ? <Spinner className="h-3 w-3" /> : null}
         value={search}
         onChange={(e) => {
@@ -225,11 +225,11 @@ function ProductSearch({ onSelect }: ProductSearchProps) {
 // ─── InlineTabChip ────────────────────────────────────────────────────────────
 
 const TXN_TYPE_ICONS: Partial<Record<string, React.ElementType>> = {
-  SellGold: Coins,
-  SellSilver: Gem,
-  BuyGold: PackagePlus,
-  ExchangeGold: ArrowLeftRight,
-  ExchangeCurrency: Banknote,
+  SellGold: MoneyCollectOutlined,
+  SellSilver: GoldOutlined,
+  BuyGold: PlusSquareOutlined,
+  ExchangeGold: SwapOutlined,
+  ExchangeCurrency: BankOutlined,
 };
 
 interface InlineTabChipProps {
@@ -249,7 +249,7 @@ function InlineTabChip({
 }: InlineTabChipProps) {
   const t = useTranslations("pos.txnTypes");
   const totalQty = tab.items.reduce((s, i) => s + i.qty, 0);
-  const TabIcon = TXN_TYPE_ICONS[tab.txnType] ?? Coins;
+  const TabIcon = TXN_TYPE_ICONS[tab.txnType] ?? MoneyCollectOutlined;
   const txnLabel = t(`${tab.txnType}.label`);
 
   return (
@@ -295,7 +295,7 @@ function InlineTabChip({
                 : "text-white/70 hover:bg-white/15",
             )}
           >
-            <X className="h-2.5 w-2.5" />
+            <CloseOutlined className="h-2.5 w-2.5" />
           </button>
         )}
       </div>
@@ -333,11 +333,11 @@ function InlineTabChip({
 // ─── TxnTypeSelectDialog ──────────────────────────────────────────────────────
 
 const TXN_TYPE_OPTIONS: { type: TransactionType; Icon: React.ElementType }[] = [
-  { type: "SellGold", Icon: Coins },
-  { type: "SellSilver", Icon: Gem },
-  { type: "BuyGold", Icon: PackagePlus },
-  { type: "ExchangeGold", Icon: ArrowLeftRight },
-  { type: "ExchangeCurrency", Icon: Banknote },
+  { type: "SellGold", Icon: MoneyCollectOutlined },
+  { type: "SellSilver", Icon: GoldOutlined },
+  { type: "BuyGold", Icon: PlusSquareOutlined },
+  { type: "ExchangeGold", Icon: SwapOutlined },
+  { type: "ExchangeCurrency", Icon: BankOutlined },
 ];
 
 interface TxnTypeSelectProps {
@@ -369,7 +369,7 @@ function TxnTypeSelectDialog({ open, onClose, onSelect }: TxnTypeSelectProps) {
                 {t(`${type}.desc`)}
               </p>
             </div>
-            <ChevronRight className="h-3.5 w-3.5 text-muted-foreground/40 shrink-0" />
+            <RightOutlined className="h-3.5 w-3.5 text-muted-foreground/40 shrink-0" />
           </button>
         ))}
       </DialogContent>
@@ -503,7 +503,7 @@ export function PosTopBar({ onAddProduct }: PosTopBarProps) {
               onClick={() => scrollTabs('left')}
               className="absolute left-0 bottom-0 z-20 h-full px-1 flex items-center bg-linear-to-r from-primary via-primary/90 to-transparent text-white/60 hover:text-white transition-colors"
             >
-              <ChevronLeft className="h-3.5 w-3.5" />
+              <LeftOutlined className="h-3.5 w-3.5" />
             </button>
           )}
 
@@ -530,7 +530,7 @@ export function PosTopBar({ onAddProduct }: PosTopBarProps) {
               title={t("newTabTooltip")}
               className="shrink-0 self-center ml-1 h-6 w-6 flex items-center justify-center rounded-full border border-dashed border-white/35 text-white/45 hover:border-white/70 hover:text-white hover:bg-white/10 transition-all"
             >
-              <Plus className="h-3.5 w-3.5" />
+              <PlusOutlined className="h-3.5 w-3.5" />
             </button>
           </div>
 
@@ -540,7 +540,7 @@ export function PosTopBar({ onAddProduct }: PosTopBarProps) {
               onClick={() => scrollTabs('right')}
               className="absolute right-0 bottom-0 z-20 h-full px-1 flex items-center bg-linear-to-l from-primary via-primary/90 to-transparent text-white/60 hover:text-white transition-colors"
             >
-              <ChevronRight className="h-3.5 w-3.5" />
+              <RightOutlined className="h-3.5 w-3.5" />
             </button>
           )}
         </div>
@@ -564,7 +564,7 @@ export function PosTopBar({ onAddProduct }: PosTopBarProps) {
                     {user.counterName ?? user.role}
                   </span>
                 </div>
-                <ChevronDown className="h-3 w-3 text-white/60 shrink-0" />
+                <DownOutlined className="h-3 w-3 text-white/60 shrink-0" />
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end" className="min-w-48">
                 <div className="px-3 py-2.5 border-b">
@@ -585,7 +585,7 @@ export function PosTopBar({ onAddProduct }: PosTopBarProps) {
                   onClick={() => router.push("/admin/dashboard")}
                   className="cursor-pointer gap-2 mt-1"
                 >
-                  <LayoutDashboard className="h-3.5 w-3.5" />
+                  <DashboardOutlined className="h-3.5 w-3.5" />
                   {t("adminButton")}
                 </DropdownMenuItem>
                 <DropdownMenuSeparator />
@@ -594,7 +594,7 @@ export function PosTopBar({ onAddProduct }: PosTopBarProps) {
                   disabled={isLoggingOut}
                   className="text-destructive focus:text-destructive cursor-pointer gap-2 mb-1"
                 >
-                  <LogOut className="h-3.5 w-3.5" />
+                  <LogoutOutlined className="h-3.5 w-3.5" />
                   {tAuth("logout")}
                 </DropdownMenuItem>
               </DropdownMenuContent>

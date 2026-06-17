@@ -17,7 +17,7 @@ import { CustomerCreateDialog } from "@/components/admin/customers/CustomerCreat
 import { ExchangeInvoiceLookup } from "@/components/pos/ExchangeInvoiceLookup";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { toast } from "sonner";
+import { toast } from "@/lib/toast";
 import { useActiveTab } from "@/hooks/useActiveTab";
 import { useAuthStore } from "@/stores/auth.store";
 import { useCustomers } from "@/hooks/useCustomers";
@@ -30,19 +30,18 @@ import { cn } from "@/lib/utils";
 import type { Customer } from "@/types/customer";
 import { Button, InputNumber } from "antd";
 import {
-  AlertCircle,
-  Banknote,
-  Building2,
-  CreditCard,
-  Layers,
-  Loader2,
-  Plus,
-  ScanLine,
-  Search,
-  User,
-  X,
-  XCircle,
-} from "lucide-react";
+  AppstoreOutlined,
+  BankOutlined,
+  CloseCircleOutlined,
+  CloseOutlined,
+  CreditCardOutlined,
+  ExclamationCircleOutlined,
+  LoadingOutlined,
+  PlusOutlined,
+  ScanOutlined,
+  SearchOutlined,
+  UserOutlined,
+} from "@ant-design/icons";
 import { useTranslations } from "next-intl";
 import { useEffect, useRef, useState } from "react";
 
@@ -177,13 +176,13 @@ function OrderLookup() {
               className="h-8 w-8 shrink-0 flex items-center justify-center rounded-md border bg-muted hover:bg-accent transition-colors disabled:opacity-50"
             >
               {isSearching
-                ? <Loader2 className="h-3.5 w-3.5 animate-spin text-muted-foreground" />
-                : <ScanLine className="h-3.5 w-3.5 text-muted-foreground" />}
+                ? <LoadingOutlined className="h-3.5 w-3.5 animate-spin text-muted-foreground" />
+                : <ScanOutlined className="h-3.5 w-3.5 text-muted-foreground" />}
             </button>
           </div>
           {notFound && (
             <p className="mt-1.5 text-[10px] text-destructive flex items-center gap-1">
-              <AlertCircle className="h-3 w-3" /> Không tìm thấy hóa đơn
+              <ExclamationCircleOutlined className="h-3 w-3" /> Không tìm thấy hóa đơn
             </p>
           )}
         </>
@@ -191,10 +190,10 @@ function OrderLookup() {
 
       {!result && cancelInvoiceCode && (
         <div className="flex items-center gap-2 bg-destructive/5 border border-destructive/20 rounded-md px-3 py-2">
-          <XCircle className="h-3.5 w-3.5 text-destructive shrink-0" />
+          <CloseCircleOutlined className="h-3.5 w-3.5 text-destructive shrink-0" />
           <span className="flex-1 text-xs font-mono truncate text-destructive">{cancelInvoiceCode}</span>
           <button onClick={handleClear} className="shrink-0 p-1 rounded-sm hover:bg-destructive/10 hover:text-destructive transition-colors">
-            <X className="h-3 w-3" />
+            <CloseOutlined className="h-3 w-3" />
           </button>
         </div>
       )}
@@ -210,7 +209,7 @@ function OrderLookup() {
               {isCancelledStatus ? "Đã hủy" : "Hoàn tất"}
             </span>
             <button onClick={handleClear} className="shrink-0 p-0.5 rounded hover:bg-destructive/10 hover:text-destructive transition-colors">
-              <X className="h-3 w-3" />
+              <CloseOutlined className="h-3 w-3" />
             </button>
           </div>
           <div className="px-2.5 py-2 space-y-1">
@@ -292,7 +291,7 @@ function CustomerSection({ showError }: { showError: boolean }) {
       {tab?.customerName ? (
         <div className="flex items-center gap-2 bg-muted/50 rounded-md px-3 py-2">
           <div className="h-7 w-7 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
-            <User className="h-3.5 w-3.5 text-primary" />
+            <UserOutlined className="h-3.5 w-3.5 text-primary" />
           </div>
           <div className="flex-1 min-w-0">
             <p className="text-xs font-semibold truncate">{tab.customerName}</p>
@@ -302,7 +301,7 @@ function CustomerSection({ showError }: { showError: boolean }) {
           </div>
           {!tab.cancelTransactionId && (
             <button onClick={clearCustomer} className="shrink-0 p-1 rounded-sm hover:bg-destructive/10 hover:text-destructive transition-colors">
-              <X className="h-3 w-3" />
+              <CloseOutlined className="h-3 w-3" />
             </button>
           )}
         </div>
@@ -313,8 +312,8 @@ function CustomerSection({ showError }: { showError: boolean }) {
               <Input
                 id="pos-customer-search"
                 placeholder={t("customerSearch")}
-                prefix={<Search className="h-3 w-3 text-muted-foreground" />}
-                suffix={isFetching ? <Loader2 className="h-3 w-3 animate-spin text-muted-foreground" /> : null}
+                prefix={<SearchOutlined className="h-3 w-3 text-muted-foreground" />}
+                suffix={isFetching ? <LoadingOutlined className="h-3 w-3 animate-spin text-muted-foreground" /> : null}
                 value={query}
                 onChange={(e) => { setQuery(e.target.value); setFocusedIndex(-1); setOpen(!!e.target.value); }}
                 onFocus={() => query && setOpen(true)}
@@ -330,7 +329,7 @@ function CustomerSection({ showError }: { showError: boolean }) {
             </div>
             <button onClick={() => setCreateOpen(true)} title={t("createCustomer")}
               className="h-8 w-8 shrink-0 flex items-center justify-center rounded-md border bg-muted hover:bg-accent transition-colors">
-              <Plus className="h-3.5 w-3.5 text-muted-foreground" />
+              <PlusOutlined className="h-3.5 w-3.5 text-muted-foreground" />
             </button>
           </div>
           {showError && (
@@ -345,7 +344,7 @@ function CustomerSection({ showError }: { showError: boolean }) {
                   className={cn("w-full flex items-center gap-2.5 px-3 py-2.5 text-left hover:bg-accent hover:text-accent-foreground transition-colors border-b last:border-0",
                     focusedIndex === i && "bg-accent text-accent-foreground")}>
                   <div className="h-6 w-6 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
-                    <User className="h-3 w-3 text-primary" />
+                    <UserOutlined className="h-3 w-3 text-primary" />
                   </div>
                   <div className="min-w-0 flex-1">
                     <p className="text-xs font-medium truncate">{c.name}</p>
@@ -518,7 +517,7 @@ function PaymentBreakdown({
             <div className="flex items-center justify-between bg-secondary rounded-md px-3 py-2 border border-border">
               <span className="text-xs font-semibold tabular-nums text-destructive">-{fmt(discount)}</span>
               <button onClick={onClearDiscount} className="text-muted-foreground hover:text-destructive transition-colors">
-                <X className="h-3.5 w-3.5" />
+                <CloseOutlined className="h-3.5 w-3.5" />
               </button>
             </div>
           ) : (
@@ -631,9 +630,9 @@ function PaymentMethodSection({
                 : "border-border hover:bg-accent text-foreground",
             )}
           >
-            {key === "cash" && <Banknote className="h-4 w-4 shrink-0" />}
-            {key === "bank-transfer" && <Building2 className="h-4 w-4 shrink-0" />}
-            {key === "combined" && <Layers className="h-4 w-4 shrink-0" />}
+            {key === "cash" && <BankOutlined className="h-4 w-4 shrink-0" />}
+            {key === "bank-transfer" && <BankOutlined className="h-4 w-4 shrink-0" />}
+            {key === "combined" && <AppstoreOutlined className="h-4 w-4 shrink-0" />}
             <span className="text-center leading-tight">{tMethods(key)}</span>
           </button>
         ))}
@@ -656,7 +655,7 @@ function PaymentMethodSection({
           <div className="grid grid-cols-2 gap-2">
             <div className="space-y-1">
               <Label className="text-xs text-muted-foreground flex items-center gap-1">
-                <Banknote className="h-3 w-3" /> Tiền mặt
+                <BankOutlined className="h-3 w-3" /> Tiền mặt
               </Label>
               <InputNumber
                 min={0} placeholder="0" value={cashInput ? Number(cashInput) : null}
@@ -667,7 +666,7 @@ function PaymentMethodSection({
             </div>
             <div className="space-y-1">
               <Label className="text-xs text-muted-foreground flex items-center gap-1">
-                <Building2 className="h-3 w-3" /> Chuyển khoản
+                <BankOutlined className="h-3 w-3" /> Chuyển khoản
               </Label>
               <InputNumber
                 min={0} placeholder="0" value={bankInput ? Number(bankInput) : null}
@@ -864,7 +863,7 @@ export function PaymentPanel({
         {isCancelMode ? (
           <Button
             danger type="primary" block size="large"
-            icon={<XCircle size={16} />}
+            icon={<CloseCircleOutlined style={{ fontSize: 16 }} />}
             loading={isCancelling} disabled={isCancelling}
             onClick={handleCancelInvoice}
             style={{ fontWeight: 700 }}
@@ -874,7 +873,7 @@ export function PaymentPanel({
         ) : isFx ? (
           <Button
             type="primary" block size="large"
-            icon={<CreditCard size={16} />}
+            icon={<CreditCardOutlined style={{ fontSize: 16 }} />}
             loading={isCheckingOut} disabled={fxDisabled || isCheckingOut}
             onClick={handleDirectCheckout}
             style={{ fontWeight: 700 }}
@@ -884,7 +883,7 @@ export function PaymentPanel({
         ) : (
           <Button
             type="primary" block size="large"
-            icon={<CreditCard size={16} />}
+            icon={<CreditCardOutlined style={{ fontSize: 16 }} />}
             loading={isCheckingOut}
             disabled={isCheckingOut || !combinedValid || (tab?.items?.length ?? 0) === 0}
             onClick={handleCheckout}

@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogFooter } from "@/components/ui/dialog";
 import type { PrintInvoice, PrintItem } from "@/stores/print.store";
 import { INVOICE_TITLE, usePrintStore } from "@/stores/print.store";
-import { Printer, X } from "lucide-react";
+import { PrinterOutlined, CloseOutlined } from "@ant-design/icons";
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 
@@ -394,7 +394,7 @@ export function PrintInvoiceModal() {
           title={
             invoice ? (
               <span className="flex items-center gap-2">
-                <Printer className="h-4 w-4" />
+                <PrinterOutlined className="h-4 w-4" />
                 {INVOICE_TITLE[invoice.txnType].vi}
               </span>
             ) : undefined
@@ -402,11 +402,11 @@ export function PrintInvoiceModal() {
           footer={
             <DialogFooter>
               <Button variant="outline" onClick={closePrint}>
-                <X className="h-4 w-4 mr-2" />
+                <CloseOutlined className="h-4 w-4 mr-2" />
                 Đóng
               </Button>
               <Button onClick={triggerPrint}>
-                <Printer className="h-4 w-4 mr-2" />
+                <PrinterOutlined className="h-4 w-4 mr-2" />
                 In hóa đơn
               </Button>
             </DialogFooter>

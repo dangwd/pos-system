@@ -1,7 +1,7 @@
 import { useMemo } from 'react'
 import { useInfiniteQuery, useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useLocale, useTranslations } from 'next-intl'
-import { toast } from 'sonner'
+import { toast } from '@/lib/toast'
 import { inventoryRepository } from '@/lib/repositories/inventory.repository'
 import { getErrorMessage, type AppLocale } from '@/lib/errors'
 import type { ApiError } from '@/lib/api-error'

@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import { useTranslations } from 'next-intl'
-import { X, ArrowLeft, ChevronRight } from 'lucide-react'
+import { CloseOutlined, ArrowLeftOutlined, RightOutlined } from '@ant-design/icons'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Spinner } from '@/components/ui/spinner'
@@ -33,7 +33,7 @@ export function PriceHistory({ onClose }: Props) {
       <div className="space-y-3">
         <div className="flex items-center justify-between">
           <Button size="sm" variant="outline" onClick={() => setSelected(null)}>
-            <ArrowLeft className="h-3.5 w-3.5 mr-1.5" />
+            <ArrowLeftOutlined className="h-3.5 w-3.5 mr-1.5" />
             {t('historyBack')}
           </Button>
           <span className="text-xs text-muted-foreground">
@@ -93,7 +93,7 @@ export function PriceHistory({ onClose }: Props) {
       <div className="flex items-center justify-between">
         <h2 className="text-sm font-semibold">{t('historyTitle')}</h2>
         <Button size="sm" variant="outline" onClick={onClose}>
-          <X className="h-3.5 w-3.5 mr-1.5" />
+          <CloseOutlined className="h-3.5 w-3.5 mr-1.5" />
           {t('historyClose')}
         </Button>
       </div>
@@ -123,7 +123,7 @@ export function PriceHistory({ onClose }: Props) {
               </div>
               <div className="flex items-center gap-2 text-xs text-muted-foreground">
                 <span>{t('historyCount', { count: cfg.items.length })}</span>
-                <ChevronRight className="h-4 w-4 opacity-50" />
+                <RightOutlined className="h-4 w-4 opacity-50" />
               </div>
             </button>
           ))}

@@ -1,6 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useLocale, useTranslations } from 'next-intl'
-import { toast } from 'sonner'
+import { toast } from '@/lib/toast'
 import { userRepository, type UserListParams } from '@/lib/repositories/user.repository'
 import { getErrorMessage } from '@/lib/errors'
 import type { AppLocale } from '@/lib/errors'

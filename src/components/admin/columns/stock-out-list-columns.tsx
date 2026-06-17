@@ -1,7 +1,7 @@
 // stock-out-list-columns — column definitions cho trang danh sách xuất kho
 
 import type { ColumnDef } from '@tanstack/react-table'
-import { ArrowUpFromLine } from 'lucide-react'
+import { VerticalAlignTopOutlined } from '@ant-design/icons'
 import type { InventoryAdjustment } from '@/types/inventory'
 
 /** Tóm tắt sản phẩm của một phiếu nhiều dòng: "Tên SP đầu +N". */
@@ -53,7 +53,7 @@ export function createStockOutListColumns(
       header: labels.quantity,
       cell: ({ row }) => (
         <div className="flex items-center gap-1">
-          <ArrowUpFromLine className="h-3 w-3 text-destructive" />
+          <VerticalAlignTopOutlined className="h-3 w-3 text-destructive" />
           <span className="tabular-nums font-semibold text-destructive">
             {row.original.totalQuantity}
           </span>

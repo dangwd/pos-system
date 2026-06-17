@@ -5,7 +5,7 @@ import { useExchangeRates, useUpdateExchangeRate } from "@/hooks/useConfig";
 import { cn } from "@/lib/utils";
 import type { ExchangeRate } from "@/types/config";
 import { InputNumber, Select } from "antd";
-import { ArrowRight, Check, Pencil, X } from "lucide-react";
+import { ArrowRightOutlined, CheckOutlined, EditOutlined, CloseOutlined } from "@ant-design/icons";
 import { useEffect, useState } from "react";
 
 const CURRENCY_LABELS: Record<string, string> = {
@@ -178,7 +178,7 @@ export function CurrencyExchangeForm() {
           />
           <div className="w-10 flex items-center justify-center">
             <div className="h-7 w-7 rounded-full bg-muted border border-border flex items-center justify-center">
-              <ArrowRight className="h-3.5 w-3.5 text-muted-foreground" />
+              <ArrowRightOutlined className="h-3.5 w-3.5 text-muted-foreground" />
             </div>
           </div>
           <Select
@@ -223,14 +223,14 @@ export function CurrencyExchangeForm() {
                   disabled={isSavingRate || !rateInput}
                   className="h-8 w-8 shrink-0 flex items-center justify-center rounded-md bg-primary text-primary-foreground hover:bg-primary/90 disabled:opacity-50 transition-colors"
                 >
-                  <Check className="h-4 w-4" />
+                  <CheckOutlined className="h-4 w-4" />
                 </button>
                 <button
                   onClick={() => setEditingRate(false)}
                   disabled={isSavingRate}
                   className="h-8 w-8 shrink-0 flex items-center justify-center rounded-md border border-border text-muted-foreground hover:bg-accent transition-colors"
                 >
-                  <X className="h-4 w-4" />
+                  <CloseOutlined className="h-4 w-4" />
                 </button>
               </div>
             ) : (
@@ -245,7 +245,7 @@ export function CurrencyExchangeForm() {
                   {rateUnit}
                 </span>
                 <span className="shrink-0 flex items-center gap-1 text-[10px] text-muted-foreground group-hover:text-primary transition-colors">
-                  <Pencil className="h-3.5 w-3.5" />
+                  <EditOutlined className="h-3.5 w-3.5" />
                   Sửa
                 </span>
               </button>

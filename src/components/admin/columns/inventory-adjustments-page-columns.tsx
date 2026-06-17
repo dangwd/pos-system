@@ -2,7 +2,7 @@
 
 import type { TableColumnsType } from 'antd'
 import { Badge } from '@/components/ui/badge'
-import { ArrowDownToLine, ArrowUpFromLine } from 'lucide-react'
+import { VerticalAlignBottomOutlined, VerticalAlignTopOutlined } from '@ant-design/icons'
 import type { InventoryAdjustment } from '@/types/inventory'
 
 const lak = (n: number) => n.toLocaleString('lo-LA', { maximumFractionDigits: 0 })
@@ -62,8 +62,8 @@ export function createAdjustmentsPageColumns(
             }`}
           >
             {isIn
-              ? <ArrowDownToLine className="h-3 w-3" />
-              : <ArrowUpFromLine className="h-3 w-3" />
+              ? <VerticalAlignBottomOutlined className="h-3 w-3" />
+              : <VerticalAlignTopOutlined className="h-3 w-3" />
             }
             {isIn ? labels.dirIn : labels.dirOut}
           </Badge>

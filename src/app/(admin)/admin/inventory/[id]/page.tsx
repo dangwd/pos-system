@@ -4,10 +4,10 @@ import { useMemo, useState } from 'react'
 import { useParams, useRouter } from 'next/navigation'
 import { useTranslations } from 'next-intl'
 import {
-  ArrowDownToLine,
-  ArrowLeft,
-  ArrowUpFromLine,
-} from 'lucide-react'
+  VerticalAlignBottomOutlined,
+  ArrowLeftOutlined,
+  VerticalAlignTopOutlined,
+} from '@ant-design/icons'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Skeleton } from '@/components/ui/skeleton'
@@ -104,7 +104,7 @@ export default function InventoryItemDetailPage() {
     return (
       <div className="p-6 space-y-4">
         <Button variant="ghost" size="sm" className="gap-1.5 text-muted-foreground" onClick={() => router.push('/admin/inventory/stock-out')}>
-          <ArrowLeft className="h-3.5 w-3.5" />
+          <ArrowLeftOutlined className="h-3.5 w-3.5" />
           {tDetail('back')}
         </Button>
         <p className="text-muted-foreground">{tDetail('notFound')}</p>
@@ -123,7 +123,7 @@ export default function InventoryItemDetailPage() {
         className="gap-1.5 text-muted-foreground -ml-2"
         onClick={() => router.push('/admin/inventory/stock-out')}
       >
-        <ArrowLeft className="h-3.5 w-3.5" />
+        <ArrowLeftOutlined className="h-3.5 w-3.5" />
         {tDetail('back')}
       </Button>
 
@@ -178,7 +178,7 @@ export default function InventoryItemDetailPage() {
               className="gap-1.5"
               onClick={() => router.push(`/admin/inventory/stock-in?id=${item.id}`)}
             >
-              <ArrowDownToLine className="h-4 w-4" />
+              <VerticalAlignBottomOutlined className="h-4 w-4" />
               {tDetail('stockIn')}
             </Button>
             <Button
@@ -187,7 +187,7 @@ export default function InventoryItemDetailPage() {
               className="gap-1.5 text-destructive border-destructive/30 hover:bg-destructive/5"
               onClick={() => router.push(`/admin/inventory/stock-out?id=${item.id}`)}
             >
-              <ArrowUpFromLine className="h-4 w-4" />
+              <VerticalAlignTopOutlined className="h-4 w-4" />
               {tDetail('stockOut')}
             </Button>
             {transition && (

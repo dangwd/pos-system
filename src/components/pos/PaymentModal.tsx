@@ -16,14 +16,13 @@ import {
 import { cn } from "@/lib/utils";
 import { lineTotal, type CartItem } from "@/types/cart";
 import {
-  ArrowDownToLine,
-  Banknote,
-  Building2,
-  FileText,
-  Layers,
-  Link2,
-  ShoppingBag,
-} from "lucide-react";
+  AppstoreOutlined,
+  BankOutlined,
+  FileTextOutlined,
+  LinkOutlined,
+  ShoppingOutlined,
+  VerticalAlignBottomOutlined,
+} from "@ant-design/icons";
 import { useTranslations } from "next-intl";
 import { useEffect, useState } from "react";
 
@@ -263,7 +262,7 @@ export function PaymentModal({
       </div>
       {tab?.linkedInvoiceCode && (
         <div className="flex items-center gap-1.5 mt-1 text-[10px] text-amber-600">
-          <Link2 className="h-2.5 w-2.5" />
+          <LinkOutlined className="h-2.5 w-2.5" />
           <span>
             Liên kết HĐ:{" "}
             <span className="font-semibold font-mono">
@@ -274,7 +273,7 @@ export function PaymentModal({
       )}
       {tab?.note && (
         <div className="flex items-center gap-1.5 mt-0.5 text-[10px] text-muted-foreground">
-          <FileText className="h-2.5 w-2.5" />
+          <FileTextOutlined className="h-2.5 w-2.5" />
           <span>{tab.note}</span>
         </div>
       )}
@@ -316,7 +315,7 @@ export function PaymentModal({
                 {exchangeItems.length > 0 && (
                   <>
                     <div className="flex items-center gap-1.5 px-4 py-2 bg-amber-50/60 dark:bg-amber-950/20 border-b">
-                      <ArrowDownToLine className="h-3 w-3 text-amber-600" />
+                      <VerticalAlignBottomOutlined className="h-3 w-3 text-amber-600" />
                       <span className="text-[10px] font-bold uppercase tracking-widest text-amber-700 dark:text-amber-400">
                         Vàng cũ đổi vào ({exchangeItems.length} mục)
                       </span>
@@ -331,7 +330,7 @@ export function PaymentModal({
                 {normalItems.length > 0 && (
                   <>
                     <div className="flex items-center gap-1.5 px-4 py-2 bg-muted/30 border-b border-t">
-                      <ShoppingBag className="h-3 w-3 text-foreground/60" />
+                      <ShoppingOutlined className="h-3 w-3 text-foreground/60" />
                       <span className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
                         Hàng mới bán ra ({normalItems.length} mục)
                       </span>
@@ -347,7 +346,7 @@ export function PaymentModal({
             ) : (
               <>
                 <div className="flex items-center gap-1.5 px-4 py-2 bg-muted/20 border-b shrink-0">
-                  <Layers className="h-3 w-3 text-muted-foreground" />
+                  <AppstoreOutlined className="h-3 w-3 text-muted-foreground" />
                   <span className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
                     {isBuy ? "Vàng mua vào" : "Danh sách hàng hoá"} ·{" "}
                     {items.length} mục
@@ -488,9 +487,9 @@ export function PaymentModal({
                         : "border-border hover:bg-accent text-foreground",
                     )}
                   >
-                    {key === "cash" && <Banknote className="h-4 w-4 shrink-0" />}
-                    {key === "bank-transfer" && <Building2 className="h-4 w-4 shrink-0" />}
-                    {key === "combined" && <Layers className="h-4 w-4 shrink-0" />}
+                    {key === "cash" && <BankOutlined className="h-4 w-4 shrink-0" />}
+                    {key === "bank-transfer" && <BankOutlined className="h-4 w-4 shrink-0" />}
+                    {key === "combined" && <AppstoreOutlined className="h-4 w-4 shrink-0" />}
                     {tMethods(key)}
                   </button>
                 ))}
@@ -531,7 +530,7 @@ export function PaymentModal({
                   {/* Tiền mặt */}
                   <div className="space-y-1.5">
                     <Label className="text-sm text-muted-foreground flex items-center gap-2">
-                      <Banknote className="h-3.5 w-3.5" />
+                      <BankOutlined className="h-3.5 w-3.5" />
                       Tiền mặt
                     </Label>
                     <Input
@@ -551,7 +550,7 @@ export function PaymentModal({
                   {/* Chuyển khoản */}
                   <div className="space-y-1.5">
                     <Label className="text-sm text-muted-foreground flex items-center gap-2">
-                      <Building2 className="h-3.5 w-3.5" />
+                      <BankOutlined className="h-3.5 w-3.5" />
                       Chuyển khoản
                     </Label>
                     <Input

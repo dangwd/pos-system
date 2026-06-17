@@ -5,7 +5,7 @@ import { Dialog, DialogContent, DialogFooter } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { useCancelTransaction } from "@/hooks/useTransactions";
-import { AlertTriangle } from "lucide-react";
+import { WarningOutlined } from "@ant-design/icons";
 import { useTranslations } from "next-intl";
 import { useState } from "react";
 
@@ -55,7 +55,7 @@ export function CancelInvoiceDialog({
         className="sm:max-w-sm"
         title={
           <span className="flex items-center gap-2 text-destructive">
-            <AlertTriangle className="h-5 w-5" />
+            <WarningOutlined className="h-5 w-5" />
             {t("title")}
           </span>
         }

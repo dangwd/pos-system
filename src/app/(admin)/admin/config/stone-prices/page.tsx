@@ -4,7 +4,7 @@ import { usePermission } from '@/hooks/usePermission'
 import { ForbiddenPage } from '@/components/shared/ForbiddenPage'
 import { useState } from 'react'
 import { useTranslations } from 'next-intl'
-import { Plus, Pencil, Trash2 } from 'lucide-react'
+import { PlusOutlined, EditOutlined, DeleteOutlined } from '@ant-design/icons'
 import { InputNumber } from 'antd'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -70,7 +70,7 @@ export default function StonePricesPage() {
       <div className="flex items-start justify-between">
         <h1 className="text-2xl font-bold">{t('title')}</h1>
         <Button size="sm" onClick={openCreate}>
-          <Plus className="h-4 w-4 mr-1" />
+          <PlusOutlined className="h-4 w-4 mr-1" />
           {t('addButton')}
         </Button>
       </div>
@@ -103,7 +103,7 @@ export default function StonePricesPage() {
                           onClick={() => openEdit(rule)}
                           className="inline-flex h-7 w-7 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-accent hover:text-foreground"
                         >
-                          <Pencil className="h-3.5 w-3.5" />
+                          <EditOutlined className="h-3.5 w-3.5" />
                         </button>
                         <button
                           type="button"
@@ -111,7 +111,7 @@ export default function StonePricesPage() {
                           onClick={() => remove(rule.id)}
                           className="inline-flex h-7 w-7 items-center justify-center rounded-md text-destructive transition-colors hover:bg-destructive/10"
                         >
-                          <Trash2 className="h-3.5 w-3.5" />
+                          <DeleteOutlined className="h-3.5 w-3.5" />
                         </button>
                       </div>
                     </td>

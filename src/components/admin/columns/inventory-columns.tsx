@@ -3,7 +3,7 @@
 import type { TableColumnsType } from 'antd'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
-import { Pencil } from 'lucide-react'
+import { EditOutlined } from '@ant-design/icons'
 import type { InventoryItem } from '@/types/inventory'
 import type { ItemValuation } from '@/lib/inventory-valuation'
 
@@ -139,7 +139,7 @@ export function createInventoryColumns({
           className="h-7 gap-1 text-xs"
           onClick={() => onEdit(record)}
         >
-          <Pencil className="h-3 w-3" />
+          <EditOutlined className="h-3 w-3" />
           {labels.edit}
         </Button>
       ),

@@ -5,7 +5,7 @@ import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
 import { useTranslations } from 'next-intl'
-import { Eye, EyeOff } from 'lucide-react'
+import { EyeOutlined, EyeInvisibleOutlined } from '@ant-design/icons'
 import { useResetPassword } from '@/hooks/useUsers'
 import { Button } from '@/components/ui/button'
 import { FieldError } from '@/components/ui/field'
@@ -88,7 +88,7 @@ export function UserResetPasswordDialog({ user, onClose }: Props) {
             />
             <InputGroupAddon align="inline-end">
               <InputGroupButton onClick={() => setShow(v => !v)} tabIndex={-1}>
-                {show ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                {show ? <EyeInvisibleOutlined className="h-4 w-4" /> : <EyeOutlined className="h-4 w-4" />}
               </InputGroupButton>
             </InputGroupAddon>
           </InputGroup>

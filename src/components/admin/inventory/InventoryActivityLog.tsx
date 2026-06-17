@@ -3,7 +3,7 @@
 import { useTranslations } from 'next-intl'
 import { Spinner } from '@/components/ui/spinner'
 import { Empty, EmptyTitle } from '@/components/ui/empty'
-import { ClipboardList } from 'lucide-react'
+import { OrderedListOutlined } from '@ant-design/icons'
 import { useInventoryAdjustments } from '@/hooks/useInventory'
 
 interface Props {
@@ -23,7 +23,7 @@ export function InventoryActivityLog({ branchId, branchName }: Props) {
   return (
     <div className="rounded-xl border bg-card p-4">
       <div className="flex items-center gap-2 border-b pb-2.5">
-        <ClipboardList className="h-4 w-4 text-primary" />
+        <OrderedListOutlined className="h-4 w-4 text-primary" />
         <h3 className="text-sm font-bold">{t('title')}</h3>
       </div>
 

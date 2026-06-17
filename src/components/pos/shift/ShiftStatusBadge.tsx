@@ -9,7 +9,7 @@
 
 import { useActiveShift } from '@/hooks/useSalesShift'
 import { cn } from '@/lib/utils'
-import { Clock, ChevronDown } from 'lucide-react'
+import { ClockCircleOutlined, DownOutlined } from '@ant-design/icons'
 import { useState } from 'react'
 import { CloseShiftModal } from './CloseShiftModal'
 
@@ -31,14 +31,14 @@ export function ShiftStatusBadge() {
           'text-green-100 transition-colors text-[10px] font-medium',
         )}
       >
-        <Clock className="h-3 w-3 shrink-0 text-green-300" />
+        <ClockCircleOutlined className="h-3 w-3 shrink-0 text-green-300" />
         <span className="font-mono leading-none">{data.shiftCode}</span>
         {data.counterName && (
           <span className="text-green-300/70 max-w-24 truncate hidden lg:inline">
             · {data.counterName}
           </span>
         )}
-        <ChevronDown className="h-3 w-3 text-green-300/60 shrink-0" />
+        <DownOutlined className="h-3 w-3 text-green-300/60 shrink-0" />
       </button>
 
       <CloseShiftModal

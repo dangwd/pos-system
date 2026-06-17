@@ -7,7 +7,7 @@ import { Button } from '@/components/ui/button'
 import { Field, FieldLabel } from '@/components/ui/field'
 import { Spinner } from '@/components/ui/spinner'
 import { ComboboxSelect } from '@/components/shared/ComboboxSelect'
-import { ArrowLeft, Info, PackagePlus } from 'lucide-react'
+import { ArrowLeftOutlined, InfoCircleOutlined, PlusSquareOutlined } from '@ant-design/icons'
 import { useCreateProduct, useCategories } from '@/hooks/useProducts'
 import { useConfigPrices } from '@/hooks/useConfig'
 import type { ProductCategory } from '@/types/product'
@@ -94,7 +94,7 @@ export function InventoryDeclareForm({ onBack }: Props) {
           <p className="text-xs text-muted-foreground mt-0.5">{t('subtitle')}</p>
         </div>
         <button onClick={onBack} className="inline-flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground">
-          <ArrowLeft className="h-3.5 w-3.5" />
+          <ArrowLeftOutlined className="h-3.5 w-3.5" />
           {t('back')}
         </button>
       </div>
@@ -146,14 +146,14 @@ export function InventoryDeclareForm({ onBack }: Props) {
       </div>
 
       <p className="flex items-start gap-1.5 rounded-lg border border-primary/20 bg-primary/5 p-2.5 text-xs text-muted-foreground">
-        <Info className="h-3.5 w-3.5 shrink-0 text-primary mt-0.5" />
+        <InfoCircleOutlined className="h-3.5 w-3.5 shrink-0 text-primary mt-0.5" />
         {t('stockNote')}
       </p>
 
       <div className="flex justify-end gap-2 border-t pt-3">
         <Button variant="outline" onClick={onBack} disabled={isPending}>{t('cancel')}</Button>
         <Button className="gap-1.5" onClick={handleSubmit} disabled={disabled || isPending}>
-          {isPending ? <Spinner /> : <PackagePlus className="h-4 w-4" />}
+          {isPending ? <Spinner /> : <PlusSquareOutlined className="h-4 w-4" />}
           {t('submit')}
         </Button>
       </div>

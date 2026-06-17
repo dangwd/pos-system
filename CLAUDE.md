@@ -22,11 +22,6 @@ npx tsc --noEmit     # Type check only, no emit
 # Lint
 npm run lint         # ESLint (eslint.config.mjs)
 
-# Install shadcn/ui component
-npx shadcn@latest add <name>
-
-# Install shadcnblocks component
-npx shadcn@latest add @shadcnblocks/<name>
 ```
 
 **Backend**: ASP.NET Core chạy riêng. Set env var `NEXT_PUBLIC_API_BASE_URL=http://localhost:5000` (hoặc để mặc định). `next.config.ts` rewrite `/api/*` → backend, nên mọi `axios.get('/api/...')` trong code tự đến đúng chỗ.
@@ -46,7 +41,7 @@ src/
 │       ├── config, products, users, branches, reports, trade
 │
 ├── components/pos/          ← POS UI: TransactionTable, PaymentPanel, PaymentModal...
-├── components/ui/           ← shadcn/ui components (KHÔNG edit trực tiếp trừ khi customize)
+├── components/ui/           ← Thin antd wrapper components (Button, Dialog, Badge...)
 │
 ├── hooks/                   ← Boundary layer: component → hooks → lib
 │   ├── usePos.ts            ← Facade duy nhất của POS page (entry point)
@@ -118,14 +113,15 @@ PosPage (orchestrate only)
 | Frontend framework | Next.js App Router (`src/` dir) |
 | Backend API | **ASP.NET Core 9.0** — tại `/api/*` (proxy qua Nginx) |
 | Database | PostgreSQL 16 — database: `pos_main` |
-| UI | shadcn/ui (preset `b7BFgTjkG`, dùng **`@base-ui/react`** — KHÔNG có `asChild`) |
-| Component bổ sung | shadcnblocks.com (đăng ký trong `components.json`) |
+| UI | **Ant Design** (`antd`) + Tailwind CSS — icons từ `@ant-design/icons` |
+| Wrapper components | `src/components/ui/` — thin wrappers quanh antd, API tương thích shadcn |
 | Màu theme | Indigo oklch (H≈268) — xem `globals.css` |
 | Server State | TanStack Query v5 |
 | HTTP Client | Axios (chỉ trong `src/lib/repositories/`) |
 | Client State | Zustand (persist middleware) |
 | Tables | Ant Design `<Table />` (`antd`) |
-| Forms | React Hook Form + Zod + shadcn `Form` |
+| Forms | React Hook Form + Zod |
+| Thông báo | antd `message` (import từ `@/lib/toast` — `toast.success()`, `toast.error()`) |
 | Animation | Motion (`motion`) |
 | Language | TypeScript strict — không dùng `any` |
 
@@ -738,33 +734,20 @@ const total = weight * goldSellPrice + laborFee + stoneFee // trong component
 **PHẢI** duyệt qua theo thứ tự này trước khi viết bất kỳ UI nào:
 
 ```
-1. shadcn/ui gốc        → src/components/ui/
-   antd Table            (MỌI bảng data — không exception)
+1. Wrapper components   → src/components/ui/  (Button, Dialog, Badge, Input, Select...)
+   antd trực tiếp       → antd Table, Modal, Form, Tooltip, Tabs... khi wrapper chưa có
 
-2. shadcnblocks          → src/components/shadcnblocks/   ← KIỂM TRA TRƯỚC KHI TỰ VIẾT
-   src/components/ui/   (một số shadcnblocks cài vào ui/)
+2. antd thuần           → import trực tiếp từ 'antd'
+   Icons                → import từ '@ant-design/icons'
 
-3. Tự viết              → src/components/pos/  (KHÔNG phải ui/)
+3. Tự viết              → src/components/pos/ hoặc src/components/admin/  (KHÔNG phải ui/)
 ```
 
-#### Đã cài sẵn — dùng ngay, không cần cài thêm
+#### Wrapper components có sẵn (`@/components/ui/`)
 
-**shadcn/ui** (`@/components/ui/`):
-`button` · `input` · `dialog` · `badge` · `checkbox` · `card` · `select` · `separator` · `skeleton` · `label` · `textarea` · `table` · `dropdown-menu` · `scroll-area` · `context-menu` · `sonner` · `field`
+`button` · `input` · `dialog` · `badge` · `checkbox` · `card` · `select` · `separator` · `skeleton` · `label` · `textarea` · `table` · `dropdown-menu` · `field` · `empty` · `input-group` · `spinner` · `number-input` · `popover`
 
-**shadcn/ui** (từ shadcnblocks, nằm trong `ui/`):
-`combobox` · `empty` · `input-group` · `spinner`
-
-**shadcnblocks** (`@/components/shadcnblocks/`):
-`avatar-group` · `border-button` · `login-button` · `logo` · `price` · `rating` · `scrollable-tabslist` · `theme-toggle`
-
-#### Chưa cài — cần cài trước khi dùng
-
-Kiểm tra `shadcnblocks.com` hoặc `ui.shadcn.com` xem có component phù hợp không. Nếu có, cài trước:
-```bash
-npx shadcn@latest add <tên>
-npx shadcn@latest add @shadcnblocks/<tên>
-```
+Tất cả wrapper đều là thin wrappers quanh antd — có thể edit trực tiếp trong `src/components/ui/`.
 
 ### R-UI-2 · Ant Design Table cho mọi bảng dữ liệu
 
@@ -783,33 +766,37 @@ npx shadcn@latest add @shadcnblocks/<tên>
 ### R-UI-3 · Không tự viết dropdown/menu
 
 KHÔNG dùng `useState + absolute div` cho dropdown/menu.  
-Dùng shadcn `DropdownMenu` hoặc `Popover`.
+Dùng `DropdownMenu` từ `@/components/ui/dropdown-menu` hoặc antd `Dropdown`.
 
-> **Exception được phép**: `ProductSearch` trong `PosTopBar.tsx` dùng controlled div autocomplete (Popover chưa được cài). Cài `npx shadcn@latest add popover` khi refactor.
+> **Exception được phép**: `ProductSearch` trong `PosTopBar.tsx` dùng controlled div autocomplete do yêu cầu layout đặc thù.
 
 ### R-UI-4 · Không tự viết modal
 
 KHÔNG dùng `position: fixed` tự vẽ modal.  
-Dùng shadcn `Dialog` hoặc `AlertDialog`.
+Dùng `Dialog` từ `@/components/ui/dialog` (wrapper antd Modal) hoặc antd `Modal` trực tiếp.
 
 ### R-UI-5 · Không tự viết toast
 
 KHÔNG dùng `alert()` hay div tự vẽ notification.  
-Dùng shadcn `Sonner` (`toast()` từ `sonner`).
+Dùng `toast` từ `@/lib/toast`:
+```ts
+import { toast } from '@/lib/toast'
+toast.success('Thành công')
+toast.error('Có lỗi xảy ra')
+```
 
 ### R-UI-6 · Không hardcode màu
 
 KHÔNG dùng `style={{ color: '#...' }}` hay Tailwind màu cụ thể (`text-red-500`, `bg-blue-400`...).  
 Dùng token CSS variable: `text-primary`, `bg-muted`, `text-destructive`, `bg-secondary`...
 
-### R-UI-7 · Ghi rõ lệnh cài component mới
+### R-UI-7 · Icons dùng @ant-design/icons
 
-Trước khi dùng component shadcn/shadcnblocks chưa cài:
-
-```bash
-npx shadcn@latest add <tên>
-# hoặc
-npx shadcn@latest add @shadcnblocks/<tên>
+KHÔNG dùng lucide-react hay bất kỳ icon library nào khác.  
+Dùng `@ant-design/icons`:
+```tsx
+import { EditOutlined, PlusOutlined, DeleteOutlined } from '@ant-design/icons'
+<EditOutlined className="h-4 w-4" />
 ```
 
 ### R-UI-8 · Customize trong src/components/ui/
@@ -817,10 +804,10 @@ npx shadcn@latest add @shadcnblocks/<tên>
 Customize component = edit file trong `src/components/ui/`.  
 KHÔNG bọc thêm `<div>` bên ngoài để override style.
 
-### R-UI-9 · Tất cả form dùng shadcn Form + RHF
+### R-UI-9 · Tất cả form dùng RHF + Zod
 
 KHÔNG dùng `<form onSubmit>` thủ công.  
-Mọi form phải dùng shadcn `Form` + `react-hook-form` + `@hookform/resolvers/zod`.
+Mọi form phải dùng `react-hook-form` + `@hookform/resolvers/zod`.
 
 ### R-UI-10 · Hiển thị tiền tệ LAK
 
@@ -837,21 +824,17 @@ new Intl.NumberFormat('lo-LA').format(amount) + ' ₭'
 amount.toLocaleString('vi-VN') + '₫'
 ```
 
-### R-UI-11 · asChild KHÔNG tồn tại trong preset này
+### R-UI-11 · Không dùng asChild
 
-Preset `b7BFgTjkG` dùng `@base-ui/react` (không phải Radix UI).  
-`asChild` prop KHÔNG có — sẽ bị bỏ qua hoặc gây lỗi runtime.
+`asChild` prop không tồn tại trong antd wrappers.  
+Apply class/props trực tiếp vào component.
 
 ```tsx
-// ✅ Apply class trực tiếp vào component
-<DropdownMenuTrigger className="h-8 px-3 text-xs ...">
-  Mở menu
-</DropdownMenuTrigger>
+// ✅
+<DropdownMenuTrigger className="h-8 px-3 text-xs ...">Mở menu</DropdownMenuTrigger>
 
-// ❌ asChild không hoạt động
-<DropdownMenuTrigger asChild>
-  <Button>Mở menu</Button>
-</DropdownMenuTrigger>
+// ❌
+<DropdownMenuTrigger asChild><Button>Mở menu</Button></DropdownMenuTrigger>
 ```
 
 ---
@@ -998,8 +981,12 @@ const data: any = await fetch(...)
 // ❌ Logic giá trong component
 const total = weight * goldSellPrice + laborFee  // đặt vào lib/pricing.ts
 
-// ❌ asChild với base-ui/react
+// ❌ asChild không tồn tại
 <DropdownMenuTrigger asChild><Button>...</Button></DropdownMenuTrigger>
+
+// ❌ Dùng lucide-react hay sonner trực tiếp (đã bị remove)
+import { Edit } from 'lucide-react'
+import { toast } from 'sonner'
 
 // ❌ Hiển thị errorCode trực tiếp
 toast.error('TRANSACTION_NOT_FOUND')

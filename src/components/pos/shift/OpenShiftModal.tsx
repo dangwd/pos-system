@@ -21,15 +21,15 @@ import { useOpenShift } from "@/hooks/useSalesShift";
 import { useAuthStore } from "@/stores/auth.store";
 import { zodResolver } from "@hookform/resolvers/zod";
 import {
-  AlertTriangle,
-  Calendar,
-  Clock,
-  LayoutDashboard,
-  LogOut,
-  StickyNote,
-  User2,
-  Wallet,
-} from "lucide-react";
+  CalendarOutlined,
+  ClockCircleOutlined,
+  DashboardOutlined,
+  FileOutlined,
+  LogoutOutlined,
+  UserOutlined,
+  WalletOutlined,
+  WarningOutlined,
+} from "@ant-design/icons";
 import { useRouter } from "next/navigation";
 import { Controller, useForm } from "react-hook-form";
 import { z } from "zod";
@@ -116,7 +116,7 @@ export function OpenShiftModal() {
             {user && (
               <div className="flex items-center gap-3 rounded-xl border bg-muted/40 px-4 py-3">
                 <div className="h-9 w-9 rounded-full bg-primary/10 border border-primary/20 flex items-center justify-center shrink-0">
-                  <User2 className="h-4 w-4 text-primary" />
+                  <UserOutlined className="h-4 w-4 text-primary" />
                 </div>
                 <div className="min-w-0 flex-1">
                   <p className="font-semibold text-sm truncate">
@@ -134,7 +134,7 @@ export function OpenShiftModal() {
             {/* Warning khi chưa có quầy */}
             {noCounter && (
               <div className="flex items-start gap-2.5 rounded-lg border border-destructive/30 bg-destructive/5 px-4 py-3">
-                <AlertTriangle className="h-4 w-4 text-destructive shrink-0 mt-0.5" />
+                <WarningOutlined className="h-4 w-4 text-destructive shrink-0 mt-0.5" />
                 <p className="text-xs text-destructive leading-relaxed">
                   Tài khoản chưa được phân công quầy. Vui lòng liên hệ quản lý
                   để được cấu hình trước khi mở ca.
@@ -159,7 +159,7 @@ export function OpenShiftModal() {
                       onChange={(v) => field.onChange(String(v ?? ''))}
                       placeholder="0"
                       prefix={
-                        <Wallet className="h-3.5 w-3.5 text-muted-foreground" />
+                        <WalletOutlined className="h-3.5 w-3.5 text-muted-foreground" />
                       }
                       suffix={
                         <span className="text-xs font-semibold text-muted-foreground">
@@ -186,7 +186,7 @@ export function OpenShiftModal() {
                 <Input
                   type="datetime-local"
                   prefix={
-                    <Calendar className="h-3.5 w-3.5 text-muted-foreground" />
+                    <CalendarOutlined className="h-3.5 w-3.5 text-muted-foreground" />
                   }
                   status={errors.openedAt ? "error" : undefined}
                   disabled={noCounter}
@@ -200,7 +200,7 @@ export function OpenShiftModal() {
               {/* Ghi chú */}
               <Field>
                 <FieldLabel>
-                  <StickyNote className="h-3.5 w-3.5 inline mr-1 text-muted-foreground" />
+                  <FileOutlined className="h-3.5 w-3.5 inline mr-1 text-muted-foreground" />
                   Ghi chú
                 </FieldLabel>
                 <Textarea
@@ -220,7 +220,7 @@ export function OpenShiftModal() {
                 loading={isPending}
                 disabled={noCounter}
               >
-                <Clock className="h-4 w-4" />
+                <ClockCircleOutlined className="h-4 w-4" />
                 Mở Ca Bán Hàng
               </Button>
             </form>
@@ -235,7 +235,7 @@ export function OpenShiftModal() {
                   onClick={() => router.push("/admin/dashboard")}
                   className="w-full gap-1.5 text-xs mb-1"
                 >
-                  <LayoutDashboard className="h-3.5 w-3.5" />
+                  <DashboardOutlined className="h-3.5 w-3.5" />
                   Vào Trang Quản Trị
                 </Button>
               )}
@@ -247,7 +247,7 @@ export function OpenShiftModal() {
                 loading={isLoggingOut}
                 className="text-muted-foreground text-xs gap-1.5 hover:text-destructive hover:bg-destructive/5"
               >
-                <LogOut className="h-3.5 w-3.5" />
+                <LogoutOutlined className="h-3.5 w-3.5" />
                 Đăng xuất — dùng tài khoản khác
               </Button>
             </div>

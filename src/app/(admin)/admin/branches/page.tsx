@@ -4,7 +4,7 @@ import { usePermission } from '@/hooks/usePermission'
 import { ForbiddenPage } from '@/components/shared/ForbiddenPage'
 import { useState } from 'react'
 import { useTranslations } from 'next-intl'
-import { Building2, Layers, Pencil, Plus, Power, PowerOff } from 'lucide-react'
+import { BankOutlined, AppstoreOutlined, EditOutlined, PlusOutlined, PoweroffOutlined } from '@ant-design/icons'
 import { Badge } from '@/components/ui/badge'
 import { Spinner } from '@/components/ui/spinner'
 import { TablePageSkeleton } from '@/components/shared/PageSkeleton'
@@ -96,7 +96,7 @@ export default function BranchesPage() {
             {t('subtitle', { count: branches.length })}
           </p>
         </div>
-        <AntBtn type="primary" icon={<Plus size={14} />} onClick={openCreateBranch}>
+        <AntBtn type="primary" icon={<PlusOutlined />} onClick={openCreateBranch}>
           {t('addButton')}
         </AntBtn>
       </div>
@@ -108,7 +108,7 @@ export default function BranchesPage() {
         <div style={PANEL_STYLE}>
           <div style={PANEL_HEADER_STYLE}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-              <Building2 size={15} style={{ color: '#6b7280' }} />
+              <BankOutlined style={{ fontSize: 15, color: '#6b7280' }} />
               <span style={{ fontSize: 13, fontWeight: 600, color: '#111827' }}>
                 {t('panelTitle')}
               </span>
@@ -124,7 +124,7 @@ export default function BranchesPage() {
             <div style={{ padding: 16 }}><TablePageSkeleton cols={1} rows={5} /></div>
           ) : branches.length === 0 ? (
             <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 8, padding: '48px 0', color: '#9ca3af' }}>
-              <Building2 size={28} style={{ opacity: 0.3 }} />
+              <BankOutlined style={{ fontSize: 28, opacity: 0.3 }} />
               <p style={{ fontSize: 13, margin: 0 }}>—</p>
             </div>
           ) : (
@@ -143,7 +143,7 @@ export default function BranchesPage() {
                     )}
                     style={{ borderBottom: '1px solid #f3f4f6' }}
                   >
-                    <Building2 className={cn(
+                    <BankOutlined className={cn(
                       'h-4 w-4 mt-0.5 shrink-0',
                       isSelected ? 'text-primary' : 'text-muted-foreground',
                     )} />
@@ -173,7 +173,7 @@ export default function BranchesPage() {
                       onClick={e => openEditBranch(branch, e)}
                       className="h-6 w-6 flex items-center justify-center rounded hover:bg-muted opacity-0 group-hover:opacity-100 transition-opacity shrink-0 mt-0.5"
                     >
-                      <Pencil className="h-3 w-3 text-muted-foreground" />
+                      <EditOutlined className="h-3 w-3 text-muted-foreground" />
                     </button>
                   </li>
                 )
@@ -186,7 +186,7 @@ export default function BranchesPage() {
         <div style={PANEL_STYLE}>
           <div style={PANEL_HEADER_STYLE}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-              <Layers size={15} style={{ color: '#6b7280' }} />
+              <AppstoreOutlined style={{ fontSize: 15, color: '#6b7280' }} />
               <span style={{ fontSize: 13, fontWeight: 600, color: '#111827' }}>
                 {selectedBranch
                   ? t('counters.title', { branchName: selectedBranch.name })
@@ -199,7 +199,7 @@ export default function BranchesPage() {
               )}
             </div>
             {selectedBranch && (
-              <AntBtn size="small" icon={<Plus size={12} />} onClick={openCreateCounter}>
+              <AntBtn size="small" icon={<PlusOutlined />} onClick={openCreateCounter}>
                 {t('counters.addButton')}
               </AntBtn>
             )}
@@ -207,16 +207,16 @@ export default function BranchesPage() {
 
           {!selectedBranch ? (
             <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 8, padding: '48px 0', color: '#9ca3af' }}>
-              <Layers size={28} style={{ opacity: 0.3 }} />
+              <AppstoreOutlined style={{ fontSize: 28, opacity: 0.3 }} />
               <p style={{ fontSize: 13, margin: 0 }}>{t('counters.selectPrompt')}</p>
             </div>
           ) : countersLoading ? (
             <div style={{ padding: 16 }}><TablePageSkeleton cols={1} rows={4} /></div>
           ) : counters.length === 0 ? (
             <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 12, padding: '48px 0', color: '#9ca3af' }}>
-              <Layers size={28} style={{ opacity: 0.3 }} />
+              <AppstoreOutlined style={{ fontSize: 28, opacity: 0.3 }} />
               <p style={{ fontSize: 13, margin: 0 }}>{t('counters.empty')}</p>
-              <AntBtn size="small" icon={<Plus size={12} />} onClick={openCreateCounter}>
+              <AntBtn size="small" icon={<PlusOutlined />} onClick={openCreateCounter}>
                 {t('counters.addButton')}
               </AntBtn>
             </div>
@@ -245,7 +245,7 @@ export default function BranchesPage() {
                       className="h-6 w-6 flex items-center justify-center rounded hover:bg-muted"
                       title={t('counters.edit')}
                     >
-                      <Pencil className="h-3 w-3 text-muted-foreground" />
+                      <EditOutlined className="h-3 w-3 text-muted-foreground" />
                     </button>
                     {counter.isActive ? (
                       <button
@@ -256,7 +256,7 @@ export default function BranchesPage() {
                       >
                         {deactivating
                           ? <Spinner className="h-3 w-3" />
-                          : <PowerOff className="h-3 w-3 text-destructive" />}
+                          : <PoweroffOutlined className="h-3 w-3 text-destructive" />}
                       </button>
                     ) : (
                       <button
@@ -267,7 +267,7 @@ export default function BranchesPage() {
                       >
                         {activating
                           ? <Spinner className="h-3 w-3" />
-                          : <Power className="h-3 w-3 text-primary" />}
+                          : <PoweroffOutlined className="h-3 w-3 text-primary" />}
                       </button>
                     )}
                   </div>

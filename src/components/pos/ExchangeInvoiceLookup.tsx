@@ -4,7 +4,7 @@ import { useExchangeInvoiceLookup } from '@/hooks/useExchangeInvoiceLookup'
 import { Input } from '@/components/ui/input'
 import { Spinner } from '@/components/ui/spinner'
 import { cn } from '@/lib/utils'
-import { AlertCircle, Link2, Search, X } from 'lucide-react'
+import { ExclamationCircleOutlined, LinkOutlined, SearchOutlined, CloseOutlined } from '@ant-design/icons'
 import type { Transaction } from '@/types/transaction'
 
 interface ExchangeInvoiceLookupProps {
@@ -32,7 +32,7 @@ export function ExchangeInvoiceLookup({ showError = false }: ExchangeInvoiceLook
             className="p-0.5 rounded text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-colors"
             title="Xóa liên kết"
           >
-            <X className="h-3 w-3" />
+            <CloseOutlined className="h-3 w-3" />
           </button>
         )}
       </div>
@@ -40,7 +40,7 @@ export function ExchangeInvoiceLookup({ showError = false }: ExchangeInvoiceLook
       {/* Linked invoice — hiển thị khi đã chọn */}
       {linkedCode ? (
         <div className="flex items-center gap-2 bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800 rounded-md px-3 py-2">
-          <Link2 className="h-3.5 w-3.5 text-amber-600 dark:text-amber-400 shrink-0" />
+          <LinkOutlined className="h-3.5 w-3.5 text-amber-600 dark:text-amber-400 shrink-0" />
           <span className="flex-1 text-xs font-mono font-semibold text-amber-700 dark:text-amber-400 truncate">
             {linkedCode}
           </span>
@@ -50,7 +50,7 @@ export function ExchangeInvoiceLookup({ showError = false }: ExchangeInvoiceLook
           <Input
             id="pos-exchange-lookup"
             placeholder="Nhập mã HĐ bán vàng cũ..."
-            prefix={<Search className="h-3 w-3 text-muted-foreground" />}
+            prefix={<SearchOutlined className="h-3 w-3 text-muted-foreground" />}
             suffix={isFetching ? <Spinner className="h-3 w-3" /> : null}
             value={query}
             onChange={e => setQuery(e.target.value)}
@@ -96,7 +96,7 @@ export function ExchangeInvoiceLookup({ showError = false }: ExchangeInvoiceLook
 
           {showError && (
             <p className={cn("mt-1 text-[10px] text-destructive flex items-center gap-1")}>
-              <AlertCircle className="h-3 w-3 shrink-0" />
+              <ExclamationCircleOutlined className="h-3 w-3 shrink-0" />
               Vui lòng liên kết hóa đơn vàng gốc
             </p>
           )}

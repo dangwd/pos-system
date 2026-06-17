@@ -2,7 +2,7 @@
 
 import { useMemo, useState } from 'react'
 import { useTranslations } from 'next-intl'
-import { Plus } from 'lucide-react'
+import { PlusOutlined } from '@ant-design/icons'
 import { Button } from '@/components/ui/button'
 import { ComboboxSelect } from '@/components/shared/ComboboxSelect'
 import { DataTable } from '@/components/shared/DataTable'
@@ -66,7 +66,7 @@ export default function StockInPage() {
           />
           {canManage && (
             <Button size="sm" className="gap-1.5" onClick={() => setCreateOpen(true)}>
-              <Plus className="h-4 w-4" />
+              <PlusOutlined className="h-4 w-4" />
               {t('addButton')}
             </Button>
           )}

@@ -3,7 +3,7 @@
 import { useState } from 'react'
 import { useTranslations } from 'next-intl'
 import { InputNumber, Select } from 'antd'
-import { Plus, Trash2 } from 'lucide-react'
+import { PlusOutlined, DeleteOutlined } from '@ant-design/icons'
 import { Dialog, DialogContent, DialogFooter } from '@/components/ui/dialog'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -141,7 +141,7 @@ export function InventoryBulkAdjustDialog({ open, direction, branchId, onClose }
             <div className="flex items-center justify-between gap-2">
               <Badge variant="secondary">{t('totalQty', { count: totalQty })}</Badge>
               <Button type="button" variant="outline" size="sm" className="gap-1.5" disabled={needCounter} onClick={() => setPickerOpen(true)}>
-                <Plus className="h-4 w-4" />
+                <PlusOutlined className="h-4 w-4" />
                 {t('selectProducts')}
               </Button>
             </div>
@@ -211,7 +211,7 @@ export function InventoryBulkAdjustDialog({ open, direction, branchId, onClose }
                       )}
                       <TableCell className="text-center">
                         <button type="button" onClick={() => removeLine(l.id)} className="text-muted-foreground transition-colors hover:text-destructive">
-                          <Trash2 className="h-4 w-4" />
+                          <DeleteOutlined className="h-4 w-4" />
                         </button>
                       </TableCell>
                     </TableRow>

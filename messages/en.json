@@ -274,6 +274,8 @@
         "colQty": "Weight",
         "colWeight": "Weight",
         "colUnitPrice": "Unit price",
+        "colLaborFee": "Labor fee",
+        "colStoneFee": "Stone fee",
         "colLineTotal": "Line total",
         "btnExport": "Export",
         "btnPrintGoldCert": "Print gold cert",

@@ -4,7 +4,7 @@ import { useState } from 'react'
 import { useDashboardReport } from '@/hooks/useReports'
 import { useTransactions } from '@/hooks/useTransactions'
 import { Skeleton } from '@/components/ui/skeleton'
-import { TrendingUp, TrendingDown, XCircle, BarChart3 } from 'lucide-react'
+import { RiseOutlined, FallOutlined, CloseCircleOutlined, BarChartOutlined } from '@ant-design/icons'
 import { useTranslations } from 'next-intl'
 import { Card, DatePicker } from 'antd'
 import type { Dayjs } from 'dayjs'
@@ -326,10 +326,10 @@ export default function DashboardPage() {
         <StatSkeleton />
       ) : (
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 16, marginBottom: 16 }}>
-          <StatCard label={t('stats.totalRevenue')}   value={formatKip(stats?.totalRevenue ?? 0)}  icon={TrendingUp}  iconColor="#22c55e" />
-          <StatCard label={t('stats.totalPurchase')}  value={formatKip(stats?.totalPurchase ?? 0)} icon={TrendingDown} iconColor="#f97316" />
-          <StatCard label={t('stats.grossProfit')}    value={formatKip(grossProfit)}               icon={BarChart3}   iconColor="#6366f1" />
-          <StatCard label={t('stats.cancelledCount')} value={stats?.cancelledCount ?? 0}           icon={XCircle}     iconColor="#ef4444" />
+          <StatCard label={t('stats.totalRevenue')}   value={formatKip(stats?.totalRevenue ?? 0)}  icon={RiseOutlined}         iconColor="#22c55e" />
+          <StatCard label={t('stats.totalPurchase')}  value={formatKip(stats?.totalPurchase ?? 0)} icon={FallOutlined}         iconColor="#f97316" />
+          <StatCard label={t('stats.grossProfit')}    value={formatKip(grossProfit)}               icon={BarChartOutlined}     iconColor="#6366f1" />
+          <StatCard label={t('stats.cancelledCount')} value={stats?.cancelledCount ?? 0}           icon={CloseCircleOutlined}  iconColor="#ef4444" />
         </div>
       )}
 

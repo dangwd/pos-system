@@ -32,10 +32,10 @@ import {
 } from "antd";
 import type { ColumnsType } from "antd/es/table/interface";
 import dayjs from "dayjs";
-import { FileSpreadsheet, Plus } from "lucide-react";
+import { FileExcelOutlined, PlusOutlined } from "@ant-design/icons";
 import { useTranslations } from "next-intl";
 import { useMemo, useState } from "react";
-import { toast } from "sonner";
+import { toast } from "@/lib/toast";
 
 const PAGE_SIZE = 20;
 const PAGE_STYLE: React.CSSProperties = { padding: "24px 24px 32px" };
@@ -411,7 +411,7 @@ export default function CashLedgerPage() {
             <div style={{ display: "flex", gap: 8 }}>
               <AntBtn
                 type="primary"
-                icon={<Plus size={14} />}
+                icon={<PlusOutlined />}
                 onClick={() => {
                   setAddDir("IN");
                   setAddOpen(true);
@@ -420,7 +420,7 @@ export default function CashLedgerPage() {
                 {t("createExpense")}
               </AntBtn>
               <AntBtn
-                icon={<FileSpreadsheet size={14} />}
+                icon={<FileExcelOutlined />}
                 loading={isExporting}
                 onClick={handleExport}
               >

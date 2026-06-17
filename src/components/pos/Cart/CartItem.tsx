@@ -10,7 +10,7 @@
 import { Button } from '@/components/ui/button'
 import { useCartContext } from './index'
 import { lineTotal } from '@/types/cart'
-import { Minus, Plus, Trash2 } from 'lucide-react'
+import { MinusOutlined, PlusOutlined, DeleteOutlined } from '@ant-design/icons'
 
 function formatKip(amount: number) {
   return amount.toLocaleString('lo-LA') + ' ₭'
@@ -45,7 +45,7 @@ export function CartItem({ productId }: CartItemProps) {
           onClick={() => actions.removeItem(productId)}
           aria-label="Giảm số lượng"
         >
-          <Minus className="h-3 w-3" />
+          <MinusOutlined className="h-3 w-3" />
         </Button>
 
         <input
@@ -67,7 +67,7 @@ export function CartItem({ productId }: CartItemProps) {
           onClick={() => actions.addItem({ ...item, qty: 1 })}
           aria-label="Tăng số lượng"
         >
-          <Plus className="h-3 w-3" />
+          <PlusOutlined className="h-3 w-3" />
         </Button>
       </div>
 
@@ -84,7 +84,7 @@ export function CartItem({ productId }: CartItemProps) {
         onClick={() => actions.deleteItem(productId)}
         aria-label="Xóa sản phẩm"
       >
-        <Trash2 className="h-3 w-3" />
+        <DeleteOutlined className="h-3 w-3" />
       </Button>
     </div>
   )

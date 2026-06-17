@@ -1,7 +1,7 @@
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Eye, EyeOff } from "lucide-react";
+import { EyeOutlined, EyeInvisibleOutlined } from "@ant-design/icons";
 import { useTranslations } from "next-intl";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
@@ -166,9 +166,9 @@ export default function LoginPage() {
                         tabIndex={-1}
                       >
                         {showPassword ? (
-                          <EyeOff className="h-4 w-4" />
+                          <EyeInvisibleOutlined className="h-4 w-4" />
                         ) : (
-                          <Eye className="h-4 w-4" />
+                          <EyeOutlined className="h-4 w-4" />
                         )}
                       </InputGroupButton>
                     </InputGroupAddon>

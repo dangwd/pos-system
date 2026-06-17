@@ -1,31 +1,9 @@
 "use client"
 
-import { Toaster as Sonner, type ToasterProps } from "sonner"
-import { CircleCheckIcon, InfoIcon, TriangleAlertIcon, OctagonXIcon, Loader2Icon } from "lucide-react"
-
-const Toaster = ({ ...props }: ToasterProps) => {
-  return (
-    <Sonner
-      theme="light"
-      className="toaster group"
-      icons={{
-        success: <CircleCheckIcon className="size-4" />,
-        info:    <InfoIcon className="size-4" />,
-        warning: <TriangleAlertIcon className="size-4" />,
-        error:   <OctagonXIcon className="size-4" />,
-        loading: <Loader2Icon className="size-4 animate-spin" />,
-      }}
-      style={
-        {
-          "--normal-bg":      "var(--popover)",
-          "--normal-text":    "var(--popover-foreground)",
-          "--normal-border":  "var(--border)",
-          "--border-radius":  "var(--radius)",
-        } as React.CSSProperties
-      }
-      {...props}
-    />
-  )
+// antd <App> wrapping in providers.tsx cung cấp message context — không cần Toaster riêng.
+// Component này giữ lại để không phá vỡ import hiện có.
+function Toaster(_props: Record<string, unknown>) {
+  return null
 }
 
 export { Toaster }

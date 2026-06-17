@@ -1,41 +1,11 @@
 import React from 'react'
 import { Button as AntButton } from 'antd'
 import type { ButtonProps as AntButtonProps } from 'antd'
-import { cva, type VariantProps } from 'class-variance-authority'
 import { cn } from '@/lib/utils'
 
 type Variant = 'default' | 'destructive' | 'outline' | 'secondary' | 'ghost' | 'link'
 type Size = 'default' | 'xs' | 'sm' | 'lg' | 'icon' | 'icon-xs' | 'icon-sm' | 'icon-lg'
 
-// Exported for shadcnblocks backward compatibility
-const buttonVariants = cva(
-  'inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium transition-colors select-none disabled:pointer-events-none disabled:opacity-50',
-  {
-    variants: {
-      variant: {
-        default:     'bg-primary text-primary-foreground shadow hover:bg-primary/90',
-        destructive: 'bg-destructive text-white shadow-sm hover:bg-destructive/90',
-        outline:     'border border-input bg-background shadow-sm hover:bg-accent hover:text-accent-foreground',
-        secondary:   'bg-secondary text-secondary-foreground shadow-sm hover:bg-secondary/80',
-        ghost:       'hover:bg-accent hover:text-accent-foreground',
-        link:        'text-primary underline-offset-4 hover:underline',
-      },
-      size: {
-        default:   'h-9 px-4 py-2',
-        xs:        'h-7 gap-1 px-2.5 text-xs',
-        sm:        'h-8 rounded-md px-3 text-xs',
-        lg:        'h-10 rounded-md px-8',
-        icon:      'size-9',
-        'icon-xs': 'size-7',
-        'icon-sm': 'size-8',
-        'icon-lg': 'size-10',
-      },
-    },
-    defaultVariants: { variant: 'default', size: 'default' },
-  }
-)
-
-// Map shadcn variants → Ant Design type + danger
 const variantToAnt: Record<Variant, Pick<AntButtonProps, 'type' | 'danger'>> = {
   default:     { type: 'primary' },
   destructive: { type: 'primary', danger: true },
@@ -45,11 +15,30 @@ const variantToAnt: Record<Variant, Pick<AntButtonProps, 'type' | 'danger'>> = {
   link:        { type: 'link' },
 }
 
+const variantClass: Record<Variant, string> = {
+  default:     'bg-primary text-primary-foreground shadow hover:bg-primary/90',
+  destructive: 'bg-destructive text-white shadow-sm hover:bg-destructive/90',
+  outline:     'border border-input bg-background shadow-sm hover:bg-accent hover:text-accent-foreground',
+  secondary:   'bg-secondary text-secondary-foreground shadow-sm hover:bg-secondary/80',
+  ghost:       'hover:bg-accent hover:text-accent-foreground',
+  link:        'text-primary underline-offset-4 hover:underline',
+}
+
+const sizeClass: Record<Size, string> = {
+  default:   'h-9 px-4 py-2',
+  xs:        'h-7 gap-1 px-2.5 text-xs',
+  sm:        'h-8 rounded-md px-3 text-xs',
+  lg:        'h-10 rounded-md px-8',
+  icon:      'size-9',
+  'icon-xs': 'size-7',
+  'icon-sm': 'size-8',
+  'icon-lg': 'size-10',
+}
+
 interface ButtonProps extends Omit<React.ButtonHTMLAttributes<HTMLButtonElement>, 'type'> {
   variant?: Variant
   size?: Size
   loading?: boolean | { delay: number }
-  /** HTML form button type (submit / reset / button) */
   type?: 'button' | 'submit' | 'reset'
 }
 
@@ -71,7 +60,12 @@ function Button({
       disabled={disabled}
       loading={loading}
       htmlType={type}
-      className={cn(buttonVariants({ variant, size }), className)}
+      className={cn(
+        'inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium transition-colors select-none disabled:pointer-events-none disabled:opacity-50',
+        variantClass[variant],
+        sizeClass[size],
+        className,
+      )}
       {...(props as Omit<AntButtonProps, 'type' | 'danger' | 'disabled' | 'loading' | 'htmlType'>)}
     >
       {children}
@@ -79,5 +73,5 @@ function Button({
   )
 }
 
-export { Button, buttonVariants }
+export { Button }
 export type { ButtonProps }

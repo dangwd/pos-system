@@ -5,7 +5,6 @@ import { ReactQueryDevtools } from '@tanstack/react-query-devtools'
 import { useState } from 'react'
 import { App, ConfigProvider, theme } from 'antd'
 import { StyleProvider } from '@ant-design/cssinjs'
-import { Toaster } from '@/components/ui/sonner'
 
 // Blue-600 #2563EB, matches --primary in globals.css
 const BLUE = '#2563EB'
@@ -46,7 +45,6 @@ export function Providers({ children }: { children: React.ReactNode }) {
         <ConfigProvider theme={antdTheme}>
           <App>
             {children}
-            <Toaster richColors position="top-right" />
           </App>
         </ConfigProvider>
       </StyleProvider>

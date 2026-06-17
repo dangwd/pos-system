@@ -6,9 +6,9 @@ import type { CashCountItem, CashCurrency } from "@/types/cash-ledger";
 import dayjs from "dayjs";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Input as AntInput } from "antd";
-import { BookOpen, TriangleAlert } from "lucide-react";
+import { ReadOutlined, WarningOutlined } from "@ant-design/icons";
 import { useEffect, useState } from "react";
-import { toast } from "sonner";
+import { toast } from "@/lib/toast";
 
 const LAK_DENOMS = [100000, 50000, 20000, 10000, 5000, 2000];
 const THB_DENOMS = [1000, 500];
@@ -183,7 +183,7 @@ export function CashCountPanel({ branchId, date }: Props) {
           flexShrink: 0,
         }}
       >
-        <BookOpen size={16} style={{ color: "#f59e0b" }} />
+        <ReadOutlined style={{ fontSize: 16, color: "#f59e0b" }} />
         Kiểm kê quỹ cuối khóa sổ
       </div>
 
@@ -264,7 +264,7 @@ export function CashCountPanel({ branchId, date }: Props) {
             }}
           >
             {diff !== 0 && (
-              <TriangleAlert size={14} style={{ color: "#f59e0b", flexShrink: 0 }} />
+              <WarningOutlined style={{ fontSize: 14, color: "#f59e0b", flexShrink: 0 }} />
             )}
             <span style={{ fontSize: 12, color: "#374151" }}>Trạng thái:</span>
             <span
@@ -335,7 +335,7 @@ export function CashCountPanel({ branchId, date }: Props) {
             transition: "background 0.15s",
           }}
         >
-          <BookOpen size={16} />
+          <ReadOutlined style={{ fontSize: 16 }} />
           {isPending ? "Đang lưu..." : isFinalized ? "Đã chốt bàn giao" : "Ghi phiếu bàn giao quỹ"}
         </button>
       </div>

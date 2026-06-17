@@ -17,7 +17,7 @@ import { type PaymentMethodKey } from "@/lib/strategies/payment.strategy";
 import { usePrintStore } from "@/stores/print.store";
 import { useAuthStore } from "@/stores/auth.store";
 import type { Transaction } from "@/types/transaction";
-import { ArrowDownToLine, ArrowUpFromLine, CheckCircle2, Printer, XCircle } from "lucide-react";
+import { VerticalAlignBottomOutlined, VerticalAlignTopOutlined, CheckCircleOutlined, PrinterOutlined, CloseCircleOutlined } from "@ant-design/icons";
 import { useTranslations } from "next-intl";
 import { useState } from "react";
 
@@ -89,12 +89,12 @@ export function Receipt({ open, transaction, onClose }: ReceiptProps) {
           title={
             isCancelled ? (
               <span className="flex items-center gap-2 text-destructive">
-                <XCircle className="h-5 w-5" />
+                <CloseCircleOutlined className="h-5 w-5" />
                 {t("cancelledTitle")}
               </span>
             ) : (
               <span className="flex items-center gap-2 text-green-600">
-                <CheckCircle2 className="h-5 w-5" />
+                <CheckCircleOutlined className="h-5 w-5" />
                 {t("title")}
               </span>
             )
@@ -107,7 +107,7 @@ export function Receipt({ open, transaction, onClose }: ReceiptProps) {
                   className="mr-auto"
                   onClick={() => setCancelOpen(true)}
                 >
-                  <XCircle className="h-4 w-4 mr-2" />
+                  <CloseCircleOutlined className="h-4 w-4 mr-2" />
                   {t("cancelInvoiceButton")}
                 </Button>
               )}
@@ -121,7 +121,7 @@ export function Receipt({ open, transaction, onClose }: ReceiptProps) {
                   })
                 }
               >
-                <Printer className="h-4 w-4 mr-2" />
+                <PrinterOutlined className="h-4 w-4 mr-2" />
                 {t("printButton")}
               </Button>
               <Button onClick={handleClose}>{t("closeButton")}</Button>
@@ -231,7 +231,7 @@ export function Receipt({ open, transaction, onClose }: ReceiptProps) {
                 {exchangeInItems.length > 0 && (
                   <div>
                     <div className="flex items-center gap-1.5 px-2 py-1 rounded bg-amber-50 dark:bg-amber-950/30 text-amber-700 dark:text-amber-400 text-[10px] font-bold uppercase tracking-widest mb-1">
-                      <ArrowDownToLine className="h-3 w-3 shrink-0" />
+                      <VerticalAlignBottomOutlined className="h-3 w-3 shrink-0" />
                       Vàng cũ thu vào (B)
                     </div>
                     <Table>
@@ -272,7 +272,7 @@ export function Receipt({ open, transaction, onClose }: ReceiptProps) {
                 {normalItems.length > 0 && (
                   <div>
                     <div className="flex items-center gap-1.5 px-2 py-1 rounded bg-primary/5 text-primary text-[10px] font-bold uppercase tracking-widest mb-1">
-                      <ArrowUpFromLine className="h-3 w-3 shrink-0" />
+                      <VerticalAlignTopOutlined className="h-3 w-3 shrink-0" />
                       Hàng bán ra mới (A)
                     </div>
                     <Table>

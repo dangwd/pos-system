@@ -12,7 +12,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
-import { Check, ChevronDown } from 'lucide-react'
+import { CheckOutlined, DownOutlined } from '@ant-design/icons'
 
 const LOCALE_CONFIG: Record<AppLocale, { flag: string; label: string; short: string }> = {
   lo: { flag: '🇱🇦', label: 'ພາສາລາວ', short: 'ລາວ' },
@@ -49,7 +49,7 @@ export function LocaleSwitcher() {
         )}
       >
         <span className="text-base leading-none">{currentCfg.flag}</span>
-        <ChevronDown className="h-3 w-3 text-muted-foreground" />
+        <DownOutlined className="h-3 w-3 text-muted-foreground" />
       </DropdownMenuTrigger>
 
       <DropdownMenuContent align="end" className="min-w-40 p-1">
@@ -71,7 +71,7 @@ export function LocaleSwitcher() {
                 <span className="text-[10px] text-muted-foreground leading-tight">{cfg.label}</span>
               </div>
               {isActive && (
-                <Check className="h-3.5 w-3.5 text-primary shrink-0" />
+                <CheckOutlined className="h-3.5 w-3.5 text-primary shrink-0" />
               )}
             </DropdownMenuItem>
           )

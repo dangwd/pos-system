@@ -1,7 +1,7 @@
 'use client'
 
 import { useTranslations } from 'next-intl'
-import { X } from 'lucide-react'
+import { CloseOutlined } from '@ant-design/icons'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Spinner } from '@/components/ui/spinner'
@@ -32,7 +32,7 @@ export function PriceComparison({ onClose }: Props) {
     <div className="space-y-3">
       <div className="flex items-center justify-end">
         <Button size="sm" variant="outline" onClick={onClose}>
-          <X className="h-3.5 w-3.5 mr-1.5" />
+          <CloseOutlined className="h-3.5 w-3.5 mr-1.5" />
           {t('comparisonClose')}
         </Button>
       </div>

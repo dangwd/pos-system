@@ -274,6 +274,8 @@
         "colQty": "ນ້ຳໜັກ",
         "colWeight": "ນ້ຳໜັກ",
         "colUnitPrice": "ລາຄາ/ໜ່ວຍ",
+        "colLaborFee": "ຄ່າຈ້າງ",
+        "colStoneFee": "ຄ່າແກ້ວ",
         "colLineTotal": "ລວມ",
         "btnExport": "ສົ່ງອອກ",
         "btnPrintGoldCert": "ພິມໃບຮັບປະກັນ",

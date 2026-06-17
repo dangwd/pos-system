@@ -8,7 +8,7 @@ import {
 } from '@/components/ui/dialog'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
-import { ArrowRight } from 'lucide-react'
+import { ArrowRightOutlined } from '@ant-design/icons'
 import { Spinner } from '@/components/ui/spinner'
 import { useUpdateInventoryStatus } from '@/hooks/useInventory'
 import type { InventoryItem, InventoryStatus } from '@/types/inventory'
@@ -78,7 +78,7 @@ export function InventoryStatusDialog({ item, targetStatus, onClose }: Props) {
             <Badge variant="secondary" className={`text-xs ${STATUS_STYLE[item.trangThai]}`}>
               {statusLabel(item.trangThai)}
             </Badge>
-            <ArrowRight className="h-4 w-4 text-muted-foreground shrink-0" />
+            <ArrowRightOutlined className="h-4 w-4 text-muted-foreground shrink-0" />
             <Badge variant="secondary" className={`text-xs ${STATUS_STYLE[targetStatus]}`}>
               {statusLabel(targetStatus)}
             </Badge>

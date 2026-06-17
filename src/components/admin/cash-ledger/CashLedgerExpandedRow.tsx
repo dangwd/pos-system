@@ -2,7 +2,7 @@
 
 import { useQuery } from '@tanstack/react-query'
 import { useTranslations } from 'next-intl'
-import { FileSpreadsheet, FileText } from 'lucide-react'
+import { FileExcelOutlined, FileTextOutlined } from '@ant-design/icons'
 import { Tag, Button as AntBtn, Spin } from 'antd'
 import { cashLedgerRepository } from '@/lib/repositories/cash-ledger.repository'
 
@@ -111,10 +111,10 @@ export function CashLedgerExpandedRow({ activityId }: Props) {
 
       {/* Footer: nút in */}
       <div style={{ width: '100%', display: 'flex', gap: 8, justifyContent: 'flex-end', paddingTop: 4 }}>
-        <AntBtn icon={<FileSpreadsheet size={13} />}>
+        <AntBtn icon={<FileExcelOutlined />}>
           {t('detail.printExcel')}
         </AntBtn>
-        <AntBtn type="primary" icon={<FileText size={13} />}>
+        <AntBtn type="primary" icon={<FileTextOutlined />}>
           {t('detail.printPdf')}
         </AntBtn>
       </div>

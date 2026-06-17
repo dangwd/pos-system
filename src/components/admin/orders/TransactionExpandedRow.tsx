@@ -4,7 +4,7 @@ import { useState } from 'react'
 import { useTranslations } from 'next-intl'
 import { Table } from 'antd'
 import type { ColumnsType } from 'antd/es/table/interface'
-import { ExternalLink } from 'lucide-react'
+import { ExportOutlined } from '@ant-design/icons'
 import type { Transaction, TransactionItem } from '@/types/transaction'
 import { useCustomer } from '@/hooks/useCustomers'
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
@@ -154,6 +154,12 @@ export function TransactionExpandedRow({ record }: Props) {
         : null,
     },
     {
+      title: '#', key: 'index', width: 40, align: 'center' as const,
+      render: (_: unknown, __: TransactionItem, index: number) => (
+        <span style={{ color: '#9ca3af', fontSize: 12 }}>{index + 1}</span>
+      ),
+    },
+    {
       title: t('colProductCode'), dataIndex: 'productId', width: 140,
       render: (v?: string) => (
         <span style={{ fontFamily: 'monospace', fontSize: 12, color: '#4f46e5' }}>
@@ -169,12 +175,12 @@ export function TransactionExpandedRow({ record }: Props) {
       },
     },
     {
-      title: t('colUnit'), dataIndex: 'weightUnitName', width: 70,
-      render: (v: string) => v || '—',
-    },
-    {
       title: t('colQty'), dataIndex: 'quantity', width: 90, align: 'right' as const,
       render: (v: number) => <b>{v}</b>,
+    },
+    {
+      title: t('colUnit'), dataIndex: 'weightUnitName', width: 90,
+      render: (v: string) => v || '—',
     },
     // Cột lỗi/hỏng và hao mòn — chỉ hiện khi có ít nhất 1 item mang phiKho/haoHut
     ...(hasEncodedFees ? [
@@ -210,8 +216,16 @@ export function TransactionExpandedRow({ record }: Props) {
       },
     ] as ColumnsType<TransactionItem> : []),
     {
-      title: t('colUnitPrice'), dataIndex: 'tableUnitPriceLak', width: 140, align: 'right' as const,
+      title: t('colUnitPrice'), dataIndex: 'tableUnitPriceLak', width: 130, align: 'right' as const,
       render: (v: number, row: TransactionItem) => formatKip(v || row.unitPriceLak),
+    },
+    {
+      title: t('colLaborFee'), dataIndex: 'laborFee', width: 110, align: 'right' as const,
+      render: (v: number) => v > 0 ? formatKip(v) : <span style={{ color: '#d1d5db' }}>—</span>,
+    },
+    {
+      title: t('colStoneFee'), dataIndex: 'stoneFee', width: 110, align: 'right' as const,
+      render: (v: number) => v > 0 ? formatKip(v) : <span style={{ color: '#d1d5db' }}>—</span>,
     },
     {
       title: t('colLineTotal'), dataIndex: 'lineTotal', width: 140, align: 'right' as const,
@@ -267,7 +281,7 @@ export function TransactionExpandedRow({ record }: Props) {
                 }}
               >
                 {record.customer.name}
-                <ExternalLink size={12} style={{ opacity: 0.6 }} />
+                <ExportOutlined style={{ fontSize: 12, opacity: 0.6 }} />
               </button>
             )
             : undefined

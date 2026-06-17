@@ -5,7 +5,7 @@ import { ForbiddenPage } from '@/components/shared/ForbiddenPage'
 import { useMemo, useState } from 'react'
 import { useTranslations } from 'next-intl'
 import { useRouter } from 'next/navigation'
-import { ArrowLeft } from 'lucide-react'
+import { ArrowLeftOutlined } from '@ant-design/icons'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { DataTable } from '@/components/shared/DataTable'
@@ -89,7 +89,7 @@ export default function InventoryAdjustmentsPage() {
               className="gap-1 text-muted-foreground"
               onClick={() => router.push('/admin/inventory')}
             >
-              <ArrowLeft className="h-3.5 w-3.5" />
+              <ArrowLeftOutlined className="h-3.5 w-3.5" />
               {t('backToList')}
             </Button>
           </div>

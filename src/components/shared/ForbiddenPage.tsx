@@ -1,6 +1,6 @@
 'use client'
 
-import { ShieldOff } from 'lucide-react'
+import { StopOutlined } from '@ant-design/icons'
 import { useTranslations } from 'next-intl'
 import { useRouter } from 'next/navigation'
 import { Button } from '@/components/ui/button'
@@ -14,7 +14,7 @@ export function ForbiddenPage() {
   return (
     <div className="flex flex-col items-center justify-center h-full min-h-[60vh] gap-5 text-center px-6">
       <div className="h-16 w-16 rounded-full bg-destructive/10 flex items-center justify-center">
-        <ShieldOff className="h-8 w-8 text-destructive" />
+        <StopOutlined className="h-8 w-8 text-destructive" />
       </div>
 
       <div className="space-y-1.5 max-w-sm">

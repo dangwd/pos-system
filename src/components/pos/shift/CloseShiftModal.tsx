@@ -18,14 +18,14 @@ import { cn } from '@/lib/utils'
 import type { SalesShiftDetailDto, SalesShiftSummary } from '@/types/sales-shift'
 import { zodResolver } from '@hookform/resolvers/zod'
 import {
-  ArrowDownCircle,
-  ArrowUpCircle,
-  CheckCircle2,
-  Clock,
-  TrendingDown,
-  TrendingUp,
-  Wallet,
-} from 'lucide-react'
+  CheckCircleOutlined,
+  ClockCircleOutlined,
+  DownCircleOutlined,
+  FallOutlined,
+  RiseOutlined,
+  UpCircleOutlined,
+  WalletOutlined,
+} from '@ant-design/icons'
 import { useState } from 'react'
 import { Controller, useForm } from 'react-hook-form'
 import { z } from 'zod'
@@ -84,7 +84,7 @@ function ShiftSummaryView({
     <div className="space-y-4">
       {/* Success header */}
       <div className="flex items-center gap-2.5 rounded-lg bg-green-50 border border-green-200 px-4 py-3">
-        <CheckCircle2 className="h-5 w-5 text-green-600 shrink-0" />
+        <CheckCircleOutlined className="h-5 w-5 text-green-600 shrink-0" />
         <div>
           <p className="text-sm font-semibold text-green-800">Ca đã đóng thành công</p>
           <p className="text-xs text-green-600">{data.shiftCode}</p>
@@ -94,7 +94,7 @@ function ShiftSummaryView({
       {/* Summary stats */}
       <div className="rounded-xl border overflow-hidden">
         <div className="bg-muted/40 px-4 py-2.5 flex items-center gap-2">
-          <ArrowUpCircle className="h-4 w-4 text-green-600" />
+          <UpCircleOutlined className="h-4 w-4 text-green-600" />
           <span className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Thu</span>
         </div>
         <div className="px-4 pb-1 divide-y divide-border/50">
@@ -110,7 +110,7 @@ function ShiftSummaryView({
         <Separator />
 
         <div className="bg-muted/40 px-4 py-2.5 flex items-center gap-2">
-          <ArrowDownCircle className="h-4 w-4 text-destructive" />
+          <DownCircleOutlined className="h-4 w-4 text-destructive" />
           <span className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Chi</span>
         </div>
         <div className="px-4 pb-1 divide-y divide-border/50">
@@ -134,7 +134,7 @@ function ShiftSummaryView({
       {data.closingCashLak !== null && (
         <div className="flex justify-between items-center px-1">
           <span className="text-sm text-muted-foreground flex items-center gap-1.5">
-            <Wallet className="h-3.5 w-3.5" />
+            <WalletOutlined className="h-3.5 w-3.5" />
             Tiền mặt thực tế đếm được
           </span>
           <span className="font-semibold text-sm">{fmtLak(data.closingCashLak)}</span>
@@ -212,7 +212,7 @@ export function CloseShiftModal({
       <DialogContent
         title={
           <span className="flex items-center gap-2 font-semibold">
-            <Clock className="h-4 w-4 text-primary" />
+            <ClockCircleOutlined className="h-4 w-4 text-primary" />
             Chốt Ca Bán Hàng
           </span>
         }
@@ -239,7 +239,7 @@ export function CloseShiftModal({
               </div>
               <div className="flex items-center justify-between px-4 py-2.5">
                 <span className="text-xs text-muted-foreground flex items-center gap-1">
-                  <TrendingUp className="h-3 w-3 text-green-600" />
+                  <RiseOutlined className="h-3 w-3 text-green-600" />
                   Tiền mặt đầu ca
                 </span>
                 <span className="text-xs font-semibold">{fmtLak(openingCashLak)}</span>
@@ -250,7 +250,7 @@ export function CloseShiftModal({
             <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
               <Field>
                 <FieldLabel>
-                  <TrendingDown className="h-3.5 w-3.5 inline mr-1.5 text-muted-foreground" />
+                  <FallOutlined className="h-3.5 w-3.5 inline mr-1.5 text-muted-foreground" />
                   Tiền mặt thực tế cuối ca (₭)
                   <span className="text-destructive ml-0.5">*</span>
                 </FieldLabel>

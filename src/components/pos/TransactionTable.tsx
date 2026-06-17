@@ -20,22 +20,22 @@ import type { CartItem } from "@/types/cart";
 import { lineTotal } from "@/types/cart";
 import type { PriceConfig, WeightUnit } from "@/types/config";
 import type { ProductWithStock } from "@/types/product";
-import { InputNumber, Select } from "antd";
 import {
-  ArrowDownToLine,
-  ArrowLeftRight,
-  ArrowUpFromLine,
-  Banknote,
-  Coins,
-  Equal,
-  Gem,
-  Package,
-  PackagePlus,
-  Search,
-  ShoppingCart,
-  Trash2,
-  TrendingUp,
-} from "lucide-react";
+  BankOutlined,
+  DeleteOutlined,
+  GoldOutlined,
+  InboxOutlined,
+  MinusOutlined,
+  MoneyCollectOutlined,
+  PlusSquareOutlined,
+  RiseOutlined,
+  SearchOutlined,
+  ShoppingCartOutlined,
+  SwapOutlined,
+  VerticalAlignBottomOutlined,
+  VerticalAlignTopOutlined,
+} from "@ant-design/icons";
+import { InputNumber, Select } from "antd";
 import { useTranslations } from "next-intl";
 import { useEffect, useState } from "react";
 import { CurrencyExchangeForm } from "./CurrencyExchangeForm";
@@ -112,42 +112,42 @@ const TXN_META: Record<
   { Icon: React.ElementType; cls: string; bg: string }
 > = {
   SellGold: {
-    Icon: Coins,
+    Icon: MoneyCollectOutlined,
     cls: "text-green-700 dark:text-green-400",
     bg: "bg-green-100/70 dark:bg-green-950/40",
   },
   SellSilver: {
-    Icon: Gem,
+    Icon: GoldOutlined,
     cls: "text-teal-700 dark:text-teal-400",
     bg: "bg-teal-100/70 dark:bg-teal-950/40",
   },
   BuyGold: {
-    Icon: PackagePlus,
+    Icon: PlusSquareOutlined,
     cls: "text-blue-700 dark:text-blue-400",
     bg: "bg-blue-100/70 dark:bg-blue-950/40",
   },
   BuyMoreGold: {
-    Icon: PackagePlus,
+    Icon: PlusSquareOutlined,
     cls: "text-blue-700 dark:text-blue-400",
     bg: "bg-blue-100/70 dark:bg-blue-950/40",
   },
   ExchangeGold: {
-    Icon: ArrowLeftRight,
+    Icon: SwapOutlined,
     cls: "text-amber-700 dark:text-amber-400",
     bg: "bg-amber-100/70 dark:bg-amber-950/40",
   },
   ExchangeFree: {
-    Icon: ArrowLeftRight,
+    Icon: SwapOutlined,
     cls: "text-amber-700 dark:text-amber-400",
     bg: "bg-amber-100/70 dark:bg-amber-950/40",
   },
   ExchangeToMoney: {
-    Icon: Banknote,
+    Icon: BankOutlined,
     cls: "text-indigo-700 dark:text-indigo-400",
     bg: "bg-indigo-100/70 dark:bg-indigo-950/40",
   },
   ExchangeCurrency: {
-    Icon: Banknote,
+    Icon: BankOutlined,
     cls: "text-violet-700 dark:text-violet-400",
     bg: "bg-violet-100/70 dark:bg-violet-950/40",
   },
@@ -249,7 +249,9 @@ function QtyControl({
       size="small"
       disabled={disabled}
       style={{ width: 80 }}
-      onChange={(v) => { if (v != null && v > 0) onSetQty?.(v) }}
+      onChange={(v) => {
+        if (v != null && v > 0) onSetQty?.(v);
+      }}
     />
   );
 }
@@ -408,7 +410,9 @@ function SellTable({
                       if (newPrice !== unitPrice) {
                         onUpdate(item.productId, {
                           unitPriceLakPerGram:
-                            item.weightGram > 0 ? newPrice / item.weightGram : 0,
+                            item.weightGram > 0
+                              ? newPrice / item.weightGram
+                              : 0,
                         });
                       }
                     }}
@@ -468,7 +472,7 @@ function SellTable({
                     onClick={() => onDelete(item.productId)}
                     className="p-1 rounded opacity-0 group-hover:opacity-100 text-muted-foreground hover:bg-destructive/10 hover:text-destructive transition-all"
                   >
-                    <Trash2 className="h-3.5 w-3.5" />
+                    <DeleteOutlined className="h-3.5 w-3.5" />
                   </button>
                 )}
               </td>
@@ -590,7 +594,11 @@ function BuyGoldRow({
       <td className="px-2 py-2 w-24">
         <InputNumber
           min={0}
-          max={parseFloat(((item.weightGramOverride ?? item.qty * item.weightGram) / 3.75).toFixed(3))}
+          max={parseFloat(
+            (
+              (item.weightGramOverride ?? item.qty * item.weightGram) / 3.75
+            ).toFixed(3),
+          )}
           precision={3}
           placeholder="0"
           size="small"
@@ -609,7 +617,9 @@ function BuyGoldRow({
       <td className="px-2 py-2 w-28 text-right">
         <span className="text-[10px] tabular-nums text-orange-600 dark:text-orange-400">
           {item.perItemWearChi > 0
-            ? Math.round(item.perItemWearChi * 3.75 * item.unitPriceLakPerGram).toLocaleString("lo-LA") + " ₭"
+            ? Math.round(
+                item.perItemWearChi * 3.75 * item.unitPriceLakPerGram,
+              ).toLocaleString("lo-LA") + " ₭"
             : "—"}
         </span>
       </td>
@@ -623,7 +633,7 @@ function BuyGoldRow({
             onClick={() => onDelete(item.productId)}
             className="p-1 rounded opacity-0 group-hover:opacity-100 text-muted-foreground hover:bg-destructive/10 hover:text-destructive transition-all"
           >
-            <Trash2 className="h-3.5 w-3.5" />
+            <DeleteOutlined className="h-3.5 w-3.5" />
           </button>
         )}
       </td>
@@ -662,7 +672,7 @@ function BuyGoldTable({
             Đơn vị
           </th>
           <th className="px-3 py-2 text-left text-[10px] font-semibold text-muted-foreground uppercase tracking-wide whitespace-nowrap">
-            Cân nặng
+            Số lượng
           </th>
           <th className="px-2 py-2 text-left text-[10px] font-semibold text-muted-foreground uppercase tracking-wide whitespace-nowrap">
             Giá mua
@@ -727,7 +737,7 @@ function ExchangeInSearch({ onAdd }: { onAdd: (p: ProductWithStock) => void }) {
   return (
     <div className="relative px-3 py-1.5 border-b bg-amber-50/20 dark:bg-amber-950/10 shrink-0">
       <div className="relative">
-        <Search className="absolute left-2 top-1/2 -translate-y-1/2 h-3 w-3 text-muted-foreground pointer-events-none" />
+        <SearchOutlined className="absolute left-2 top-1/2 -translate-y-1/2 h-3 w-3 text-muted-foreground pointer-events-none" />
         <input
           type="text"
           placeholder="Tìm sản phẩm cũ để thêm thủ công..."
@@ -780,7 +790,11 @@ function ExchangeInRow({
   index: number;
   onUpdate: (id: string, patch: Partial<CartItem>) => void;
   onDelete: (id: string) => void;
-  onQtyChange: (id: string, qty: number, itemRole?: 'Normal' | 'ExchangeIn') => void;
+  onQtyChange: (
+    id: string,
+    qty: number,
+    itemRole?: "Normal" | "ExchangeIn",
+  ) => void;
   priceConfig: PriceConfig | undefined;
   weightUnits: WeightUnit[];
 }) {
@@ -817,21 +831,30 @@ function ExchangeInRow({
         ) : (
           <QtyControl
             qty={item.qty}
-            onDecrease={() => onQtyChange(item.productId, item.qty - 1, 'ExchangeIn')}
-            onIncrease={() => onQtyChange(item.productId, item.qty + 1, 'ExchangeIn')}
-            onSetQty={(q) => onQtyChange(item.productId, q, 'ExchangeIn')}
+            onDecrease={() =>
+              onQtyChange(item.productId, item.qty - 1, "ExchangeIn")
+            }
+            onIncrease={() =>
+              onQtyChange(item.productId, item.qty + 1, "ExchangeIn")
+            }
+            onSetQty={(q) => onQtyChange(item.productId, q, "ExchangeIn")}
           />
         )}
       </td>
       <td className="px-3 py-2 w-36">
         {item.isReadOnly ? (
           <span className="text-xs tabular-nums text-muted-foreground whitespace-nowrap">
-            {Math.round(item.unitPriceLakPerGram * item.weightGram).toLocaleString("lo-LA")} ₭
+            {Math.round(
+              item.unitPriceLakPerGram * item.weightGram,
+            ).toLocaleString("lo-LA")}{" "}
+            ₭
           </span>
         ) : (
           <InputNumber
             key={item.weightUnitId ?? "default"}
-            value={Math.round(item.unitPriceLakPerGram * item.weightGram) || null}
+            value={
+              Math.round(item.unitPriceLakPerGram * item.weightGram) || null
+            }
             onChange={(v) => {
               const newPrice = v ?? 0;
               onUpdate(item.productId, {
@@ -865,7 +888,11 @@ function ExchangeInRow({
       <td className="px-2 py-2 w-24">
         <InputNumber
           min={0}
-          max={parseFloat(((item.weightGramOverride ?? item.qty * item.weightGram) / 3.75).toFixed(3))}
+          max={parseFloat(
+            (
+              (item.weightGramOverride ?? item.qty * item.weightGram) / 3.75
+            ).toFixed(3),
+          )}
           precision={3}
           placeholder="0"
           size="small"
@@ -883,7 +910,9 @@ function ExchangeInRow({
       <td className="px-2 py-2 w-28 text-right">
         <span className="text-[10px] tabular-nums text-orange-600 dark:text-orange-400">
           {item.perItemWearChi > 0
-            ? Math.round(item.perItemWearChi * 3.75 * item.unitPriceLakPerGram).toLocaleString("lo-LA") + " ₭"
+            ? Math.round(
+                item.perItemWearChi * 3.75 * item.unitPriceLakPerGram,
+              ).toLocaleString("lo-LA") + " ₭"
             : "—"}
         </span>
       </td>
@@ -896,7 +925,7 @@ function ExchangeInRow({
           onClick={() => onDelete(item.productId)}
           className="p-1 rounded opacity-0 group-hover:opacity-100 text-muted-foreground hover:bg-destructive/10 hover:text-destructive transition-all"
         >
-          <Trash2 className="h-3.5 w-3.5" />
+          <DeleteOutlined className="h-3.5 w-3.5" />
         </button>
       </td>
     </tr>
@@ -922,7 +951,11 @@ function ExchangeGoldTable({
   totalA: number;
   totalB: number;
   netTotal: number;
-  onQtyChange: (id: string, qty: number, itemRole?: 'Normal' | 'ExchangeIn') => void;
+  onQtyChange: (
+    id: string,
+    qty: number,
+    itemRole?: "Normal" | "ExchangeIn",
+  ) => void;
   onDeleteExchangeIn: (id: string) => void;
   onDeleteNormal: (id: string) => void;
   onUpdate: (id: string, patch: Partial<CartItem>) => void;
@@ -937,7 +970,7 @@ function ExchangeGoldTable({
     <div className="flex flex-col min-h-0">
       {/* PANEL A: Vàng cũ đổi vào */}
       <SectionHeader
-        icon={ArrowDownToLine}
+        icon={VerticalAlignBottomOutlined}
         label="Vàng cũ đổi vào"
         className="text-amber-700 dark:text-amber-400 bg-amber-50/60 dark:bg-amber-950/20"
       />
@@ -1009,7 +1042,7 @@ function ExchangeGoldTable({
 
       {/* PANEL B: Hàng mới bán ra */}
       <SectionHeader
-        icon={ArrowUpFromLine}
+        icon={VerticalAlignTopOutlined}
         label="Hàng bán ra mới"
         className="text-primary bg-primary/5 border-t-2 border-t-border"
       />
@@ -1050,11 +1083,11 @@ function ExchangeGoldTable({
       >
         <div className="flex items-center gap-2">
           {netTotal > 0 ? (
-            <TrendingUp className="h-4 w-4 shrink-0" />
+            <RiseOutlined className="h-4 w-4 shrink-0" />
           ) : netTotal < 0 ? (
-            <Banknote className="h-4 w-4 shrink-0" />
+            <BankOutlined className="h-4 w-4 shrink-0" />
           ) : (
-            <Equal className="h-4 w-4 shrink-0 opacity-60" />
+            <MinusOutlined className="h-4 w-4 shrink-0 opacity-60" />
           )}
           <div>
             <p className="text-[9px] font-semibold uppercase tracking-widest opacity-70">
@@ -1201,10 +1234,10 @@ export function TransactionTable() {
           <div className="flex flex-col items-center justify-center h-full gap-4 text-muted-foreground select-none">
             <div className="relative">
               <div className="w-20 h-20 rounded-2xl bg-muted/60 flex items-center justify-center">
-                <ShoppingCart className="h-9 w-9 opacity-30" />
+                <ShoppingCartOutlined className="h-9 w-9 opacity-30" />
               </div>
               <div className="absolute -top-1 -right-1 w-7 h-7 rounded-lg bg-muted flex items-center justify-center">
-                <Package className="h-3.5 w-3.5 opacity-40" />
+                <InboxOutlined className="h-3.5 w-3.5 opacity-40" />
               </div>
             </div>
             <p className="text-sm font-semibold text-foreground/60">

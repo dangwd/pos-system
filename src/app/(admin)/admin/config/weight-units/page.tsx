@@ -4,7 +4,7 @@ import { usePermission } from '@/hooks/usePermission'
 import { ForbiddenPage } from '@/components/shared/ForbiddenPage'
 import { useState } from 'react'
 import { useTranslations } from 'next-intl'
-import { Plus, Pencil, Check, X, Trash2 } from 'lucide-react'
+import { PlusOutlined, EditOutlined, CheckOutlined, CloseOutlined, DeleteOutlined } from '@ant-design/icons'
 import { InputNumber } from 'antd'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -65,7 +65,7 @@ export default function WeightUnitsPage() {
       <div className="flex items-start justify-between">
         <h1 className="text-2xl font-bold">{t('title')}</h1>
         <Button size="sm" onClick={() => setCreateOpen(true)}>
-          <Plus className="h-4 w-4 mr-1" />
+          <PlusOutlined className="h-4 w-4 mr-1" />
           {t('addButton')}
         </Button>
       </div>
@@ -125,7 +125,7 @@ export default function WeightUnitsPage() {
                           onClick={() => saveEdit(unit)}
                           className="inline-flex h-7 w-7 items-center justify-center rounded-md text-primary transition-colors hover:bg-primary/10 disabled:opacity-50"
                         >
-                          {isUpdating ? <Spinner className="size-3.5" /> : <Check className="h-3.5 w-3.5" />}
+                          {isUpdating ? <Spinner className="size-3.5" /> : <CheckOutlined className="h-3.5 w-3.5" />}
                         </button>
                         <button
                           type="button"
@@ -133,7 +133,7 @@ export default function WeightUnitsPage() {
                           onClick={() => setEditing(null)}
                           className="inline-flex h-7 w-7 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-accent hover:text-foreground"
                         >
-                          <X className="h-3.5 w-3.5" />
+                          <CloseOutlined className="h-3.5 w-3.5" />
                         </button>
                       </div>
                     ) : (
@@ -144,7 +144,7 @@ export default function WeightUnitsPage() {
                           onClick={() => startEdit(unit)}
                           className="inline-flex h-7 w-7 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-accent hover:text-foreground"
                         >
-                          <Pencil className="h-3.5 w-3.5" />
+                          <EditOutlined className="h-3.5 w-3.5" />
                         </button>
                         {!unit.isSystem && (
                           <button
@@ -153,7 +153,7 @@ export default function WeightUnitsPage() {
                             onClick={() => remove(unit.id)}
                             className="inline-flex h-7 w-7 items-center justify-center rounded-md text-destructive transition-colors hover:bg-destructive/10"
                           >
-                            <Trash2 className="h-3.5 w-3.5" />
+                            <DeleteOutlined className="h-3.5 w-3.5" />
                           </button>
                         )}
                       </div>

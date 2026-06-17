@@ -15,7 +15,7 @@ import type {
 } from '@/types/sales-shift'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useLocale } from 'next-intl'
-import { toast } from 'sonner'
+import { toast } from '@/lib/toast'
 
 export function useActiveShift() {
   return useQuery({

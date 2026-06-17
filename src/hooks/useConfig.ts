@@ -1,6 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useLocale } from 'next-intl'
-import { toast } from 'sonner'
+import { toast } from '@/lib/toast'
 import { configRepository } from '@/lib/repositories/config.repository'
 import { getErrorMessage } from '@/lib/errors'
 import type { ApiError } from '@/lib/api-error'

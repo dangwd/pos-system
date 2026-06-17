@@ -5,13 +5,9 @@ import { ForbiddenPage } from '@/components/shared/ForbiddenPage'
 import { useState } from 'react'
 import { useTranslations } from 'next-intl'
 import {
-  Plus, Pencil, Trash2, Coins, AlertTriangle,
-  DollarSign, Euro, JapaneseYen, PoundSterling, IndianRupee,
-  RussianRuble, SwissFranc, TurkishLira, Bitcoin, Banknote,
-  ChevronDown, X,
-} from 'lucide-react'
+  PlusOutlined, EditOutlined, DeleteOutlined, WarningOutlined, DownOutlined, CloseOutlined, MoneyCollectOutlined,
+} from '@ant-design/icons'
 import { cn } from '@/lib/utils'
-import type { LucideIcon } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Badge } from '@/components/ui/badge'
@@ -79,24 +75,24 @@ const FLAGS = [
   { emoji: '🇧🇷', name: 'Brazil' },
 ]
 
-type SymbolOption = { char: string; Icon: LucideIcon; name: string }
+type SymbolOption = { char: string; name: string }
 
 const SYMBOL_OPTIONS: SymbolOption[] = [
-  { char: '$',  Icon: DollarSign,    name: 'Dollar' },
-  { char: '€',  Icon: Euro,          name: 'Euro' },
-  { char: '£',  Icon: PoundSterling, name: 'Pound' },
-  { char: '¥',  Icon: JapaneseYen,   name: 'Yen / Yuan' },
-  { char: '₹',  Icon: IndianRupee,   name: 'Rupee' },
-  { char: '₽',  Icon: RussianRuble,  name: 'Ruble' },
-  { char: '₣',  Icon: SwissFranc,    name: 'Franc' },
-  { char: '₺',  Icon: TurkishLira,   name: 'Lira' },
-  { char: '₿',  Icon: Bitcoin,       name: 'Bitcoin' },
-  { char: '₭',  Icon: Coins,         name: 'Kip' },
-  { char: '฿',  Icon: Banknote,      name: 'Baht' },
-  { char: '₩',  Icon: Coins,         name: 'Won' },
-  { char: '₫',  Icon: Coins,         name: 'Đồng' },
-  { char: 'R$', Icon: Coins,         name: 'Real' },
-  { char: 'kr', Icon: Coins,         name: 'Krone' },
+  { char: '$',  name: 'Dollar' },
+  { char: '€',  name: 'Euro' },
+  { char: '£',  name: 'Pound' },
+  { char: '¥',  name: 'Yen / Yuan' },
+  { char: '₹',  name: 'Rupee' },
+  { char: '₽',  name: 'Ruble' },
+  { char: '₣',  name: 'Franc' },
+  { char: '₺',  name: 'Lira' },
+  { char: '₿',  name: 'Bitcoin' },
+  { char: '₭',  name: 'Kip' },
+  { char: '฿',  name: 'Baht' },
+  { char: '₩',  name: 'Won' },
+  { char: '₫',  name: 'Đồng' },
+  { char: 'R$', name: 'Real' },
+  { char: 'kr', name: 'Krone' },
 ]
 
 // ─── Types ────────────────────────────────────────────────────────────────────
@@ -199,7 +195,7 @@ export default function CurrenciesPage() {
               : t('noData')}
           </p>
         </div>
-        <AntBtn type="primary" icon={<Plus size={14} />} onClick={openCreate}>
+        <AntBtn type="primary" icon={<PlusOutlined />} onClick={openCreate}>
           {t('addButton')}
         </AntBtn>
       </div>
@@ -208,7 +204,7 @@ export default function CurrenciesPage() {
       <div style={PANEL_STYLE}>
         <div style={PANEL_HEADER_STYLE}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-            <Coins size={15} style={{ color: '#6b7280' }} />
+            <MoneyCollectOutlined style={{ fontSize: 15, color: '#6b7280' }} />
             <span style={{ fontSize: 13, fontWeight: 600, color: '#111827' }}>
               {t('title')}
             </span>
@@ -245,7 +241,7 @@ export default function CurrenciesPage() {
                     style={{ padding: '48px 0', textAlign: 'center', color: '#9ca3af', fontSize: 13 }}
                   >
                     <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 8 }}>
-                      <Coins size={28} style={{ opacity: 0.25 }} />
+                      <MoneyCollectOutlined style={{ fontSize: 28, opacity: 0.25 }} />
                       <span>{t('noData')}</span>
                     </div>
                   </td>
@@ -295,7 +291,7 @@ export default function CurrenciesPage() {
                           onMouseEnter={e => Object.assign(e.currentTarget.style, ACTION_BTN_HOVER)}
                           onMouseLeave={e => Object.assign(e.currentTarget.style, ACTION_BTN_STYLE)}
                         >
-                          <Pencil size={13} />
+                          <EditOutlined size={13} />
                         </button>
                         <button
                           type="button"
@@ -305,7 +301,7 @@ export default function CurrenciesPage() {
                           onMouseEnter={e => Object.assign(e.currentTarget.style, DEL_BTN_HOVER)}
                           onMouseLeave={e => Object.assign(e.currentTarget.style, DEL_BTN_STYLE)}
                         >
-                          <Trash2 size={13} />
+                          <DeleteOutlined size={13} />
                         </button>
                       </div>
                     </td>
@@ -422,10 +418,10 @@ export default function CurrenciesPage() {
                         onKeyDown={(e) => { if (e.key === 'Enter') { e.stopPropagation(); setForm(f => ({ ...f, flag: '' })) } }}
                         className="flex items-center justify-center h-5 w-5 rounded text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
                       >
-                        <X className="h-3 w-3" />
+                        <CloseOutlined className="h-3 w-3" />
                       </span>
                     )}
-                    <ChevronDown className={cn('h-3.5 w-3.5 text-muted-foreground transition-transform duration-150', flagPickerOpen && 'rotate-180')} />
+                    <DownOutlined className={cn('h-3.5 w-3.5 text-muted-foreground transition-transform duration-150', flagPickerOpen && 'rotate-180')} />
                   </div>
                 </button>
               </AntPopover>
@@ -442,7 +438,7 @@ export default function CurrenciesPage() {
                 styles={{ content: { padding: 6 } }}
                 content={
                   <div className="grid grid-cols-6 gap-1" style={{ width: 380 }}>
-                    {SYMBOL_OPTIONS.map(({ char, Icon, name }) => (
+                    {SYMBOL_OPTIONS.map(({ char, name }) => (
                       <button
                         key={char}
                         type="button"
@@ -453,8 +449,8 @@ export default function CurrenciesPage() {
                           form.symbol === char && 'bg-primary/10 ring-1 ring-inset ring-primary/30',
                         )}
                       >
-                        <Icon className={cn('h-3.5 w-3.5', form.symbol === char ? 'text-primary' : 'text-muted-foreground')} />
-                        <span className={cn('font-bold text-xs leading-none tabular-nums', form.symbol === char ? 'text-primary' : '')}>{char}</span>
+                        <span className={cn('text-base font-bold leading-none tabular-nums', form.symbol === char ? 'text-primary' : 'text-muted-foreground')}>{char}</span>
+                        <span className={cn('text-[10px] leading-none', form.symbol === char ? 'text-primary' : 'text-muted-foreground')}>{name}</span>
                       </button>
                     ))}
                   </div>
@@ -471,7 +467,6 @@ export default function CurrenciesPage() {
                     const opt = SYMBOL_OPTIONS.find(o => o.char === form.symbol)
                     return (
                       <>
-                        {opt?.Icon && <opt.Icon className="h-4 w-4 text-muted-foreground shrink-0" />}
                         <span className="font-bold text-sm">{form.symbol}</span>
                         {opt && <span className="text-sm text-muted-foreground flex-1">{opt.name}</span>}
                       </>
@@ -479,7 +474,7 @@ export default function CurrenciesPage() {
                   })() : (
                     <span className="text-sm text-muted-foreground flex-1">Chọn ký hiệu tiền tệ...</span>
                   )}
-                  <ChevronDown className={cn('h-3.5 w-3.5 text-muted-foreground transition-transform duration-150 ml-auto shrink-0', symbolPickerOpen && 'rotate-180')} />
+                  <DownOutlined className={cn('h-3.5 w-3.5 text-muted-foreground transition-transform duration-150 ml-auto shrink-0', symbolPickerOpen && 'rotate-180')} />
                 </button>
               </AntPopover>
             </Field>
@@ -534,7 +529,7 @@ export default function CurrenciesPage() {
         >
           <div className="flex gap-3 py-2">
             <div className="shrink-0 flex h-10 w-10 items-center justify-center rounded-full bg-destructive/10">
-              <AlertTriangle className="h-5 w-5 text-destructive" />
+              <WarningOutlined className="h-5 w-5 text-destructive" />
             </div>
             <div className="space-y-1">
               <p className="text-sm">

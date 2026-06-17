@@ -13,31 +13,30 @@ import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { useAuthStore } from "@/stores/auth.store";
 import {
-  ArrowDownToLine,
-  ArrowLeft,
-  ArrowUpFromLine,
-  BarChart3,
-  Building2,
-  ChevronDown,
-  ClipboardList,
-  Coins,
-  Gem,
-  LayoutDashboard,
-  LogOut,
-  Package,
-  PanelLeftClose,
-  PanelLeftOpen,
-  RefreshCw,
-  Scale,
-  Search,
-  ShieldCheck,
-  Sparkles,
-  Tag,
-  UserCog,
-  Users,
-  Wallet,
-  type LucideIcon,
-} from "lucide-react";
+  ArrowLeftOutlined,
+  BarChartOutlined,
+  BankOutlined,
+  ControlOutlined,
+  DownOutlined,
+  ExportOutlined,
+  ImportOutlined,
+  OrderedListOutlined,
+  MoneyCollectOutlined,
+  GoldOutlined,
+  DashboardOutlined,
+  LogoutOutlined,
+  InboxOutlined,
+  MenuFoldOutlined,
+  MenuUnfoldOutlined,
+  SyncOutlined,
+  SearchOutlined,
+  SafetyCertificateOutlined,
+  StarOutlined,
+  TagOutlined,
+  UserSwitchOutlined,
+  TeamOutlined,
+  WalletOutlined,
+} from "@ant-design/icons";
 import { AnimatePresence, motion } from "motion/react";
 import { useTranslations } from "next-intl";
 import Link from "next/link";
@@ -55,7 +54,7 @@ function getInitials(name: string | undefined | null) {
 }
 
 type NavChild = { href: string; label: string };
-type NavItem = { href: string; label: string; icon: LucideIcon; children?: NavChild[] };
+type NavItem = { href: string; label: string; icon: React.ComponentType<{ className?: string; style?: React.CSSProperties }>; children?: NavChild[] };
 type NavGroup = { label: string | null; items: NavItem[] };
 
 export default function AdminLayout({
@@ -81,9 +80,9 @@ export default function AdminLayout({
       {
         label: null as string | null,
         items: [
-          { href: "/admin/dashboard", label: t("nav.dashboard"), icon: LayoutDashboard },
+          { href: "/admin/dashboard", label: t("nav.dashboard"), icon: DashboardOutlined },
           {
-            href: "/admin/orders", label: t("nav.transactionLog"), icon: ClipboardList,
+            href: "/admin/orders", label: t("nav.transactionLog"), icon: OrderedListOutlined,
             children: [
               { href: "/admin/orders/SellGold",        label: t("nav.orderSellGold") },
               { href: "/admin/orders/SellSilver",      label: t("nav.orderSellSilver") },
@@ -97,31 +96,31 @@ export default function AdminLayout({
       {
         label: t("nav.groupSystem"),
         items: [
-          { href: "/admin/users", label: t("nav.users"), icon: UserCog },
-          { href: "/admin/roles", label: t("nav.roles"), icon: ShieldCheck },
-          { href: "/admin/branches", label: t("nav.branches"), icon: Building2 },
+          { href: "/admin/users", label: t("nav.users"), icon: UserSwitchOutlined },
+          { href: "/admin/roles", label: t("nav.roles"), icon: SafetyCertificateOutlined },
+          { href: "/admin/branches", label: t("nav.branches"), icon: BankOutlined },
         ],
       },
       {
         label: t("nav.groupCatalog"),
         items: [
-          { href: "/admin/products", label: t("nav.products"), icon: Package },
-          { href: "/admin/customers", label: t("nav.customers"), icon: Users },
+          { href: "/admin/products", label: t("nav.products"), icon: InboxOutlined },
+          { href: "/admin/customers", label: t("nav.customers"), icon: TeamOutlined },
         ],
       },
       {
         label: t("nav.groupWarehouse"),
         items: [
-          { href: "/admin/inventory/stock-in", label: t("nav.stockIn"), icon: ArrowDownToLine },
-          { href: "/admin/inventory/stock-out", label: t("nav.stockOut"), icon: ArrowUpFromLine },
+          { href: "/admin/inventory/stock-in", label: t("nav.stockIn"), icon: ImportOutlined },
+          { href: "/admin/inventory/stock-out", label: t("nav.stockOut"), icon: ExportOutlined },
         ],
       },
       {
         label: t("nav.groupFinance"),
         items: [
-          { href: "/admin/cash-ledger", label: t("nav.cashLedger"), icon: Wallet },
+          { href: "/admin/cash-ledger", label: t("nav.cashLedger"), icon: WalletOutlined },
           {
-            href: "/admin/reports", label: t("nav.reports"), icon: BarChart3,
+            href: "/admin/reports", label: t("nav.reports"), icon: BarChartOutlined,
             children: [
               { href: "/admin/reports/inventory", label: t("nav.reportInventory") },
               { href: "/admin/reports/revenue", label: t("nav.reportRevenue") },
@@ -133,12 +132,12 @@ export default function AdminLayout({
       {
         label: t("nav.groupConfig"),
         items: [
-          { href: "/admin/config/prices", label: t("nav.prices"), icon: Tag },
-          { href: "/admin/config/exchange-rates", label: t("nav.exchangeRates"), icon: RefreshCw },
-          { href: "/admin/config/stone-prices", label: t("nav.stonePrices"), icon: Gem },
-          { href: "/admin/config/weight-units", label: t("nav.weightUnits"), icon: Scale },
-          { href: "/admin/config/gold-purities", label: t("nav.goldPurities"), icon: Sparkles },
-          { href: "/admin/config/currencies", label: t("nav.currencies"), icon: Coins },
+          { href: "/admin/config/prices", label: t("nav.prices"), icon: TagOutlined },
+          { href: "/admin/config/exchange-rates", label: t("nav.exchangeRates"), icon: SyncOutlined },
+          { href: "/admin/config/stone-prices", label: t("nav.stonePrices"), icon: GoldOutlined },
+          { href: "/admin/config/weight-units", label: t("nav.weightUnits"), icon: ControlOutlined },
+          { href: "/admin/config/gold-purities", label: t("nav.goldPurities"), icon: StarOutlined },
+          { href: "/admin/config/currencies", label: t("nav.currencies"), icon: MoneyCollectOutlined },
         ],
       },
     ],
@@ -223,8 +222,8 @@ export default function AdminLayout({
             className="h-7 w-7 flex items-center justify-center rounded-md text-sidebar-foreground/50 hover:text-sidebar-accent-foreground hover:bg-sidebar-accent transition-colors shrink-0"
           >
             {collapsed
-              ? <PanelLeftOpen className="h-4 w-4" />
-              : <PanelLeftClose className="h-4 w-4" />}
+              ? <MenuUnfoldOutlined className="h-4 w-4" />
+              : <MenuFoldOutlined className="h-4 w-4" />}
           </button>
         </div>
 
@@ -232,7 +231,7 @@ export default function AdminLayout({
         {!collapsed && (
           <div className="px-3 py-2.5 border-b border-sidebar-border">
             <div className="relative">
-              <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-sidebar-foreground/50 pointer-events-none" />
+              <SearchOutlined className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-sidebar-foreground/50 pointer-events-none" />
               <input
                 type="text"
                 placeholder={t("searchPlaceholder")}
@@ -266,7 +265,7 @@ export default function AdminLayout({
                     className="w-full flex items-center justify-between px-2.5 py-1.5 rounded-md text-[10px] font-semibold uppercase tracking-wider text-sidebar-foreground/40 hover:text-sidebar-foreground/70 transition-colors"
                   >
                     <span>{group.label}</span>
-                    <ChevronDown
+                    <DownOutlined
                       className={cn(
                         "h-3 w-3 transition-transform duration-200",
                         isOpen && "rotate-180",
@@ -317,7 +316,7 @@ export default function AdminLayout({
                                   <Icon className="h-4 w-4 shrink-0" />
                                   {!collapsed && <span className="flex-1 text-left">{label}</span>}
                                   {!collapsed && (
-                                    <ChevronDown
+                                    <DownOutlined
                                       className={cn(
                                         "h-3.5 w-3.5 shrink-0 transition-transform duration-200",
                                         open && "rotate-180",
@@ -425,7 +424,7 @@ export default function AdminLayout({
               onClick={() => router.push("/pos")}
               className="gap-1.5 text-xs h-8"
             >
-              <ArrowLeft className="h-3.5 w-3.5" />
+              <ArrowLeftOutlined className="h-3.5 w-3.5" />
               {t("nav.backToPOS")}
             </Button>
             <LocaleSwitcher />
@@ -443,7 +442,7 @@ export default function AdminLayout({
                       {user.role}
                     </span>
                   </div>
-                  <ChevronDown className="h-3.5 w-3.5 text-muted-foreground ml-0.5" />
+                  <DownOutlined className="h-3.5 w-3.5 text-muted-foreground ml-0.5" />
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end" className="min-w-52">
                   <div className="px-3 py-2.5 border-b">
@@ -455,7 +454,7 @@ export default function AdminLayout({
                     disabled={isLoggingOut}
                     className="text-destructive focus:text-destructive cursor-pointer gap-2 mb-1"
                   >
-                    <LogOut className="h-3.5 w-3.5" />
+                    <LogoutOutlined className="h-3.5 w-3.5" />
                     {tAuth("logout")}
                   </DropdownMenuItem>
                 </DropdownMenuContent>
