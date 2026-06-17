@@ -196,6 +196,11 @@ const ERROR_MESSAGES: Record<string, ErrorMap> = {
     vi: "Lý do điều chỉnh kho là bắt buộc",
     en: "Inventory adjustment reason is required",
   },
+  INVENTORY_ADJUSTMENT_NOT_FOUND: {
+    lo: "ບໍ່ພົບໃບປັບປຸງສາງ",
+    vi: "Không tìm thấy phiếu điều chỉnh kho",
+    en: "Inventory adjustment not found",
+  },
   INVENTORY_BULK_EMPTY: {
     lo: "ລາຍການ bulk update ບໍ່ສາມາດຫວ່າງໄດ້",
     vi: "Danh sách cập nhật hàng loạt không được rỗng",

@@ -115,6 +115,16 @@ export class InventoryRepository {
     }
   }
 
+  /** Chi tiết một phiếu điều chỉnh (header + lines) */
+  async getAdjustmentById(id: string): Promise<InventoryAdjustment> {
+    try {
+      const { data } = await api.get<InventoryAdjustment>(`${this.base}/adjustments/${id}`)
+      return data
+    } catch (err) {
+      throw handleAxiosError(err)
+    }
+  }
+
   /**
    * Cập nhật trạng thái nhiều mục kho cùng lúc (partial success).
    * Kiểm tra `notFoundIds` để phát hiện item không tồn tại.

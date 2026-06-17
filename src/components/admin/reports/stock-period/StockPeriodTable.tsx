@@ -1,23 +1,26 @@
 'use client'
 
+import { useState } from 'react'
 import { useTranslations } from 'next-intl'
-import { Table } from 'antd'
+import { Table, Spin } from 'antd'
 import type { TableColumnsType } from 'antd'
+import dayjs from 'dayjs'
 import { Badge } from '@/components/ui/badge'
-import { formatNum, formatGram } from '@/components/admin/reports/report-ui'
-import type { StockPeriodItem } from '@/types/report'
+import { formatNum } from '@/components/admin/reports/report-ui'
+import { useStockMovements } from '@/hooks/useReports'
+import { DocumentDialog, type DocRef } from './DocumentDialog'
+import type { StockPeriodItem, StockMovementLine } from '@/types/report'
 
 // Màu nhóm cột theo spec
 const GRP = {
   open:   { background: '#E6F1FB', color: '#0C447C' },
   change: { background: '#F1EFE8', color: '#444441' },
-  mid:    { background: '#FAEEDA', color: '#633806' },
   close:  { background: '#EAF3DE', color: '#27500A' },
 }
 const SEP = '1.5px solid var(--border)'
+const sepCell = () => ({ style: { borderLeft: SEP } })
 
 const qty = (n: number) => n > 0 ? formatNum(n) : <span className="text-muted-foreground">—</span>
-const wgt = (n: number) => n > 0 ? formatGram(n) : <span className="text-muted-foreground">—</span>
 const recv = (n: number) => n > 0
   ? <span style={{ color: '#3B6D11', fontWeight: 500 }}>+{formatNum(n)}</span>
   : <span className="text-muted-foreground">—</span>
@@ -25,27 +28,71 @@ const issue = (n: number) => n > 0
   ? <span style={{ color: '#A32D2D', fontWeight: 500 }}>−{formatNum(n)}</span>
   : <span className="text-muted-foreground">—</span>
 
-interface Props {
-  items: StockPeriodItem[]
-  fromDate: string
-  midDate: string
-  toDate: string
-  loading?: boolean
-}
+// ─── Chi tiết phát sinh nhập/xuất của 1 dòng (lazy fetch khi mở rộng) ─────────
 
-function GroupTitle({ label, date, style }: { label: string; date: string; style: React.CSSProperties }) {
+function MovementDetail({ row, fromDate, toDate }: { row: StockPeriodItem; fromDate: string; toDate: string }) {
+  const t = useTranslations('admin.reports.stockPeriod')
+  const [doc, setDoc] = useState<DocRef | null>(null)
+  const { data = [], isLoading } = useStockMovements({
+    productId: row.productId, branchId: row.branchId, fromDate, toDate,
+  })
+
+  if (isLoading) return <div className="py-4 text-center"><Spin size="small" /></div>
+
+  const cols: TableColumnsType<StockMovementLine> = [
+    { title: t('movDate'), dataIndex: 'occurredAt', key: 'occurredAt', width: 140,
+      render: (v: string) => dayjs(v).format('DD/MM/YYYY HH:mm') },
+    { title: t('movType'), dataIndex: 'direction', key: 'direction', width: 90,
+      render: (v: 'IN' | 'OUT') => v === 'IN'
+        ? <span style={{ color: '#3B6D11', fontWeight: 500 }}>{t('movIn')}</span>
+        : <span style={{ color: '#A32D2D', fontWeight: 500 }}>{t('movOut')}</span> },
+    { title: t('movQty'), dataIndex: 'quantity', key: 'quantity', width: 90, align: 'right',
+      render: (v: number, r) => (
+        <span style={{ color: r.direction === 'IN' ? '#3B6D11' : '#A32D2D' }}>
+          {r.direction === 'IN' ? '+' : '−'}{formatNum(v)}
+        </span>
+      ) },
+    { title: t('movRef'), dataIndex: 'refCode', key: 'refCode', width: 150,
+      render: (v: string, r) => (
+        <button
+          type="button"
+          className="font-mono text-xs text-primary hover:underline underline-offset-2"
+          onClick={(e) => { e.stopPropagation(); setDoc({ refType: r.refType, refId: r.refId, refCode: r.refCode }) }}
+        >
+          {v}
+        </button>
+      ) },
+    { title: t('movReason'), dataIndex: 'reason', key: 'reason',
+      render: (v: string | null) => v ?? <span className="text-muted-foreground">—</span> },
+    { title: t('movStore'), key: 'store', width: 140,
+      render: () => <span className="text-xs text-muted-foreground">{row.branchName}</span> },
+    { title: t('movCounter'), dataIndex: 'counterName', key: 'counterName', width: 120,
+      render: (v: string | null) => <span className="text-xs text-muted-foreground">{v ?? '—'}</span> },
+  ]
+
   return (
-    <div style={style} className="-mx-2 -my-1 px-2 py-1 text-center">
-      <div className="text-xs font-semibold">{label}</div>
-      <div className="text-[10px] opacity-70">{date}</div>
-    </div>
+    <>
+      <Table<StockMovementLine>
+        rowKey="id"
+        columns={cols}
+        dataSource={data}
+        size="small"
+        bordered
+        pagination={false}
+        locale={{ emptyText: t('movEmpty') }}
+        scroll={{ x: 700 }}
+      />
+      <DocumentDialog doc={doc} onClose={() => setDoc(null)} />
+    </>
   )
 }
 
-export function StockPeriodTable({ items, fromDate, midDate, toDate, loading }: Props) {
+export function StockPeriodTable({ items, fromDate, toDate, loading }: {
+  items: StockPeriodItem[]; fromDate: string; toDate: string; loading?: boolean
+}) {
   const t = useTranslations('admin.reports.stockPeriod')
-
-  const numCell = (sep?: boolean) => (sep ? () => ({ style: { borderLeft: SEP } }) : undefined)
+  const [expandedKeys, setExpandedKeys] = useState<string[]>([])
+  const rowKey = (r: StockPeriodItem) => `${r.productId}-${r.branchId}`
 
   const columns: TableColumnsType<StockPeriodItem> = [
     {
@@ -69,67 +116,66 @@ export function StockPeriodTable({ items, fromDate, midDate, toDate, loading }: 
             : <span className="text-muted-foreground">—</span> },
       ],
     },
+    // Đầu kỳ — 1 cột SL (không sub-text, không KL, không ngày)
     {
-      title: <GroupTitle label={t('grpOpen')} date={fromDate} style={GRP.open} />,
-      onHeaderCell: () => ({ style: GRP.open }),
+      title: t('grpOpen'), dataIndex: 'openQty', key: 'openQty', width: 110, align: 'right',
+      onHeaderCell: () => ({ style: { ...GRP.open, borderLeft: SEP } }),
+      onCell: sepCell, render: qty,
+    },
+    // Trong kỳ — Nhập / Xuất
+    {
+      title: t('grpChange'),
+      onHeaderCell: () => ({ style: { ...GRP.change, borderLeft: SEP } }),
       children: [
-        { title: t('colQty'), dataIndex: 'openQty', key: 'openQty', width: 90, align: 'right',
-          onCell: numCell(true), onHeaderCell: () => ({ style: { borderLeft: SEP } }), render: qty },
-        { title: t('colWeight'), dataIndex: 'openWeight', key: 'openWeight', width: 100, align: 'right', render: wgt },
+        { title: t('colReceipt'), dataIndex: 'receiptQty', key: 'receiptQty', width: 95, align: 'right',
+          onCell: sepCell, onHeaderCell: sepCell, render: recv },
+        { title: t('colIssue'), dataIndex: 'issueQty', key: 'issueQty', width: 95, align: 'right', render: issue },
       ],
     },
+    // Cuối kỳ — 1 cột SL (đậm)
     {
-      title: <GroupTitle label={t('grpChange')} date={`${fromDate} → ${toDate}`} style={GRP.change} />,
-      onHeaderCell: () => ({ style: GRP.change }),
-      children: [
-        { title: t('colReceipt'), dataIndex: 'receiptQty', key: 'receiptQty', width: 90, align: 'right',
-          onCell: numCell(true), onHeaderCell: () => ({ style: { borderLeft: SEP } }), render: recv },
-        { title: t('colIssue'), dataIndex: 'issueQty', key: 'issueQty', width: 90, align: 'right', render: issue },
-      ],
-    },
-    {
-      title: <GroupTitle label={t('grpMid')} date={midDate} style={GRP.mid} />,
-      onHeaderCell: () => ({ style: GRP.mid }),
-      children: [
-        { title: t('colQty'), dataIndex: 'midQty', key: 'midQty', width: 90, align: 'right',
-          onCell: numCell(true), onHeaderCell: () => ({ style: { borderLeft: SEP } }), render: qty },
-        { title: t('colWeight'), dataIndex: 'midWeight', key: 'midWeight', width: 100, align: 'right', render: wgt },
-      ],
-    },
-    {
-      title: <GroupTitle label={t('grpClose')} date={toDate} style={GRP.close} />,
-      onHeaderCell: () => ({ style: GRP.close }),
-      children: [
-        { title: t('colQty'), dataIndex: 'closeQty', key: 'closeQty', width: 95, align: 'right',
-          onCell: numCell(true), onHeaderCell: () => ({ style: { borderLeft: SEP } }),
-          render: (n: number) => n > 0 ? <span className="font-semibold">{formatNum(n)}</span> : <span className="text-muted-foreground">—</span> },
-        { title: t('colWeight'), dataIndex: 'closeWeight', key: 'closeWeight', width: 100, align: 'right', render: wgt },
-      ],
+      title: t('grpClose'), dataIndex: 'closeQty', key: 'closeQty', width: 110, align: 'right',
+      onHeaderCell: () => ({ style: { ...GRP.close, borderLeft: SEP } }),
+      onCell: sepCell,
+      render: (n: number) => n > 0
+        ? <span className="font-semibold">{formatNum(n)}</span>
+        : <span className="text-muted-foreground">—</span>,
     },
   ]
 
   const totals = items.reduce(
     (a, it) => ({
-      openQty: a.openQty + it.openQty, openWeight: a.openWeight + it.openWeight,
-      receiptQty: a.receiptQty + it.receiptQty, issueQty: a.issueQty + it.issueQty,
-      midQty: a.midQty + it.midQty, midWeight: a.midWeight + it.midWeight,
-      closeQty: a.closeQty + it.closeQty, closeWeight: a.closeWeight + it.closeWeight,
+      openQty: a.openQty + it.openQty,
+      receiptQty: a.receiptQty + it.receiptQty,
+      issueQty: a.issueQty + it.issueQty,
+      closeQty: a.closeQty + it.closeQty,
     }),
-    { openQty: 0, openWeight: 0, receiptQty: 0, issueQty: 0, midQty: 0, midWeight: 0, closeQty: 0, closeWeight: 0 },
+    { openQty: 0, receiptQty: 0, issueQty: 0, closeQty: 0 },
   )
 
   return (
+    <>
+    <style>{`.stock-period-table .ant-table-thead > tr > th { text-align: center !important; }`}</style>
     <Table<StockPeriodItem>
-      rowKey={(r) => `${r.productId}-${r.branchId}`}
+      className="stock-period-table"
+      rowKey={rowKey}
       columns={columns}
       dataSource={items}
       loading={loading}
       size="small"
       bordered
       sticky
-      scroll={{ x: 1500, y: 460 }}
+      scroll={{ x: 1100, y: 460 }}
       pagination={false}
       locale={{ emptyText: t('empty') }}
+      rowClassName="cursor-pointer"
+      expandable={{
+        expandedRowKeys: expandedKeys,
+        expandRowByClick: true,
+        showExpandColumn: false,
+        onExpand: (expanded, record) => setExpandedKeys(expanded ? [rowKey(record)] : []),
+        expandedRowRender: (record) => <MovementDetail row={record} fromDate={fromDate} toDate={toDate} />,
+      }}
       summary={() => (
         <Table.Summary fixed>
           <Table.Summary.Row style={{ background: 'var(--muted)', fontWeight: 600 }}>
@@ -137,20 +183,17 @@ export function StockPeriodTable({ items, fromDate, midDate, toDate, loading }: 
               {t('totalRow', { count: items.length })}
             </Table.Summary.Cell>
             <Table.Summary.Cell index={7} align="right">{formatNum(totals.openQty)}</Table.Summary.Cell>
-            <Table.Summary.Cell index={8} align="right">{formatGram(totals.openWeight)}</Table.Summary.Cell>
-            <Table.Summary.Cell index={9} align="right">
+            <Table.Summary.Cell index={8} align="right">
               <span style={{ color: '#3B6D11' }}>+{formatNum(totals.receiptQty)}</span>
             </Table.Summary.Cell>
-            <Table.Summary.Cell index={10} align="right">
+            <Table.Summary.Cell index={9} align="right">
               <span style={{ color: '#A32D2D' }}>−{formatNum(totals.issueQty)}</span>
             </Table.Summary.Cell>
-            <Table.Summary.Cell index={11} align="right">{formatNum(totals.midQty)}</Table.Summary.Cell>
-            <Table.Summary.Cell index={12} align="right">{formatGram(totals.midWeight)}</Table.Summary.Cell>
-            <Table.Summary.Cell index={13} align="right">{formatNum(totals.closeQty)}</Table.Summary.Cell>
-            <Table.Summary.Cell index={14} align="right">{formatGram(totals.closeWeight)}</Table.Summary.Cell>
+            <Table.Summary.Cell index={10} align="right">{formatNum(totals.closeQty)}</Table.Summary.Cell>
           </Table.Summary.Row>
         </Table.Summary>
       )}
     />
+    </>
   )
 }

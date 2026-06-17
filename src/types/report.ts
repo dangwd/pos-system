@@ -153,6 +153,28 @@ export interface StockPeriodReportParams {
   search?: string;
 }
 
+/** Một dòng phát sinh nhập/xuất của 1 sản phẩm trong kỳ (chi tiết khi mở rộng dòng). */
+export interface StockMovementLine {
+  id: string;
+  occurredAt: string;       // ISO 8601
+  direction: 'IN' | 'OUT';
+  quantity: number;
+  weightGram: number;
+  refType: 'Transaction' | 'Adjustment';
+  refId: string;            // GUID chứng từ nguồn (id GD hoặc id phiếu điều chỉnh)
+  refCode: string;          // mã HĐ (invoiceCode) hoặc mã phiếu (adjustmentCode)
+  reason: string | null;    // loại GD / lý do điều chỉnh
+  counterName: string | null;
+  note: string | null;
+}
+
+export interface StockMovementParams {
+  productId: string;
+  branchId?: string;        // giới hạn theo chi nhánh của dòng
+  fromDate: string;
+  toDate: string;
+}
+
 // ─── Báo cáo doanh thu (GET /api/reports/revenue) ─────────────────────────────
 
 export type RevenuePeriod = 'week' | 'month' | 'year'

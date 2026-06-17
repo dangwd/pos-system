@@ -1,18 +1,17 @@
 'use client'
 
-import { useMemo, useState, useEffect } from 'react'
+import { useState, useEffect } from 'react'
 import { useTranslations } from 'next-intl'
 import { Select, Input, DatePicker, Button } from 'antd'
 import dayjs from 'dayjs'
 import {
   DownloadOutlined, CalendarOutlined, SwapOutlined,
-  BarChartOutlined, CheckCircleOutlined, CloseOutlined,
+  CheckCircleOutlined, CloseOutlined,
 } from '@ant-design/icons'
 import { usePermission } from '@/hooks/usePermission'
 import { ForbiddenPage } from '@/components/shared/ForbiddenPage'
 import { TablePageSkeleton } from '@/components/shared/PageSkeleton'
-import { Panel, EmptyHint, formatNum, formatGram } from '@/components/admin/reports/report-ui'
-import { StockPeriodCharts } from '@/components/admin/reports/stock-period/StockPeriodCharts'
+import { EmptyHint, formatNum, formatGram } from '@/components/admin/reports/report-ui'
 import { StockPeriodTable } from '@/components/admin/reports/stock-period/StockPeriodTable'
 import { useBranches } from '@/hooks/useBranches'
 import { useCategories } from '@/hooks/useProducts'
@@ -22,12 +21,6 @@ import { useToast } from '@/lib/toast'
 
 const KARATS = ['9999', '999', '750', '585', '375', '925', '800']
 const fmtD = (iso: string) => dayjs(iso).format('DD/MM/YYYY')
-
-// midDate = fromDate + (toDate - fromDate) / 2
-function midOf(from: string, to: string) {
-  const f = dayjs(from), t = dayjs(to)
-  return f.add(Math.floor(t.diff(f, 'day') / 2), 'day').format('YYYY-MM-DD')
-}
 
 // ─── Stat card ────────────────────────────────────────────────────────────────
 
@@ -107,7 +100,6 @@ export default function StockPeriodReportPage() {
   }
   const { data, isLoading, isFetching } = useStockPeriodReport(params)
 
-  const midDate = useMemo(() => midOf(fromDate, toDate), [fromDate, toDate])
   const branchName = branches.find(b => b.id === branchId)?.name
   const categoryName = categories.find(c => c.id === categoryId)?.name
 
@@ -202,7 +194,7 @@ export default function StockPeriodReportPage() {
       ) : (
         <div className="space-y-4">
           {/* Stat cards */}
-          <div className="grid gap-2.5 grid-cols-2 lg:grid-cols-4">
+          <div className="grid gap-2.5 grid-cols-1 sm:grid-cols-3">
             <PeriodCard
               icon={<CalendarOutlined />} iconColor="#185FA5"
               label={t('cardOpen')} value={`${formatNum(s!.openQty)} ${t('unitQty')}`}
@@ -214,11 +206,6 @@ export default function StockPeriodReportPage() {
               sub={t('changeSub', { receipt: formatNum(s!.receiptQty), issue: formatNum(s!.issueQty) })}
             />
             <PeriodCard
-              icon={<BarChartOutlined />} iconColor="#BA7517"
-              label={t('cardMid')} value={`${formatNum(s!.midQty)} ${t('unitQty')}`}
-              sub={`${formatGram(s!.midWeight)}`}
-            />
-            <PeriodCard
               icon={<CheckCircleOutlined />} iconColor="#3B6D11"
               label={t('cardClose')} value={`${formatNum(s!.closeQty)} ${t('unitQty')}`}
               sub={`${formatGram(s!.closeWeight)}`}
@@ -227,9 +214,6 @@ export default function StockPeriodReportPage() {
             />
           </div>
 
-          {/* Charts */}
-          <StockPeriodCharts byKarat={data.byKarat} />
-
           {/* Result bar */}
           <div className="flex items-center justify-between text-xs text-muted-foreground">
             <span>{t('resultCount', { count: data.items.length })}</span>
@@ -237,15 +221,9 @@ export default function StockPeriodReportPage() {
           </div>
 
           {/* Detail table */}
-          <Panel title={t('detailTitle')}>
-            <StockPeriodTable
-              items={data.items}
-              fromDate={fmtD(fromDate)}
-              midDate={fmtD(midDate)}
-              toDate={fmtD(toDate)}
-              loading={isFetching}
-            />
-          </Panel>
+          <div className="rounded-lg border bg-card p-4 shadow-card">
+            <StockPeriodTable items={data.items} fromDate={fromDate} toDate={toDate} loading={isFetching} />
+          </div>
         </div>
       )}
     </div>

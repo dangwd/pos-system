@@ -101,6 +101,15 @@ export function useInventoryAdjustments(
   })
 }
 
+export function useInventoryAdjustment(id: string | null) {
+  return useQuery({
+    queryKey: [...INVENTORY_KEY, 'adjustment', id],
+    queryFn: () => inventoryRepository.getAdjustmentById(id!),
+    staleTime: 60_000,
+    enabled: !!id,
+  })
+}
+
 // ─── Mutation base ───────────────────────────────────────────────────────────
 
 function useInventoryMutationBase() {
