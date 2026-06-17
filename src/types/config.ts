@@ -18,8 +18,8 @@ export interface PriceItem {
 }
 
 /**
- * GET /api/config/prices — bảng giá hiện hành.
- * Mỗi lần cập nhật tạo bản ghi mới (không ghi đè) để giữ lịch sử.
+ * GET /api/config/prices — bảng giá hiện hành (đọc-only).
+ * POS & Inventory snapshot giá từ đây cho tới khi migrate sang model nhiều bảng.
  */
 export interface PriceConfig {
   id: string
@@ -29,17 +29,42 @@ export interface PriceConfig {
   items: PriceItem[]
 }
 
-/** POST /api/config/prices — item trong request body (1 hàm lượng × 1 đơn vị) */
-export interface PriceItemDto {
-  goldPurityId: string
-  weightUnitId: string  // ID đơn vị (Chỉ/Bath/Lượng/Gram)
-  buyPrice: number      // Giá mua vào (LAK/đơn vị)
-  sellPrice: number     // Giá bán ra (LAK/đơn vị)
+// ─── Bảng giá (nhiều bảng song song) ─────────────────────────────────────────
+
+export interface PriceRow {
+  karat: string           // '9999' | '999' | '750' | '585' | '375' | '925' | '800'
+  type: 'gold' | 'silver'
+  unit: string            // 'chi' | 'gram'
+  gramPerUnit: number     // Hệ số quy đổi (chi=3.75, gram=1) — snapshot lúc tạo bảng
+  buy: number
+  sell: number
 }
 
-/** POST /api/config/prices */
-export interface UpdatePriceConfigDto {
-  items: PriceItemDto[]
+export type PriceTableScope = 'all' | 'branch'
+
+export interface PriceTable {
+  id: string
+  name: string
+  scope: PriceTableScope
+  branches: string[]
+  active: boolean
+  createdAt: string
+  createdBy: string
+  createdById: string
+  updatedAt: string
+  updatedBy: string
+  prices: PriceRow[]
+}
+
+export interface CreatePriceTableDto {
+  name: string
+  scope: PriceTableScope
+  branches: string[]
+  prices: PriceRow[]
+}
+
+export interface TogglePriceTableActiveDto {
+  active: boolean
 }
 
 // ─── Tỷ giá ngoại tệ ─────────────────────────────────────────────────────────

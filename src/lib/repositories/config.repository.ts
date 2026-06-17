@@ -2,8 +2,9 @@ import api from '@/lib/axios'
 import { handleAxiosError } from '@/lib/api-error'
 import { normalizePaged, type RawPagedResult } from '@/types/common'
 import type {
-  PriceConfig,
-  UpdatePriceConfigDto,
+  PriceTable,
+  CreatePriceTableDto,
+  TogglePriceTableActiveDto,
   ExchangeRate,
   UpdateExchangeRateDto,
   StonePriceRule,
@@ -29,24 +30,34 @@ export class ConfigRepository {
 
   // ─── Bảng giá ──────────────────────────────────────────────────────────────
 
-  async getPrices(): Promise<PriceConfig> {
-    try {
-      const { data } = await api.get<PriceConfig>('/api/config/prices')
-      return data
-    } catch (err) { throw handleAxiosError(err) }
-  }
+  // ─── Bảng giá (nhiều bảng song song) ──────────────────────────────────────
 
-  async getPriceHistory(limit = 20): Promise<PriceConfig[]> {
+  async getPriceTables(): Promise<PriceTable[]> {
     try {
-      const { data } = await api.get<PriceConfig[] | RawPagedResult<PriceConfig>>('/api/config/prices/history', { params: { limit } })
+      const { data } = await api.get<PriceTable[] | RawPagedResult<PriceTable>>('/api/price-tables')
       if (Array.isArray(data)) return data
       return normalizePaged(data).data
     } catch (err) { throw handleAxiosError(err) }
   }
 
-  async updatePrices(dto: UpdatePriceConfigDto): Promise<PriceConfig> {
+  /** Bảng giá đang áp dụng cho user hiện tại (BE resolve theo JWT: chi nhánh → toàn hệ thống). */
+  async getActivePriceTable(): Promise<PriceTable> {
     try {
-      const { data } = await api.post<PriceConfig>('/api/config/prices', dto)
+      const { data } = await api.get<PriceTable>('/api/price-tables/active')
+      return data
+    } catch (err) { throw handleAxiosError(err) }
+  }
+
+  async createPriceTable(dto: CreatePriceTableDto): Promise<PriceTable> {
+    try {
+      const { data } = await api.post<PriceTable>('/api/price-tables', dto)
+      return data
+    } catch (err) { throw handleAxiosError(err) }
+  }
+
+  async togglePriceTableActive(id: string, dto: TogglePriceTableActiveDto): Promise<PriceTable> {
+    try {
+      const { data } = await api.patch<PriceTable>(`/api/price-tables/${id}`, dto)
       return data
     } catch (err) { throw handleAxiosError(err) }
   }

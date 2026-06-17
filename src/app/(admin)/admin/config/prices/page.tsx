@@ -1,147 +1,157 @@
 'use client'
 
-import { usePermission } from '@/hooks/usePermission'
-import { ForbiddenPage } from '@/components/shared/ForbiddenPage'
 import { useMemo, useState } from 'react'
 import { useTranslations } from 'next-intl'
-import { EditOutlined, PlusOutlined, HistoryOutlined } from '@ant-design/icons'
-import { InputNumber } from 'antd'
+import {
+  PlusOutlined,
+  EyeOutlined,
+  CopyOutlined,
+  GlobalOutlined,
+  ShopOutlined,
+} from '@ant-design/icons'
+import { Button as AntButton, Tooltip } from 'antd'
 import { Button } from '@/components/ui/button'
-import { Spinner } from '@/components/ui/spinner'
 import { Badge } from '@/components/ui/badge'
-import { TablePageSkeleton } from '@/components/shared/PageSkeleton'
-import { PriceRowAddDialog } from '@/components/admin/config/PriceRowAddDialog'
-import { PriceComparison } from '@/components/admin/config/PriceComparison'
-import { PriceHistory } from '@/components/admin/config/PriceHistory'
-import { useConfigPrices, useUpdatePrices } from '@/hooks/useConfig'
-import { useUser } from '@/hooks/useUsers'
-import { useAuthStore } from '@/stores/auth.store'
-import type { PriceItemDto, PriceItem, GoldPurity, WeightUnit } from '@/types/config'
+import { DataTable } from '@/components/shared/DataTable'
+import { ForbiddenPage } from '@/components/shared/ForbiddenPage'
+import { usePermission } from '@/hooks/usePermission'
+import { usePriceTables } from '@/hooks/useConfig'
+import { useBranches } from '@/hooks/useBranches'
+import { PriceTableDetailDialog } from '@/components/admin/config/PriceTableDetailDialog'
+import { PriceTableFormDialog } from '@/components/admin/config/PriceTableFormDialog'
+import type { ColumnsType } from '@/components/shared/DataTable'
+import type { PriceTable } from '@/types/config'
 
-function formatKip(n: number) {
-  return n.toLocaleString('lo-LA') + ' ₭'
+function AvatarChip({ name }: { name: string }) {
+  return (
+    <span
+      className="inline-flex items-center justify-center rounded-full text-[11px] font-medium select-none shrink-0"
+      style={{ width: 22, height: 22, background: '#D3D1C7', color: '#2C2C2A' }}
+    >
+      {(name ?? '').charAt(0).toUpperCase() || '?'}
+    </span>
+  )
 }
 
-type FormRow = {
-  goldPurityId: string
-  purityCode: string
-  category: 'Gold' | 'Silver'
-  weightUnitId: string
-  weightUnitCode: string
-  gramPerUnit: number
-  buyPrice: string
-  sellPrice: string
-}
+function ScopeCell({
+  row, branchMap, t,
+}: {
+  row: PriceTable
+  branchMap: Record<string, string>
+  t: ReturnType<typeof useTranslations>
+}) {
+  if (row.scope === 'all') {
+    return (
+      <span className="flex items-center gap-1.5 text-sm">
+        <GlobalOutlined className="text-muted-foreground" />
+        <span className="text-muted-foreground text-xs">{t('scopeAll')}</span>
+      </span>
+    )
+  }
 
-function buildFormRows(items: PriceItem[]): FormRow[] {
-  return items.map((i) => ({
-    goldPurityId: i.goldPurityId,
-    purityCode: i.purityCode,
-    category: i.category,
-    weightUnitId: i.weightUnitId,
-    weightUnitCode: i.weightUnitCode,
-    gramPerUnit: i.gramPerUnit,
-    buyPrice: String(i.buyPrice),
-    sellPrice: String(i.sellPrice),
-  }))
+  const shown = row.branches.slice(0, 3)
+  const rest  = row.branches.length - shown.length
+
+  return (
+    <span className="flex items-center gap-1.5 flex-wrap">
+      <ShopOutlined className="text-muted-foreground shrink-0" />
+      {shown.map((id) => (
+        <span
+          key={id}
+          className="px-1.5 py-0.5 text-xs rounded-full"
+          style={{ background: '#E6F1FB', color: '#0C447C' }}
+        >
+          {branchMap[id] ?? id}
+        </span>
+      ))}
+      {rest > 0 && <span className="text-xs text-muted-foreground">+{rest}</span>}
+    </span>
+  )
 }
 
 export default function PricesPage() {
   const { hasPermission } = usePermission()
   const t = useTranslations('admin.config.prices')
-  const [editing, setEditing] = useState(false)
-  const [rows, setRows] = useState<FormRow[]>([])
-  const [addOpen, setAddOpen] = useState(false)
-  const [comparing, setComparing] = useState(false)
-  const [viewingHistory, setViewingHistory] = useState(false)
 
-  const { data: prices, isLoading } = useConfigPrices()
-  const { mutate: update, isPending } = useUpdatePrices()
+  const { data: tables = [], isLoading } = usePriceTables()
+  const { data: branches = [] }          = useBranches()
 
-  // "Cập nhật bởi" backend trả về GUID → resolve sang tên. Chính mình thì lấy từ
-  // session (khỏi gọi API); người khác thì GET /api/users/{id} (fallback ID nếu
-  // không có quyền UserManage hoặc không tìm thấy).
-  const currentUser = useAuthStore((s) => s.user)
-  const updaterId = prices?.updatedBy ?? ''
-  const isSelfUpdater = !!updaterId && currentUser?.userId === updaterId
-  const { data: updaterUser } = useUser(isSelfUpdater ? '' : updaterId)
-  const updatedByName = isSelfUpdater
-    ? (currentUser?.fullName ?? updaterId)
-    : (updaterUser?.fullName ?? updaterId)
+  const [detailTable, setDetailTable] = useState<PriceTable | null>(null)
+  const [formOpen,    setFormOpen]    = useState(false)
+  const [copySource,  setCopySource]  = useState<PriceTable | null>(null)
 
-  const currentRows = useMemo(
-    () => buildFormRows(prices?.items ?? []),
-    [prices],
+  const branchMap = useMemo(
+    () => Object.fromEntries(branches.map((b) => [b.id, b.name])),
+    [branches],
   )
 
-  function startEdit() {
-    setRows(buildFormRows(prices?.items ?? []))
-    setComparing(false)
-    setViewingHistory(false)
-    setEditing(true)
-  }
+  function openCreate() { setCopySource(null); setFormOpen(true) }
+  function openCopy(src: PriceTable) { setCopySource(src); setDetailTable(null); setFormOpen(true) }
+  function closeForm() { setFormOpen(false); setCopySource(null) }
 
-  function setCell(idx: number, field: 'buyPrice' | 'sellPrice', value: string) {
-    setRows((r) => r.map((row, i) => i === idx ? { ...row, [field]: value } : row))
-  }
-
-  // Mở dialog thêm dòng — vào chế độ sửa nếu chưa
-  function openAddDialog() {
-    if (!editing) startEdit()
-    setAddOpen(true)
-  }
-
-  function openHistory() {
-    setEditing(false)
-    setComparing(false)
-    setViewingHistory(true)
-  }
-
-  // Các tổ hợp (hàm lượng × đơn vị) đã có — để dialog loại trùng
-  const existingKeys = useMemo(
-    () => new Set(rows.map((r) => `${r.goldPurityId}:${r.weightUnitId}`)),
-    [rows],
-  )
-
-  function handleAddRow(
-    category: 'Gold' | 'Silver',
-    purity: GoldPurity,
-    unit: WeightUnit,
-    buyPrice: string,
-    sellPrice: string,
-  ) {
-    setRows((r) => [
-      ...r,
-      {
-        goldPurityId: purity.id,
-        purityCode: purity.ma,
-        category,
-        weightUnitId: unit.id,
-        weightUnitCode: unit.maTocDoc,
-        gramPerUnit: unit.gramPerUnit,
-        buyPrice,
-        sellPrice,
-      },
-    ])
-  }
-
-  function handleSubmit() {
-    const items: PriceItemDto[] = rows.map((r) => ({
-      goldPurityId: r.goldPurityId,
-      weightUnitId: r.weightUnitId,
-      buyPrice: Number(r.buyPrice) || 0,
-      sellPrice: Number(r.sellPrice) || 0,
-    }))
-    update({ items }, {
-      onSuccess: () => {
-        setEditing(false)
-        setComparing(true)
-      },
-    })
-  }
-
+  const columns: ColumnsType<PriceTable> = useMemo(() => [
+    {
+      title:     t('columns.name'),
+      dataIndex: 'name',
+      key:       'name',
+      render: (name: string) => <span className="font-medium">{name}</span>,
+    },
+    {
+      title: t('columns.scope'),
+      key:   'scope',
+      render: (_: unknown, row: PriceTable) => (
+        <ScopeCell row={row} branchMap={branchMap} t={t} />
+      ),
+    },
+    {
+      title: t('columns.createdBy'),
+      key:   'createdBy',
+      render: (_: unknown, row: PriceTable) => (
+        <span className="flex items-center gap-1.5 text-xs text-muted-foreground">
+          <AvatarChip name={row.createdBy} />
+          {row.createdBy || '—'}
+        </span>
+      ),
+    },
+    {
+      title:     t('columns.updatedAt'),
+      dataIndex: 'updatedAt',
+      key:       'updatedAt',
+      render: (v: string) => (
+        <span className="text-xs text-muted-foreground">{new Date(v).toLocaleString('lo-LA')}</span>
+      ),
+    },
+    {
+      title: t('columns.status'),
+      key:   'active',
+      render: (_: unknown, row: PriceTable) => (
+        <Badge
+          className={row.active ? 'bg-green-100 text-green-800 border-green-200' : ''}
+          variant={row.active ? 'outline' : 'secondary'}
+        >
+          {row.active ? t('statusActive') : t('statusInactive')}
+        </Badge>
+      ),
+    },
+    {
+      title: '',
+      key:   'actions',
+      width: 80,
+      render: (_: unknown, row: PriceTable) => (
+        <span className="flex items-center gap-1">
+          <Tooltip title={t('view')}>
+            <AntButton size="small" type="text" icon={<EyeOutlined />} onClick={() => setDetailTable(row)} />
+          </Tooltip>
+          <Tooltip title={t('copy')}>
+            <AntButton size="small" type="text" icon={<CopyOutlined />} onClick={() => openCopy(row)} />
+          </Tooltip>
+        </span>
+      ),
+    },
+  ], [t, branchMap])
 
   if (!hasPermission('CONFIG_PRICE')) return <ForbiddenPage />
+
   return (
     <div className="p-6 space-y-5">
       <div className="flex items-start justify-between">
@@ -149,143 +159,34 @@ export default function PricesPage() {
           <h1 className="text-2xl font-bold">{t('title')}</h1>
           <p className="text-muted-foreground text-sm">{t('subtitle')}</p>
         </div>
-        {!comparing && !viewingHistory && (
-          <div className="flex gap-2">
-            <Button size="sm" variant="outline" onClick={openHistory} disabled={isLoading}>
-              <HistoryOutlined className="h-3.5 w-3.5 mr-1.5" />
-              {t('historyButton')}
-            </Button>
-            <Button size="sm" variant="outline" onClick={openAddDialog} disabled={isLoading}>
-              <PlusOutlined className="h-3.5 w-3.5 mr-1.5" />
-              {t('addRowButton')}
-            </Button>
-            {!editing && (
-              <Button size="sm" variant="outline" onClick={startEdit} disabled={isLoading || !prices?.items.length}>
-                <EditOutlined className="h-3.5 w-3.5 mr-1.5" />
-                {t('updateButton')}
-              </Button>
-            )}
-          </div>
-        )}
+        <Button size="sm" onClick={openCreate}>
+          <PlusOutlined className="h-3.5 w-3.5 mr-1.5" />
+          {t('createButton')}
+        </Button>
       </div>
 
-      {comparing ? (
-        <PriceComparison onClose={() => setComparing(false)} />
-      ) : viewingHistory ? (
-        <PriceHistory onClose={() => setViewingHistory(false)} />
-      ) : isLoading ? <TablePageSkeleton cols={5} rows={4} /> : (
-        <>
-          {prices && (
-            <p className="text-xs text-muted-foreground">
-              {t('effectiveFrom')}: {new Date(prices.effectiveFrom).toLocaleString('lo-LA')}
-              {' · '}{t('updatedBy')}: {updatedByName}
-            </p>
-          )}
+      <DataTable
+        columns={columns}
+        data={tables}
+        loading={isLoading}
+        searchKey="name"
+        maxHeight={false}
+      />
 
-          <div className="rounded-md border overflow-hidden shadow-card">
-            <table className="w-full text-sm table-fixed">
-              <colgroup>
-                <col className="w-[16%]" />
-                <col className="w-[13%]" />
-                <col className="w-[23%]" />
-                <col className="w-[24%]" />
-                <col className="w-[24%]" />
-              </colgroup>
-              <thead className="border-b bg-muted/40">
-                <tr>
-                  <th className="px-4 py-3 text-left font-medium text-muted-foreground">{t('columns.purityCode')}</th>
-                  <th className="px-4 py-3 text-left font-medium text-muted-foreground">{t('columns.category')}</th>
-                  <th className="px-4 py-3 text-left font-medium text-muted-foreground">{t('columns.unit')}</th>
-                  <th className="px-4 py-3 text-right font-medium text-muted-foreground">{t('columns.buy')}</th>
-                  <th className="px-4 py-3 text-right font-medium text-muted-foreground">{t('columns.sell')}</th>
-                </tr>
-              </thead>
-              <tbody>
-                {(editing ? rows : currentRows).map((row, idx) => (
-                  <tr key={`${row.goldPurityId}:${row.weightUnitId}`} className="border-b last:border-0 hover:bg-muted/10">
-                    <td className="px-4 py-3 font-mono font-bold">{row.purityCode}</td>
-                    <td className="px-4 py-3">
-                      {/* Màu theo kim loại: Vàng (Au) → vàng kim, Bạc (Ag) → ánh bạc.
-                          Hardcode amber/zinc vì không có token chủ đề cho kim loại. */}
-                      <Badge
-                        className={
-                          row.category === 'Gold'
-                            ? 'bg-amber-400 text-amber-950 border-amber-500/60'
-                            : 'bg-zinc-300 text-zinc-800 border-zinc-400/70'
-                        }
-                      >
-                        {row.category === 'Gold' ? t('categoryGold') : t('categorySilver')}
-                      </Badge>
-                    </td>
-                    <td className="px-4 py-3 text-xs text-muted-foreground">
-                      {row.weightUnitCode}
-                      <span className="ml-1 opacity-60">({row.gramPerUnit}g)</span>
-                    </td>
-                    {editing ? (
-                      <>
-                        <td className="px-4 py-2">
-                          <InputNumber
-                            min={0}
-                            size="small"
-                            value={row.buyPrice ? Number(row.buyPrice) : null}
-                            onChange={(v) => setCell(idx, 'buyPrice', String(v ?? ''))}
-                            style={{ width: '100%' }}
-                          />
-                        </td>
-                        <td className="px-4 py-2">
-                          <InputNumber
-                            min={0}
-                            size="small"
-                            value={row.sellPrice ? Number(row.sellPrice) : null}
-                            onChange={(v) => setCell(idx, 'sellPrice', String(v ?? ''))}
-                            style={{ width: '100%' }}
-                          />
-                        </td>
-                      </>
-                    ) : (
-                      <>
-                        <td className="px-4 py-3 text-right whitespace-nowrap tabular-nums">
-                          <span className="font-semibold">{formatKip(Number(row.buyPrice))}</span>
-                          <span className="text-xs text-muted-foreground ml-1">/{row.weightUnitCode}</span>
-                        </td>
-                        <td className="px-4 py-3 text-right whitespace-nowrap tabular-nums">
-                          <span className="font-semibold">{formatKip(Number(row.sellPrice))}</span>
-                          <span className="text-xs text-muted-foreground ml-1">/{row.weightUnitCode}</span>
-                        </td>
-                      </>
-                    )}
-                  </tr>
-                ))}
-                {(editing ? rows : currentRows).length === 0 && (
-                  <tr>
-                    <td colSpan={5} className="px-4 py-8 text-center text-muted-foreground text-xs">
-                      {t('noPurities')}
-                    </td>
-                  </tr>
-                )}
-              </tbody>
-            </table>
-          </div>
-
-          {editing && (
-            <div className="flex justify-end gap-2">
-              <Button variant="outline" onClick={() => setEditing(false)} disabled={isPending}>
-                {t('cancel')}
-              </Button>
-              <Button onClick={handleSubmit} disabled={isPending}>
-                {isPending && <Spinner className="mr-2" />}
-                {t('saveButton')}
-              </Button>
-            </div>
-          )}
-        </>
+      {detailTable && (
+        <PriceTableDetailDialog
+          table={detailTable}
+          branchMap={branchMap}
+          onCopy={() => openCopy(detailTable)}
+          onClose={() => setDetailTable(null)}
+        />
       )}
 
-      <PriceRowAddDialog
-        open={addOpen}
-        existingKeys={existingKeys}
-        onAdd={handleAddRow}
-        onClose={() => setAddOpen(false)}
+      <PriceTableFormDialog
+        open={formOpen}
+        copySource={copySource}
+        branches={branches}
+        onClose={closeForm}
       />
     </div>
   )

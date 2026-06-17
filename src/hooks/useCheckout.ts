@@ -23,6 +23,7 @@ import { useActiveTab } from "./useActiveTab";
 interface CheckoutParams {
   type: TransactionType;
   customerId: string; // bắt buộc — backend trả CUSTOMER_REQUIRED nếu thiếu
+  priceTableId?: string | null; // bảng giá đang áp dụng — bắt buộc trừ ExchangeCurrency
   note?: string;
   paymentMethod?: PaymentMethod;
   cashAmount?: number; // Bắt buộc khi COMBINED
@@ -42,6 +43,12 @@ export function useCheckout(strategy: PaymentStrategy) {
 
       if (!params.customerId) {
         throw new ApiError("CUSTOMER_REQUIRED");
+      }
+
+      // Giao dịch vàng/bạc bắt buộc tham chiếu bảng giá đang áp dụng.
+      // ExchangeCurrency không dùng bảng giá → bỏ qua.
+      if (!isFx && !params.priceTableId) {
+        throw new ApiError("PRICE_TABLE_NOT_FOUND");
       }
 
       if (!tab || (!isFx && tab.items.length === 0)) {
@@ -84,6 +91,7 @@ export function useCheckout(strategy: PaymentStrategy) {
       const transactionId = await transactionRepository.create({
         type: params.type,
         customerId: params.customerId,
+        priceTableId: isFx ? undefined : params.priceTableId,
         paymentMethod,
         cashAmount,
         bankAmount,

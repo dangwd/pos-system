@@ -10,7 +10,7 @@
 import { useState, useEffect } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import { transactionRepository } from '@/lib/repositories/transaction.repository'
-import { configRepository } from '@/lib/repositories/config.repository'
+import { useActivePriceConfig } from './useConfig'
 import { useActiveTab } from './useActiveTab'
 import type { CartItem } from '@/types/cart'
 import type { Transaction } from '@/types/transaction'
@@ -33,11 +33,7 @@ export function useExchangeInvoiceLookup() {
     staleTime: 30_000,
   })
 
-  const { data: priceConfig } = useQuery({
-    queryKey: ['price-config', 'current'],
-    queryFn: () => configRepository.getPrices(),
-    staleTime: 60_000,
-  })
+  const { priceConfig } = useActivePriceConfig()
 
   const { tab, setLinkedInvoice, clearLinkedInvoice, setCustomer } = useActiveTab()
 

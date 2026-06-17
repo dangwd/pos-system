@@ -1,13 +1,17 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+import { useMemo } from 'react'
 import { useLocale } from 'next-intl'
 import { toast } from '@/lib/toast'
 import { configRepository } from '@/lib/repositories/config.repository'
+import { priceTableToPriceConfig } from '@/lib/price-table-adapter'
 import { getErrorMessage } from '@/lib/errors'
 import type { ApiError } from '@/lib/api-error'
 import type { AppLocale } from '@/lib/errors'
 import type {
   PriceConfig,
-  UpdatePriceConfigDto,
+  PriceTable,
+  CreatePriceTableDto,
+  TogglePriceTableActiveDto,
   ExchangeRate,
   UpdateExchangeRateDto,
   StonePriceRule,
@@ -31,7 +35,6 @@ import type {
 
 // ─── Query keys ───────────────────────────────────────────────────────────────
 
-const PRICES_KEY = ['config', 'prices'] as const
 const EXCHANGE_RATES_KEY = ['config', 'exchange-rates'] as const
 const STONE_RULES_KEY = ['config', 'stone-price-rules'] as const
 const WEIGHT_UNITS_KEY = ['config', 'weight-units'] as const
@@ -44,34 +47,91 @@ function useConfigBase() {
   return { locale, invalidate }
 }
 
-// ─── Bảng giá ─────────────────────────────────────────────────────────────────
+// ─── Bảng giá đang áp dụng (POS & Kho lấy giá từ đây) ────────────────────────
+// Nguồn giá hiện hành = bảng giá active resolve theo JWT (GET /api/price-tables/active).
+// useActivePriceConfig() quy đổi sang shape PriceConfig để mọi consumer cũ dùng lại.
 
-export function useConfigPrices() {
+const ACTIVE_PRICE_TABLE_KEY = ['config', 'price-table', 'active'] as const
+
+export function useActivePriceTable() {
+  return useQuery<PriceTable, ApiError>({
+    queryKey: ACTIVE_PRICE_TABLE_KEY,
+    queryFn: () => configRepository.getActivePriceTable(),
+    staleTime: 60_000,
+    retry: false, // 404 (không có bảng active) là trạng thái nghiệp vụ, không retry
+  })
+}
+
+/**
+ * Bảng giá đang áp dụng, đã quy đổi sang shape PriceConfig.
+ * `priceTableId` = id bảng giá (gửi kèm khi checkout). `errorCode` để UI báo lỗi
+ * (vd PRICE_TABLE_NOT_FOUND khi chi nhánh chưa có bảng active).
+ */
+export function useActivePriceConfig() {
+  const tableQuery = useActivePriceTable()
+  const { data: weightUnits = [] } = useWeightUnits()
+  const { data: goldPurities = [] } = useGoldPurities()
+
+  const priceConfig = useMemo<PriceConfig | undefined>(() => {
+    if (!tableQuery.data) return undefined
+    return priceTableToPriceConfig(tableQuery.data, weightUnits, goldPurities)
+  }, [tableQuery.data, weightUnits, goldPurities])
+
+  return {
+    priceConfig,
+    priceTableId: tableQuery.data?.id,
+    isLoading: tableQuery.isLoading,
+    isError: tableQuery.isError,
+    errorCode: tableQuery.error?.code,
+  }
+}
+
+// ─── Bảng giá (nhiều bảng song song) ─────────────────────────────────────────
+
+const PRICE_TABLES_KEY = ['config', 'price-tables'] as const
+
+export function usePriceTables() {
   return useQuery({
-    queryKey: PRICES_KEY,
-    queryFn: () => configRepository.getPrices(),
+    queryKey: PRICE_TABLES_KEY,
+    queryFn: () => configRepository.getPriceTables(),
     staleTime: 60_000,
   })
 }
 
-export function useUpdatePrices() {
+export function useCreatePriceTable() {
   const { locale, invalidate } = useConfigBase()
-  return useMutation<PriceConfig, ApiError, UpdatePriceConfigDto>({
-    mutationFn: (dto) => configRepository.updatePrices(dto),
+  return useMutation<PriceTable, ApiError, CreatePriceTableDto>({
+    mutationFn: (dto) => configRepository.createPriceTable(dto),
     onSuccess: () => {
-      invalidate(PRICES_KEY)
-      toast.success(locale === 'lo' ? 'ສ້າງຕາຕະລາງລາຄາສຳເລັດ' : locale === 'vi' ? 'Tạo bảng giá thành công' : 'Price table created')
+      invalidate(PRICE_TABLES_KEY)
+      toast.success(
+        locale === 'lo' ? 'ສ້າງຕາຕະລາງລາຄາສຳເລັດ'
+          : locale === 'vi' ? 'Tạo bảng giá thành công'
+          : 'Price table created',
+      )
     },
     onError: (err) => toast.error(getErrorMessage(err.code, locale)),
   })
 }
 
-/** Lịch sử bảng giá (mới nhất trước) — dùng để so sánh bản vừa tạo với bản trước. */
-export function useConfigPriceHistory(limit = 2) {
-  return useQuery({
-    queryKey: [...PRICES_KEY, 'history', limit],
-    queryFn: () => configRepository.getPriceHistory(limit),
-    staleTime: 0,
+export function useTogglePriceTableActive() {
+  const { locale, invalidate } = useConfigBase()
+  const qc = useQueryClient()
+  return useMutation<PriceTable, ApiError, { id: string; active: boolean }>({
+    mutationFn: ({ id, active }) =>
+      configRepository.togglePriceTableActive(id, { active } as TogglePriceTableActiveDto),
+    onSuccess: (updated) => {
+      qc.setQueryData<PriceTable[]>(PRICE_TABLES_KEY, (prev) =>
+        prev?.map((t) => (t.id === updated.id ? updated : t)) ?? prev,
+      )
+      invalidate(PRICE_TABLES_KEY)
+      toast.success(
+        locale === 'lo' ? 'ອັບເດດສະຖານະສຳເລັດ'
+          : locale === 'vi' ? 'Cập nhật trạng thái thành công'
+          : 'Status updated',
+      )
+    },
+    onError: (err) => toast.error(getErrorMessage(err.code, locale)),
   })
 }
 

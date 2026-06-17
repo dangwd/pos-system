@@ -12,7 +12,7 @@
 import { Badge } from "@/components/ui/badge";
 import { useActiveTab } from "@/hooks/useActiveTab";
 import { useAddToCart } from "@/hooks/useAddToCart";
-import { useConfigPrices, useWeightUnits } from "@/hooks/useConfig";
+import { useActivePriceConfig, useWeightUnits } from "@/hooks/useConfig";
 import { useProductsWithStock } from "@/hooks/useProducts";
 import { cn } from "@/lib/utils";
 import { useAuthStore } from "@/stores/auth.store";
@@ -1191,7 +1191,7 @@ export function TransactionTable() {
     deleteItem,
     updateCartItem,
   } = useActiveTab();
-  const { data: priceConfig } = useConfigPrices();
+  const { priceConfig } = useActivePriceConfig();
   const { data: weightUnits = [] } = useWeightUnits();
   const { user } = useAuthStore();
   const { addToCartAs } = useAddToCart(priceConfig);

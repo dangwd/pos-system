@@ -5,7 +5,7 @@ import { toast } from '@/lib/toast'
 import { inventoryRepository } from '@/lib/repositories/inventory.repository'
 import { getErrorMessage, type AppLocale } from '@/lib/errors'
 import type { ApiError } from '@/lib/api-error'
-import { useConfigPrices, useExchangeRates } from '@/hooks/useConfig'
+import { useActivePriceConfig, useExchangeRates } from '@/hooks/useConfig'
 import { summarizeInventory, valuateItem } from '@/lib/inventory-valuation'
 import type {
   InventoryListParams,
@@ -64,7 +64,7 @@ export function useInventoryList(
  */
 export function useInventoryValuation(branchId: string | null) {
   const itemsQuery = useInventoryList({ branchId: branchId ?? undefined }, !!branchId)
-  const { data: priceConfig } = useConfigPrices()
+  const { priceConfig } = useActivePriceConfig()
   const { data: rates } = useExchangeRates()
 
   const items = useMemo(() => itemsQuery.data ?? [], [itemsQuery.data])

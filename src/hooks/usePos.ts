@@ -16,14 +16,13 @@
 'use client'
 
 import { useState } from 'react'
-import { useQuery } from '@tanstack/react-query'
 import { useActiveTab } from './useActiveTab'
 import { useAddToCart } from './useAddToCart'
 import { useCheckout } from './useCheckout'
 import { useCoupon } from './useCoupon'
+import { useActivePriceConfig } from './useConfig'
 import { useInvoiceTabStore } from '@/stores/invoice-tab.store'
 import { CashStrategy, BankTransferStrategy, CombinedStrategy } from '@/lib/strategies'
-import { configRepository } from '@/lib/repositories/config.repository'
 
 import type { ProductWithStock } from '@/types/product'
 import type { PaymentMethodKey } from '@/lib/strategies/payment.strategy'
@@ -40,12 +39,8 @@ export function usePos() {
   // ── UI local state ──────────────────────────────────────────────────────────
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethodKey>('cash')
 
-  // ── Bảng giá hiện tại (cache 1 phút — giá cập nhật theo giờ) ────────────────
-  const { data: priceConfig } = useQuery({
-    queryKey: ['price-config', 'current'],
-    queryFn: () => configRepository.getPrices(),
-    staleTime: 60_000,
-  })
+  // ── Bảng giá đang áp dụng (active price table resolve theo JWT) ─────────────
+  const { priceConfig, priceTableId, errorCode: priceErrorCode } = useActivePriceConfig()
 
   // ── Active tab state (cart, giảm giá, v.v.) ─────────────────────────────────
   const {
@@ -77,7 +72,7 @@ export function usePos() {
     cashAmount?: number
     bankAmount?: number
     referenceInvoiceCode?: string
-  }) => checkoutMutate(params)
+  }) => checkoutMutate({ ...params, priceTableId })
 
   const setTabPaying = () => {
     if (tab) updateTab(tab.id, { status: 'paying' })
@@ -91,6 +86,8 @@ export function usePos() {
   return {
     // Price config
     priceConfig,
+    priceTableId,
+    priceErrorCode,
 
     // Active tab cart
     cartItems: tab?.items ?? [],

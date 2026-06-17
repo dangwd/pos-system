@@ -82,6 +82,8 @@ export interface Transaction {
   paymentMethod: PaymentMethod;
   cashAmount: number | null; // Số tiền mặt (khi COMBINED)
   bankAmount: number | null; // Số tiền chuyển khoản (khi COMBINED)
+  priceTableId: string | null;     // FK bảng giá áp dụng (null cho ExchangeCurrency)
+  priceTableName: string | null;   // Tên bảng giá (JOIN sang price_tables.name)
   note: string | null;
   transactedAt: string; // ISO 8601
   referenceInvoiceCode: string | null;
@@ -116,6 +118,7 @@ export interface CreateTransactionDto {
   type: TransactionType;
   // branchId / staffId / counterId KHÔNG gửi — backend lấy từ JWT
   customerId: string; // bắt buộc kể từ 2026-06-13
+  priceTableId?: string | null; // FK bảng giá áp dụng — bắt buộc trừ ExchangeCurrency
   items: CreateTransactionItemDto[];
   paymentMethod: PaymentMethod;
   cashAmount?: number | null; // Bắt buộc khi COMBINED

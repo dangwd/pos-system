@@ -109,6 +109,21 @@ const ERROR_MESSAGES: Record<string, ErrorMap> = {
     vi: "Danh sách giá không được rỗng",
     en: "Price items cannot be empty",
   },
+  PRICE_TABLE_REQUIRED: {
+    lo: "ກະລຸນາເລືອກຕາຕະລາງລາຄາ",
+    vi: "Vui lòng chọn bảng giá",
+    en: "A price table is required",
+  },
+  PRICE_TABLE_NOT_FOUND: {
+    lo: "ບໍ່ພົບຕາຕະລາງລາຄາທີ່ໃຊ້ງານ ກະລຸນາຕິດຕໍ່ຜູ້ຄຸ້ມຄອງ",
+    vi: "Không tìm thấy bảng giá đang áp dụng, liên hệ quản lý",
+    en: "No active price table found, contact manager",
+  },
+  PRICE_TABLE_INACTIVE: {
+    lo: "ຕາຕະລາງລາຄານີ້ຖືກປິດໃຊ້ງານ",
+    vi: "Bảng giá đã bị vô hiệu hóa",
+    en: "Price table is inactive",
+  },
   CONFIG_GOLD_PURITY_NOT_FOUND: {
     lo: "ບໍ່ພົບຄວາມບໍລິສຸດຂອງທອງ",
     vi: "Không tìm thấy hàm lượng vàng",

@@ -9,7 +9,7 @@ import { Spinner } from '@/components/ui/spinner'
 import { ComboboxSelect } from '@/components/shared/ComboboxSelect'
 import { ArrowLeftOutlined, InfoCircleOutlined, PlusSquareOutlined } from '@ant-design/icons'
 import { useCreateProduct, useCategories } from '@/hooks/useProducts'
-import { useConfigPrices } from '@/hooks/useConfig'
+import { useActivePriceConfig } from '@/hooks/useConfig'
 import type { ProductCategory } from '@/types/product'
 
 interface Props {
@@ -43,7 +43,7 @@ export function InventoryDeclareForm({ onBack }: Props) {
   const [form, setForm] = useState(EMPTY)
 
   const { data: categories = [] } = useCategories()
-  const { data: priceConfig } = useConfigPrices()
+  const { priceConfig } = useActivePriceConfig()
   const { mutate: create, isPending } = useCreateProduct()
 
   const set = (k: keyof typeof form, v: string) => setForm(f => ({ ...f, [k]: v }))
