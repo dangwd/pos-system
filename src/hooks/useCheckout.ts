@@ -17,7 +17,7 @@ import type { PaymentStrategy } from "@/lib/strategies/payment.strategy";
 import type { PaymentMethod, TransactionType } from "@/types/transaction";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useLocale, useTranslations } from "next-intl";
-import { toast } from "@/lib/toast";
+import { useToast } from "@/lib/toast";
 import { useActiveTab } from "./useActiveTab";
 
 interface CheckoutParams {
@@ -34,6 +34,7 @@ export function useCheckout(strategy: PaymentStrategy) {
   const qc = useQueryClient();
   const locale = useLocale() as AppLocale;
   const t = useTranslations("pos.errors");
+  const toast = useToast();
   const { tab, total, clearCart } = useActiveTab();
 
   return useMutation({

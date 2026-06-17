@@ -1,7 +1,7 @@
 import { useMemo } from 'react'
 import { useInfiniteQuery, useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useLocale, useTranslations } from 'next-intl'
-import { toast } from '@/lib/toast'
+import { useToast } from '@/lib/toast'
 import { inventoryRepository } from '@/lib/repositories/inventory.repository'
 import { getErrorMessage, type AppLocale } from '@/lib/errors'
 import type { ApiError } from '@/lib/api-error'
@@ -107,14 +107,15 @@ function useInventoryMutationBase() {
   const qc = useQueryClient()
   const locale = useLocale() as AppLocale
   const t = useTranslations('admin.inventory.toasts')
+  const toast = useToast()
   const invalidate = () => qc.invalidateQueries({ queryKey: INVENTORY_KEY })
-  return { locale, t, invalidate }
+  return { locale, t, toast, invalidate }
 }
 
 // ─── Mutations ───────────────────────────────────────────────────────────────
 
 export function useAdjustInventory() {
-  const { locale, t, invalidate } = useInventoryMutationBase()
+  const { locale, t, toast, invalidate } = useInventoryMutationBase()
   return useMutation<AdjustInventoryResult, ApiError, { id: string; dto: AdjustInventoryDto }>({
     mutationFn: ({ id, dto }) => inventoryRepository.adjust(id, dto),
     onSuccess: (res) => {
@@ -130,7 +131,7 @@ export function useAdjustInventory() {
  * Atomic: 1 dòng lỗi → cả phiếu bị từ chối (onError). Thành công trả về phiếu (header + lines).
  */
 export function useCreateAdjustment() {
-  const { locale, t, invalidate } = useInventoryMutationBase()
+  const { locale, t, toast, invalidate } = useInventoryMutationBase()
   return useMutation<CreateInventoryAdjustmentResult, ApiError, CreateInventoryAdjustmentDto>({
     mutationFn: (dto) => inventoryRepository.createAdjustment(dto),
     onSuccess: (res) => {
@@ -142,7 +143,7 @@ export function useCreateAdjustment() {
 }
 
 export function useUpdateInventoryStatus() {
-  const { locale, t, invalidate } = useInventoryMutationBase()
+  const { locale, t, toast, invalidate } = useInventoryMutationBase()
   return useMutation<InventoryItem, ApiError, { id: string; dto: UpdateInventoryStatusDto }>({
     mutationFn: ({ id, dto }) => inventoryRepository.updateStatus(id, dto),
     onSuccess: () => {

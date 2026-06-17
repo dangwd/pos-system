@@ -14,6 +14,12 @@ export interface ActiveShiftResponse {
   counterName: string | null
 }
 
+export interface CurrencyBalance {
+  currency: string
+  openingAmount: number
+  closingAmount: number | null
+}
+
 export interface SalesShiftSummary {
   banHangTotal: number
   banHangCash: number
@@ -43,6 +49,7 @@ export interface SalesShiftDetailDto {
   status: 'Open' | 'Closed'
   openingCashLak: number
   closingCashLak: number | null
+  currencyBalances: CurrencyBalance[]
   note: string | null
   openedAt: string
   closedAt: string | null
@@ -69,12 +76,13 @@ export interface SalesShiftListItem {
 
 export interface OpenShiftRequest {
   openingCashLak: number
-  openedAt: string
+  foreignCurrencyBalances?: { currency: string; openingAmount: number }[]
   note?: string
 }
 
 export interface CloseShiftRequest {
   closingCashLak: number
+  foreignCurrencyBalances?: { currency: string; closingAmount: number }[]
 }
 
 export interface SalesShiftListParams {

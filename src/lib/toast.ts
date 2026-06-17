@@ -1,6 +1,9 @@
-import { message } from 'antd'
+import { App } from 'antd'
 
-export const toast = {
-  success: (content: string) => { message.success(content) },
-  error:   (content: string) => { message.error(content) },
+export function useToast() {
+  const { message } = App.useApp()
+  return {
+    success: (content: string) => message.success(content),
+    error:   (content: string) => message.error(content),
+  }
 }

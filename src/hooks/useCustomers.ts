@@ -1,6 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useLocale, useTranslations } from 'next-intl'
-import { toast } from '@/lib/toast'
+import { useToast } from '@/lib/toast'
 import { customerRepository } from '@/lib/repositories/customer.repository'
 import { getErrorMessage } from '@/lib/errors'
 import type { ApiError } from '@/lib/api-error'
@@ -44,6 +44,7 @@ export function useCustomer(id: string) {
 export function useCreateCustomer() {
   const locale = useLocale() as AppLocale
   const t = useTranslations('admin.customers.toasts')
+  const toast = useToast()
   const qc = useQueryClient()
   return useMutation<Customer, ApiError, CreateCustomerDto>({
     mutationFn: (dto) => customerRepository.create(dto),
@@ -58,6 +59,7 @@ export function useCreateCustomer() {
 export function useUpdateCustomer() {
   const locale = useLocale() as AppLocale
   const t = useTranslations('admin.customers.toasts')
+  const toast = useToast()
   const qc = useQueryClient()
   return useMutation<Customer, ApiError, { id: string; dto: UpdateCustomerDto }>({
     mutationFn: ({ id, dto }) => customerRepository.update(id, dto),

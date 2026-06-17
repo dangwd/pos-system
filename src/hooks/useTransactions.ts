@@ -1,6 +1,6 @@
 import { useState, useCallback, useEffect } from 'react'
 import { useQuery, useMutation, useQueryClient, keepPreviousData } from '@tanstack/react-query'
-import { toast } from '@/lib/toast'
+import { useToast } from '@/lib/toast'
 import { transactionRepository } from '@/lib/repositories/transaction.repository'
 import { extractErrorMessage } from '@/lib/errors'
 import type { Transaction, TransactionItem, TransactionListParams, CancelTransactionDto } from '@/types/transaction'
@@ -9,6 +9,7 @@ import type { CartItem } from '@/types/cart'
 const TRANSACTIONS_KEY = ['transactions'] as const
 
 export function useTransactions(params?: TransactionListParams) {
+  const toast = useToast()
   const query = useQuery({
     queryKey: [...TRANSACTIONS_KEY, params],
     queryFn: () => transactionRepository.getList(params),
@@ -106,6 +107,7 @@ export function useTransactionById(id?: string) {
 }
 
 export function useCancelTransaction() {
+  const toast = useToast()
   const queryClient = useQueryClient()
 
   return useMutation({

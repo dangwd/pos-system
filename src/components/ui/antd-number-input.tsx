@@ -14,6 +14,6 @@ function parse(value: string | undefined): number {
   return Number(value?.replace(/,/g, '') ?? 0)
 }
 
-export function InputNumber(props: InputNumberProps) {
-  return <AntdInputNumber formatter={fmt} parser={parse} {...props} />
+export function InputNumber(props: InputNumberProps<number>) {
+  return <AntdInputNumber<number> formatter={fmt} parser={parse} {...props} />
 }

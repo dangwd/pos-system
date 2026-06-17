@@ -35,7 +35,7 @@ import dayjs from "dayjs";
 import { FileExcelOutlined, PlusOutlined } from "@ant-design/icons";
 import { useTranslations } from "next-intl";
 import { useMemo, useState } from "react";
-import { toast } from "@/lib/toast";
+import { useToast } from "@/lib/toast";
 
 const PAGE_SIZE = 20;
 const PAGE_STYLE: React.CSSProperties = { padding: "24px 24px 32px" };
@@ -66,6 +66,7 @@ function AddEntryDialog({
   onClose: () => void;
 }) {
   const t = useTranslations("admin.cashLedger");
+  const toast = useToast();
   const queryClient = useQueryClient();
   const [form, setForm] = useState({
     description: "",
@@ -249,6 +250,7 @@ function SummaryStrip({
 export default function CashLedgerPage() {
   const { hasPermission } = usePermission();
   const t = useTranslations("admin.cashLedger");
+  const toast = useToast();
   const { user } = useAuthStore();
   const branchId = user?.branchId ?? "";
 

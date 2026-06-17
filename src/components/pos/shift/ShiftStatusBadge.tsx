@@ -7,7 +7,7 @@
  * Khi không có ca: không render gì (ShiftGuard đã block toàn bộ UI).
  */
 
-import { useActiveShift } from '@/hooks/useSalesShift'
+import { useActiveShift, useActiveShiftCurrencies } from '@/hooks/useSalesShift'
 import { cn } from '@/lib/utils'
 import { ClockCircleOutlined, DownOutlined } from '@ant-design/icons'
 import { useState } from 'react'
@@ -15,6 +15,7 @@ import { CloseShiftModal } from './CloseShiftModal'
 
 export function ShiftStatusBadge() {
   const { data } = useActiveShift()
+  const currencyBalances = useActiveShiftCurrencies()
   const [closeModalOpen, setCloseModalOpen] = useState(false)
 
   if (!data?.hasOpenShift || !data.shiftId) return null
@@ -49,6 +50,7 @@ export function ShiftStatusBadge() {
         counterName={data.counterName ?? ''}
         openedAt={data.openedAt ?? ''}
         openingCashLak={data.openingCashLak ?? 0}
+        currencyBalances={currencyBalances}
       />
     </>
   )

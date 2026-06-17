@@ -17,7 +17,7 @@ import { CustomerCreateDialog } from "@/components/admin/customers/CustomerCreat
 import { ExchangeInvoiceLookup } from "@/components/pos/ExchangeInvoiceLookup";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { toast } from "@/lib/toast";
+import { useToast } from "@/lib/toast";
 import { useActiveTab } from "@/hooks/useActiveTab";
 import { useAuthStore } from "@/stores/auth.store";
 import { useCustomers } from "@/hooks/useCustomers";
@@ -96,6 +96,7 @@ function StoreHeader() {
 
 function OrderLookup() {
   const t = useTranslations("pos.payment.panel");
+  const toast = useToast();
   const { tab, enterCancelMode, exitCancelMode } = useActiveTab();
   const { result, cancelItems, isSearching, notFound, search, clear: clearSearch } = useTransactionLookup();
   const [code, setCode] = useState("");
@@ -707,6 +708,7 @@ export function PaymentPanel({
 }: PaymentPanelProps) {
   const t = useTranslations("pos.payment.panel");
   const { tab, total, exitCancelMode } = useActiveTab();
+  const toast = useToast();
   const { mutate: cancelTxn, isPending: isCancelling } = useCancelTransaction();
 
   const [cashInput, setCashInput] = useState("");

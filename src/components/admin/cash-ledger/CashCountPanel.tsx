@@ -8,7 +8,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Input as AntInput } from "antd";
 import { ReadOutlined, WarningOutlined } from "@ant-design/icons";
 import { useEffect, useState } from "react";
-import { toast } from "@/lib/toast";
+import { useToast } from "@/lib/toast";
 
 const LAK_DENOMS = [100000, 50000, 20000, 10000, 5000, 2000];
 const THB_DENOMS = [1000, 500];
@@ -73,6 +73,7 @@ interface Props {
 
 export function CashCountPanel({ branchId, date }: Props) {
   const { user } = useAuthStore();
+  const toast = useToast();
   const queryClient = useQueryClient();
 
   const { data: daily } = useQuery({

@@ -17,10 +17,11 @@ import type { Transaction } from "@/types/transaction";
 import { Splitter } from "antd";
 import { useTranslations } from "next-intl";
 import { useState } from "react";
-import { toast } from "@/lib/toast";
+import { useToast } from "@/lib/toast";
 
 export default function PosPage() {
   const t = useTranslations("pos.errors");
+  const toast = useToast();
   const [receiptTransaction, setReceiptTransaction] =
     useState<Transaction | null>(null);
   const pos = usePos();

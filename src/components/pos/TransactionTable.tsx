@@ -9,6 +9,7 @@
 
 "use client";
 
+import { InputNumber } from "@/components/ui/antd-number-input";
 import { Badge } from "@/components/ui/badge";
 import { useActiveTab } from "@/hooks/useActiveTab";
 import { useAddToCart } from "@/hooks/useAddToCart";
@@ -36,7 +37,6 @@ import {
   VerticalAlignTopOutlined,
 } from "@ant-design/icons";
 import { Select } from "antd";
-import { InputNumber } from "@/components/ui/antd-number-input";
 import { useTranslations } from "next-intl";
 import { useEffect, useState } from "react";
 import { CurrencyExchangeForm } from "./CurrencyExchangeForm";

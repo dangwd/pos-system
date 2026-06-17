@@ -406,6 +406,12 @@ const ERROR_MESSAGES: Record<string, ErrorMap> = {
     en: 'Shift does not belong to your assigned counter',
   },
 
+  CURRENCY_BALANCE_NOT_FOUND: {
+    lo: 'ສະກຸນເງິນໃນຟອມບໍ່ກົງກັບທີ່ລົງທະບຽນໃນຕອນເປີດກະ',
+    vi: 'Mã tiền tệ không khớp với ngoại tệ đã khai báo lúc mở ca',
+    en: 'Currency not found in this shift\'s opening balances',
+  },
+
   // ── CURRENCY ──────────────────────────────────────────────────────────────
   CURRENCY_NOT_FOUND: {
     lo: 'ບໍ່ພົບສະກຸນເງິນ',
