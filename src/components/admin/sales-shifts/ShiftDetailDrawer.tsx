@@ -318,7 +318,7 @@ export function ShiftDetailDrawer({ shiftId, onClose }: Props) {
     <Drawer
       open={!!shiftId}
       onClose={onClose}
-      width={720}
+      size="large"
       title={
         <span style={{ fontWeight: 700, fontSize: 15 }}>
           Chi tiết ca bán hàng
