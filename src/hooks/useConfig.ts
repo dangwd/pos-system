@@ -1,7 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useMemo } from 'react'
 import { useLocale } from 'next-intl'
-import { toast } from '@/lib/toast'
+import { useToast } from '@/lib/toast'
 import { configRepository } from '@/lib/repositories/config.repository'
 import { priceTableToPriceConfig } from '@/lib/price-table-adapter'
 import { getErrorMessage } from '@/lib/errors'
@@ -43,8 +43,9 @@ const GOLD_PURITIES_KEY = ['config', 'gold-purities'] as const
 function useConfigBase() {
   const locale = useLocale() as AppLocale
   const qc = useQueryClient()
+  const toast = useToast()
   const invalidate = (key: readonly string[]) => qc.invalidateQueries({ queryKey: key })
-  return { locale, invalidate }
+  return { locale, toast, invalidate }
 }
 
 // ─── Bảng giá đang áp dụng (POS & Kho lấy giá từ đây) ────────────────────────
@@ -99,7 +100,7 @@ export function usePriceTables() {
 }
 
 export function useCreatePriceTable() {
-  const { locale, invalidate } = useConfigBase()
+  const { locale, toast, invalidate } = useConfigBase()
   return useMutation<PriceTable, ApiError, CreatePriceTableDto>({
     mutationFn: (dto) => configRepository.createPriceTable(dto),
     onSuccess: () => {
@@ -115,7 +116,7 @@ export function useCreatePriceTable() {
 }
 
 export function useTogglePriceTableActive() {
-  const { locale, invalidate } = useConfigBase()
+  const { locale, toast, invalidate } = useConfigBase()
   const qc = useQueryClient()
   return useMutation<PriceTable, ApiError, { id: string; active: boolean }>({
     mutationFn: ({ id, active }) =>
@@ -146,7 +147,7 @@ export function useExchangeRates() {
 }
 
 export function useUpdateExchangeRate() {
-  const { locale, invalidate } = useConfigBase()
+  const { locale, toast, invalidate } = useConfigBase()
   return useMutation<ExchangeRate, ApiError, UpdateExchangeRateDto>({
     mutationFn: (dto) => configRepository.updateExchangeRate(dto),
     onSuccess: () => {
@@ -168,7 +169,7 @@ export function useStonePriceRules() {
 }
 
 export function useCreateStonePriceRule() {
-  const { locale, invalidate } = useConfigBase()
+  const { locale, toast, invalidate } = useConfigBase()
   return useMutation<StonePriceRule, ApiError, CreateStonePriceRuleDto>({
     mutationFn: (dto) => configRepository.createStonePriceRule(dto),
     onSuccess: () => invalidate(STONE_RULES_KEY),
@@ -177,7 +178,7 @@ export function useCreateStonePriceRule() {
 }
 
 export function useUpdateStonePriceRule() {
-  const { locale, invalidate } = useConfigBase()
+  const { locale, toast, invalidate } = useConfigBase()
   return useMutation<StonePriceRule, ApiError, { id: string; dto: UpdateStonePriceRuleDto }>({
     mutationFn: ({ id, dto }) => configRepository.updateStonePriceRule(id, dto),
     onSuccess: () => invalidate(STONE_RULES_KEY),
@@ -186,7 +187,7 @@ export function useUpdateStonePriceRule() {
 }
 
 export function useDeleteStonePriceRule() {
-  const { locale, invalidate } = useConfigBase()
+  const { locale, toast, invalidate } = useConfigBase()
   return useMutation<void, ApiError, string>({
     mutationFn: (id) => configRepository.deleteStonePriceRule(id),
     onSuccess: () => invalidate(STONE_RULES_KEY),
@@ -205,7 +206,7 @@ export function useWeightUnits() {
 }
 
 export function useCreateWeightUnit() {
-  const { locale, invalidate } = useConfigBase()
+  const { locale, toast, invalidate } = useConfigBase()
   return useMutation<WeightUnit, ApiError, CreateWeightUnitDto>({
     mutationFn: (dto) => configRepository.createWeightUnit(dto),
     onSuccess: () => invalidate(WEIGHT_UNITS_KEY),
@@ -214,7 +215,7 @@ export function useCreateWeightUnit() {
 }
 
 export function useUpdateWeightUnit() {
-  const { locale, invalidate } = useConfigBase()
+  const { locale, toast, invalidate } = useConfigBase()
   return useMutation<WeightUnit, ApiError, { id: string; dto: UpdateWeightUnitDto }>({
     mutationFn: ({ id, dto }) => configRepository.updateWeightUnit(id, dto),
     onSuccess: () => invalidate(WEIGHT_UNITS_KEY),
@@ -223,7 +224,7 @@ export function useUpdateWeightUnit() {
 }
 
 export function useDeleteWeightUnit() {
-  const { locale, invalidate } = useConfigBase()
+  const { locale, toast, invalidate } = useConfigBase()
   return useMutation<void, ApiError, string>({
     mutationFn: (id) => configRepository.deleteWeightUnit(id),
     onSuccess: () => invalidate(WEIGHT_UNITS_KEY),
@@ -242,7 +243,7 @@ export function useGoldPurities() {
 }
 
 export function useCreateGoldPurity() {
-  const { locale, invalidate } = useConfigBase()
+  const { locale, toast, invalidate } = useConfigBase()
   return useMutation<GoldPurity, ApiError, CreateGoldPurityDto>({
     mutationFn: (dto) => configRepository.createGoldPurity(dto),
     onSuccess: () => invalidate(GOLD_PURITIES_KEY),
@@ -251,7 +252,7 @@ export function useCreateGoldPurity() {
 }
 
 export function useUpdateGoldPurity() {
-  const { locale, invalidate } = useConfigBase()
+  const { locale, toast, invalidate } = useConfigBase()
   return useMutation<GoldPurity, ApiError, { id: string; dto: UpdateGoldPurityDto }>({
     mutationFn: ({ id, dto }) => configRepository.updateGoldPurity(id, dto),
     onSuccess: () => invalidate(GOLD_PURITIES_KEY),
@@ -260,7 +261,7 @@ export function useUpdateGoldPurity() {
 }
 
 export function useDeleteGoldPurity() {
-  const { locale, invalidate } = useConfigBase()
+  const { locale, toast, invalidate } = useConfigBase()
   return useMutation<void, ApiError, string>({
     mutationFn: (id) => configRepository.deleteGoldPurity(id),
     onSuccess: () => invalidate(GOLD_PURITIES_KEY),
@@ -281,7 +282,7 @@ export function useCurrencies() {
 }
 
 export function useCreateCurrency() {
-  const { locale, invalidate } = useConfigBase()
+  const { locale, toast, invalidate } = useConfigBase()
   return useMutation<Currency, ApiError, CreateCurrencyDto>({
     mutationFn: (dto) => configRepository.createCurrency(dto),
     onSuccess: () => {
@@ -293,7 +294,7 @@ export function useCreateCurrency() {
 }
 
 export function useUpdateCurrency() {
-  const { locale, invalidate } = useConfigBase()
+  const { locale, toast, invalidate } = useConfigBase()
   return useMutation<Currency, ApiError, { id: string; dto: UpdateCurrencyDto }>({
     mutationFn: ({ id, dto }) => configRepository.updateCurrency(id, dto),
     onSuccess: () => {
@@ -305,7 +306,7 @@ export function useUpdateCurrency() {
 }
 
 export function useDeleteCurrency() {
-  const { locale, invalidate } = useConfigBase()
+  const { locale, toast, invalidate } = useConfigBase()
   return useMutation<void, ApiError, string>({
     mutationFn: (id) => configRepository.deleteCurrency(id),
     onSuccess: () => {
@@ -338,7 +339,7 @@ export function usePermissions() {
 }
 
 export function useUpdateRolePermissions() {
-  const { locale, invalidate } = useConfigBase()
+  const { locale, toast, invalidate } = useConfigBase()
   return useMutation<void, ApiError, { roleId: string; dto: UpdateRolePermissionsDto }>({
     mutationFn: ({ roleId, dto }) => configRepository.updateRolePermissions(roleId, dto),
     onSuccess: () => {
@@ -350,7 +351,7 @@ export function useUpdateRolePermissions() {
 }
 
 export function useCreateRole() {
-  const { locale, invalidate } = useConfigBase()
+  const { locale, toast, invalidate } = useConfigBase()
   return useMutation<AppRole, ApiError, CreateRoleDto>({
     mutationFn: (dto) => configRepository.createRole(dto),
     onSuccess: () => {
@@ -362,7 +363,7 @@ export function useCreateRole() {
 }
 
 export function useUpdateRole() {
-  const { locale, invalidate } = useConfigBase()
+  const { locale, toast, invalidate } = useConfigBase()
   return useMutation<AppRole, ApiError, { roleId: string; dto: UpdateRoleDto }>({
     mutationFn: ({ roleId, dto }) => configRepository.updateRole(roleId, dto),
     onSuccess: () => {
@@ -374,7 +375,7 @@ export function useUpdateRole() {
 }
 
 export function useDeleteRole() {
-  const { locale, invalidate } = useConfigBase()
+  const { locale, toast, invalidate } = useConfigBase()
   return useMutation<void, ApiError, string>({
     mutationFn: (roleId) => configRepository.deleteRole(roleId),
     onSuccess: () => {

@@ -1,7 +1,7 @@
 import { useMutation, useQuery } from '@tanstack/react-query'
 import { useRouter } from 'next/navigation'
 import { useLocale } from 'next-intl'
-import { toast } from '@/lib/toast'
+import { useToast } from '@/lib/toast'
 import { AuthRepository } from '@/lib/repositories/auth.repository'
 import { useAuthStore } from '@/stores/auth.store'
 import { getErrorMessage } from '@/lib/errors'
@@ -13,6 +13,7 @@ export function useLogin() {
   const router = useRouter()
   const locale = useLocale() as AppLocale
   const setAuth = useAuthStore(s => s.setAuth)
+  const toast = useToast()
 
   return useMutation<Awaited<ReturnType<typeof AuthRepository.login>>, ApiError, LoginRequest>({
     mutationFn: (dto) => AuthRepository.login(dto),

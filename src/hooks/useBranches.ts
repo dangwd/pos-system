@@ -1,6 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useLocale, useTranslations } from 'next-intl'
-import { toast } from '@/lib/toast'
+import { useToast } from '@/lib/toast'
 import { branchRepository } from '@/lib/repositories/branch.repository'
 import { getErrorMessage } from '@/lib/errors'
 import type { AppLocale } from '@/lib/errors'
@@ -19,10 +19,11 @@ function useBranchMutationBase() {
   const queryClient = useQueryClient()
   const locale = useLocale() as AppLocale
   const t = useTranslations('admin.branches')
+  const toast = useToast()
   const invalidateBranches = () => queryClient.invalidateQueries({ queryKey: BRANCHES_KEY })
   const invalidateCounters = (branchId: string) =>
     queryClient.invalidateQueries({ queryKey: countersKey(branchId) })
-  return { locale, t, invalidateBranches, invalidateCounters }
+  return { locale, t, toast, invalidateBranches, invalidateCounters }
 }
 
 // ─── Queries ─────────────────────────────────────────────────────────────────
@@ -47,7 +48,7 @@ export function useCounters(branchId: string | null) {
 // ─── Branch Mutations ─────────────────────────────────────────────────────────
 
 export function useCreateBranch() {
-  const { locale, t, invalidateBranches } = useBranchMutationBase()
+  const { locale, t, toast, invalidateBranches } = useBranchMutationBase()
 
   return useMutation<{ id: string; name: string }, ApiError, CreateBranchDto>({
     mutationFn: (dto) => branchRepository.create(dto),
@@ -60,7 +61,7 @@ export function useCreateBranch() {
 }
 
 export function useUpdateBranch() {
-  const { locale, t, invalidateBranches } = useBranchMutationBase()
+  const { locale, t, toast, invalidateBranches } = useBranchMutationBase()
 
   return useMutation<void, ApiError, { id: string; dto: UpdateBranchDto }>({
     mutationFn: ({ id, dto }) => branchRepository.update(id, dto).then(() => undefined),
@@ -75,7 +76,7 @@ export function useUpdateBranch() {
 // ─── Counter Mutations ────────────────────────────────────────────────────────
 
 export function useCreateCounter() {
-  const { locale, t, invalidateCounters } = useBranchMutationBase()
+  const { locale, t, toast, invalidateCounters } = useBranchMutationBase()
 
   return useMutation<void, ApiError, { branchId: string; dto: CreateCounterDto }>({
     mutationFn: ({ branchId, dto }) => branchRepository.createCounter(branchId, dto).then(() => undefined),
@@ -88,7 +89,7 @@ export function useCreateCounter() {
 }
 
 export function useUpdateCounter() {
-  const { locale, t, invalidateCounters } = useBranchMutationBase()
+  const { locale, t, toast, invalidateCounters } = useBranchMutationBase()
 
   return useMutation<void, ApiError, { branchId: string; counterId: string; dto: UpdateCounterDto }>({
     mutationFn: ({ branchId, counterId, dto }) =>
@@ -102,7 +103,7 @@ export function useUpdateCounter() {
 }
 
 export function useDeactivateCounter() {
-  const { locale, t, invalidateCounters } = useBranchMutationBase()
+  const { locale, t, toast, invalidateCounters } = useBranchMutationBase()
 
   return useMutation<void, ApiError, { branchId: string; counterId: string }>({
     mutationFn: ({ branchId, counterId }) => branchRepository.deactivateCounter(branchId, counterId),
@@ -115,7 +116,7 @@ export function useDeactivateCounter() {
 }
 
 export function useActivateCounter() {
-  const { locale, t, invalidateCounters } = useBranchMutationBase()
+  const { locale, t, toast, invalidateCounters } = useBranchMutationBase()
 
   return useMutation<void, ApiError, { branchId: string; counterId: string }>({
     mutationFn: ({ branchId, counterId }) => branchRepository.activateCounter(branchId, counterId),

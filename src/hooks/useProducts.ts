@@ -1,6 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useLocale, useTranslations } from 'next-intl'
-import { toast } from '@/lib/toast'
+import { useToast } from '@/lib/toast'
 import { productRepository, type ProductListParams, type WithStockParams } from '@/lib/repositories/product.repository'
 import { getErrorMessage } from '@/lib/errors'
 import type { ApiError } from '@/lib/api-error'
@@ -21,13 +21,14 @@ const CATEGORIES_KEY = ['product-categories'] as const
 function useProductMutationBase() {
   const locale = useLocale() as AppLocale
   const t = useTranslations('admin.products.toasts')
+  const toast = useToast()
   const qc = useQueryClient()
   const invalidate = () => qc.invalidateQueries({ queryKey: PRODUCTS_KEY })
   const invalidateAll = () => {
     qc.invalidateQueries({ queryKey: PRODUCTS_KEY })
     qc.invalidateQueries({ queryKey: CATEGORIES_KEY })
   }
-  return { locale, t, invalidate, invalidateAll }
+  return { locale, t, toast, invalidate, invalidateAll }
 }
 
 // ─── Queries ──────────────────────────────────────────────────────────────────
@@ -81,7 +82,7 @@ export function useCategories() {
 // ─── Product mutations ────────────────────────────────────────────────────────
 
 export function useCreateProduct() {
-  const { locale, t, invalidate } = useProductMutationBase()
+  const { locale, t, toast, invalidate } = useProductMutationBase()
   return useMutation<{ id: string; productCode: string }, ApiError, CreateProductDto>({
     mutationFn: (dto) => productRepository.create(dto),
     onSuccess: () => {
@@ -93,7 +94,7 @@ export function useCreateProduct() {
 }
 
 export function useUpdateProduct() {
-  const { locale, t, invalidate } = useProductMutationBase()
+  const { locale, t, toast, invalidate } = useProductMutationBase()
   return useMutation<Product, ApiError, { id: string; dto: UpdateProductDto }>({
     mutationFn: ({ id, dto }) => productRepository.update(id, dto),
     onSuccess: () => {
@@ -105,7 +106,7 @@ export function useUpdateProduct() {
 }
 
 export function useDeactivateProduct() {
-  const { locale, t, invalidate } = useProductMutationBase()
+  const { locale, t, toast, invalidate } = useProductMutationBase()
   return useMutation<void, ApiError, string>({
     mutationFn: (id) => productRepository.deactivate(id),
     onSuccess: () => {
@@ -117,7 +118,7 @@ export function useDeactivateProduct() {
 }
 
 export function useActivateProduct() {
-  const { locale, t, invalidate } = useProductMutationBase()
+  const { locale, t, toast, invalidate } = useProductMutationBase()
   return useMutation<void, ApiError, string>({
     mutationFn: (id) => productRepository.activate(id),
     onSuccess: () => {
@@ -131,7 +132,7 @@ export function useActivateProduct() {
 // ─── Category mutations ───────────────────────────────────────────────────────
 
 export function useCreateCategory() {
-  const { locale, invalidateAll } = useProductMutationBase()
+  const { locale, toast, invalidateAll } = useProductMutationBase()
   return useMutation<{ id: string }, ApiError, CreateProductCategoryDto>({
     mutationFn: (dto) => productRepository.createCategory(dto),
     onSuccess: () => invalidateAll(),
@@ -140,7 +141,7 @@ export function useCreateCategory() {
 }
 
 export function useUpdateCategory() {
-  const { locale, invalidateAll } = useProductMutationBase()
+  const { locale, toast, invalidateAll } = useProductMutationBase()
   return useMutation<{ id: string }, ApiError, { id: string; dto: UpdateProductCategoryDto }>({
     mutationFn: ({ id, dto }) => productRepository.updateCategory(id, dto),
     onSuccess: () => invalidateAll(),
@@ -149,7 +150,7 @@ export function useUpdateCategory() {
 }
 
 export function useDeleteCategory() {
-  const { locale, invalidateAll } = useProductMutationBase()
+  const { locale, toast, invalidateAll } = useProductMutationBase()
   return useMutation<void, ApiError, string>({
     mutationFn: (id) => productRepository.deleteCategory(id),
     onSuccess: () => invalidateAll(),

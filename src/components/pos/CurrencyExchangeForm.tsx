@@ -4,7 +4,8 @@ import { useActiveTab } from "@/hooks/useActiveTab";
 import { useExchangeRates, useUpdateExchangeRate } from "@/hooks/useConfig";
 import { cn } from "@/lib/utils";
 import type { ExchangeRate } from "@/types/config";
-import { InputNumber, Select } from "antd";
+import { Select } from "antd";
+import { InputNumber } from "@/components/ui/antd-number-input";
 import { ArrowRightOutlined, CheckOutlined, EditOutlined, CloseOutlined } from "@ant-design/icons";
 import { useEffect, useState } from "react";
 

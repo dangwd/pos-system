@@ -182,11 +182,15 @@ export function TransactionExpandedRow({ record }: Props) {
       title: t('colUnit'), dataIndex: 'weightUnitName', width: 90,
       render: (v: string) => v || '—',
     },
-    // Cột lỗi/hỏng và hao mòn — chỉ hiện khi có ít nhất 1 item mang phiKho/haoHut
-    ...(hasEncodedFees ? [
+    {
+      title: t('colUnitPrice'), dataIndex: 'tableUnitPriceLak', width: 130, align: 'right' as const,
+      render: (v: number, row: TransactionItem) => formatKip(v || row.unitPriceLak),
+    },
+    // Loại mua/đổi → cột lỗi hỏng + hao mòn (như màn POS BuyGold)
+    ...(isBuyType ? [
       {
         title: t('colDamageFee'), dataIndex: 'productSnapshotName', key: 'phiKho',
-        width: 110, align: 'right' as const,
+        width: 120, align: 'right' as const,
         render: (v: string) => {
           const { phiKho } = parseItemFees(v)
           return phiKho > 0 ? formatKip(phiKho) : <span style={{ color: '#d1d5db' }}>—</span>
@@ -194,7 +198,7 @@ export function TransactionExpandedRow({ record }: Props) {
       },
       {
         title: t('colWearChi'), dataIndex: 'productSnapshotName', key: 'haoHutChi',
-        width: 90, align: 'right' as const,
+        width: 100, align: 'right' as const,
         render: (v: string) => {
           const { haoHutChi } = parseItemFees(v)
           return haoHutChi > 0
@@ -204,7 +208,7 @@ export function TransactionExpandedRow({ record }: Props) {
       },
       {
         title: t('colWearValue'), dataIndex: 'productSnapshotName', key: 'haoHutValue',
-        width: 120, align: 'right' as const,
+        width: 130, align: 'right' as const,
         render: (v: string, row: TransactionItem) => {
           const { haoHutChi } = parseItemFees(v)
           if (haoHutChi <= 0) return <span style={{ color: '#d1d5db' }}>—</span>
@@ -215,18 +219,19 @@ export function TransactionExpandedRow({ record }: Props) {
         },
       },
     ] as ColumnsType<TransactionItem> : []),
-    {
-      title: t('colUnitPrice'), dataIndex: 'tableUnitPriceLak', width: 130, align: 'right' as const,
-      render: (v: number, row: TransactionItem) => formatKip(v || row.unitPriceLak),
-    },
-    {
-      title: t('colLaborFee'), dataIndex: 'laborFee', width: 110, align: 'right' as const,
-      render: (v: number) => v > 0 ? formatKip(v) : <span style={{ color: '#d1d5db' }}>—</span>,
-    },
-    {
-      title: t('colStoneFee'), dataIndex: 'stoneFee', width: 110, align: 'right' as const,
-      render: (v: number) => v > 0 ? formatKip(v) : <span style={{ color: '#d1d5db' }}>—</span>,
-    },
+    // Loại bán → cột tiền công + tiền đá
+    ...(!isBuyType ? [
+      {
+        title: t('colLaborFee'), dataIndex: 'laborFee', key: 'laborFee',
+        width: 110, align: 'right' as const,
+        render: (v: number) => v > 0 ? formatKip(v) : <span style={{ color: '#d1d5db' }}>—</span>,
+      },
+      {
+        title: t('colStoneFee'), dataIndex: 'stoneFee', key: 'stoneFee',
+        width: 110, align: 'right' as const,
+        render: (v: number) => v > 0 ? formatKip(v) : <span style={{ color: '#d1d5db' }}>—</span>,
+      },
+    ] as ColumnsType<TransactionItem> : []),
     {
       title: t('colLineTotal'), dataIndex: 'lineTotal', width: 140, align: 'right' as const,
       render: (v: number) => <b style={{ color: '#111827' }}>{formatKip(v)}</b>,

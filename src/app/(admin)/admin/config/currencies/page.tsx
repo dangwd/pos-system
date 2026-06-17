@@ -24,7 +24,8 @@ import {
   useDeleteCurrency,
 } from '@/hooks/useConfig'
 import type { Currency } from '@/types/config'
-import { Button as AntBtn, InputNumber, Popover as AntPopover } from 'antd'
+import { Button as AntBtn, Popover as AntPopover } from 'antd'
+import { InputNumber } from '@/components/ui/antd-number-input'
 
 // ─── Shared panel styles (matches branches / users pages) ─────────────────────
 
