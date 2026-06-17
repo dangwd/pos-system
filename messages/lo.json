@@ -338,6 +338,22 @@
       "filterAll": "ທຸກໝວດໝູ່",
       "filterCategory": "ໝວດໝູ່",
       "addButton": "ເພີ່ມສິນຄ້າ",
+      "txnHistory": {
+        "title": "ປະຫວັດທຸລະກຳ",
+        "summary": "{count} ທຸລະກຳ",
+        "empty": "ສິນຄ້ານີ້ຍັງບໍ່ມີທຸລະກຳ"
+      },
+      "detail": {
+        "tabAttributes": "ຄຸນສົມບັດ",
+        "tabInventory": "ສິນຄ້າຄົງເຫຼືອ",
+        "tabTransactions": "ປະຫວັດທຸລະກຳ",
+        "weight": "ນ້ຳໜັກ",
+        "invCounter": "ເຄົ້າເຕີ",
+        "invQty": "ຈຳນວນ",
+        "invWeight": "ນ້ຳໜັກ",
+        "invStatus": "ສະຖານະ",
+        "invEmpty": "ສິນຄ້ານີ້ບໍ່ມີຄົງເຫຼືອ"
+      },
       "columns": {
         "product": "ສິນຄ້າ",
         "productCode": "ລະຫັດ",

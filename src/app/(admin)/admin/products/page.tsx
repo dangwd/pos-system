@@ -9,6 +9,7 @@ import { PlusOutlined } from '@ant-design/icons'
 import { createProductColumns } from '@/components/admin/columns/product-columns'
 import { ProductCreateDialog } from '@/components/admin/products/ProductCreateDialog'
 import { ProductEditDialog } from '@/components/admin/products/ProductEditDialog'
+import { ProductExpandedRow } from '@/components/admin/products/ProductExpandedRow'
 import { ConfirmDialog } from '@/components/shared/ConfirmDialog'
 import {
   useActivateProduct,
@@ -20,6 +21,9 @@ import { useWeightUnits } from '@/hooks/useConfig'
 import type { Product } from '@/types/product'
 
 const PAGE_SIZE = 20
+const VISIBLE_ROWS = 13        // số dòng hiển thị tối đa, còn lại cuộn
+const ROW_HEIGHT = 48          // chiều cao 1 dòng (size middle) — xấp xỉ
+const TABLE_BODY_HEIGHT = VISIBLE_ROWS * ROW_HEIGHT
 
 const PAGE_STYLE: React.CSSProperties = { padding: '24px 24px 32px' }
 const CARD_STYLE: React.CSSProperties = {
@@ -39,6 +43,7 @@ export default function ProductsPage() {
 
   const [createOpen,    setCreateOpen]    = useState(false)
   const [editProduct,   setEditProduct]   = useState<Product | null>(null)
+  const [expandedKeys,  setExpandedKeys]  = useState<string[]>([])
   const [pendingAction, setPendingAction] = useState<{
     type: 'deactivate' | 'activate'
     product: Product
@@ -74,28 +79,42 @@ export default function ProductsPage() {
   }
 
   const columns = useMemo(
-    () => createProductColumns(
+    () => [
       {
-        product:     t('columns.product'),
-        productCode: t('columns.productCode'),
-        category:    t('columns.category'),
-        purity:      t('columns.purity'),
-        unit:        t('columns.unit'),
-        status:      t('columns.status'),
-        active:      t('columns.active'),
-        inactive:    t('columns.inactive'),
-        openMenu:    t('columns.openMenu'),
-        edit:        t('columns.edit'),
-        deactivate:  t('columns.deactivate'),
-        activate:    t('columns.activate'),
-        actions:     t('columns.actions'),
+        key: 'index',
+        title: '#',
+        width: 56,
+        align: 'center' as const,
+        fixed: 'left' as const,
+        render: (_: unknown, __: Product, i: number) => (
+          <span className="text-xs text-muted-foreground">
+            {(page - 1) * PAGE_SIZE + i + 1}
+          </span>
+        ),
       },
-      unitMap,
-      (product) => setEditProduct(product),
-      (product) => setPendingAction({ type: 'deactivate', product }),
-      (product) => setPendingAction({ type: 'activate',   product }),
-    ),
-    [t, unitMap],
+      ...createProductColumns(
+        {
+          product:     t('columns.product'),
+          productCode: t('columns.productCode'),
+          category:    t('columns.category'),
+          purity:      t('columns.purity'),
+          unit:        t('columns.unit'),
+          status:      t('columns.status'),
+          active:      t('columns.active'),
+          inactive:    t('columns.inactive'),
+          openMenu:    t('columns.openMenu'),
+          edit:        t('columns.edit'),
+          deactivate:  t('columns.deactivate'),
+          activate:    t('columns.activate'),
+          actions:     t('columns.actions'),
+        },
+        unitMap,
+        (product) => setEditProduct(product),
+        (product) => setPendingAction({ type: 'deactivate', product }),
+        (product) => setPendingAction({ type: 'activate',   product }),
+      ),
+    ],
+    [t, unitMap, page],
   )
 
   const handleSearch = (value: string) => { setKeyword(value); setPage(1) }
@@ -149,8 +168,15 @@ export default function ProductsPage() {
           loading={isLoading}
           bordered
           size="middle"
-          scroll={{ x: 900 }}
-          rowClassName={(_, i) => i % 2 !== 0 ? 'products-row-alt' : ''}
+          scroll={{ x: 900, y: TABLE_BODY_HEIGHT }}
+          rowClassName={(r, i) => `products-row-clickable${i % 2 !== 0 ? ' products-row-alt' : ''}${expandedKeys.includes(r.id) ? ' products-row-expanded' : ''}`}
+          expandable={{
+            expandedRowKeys: expandedKeys,
+            expandRowByClick: true,
+            showExpandColumn: false,
+            onExpand: (expanded, record) => setExpandedKeys(expanded ? [record.id] : []),
+            expandedRowRender: (record) => <ProductExpandedRow product={record} />,
+          }}
           pagination={{
             current:  page,
             pageSize: PAGE_SIZE,
@@ -164,7 +190,7 @@ export default function ProductsPage() {
         />
       </Card>
 
-      <style>{`.products-row-alt > td { background: #fafafa !important; }`}</style>
+      <style>{`.products-row-alt > td { background: #fafafa !important; } .products-row-clickable { cursor: pointer; } .products-row-expanded > td { background: #eef2ff !important; }`}</style>
 
       <ProductCreateDialog open={createOpen} onClose={() => setCreateOpen(false)} />
       <ProductEditDialog   product={editProduct} onClose={() => setEditProduct(null)} />

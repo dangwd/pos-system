@@ -338,6 +338,22 @@
       "filterAll": "Tất cả danh mục",
       "filterCategory": "Danh mục",
       "addButton": "Thêm sản phẩm",
+      "txnHistory": {
+        "title": "Lịch sử giao dịch",
+        "summary": "{count} giao dịch",
+        "empty": "Sản phẩm chưa có giao dịch nào"
+      },
+      "detail": {
+        "tabAttributes": "Thuộc tính",
+        "tabInventory": "Tồn kho",
+        "tabTransactions": "Lịch sử giao dịch",
+        "weight": "Trọng lượng",
+        "invCounter": "Quầy",
+        "invQty": "Số lượng",
+        "invWeight": "Trọng lượng",
+        "invStatus": "Trạng thái",
+        "invEmpty": "Sản phẩm không có tồn kho"
+      },
       "columns": {
         "product": "Sản phẩm",
         "productCode": "Mã SP",

@@ -190,26 +190,26 @@ export function ProductCreateDialog({ open, onClose }: Props) {
             )}
           </Field>
 
-          {/* Purity (chỉ vàng/bạc) + Weight unit */}
-          <div className={`grid gap-3 ${isMetalCategory ? 'grid-cols-2' : 'grid-cols-1'}`}>
-            {isMetalCategory && (
-              <Field>
-                <FieldLabel>{t('form.purity')} *</FieldLabel>
-                <Select
-                  value={form.goldPurityId || undefined}
-                  onChange={(v) => handleLockedFieldSelect('goldPurityId', v ?? '')}
-                  placeholder={t('form.purityPlaceholder')}
-                  options={purityOptions.map((p) => ({ value: p.id, label: `${p.ma} (${p.hamLuong}%)` }))}
-                  allowClear
-                  notFoundContent="Không tìm thấy"
-                  className="w-full"
-                  popupMatchSelectWidth={false}
-                />
-                <p className="flex items-center gap-1 mt-1 text-[11px] text-amber-600">
-                  <LockOutlined className="h-3 w-3" />{t('form.lockedHint')}
-                </p>
-              </Field>
-            )}
+          {/* Purity (hàm lượng) + Weight unit — luôn hiển thị ngay khi mở popup.
+              Hàm lượng chỉ bắt buộc khi danh mục là vàng/bạc (isMetalCategory). */}
+          <div className="grid gap-3 grid-cols-2">
+            <Field>
+              <FieldLabel>{t('form.purity')}{isMetalCategory ? ' *' : ''}</FieldLabel>
+              <Select
+                value={form.goldPurityId || undefined}
+                onChange={(v) => handleLockedFieldSelect('goldPurityId', v ?? '')}
+                placeholder={t('form.purityPlaceholder')}
+                options={purityOptions.map((p) => ({ value: p.id, label: `${p.ma} (${p.hamLuong}%)` }))}
+                allowClear
+                disabled={!form.productCategoryId}
+                notFoundContent="Không tìm thấy"
+                className="w-full"
+                popupMatchSelectWidth={false}
+              />
+              <p className="flex items-center gap-1 mt-1 text-[11px] text-amber-600">
+                <LockOutlined className="h-3 w-3" />{t('form.lockedHint')}
+              </p>
+            </Field>
             <Field>
               <FieldLabel>{t('form.weightUnit')} *</FieldLabel>
               <Select

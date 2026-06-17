@@ -91,7 +91,7 @@ export function createProductColumns(
         <div className="flex items-center justify-center gap-1">
           <button
             type="button"
-            onClick={() => onEdit(record)}
+            onClick={(e) => { e.stopPropagation(); onEdit(record) }}
             title={labels.edit}
             className="inline-flex h-7 w-7 items-center justify-center rounded-md text-base text-muted-foreground transition-colors hover:bg-accent hover:text-foreground"
           >
@@ -100,7 +100,7 @@ export function createProductColumns(
           {record.isActive ? (
             <button
               type="button"
-              onClick={() => onDeactivate(record)}
+              onClick={(e) => { e.stopPropagation(); onDeactivate(record) }}
               title={labels.deactivate}
               className="inline-flex h-7 w-7 items-center justify-center rounded-md text-base text-destructive transition-colors hover:bg-destructive/10"
             >
@@ -109,7 +109,7 @@ export function createProductColumns(
           ) : (
             <button
               type="button"
-              onClick={() => onActivate(record)}
+              onClick={(e) => { e.stopPropagation(); onActivate(record) }}
               title={labels.activate}
               className="inline-flex h-7 w-7 items-center justify-center rounded-md text-base text-primary transition-colors hover:bg-primary/10"
             >

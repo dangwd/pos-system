@@ -152,6 +152,7 @@ export interface TransactionListParams {
   from?: string; // ISO 8601
   to?: string; // ISO 8601
   invoiceCode?: string; // Tìm chính xác theo mã HĐ
+  productId?: string; // Lọc giao dịch theo sản phẩm (kết hợp được mọi filter khác)
   q?: string; // Tìm tổng quát
   /** Chế độ flat-array (POS lookup) — khi truyền `limit`, bỏ qua `page`/`pageSize` */
   limit?: number;

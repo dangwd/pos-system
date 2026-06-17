@@ -338,6 +338,22 @@
       "filterAll": "All categories",
       "filterCategory": "Category",
       "addButton": "Add product",
+      "txnHistory": {
+        "title": "Transaction history",
+        "summary": "{count} transactions",
+        "empty": "This product has no transactions yet"
+      },
+      "detail": {
+        "tabAttributes": "Attributes",
+        "tabInventory": "Inventory",
+        "tabTransactions": "Transaction history",
+        "weight": "Weight",
+        "invCounter": "Counter",
+        "invQty": "Quantity",
+        "invWeight": "Weight",
+        "invStatus": "Status",
+        "invEmpty": "This product has no inventory"
+      },
       "columns": {
         "product": "Product",
         "productCode": "Code",
