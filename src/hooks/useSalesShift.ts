@@ -30,10 +30,15 @@ export function useActiveShift() {
   })
 }
 
-/** Trả về currencyBalances từ lần mở ca gần nhất (cache-only, không fetch). */
+/** Trả về currencyBalances từ lần mở ca gần nhất (cache-only, reactive). */
 export function useActiveShiftCurrencies(): CurrencyBalance[] {
-  const qc = useQueryClient()
-  return qc.getQueryData<CurrencyBalance[]>(OPEN_DETAIL_KEY) ?? []
+  const { data } = useQuery<CurrencyBalance[]>({
+    queryKey: OPEN_DETAIL_KEY,
+    queryFn: () => Promise.resolve([] as CurrencyBalance[]),
+    enabled: false,
+    staleTime: Infinity,
+  })
+  return data ?? []
 }
 
 export function useOpenShift(onSuccess?: (data: SalesShiftDetailDto) => void) {

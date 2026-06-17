@@ -1,24 +1,13 @@
 'use client'
 
-/**
- * CloseShiftModal — Chốt ca bán hàng.
- *
- * Trạng thái:
- *  'form'    → nhập closingCashLak + closing amounts ngoại tệ
- *  'summary' → tổng kết ca sau khi đóng thành công
- *
- * currencyBalances (prop): được truyền từ ShiftStatusBadge, là danh sách ngoại tệ
- * đã khai báo lúc mở ca — pre-populate form để cashier chỉ cần nhập closing amount.
- * Nếu không có (page reload), cashier có thể thêm tay.
- */
-
 import { Button } from '@/components/ui/button'
 import { Dialog, DialogContent, DialogFooter } from '@/components/ui/dialog'
 import { Field, FieldError, FieldLabel } from '@/components/ui/field'
 import { InputNumber } from '@/components/ui/antd-number-input'
-import { Input } from '@/components/ui/input'
 import { Separator } from '@/components/ui/separator'
+import { Skeleton } from '@/components/ui/skeleton'
 import { useCloseShift } from '@/hooks/useSalesShift'
+import { useCurrencies } from '@/hooks/useConfig'
 import { cn } from '@/lib/utils'
 import type { CurrencyBalance, SalesShiftDetailDto, SalesShiftSummary } from '@/types/sales-shift'
 import { zodResolver } from '@hookform/resolvers/zod'
@@ -26,32 +15,26 @@ import {
   BankOutlined,
   CheckCircleOutlined,
   ClockCircleOutlined,
-  DeleteOutlined,
   DownCircleOutlined,
   FallOutlined,
-  PlusOutlined,
   RiseOutlined,
   UpCircleOutlined,
   WalletOutlined,
 } from '@ant-design/icons'
-import { useEffect, useState } from 'react'
-import { Controller, useFieldArray, useForm } from 'react-hook-form'
+import { useState } from 'react'
+import { Controller, useForm } from 'react-hook-form'
 import { z } from 'zod'
 
-// ─── Helpers ──────────────────────────────────────────────────────────────────
+// ─── Schema ───────────────────────────────────────────────────────────────────
 
 const schema = z.object({
   closingCashLak: z.string().min(1, 'Vui lòng nhập tiền mặt cuối ca'),
-  foreignCurrencyBalances: z.array(
-    z.object({
-      currency: z.string().min(1, 'Nhập mã tiền tệ'),
-      openingAmount: z.number().optional(),
-      closingAmount: z.string().min(1, 'Nhập số lượng cuối ca'),
-    })
-  ).optional(),
+  closingAmounts: z.record(z.string(), z.string().optional()),
 })
 
 type FormValues = z.infer<typeof schema>
+
+// ─── Helpers ──────────────────────────────────────────────────────────────────
 
 function fmtLak(n: number): string {
   return n.toLocaleString('lo-LA') + ' ₭'
@@ -214,6 +197,10 @@ export function CloseShiftModal({
 }: Props) {
   const [closedData, setClosedData] = useState<SalesShiftDetailDto | null>(null)
 
+  const { data: allCurrencies = [], isLoading: currenciesLoading } = useCurrencies()
+  const foreignCurrencies = allCurrencies.filter((c) => c.isActive && c.code !== 'LAK')
+  const openingMap = new Map(currencyBalances.map((b) => [b.currency, b.openingAmount]))
+
   const { mutate: closeShift, isPending } = useCloseShift((data) => {
     setClosedData(data)
   })
@@ -225,38 +212,11 @@ export function CloseShiftModal({
     formState: { errors },
   } = useForm<FormValues>({
     resolver: zodResolver(schema),
-    defaultValues: {
-      closingCashLak: '',
-      foreignCurrencyBalances: currencyBalances.map((b) => ({
-        currency: b.currency,
-        openingAmount: b.openingAmount,
-        closingAmount: '',
-      })),
-    },
+    defaultValues: { closingCashLak: '', closingAmounts: {} },
   })
-
-  const { fields, append, remove } = useFieldArray({
-    control,
-    name: 'foreignCurrencyBalances',
-  })
-
-  // Đồng bộ lại khi prop currencyBalances thay đổi (ví dụ lần đầu open modal)
-  useEffect(() => {
-    if (open && currencyBalances.length > 0) {
-      reset({
-        closingCashLak: '',
-        foreignCurrencyBalances: currencyBalances.map((b) => ({
-          currency: b.currency,
-          openingAmount: b.openingAmount,
-          closingAmount: '',
-        })),
-      })
-    }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [open])
 
   const handleClose = () => {
-    reset({ closingCashLak: '', foreignCurrencyBalances: [] })
+    reset({ closingCashLak: '', closingAmounts: {} })
     setClosedData(null)
     onClose()
   }
@@ -264,17 +224,16 @@ export function CloseShiftModal({
   const onSubmit = (values: FormValues) => {
     const cash = parseInt(values.closingCashLak.replace(/[^0-9]/g, ''), 10)
     if (isNaN(cash) || cash < 0) return
+
+    const foreignCurrencyBalances = foreignCurrencies
+      .filter((c) => { const v = values.closingAmounts[c.code]; return v && parseFloat(v) > 0 })
+      .map((c) => ({ currency: c.code, closingAmount: parseFloat(values.closingAmounts[c.code]!) }))
+
     closeShift({
       id: shiftId,
       dto: {
         closingCashLak: cash,
-        foreignCurrencyBalances:
-          values.foreignCurrencyBalances
-            ?.filter((b) => b.currency && b.closingAmount)
-            .map((b) => ({
-              currency: b.currency.toUpperCase(),
-              closingAmount: parseFloat(b.closingAmount) || 0,
-            })) ?? undefined,
+        foreignCurrencyBalances: foreignCurrencyBalances.length > 0 ? foreignCurrencyBalances : undefined,
       },
     })
   }
@@ -345,9 +304,8 @@ export function CloseShiftModal({
                       value={field.value ? Number(field.value) : null}
                       onChange={(v) => field.onChange(String(v ?? ''))}
                       placeholder="0"
-                      suffix={
-                        <span className="text-xs font-semibold text-muted-foreground">₭</span>
-                      }
+                      min={0}
+                      suffix={<span className="text-xs font-semibold text-muted-foreground">₭</span>}
                       status={errors.closingCashLak ? 'error' : undefined}
                       style={{ width: '100%' }}
                     />
@@ -358,123 +316,82 @@ export function CloseShiftModal({
                 )}
               </Field>
 
-              {/* Ngoại tệ cuối ca */}
-              <div className="space-y-2">
-                <div className="flex items-center justify-between">
-                  <FieldLabel className="mb-0">
-                    <BankOutlined className="h-3.5 w-3.5 inline mr-1 text-muted-foreground" />
-                    Ngoại tệ cuối ca
-                  </FieldLabel>
-                  <Button
-                    type="button"
-                    variant="outline"
-                    size="sm"
-                    onClick={() =>
-                      append({ currency: '', openingAmount: undefined, closingAmount: '' })
-                    }
-                    className="h-6 px-2 text-[11px] gap-1"
-                  >
-                    <PlusOutlined className="h-3 w-3" />
-                    Thêm
-                  </Button>
-                </div>
+              {/* Bảng ngoại tệ cuối ca */}
+              <div>
+                <FieldLabel className="mb-2">
+                  <BankOutlined className="h-3.5 w-3.5 inline mr-1 text-muted-foreground" />
+                  Ngoại tệ cuối ca
+                  <span className="ml-1.5 text-[11px] font-normal text-muted-foreground italic">Để trống nếu không có</span>
+                </FieldLabel>
 
-                {fields.length > 0 && (
-                  <div className="rounded-lg border divide-y divide-border/60 overflow-hidden">
-                    {fields.map((field, idx) => {
-                      const isPreFilled = field.openingAmount !== undefined
-                      return (
-                        <div key={field.id} className="px-3 py-2.5 space-y-1.5">
-                          <div className="flex items-center gap-2">
-                            {/* Mã tiền tệ */}
-                            <div className="w-20 shrink-0">
-                              <Controller
-                                control={control}
-                                name={`foreignCurrencyBalances.${idx}.currency`}
-                                render={({ field: f }) => (
-                                  <Input
-                                    {...f}
-                                    placeholder="USD"
-                                    readOnly={isPreFilled}
-                                    className={cn(
-                                      'h-8 text-xs font-mono uppercase',
-                                      isPreFilled && 'bg-muted cursor-default'
-                                    )}
-                                    onChange={(e) =>
-                                      !isPreFilled && f.onChange(e.target.value.toUpperCase())
-                                    }
-                                    status={
-                                      errors.foreignCurrencyBalances?.[idx]?.currency
-                                        ? 'error'
-                                        : undefined
-                                    }
-                                  />
-                                )}
-                              />
-                            </div>
-
-                            {/* Đầu ca (readonly nếu có) */}
-                            {isPreFilled && (
-                              <div className="flex items-center gap-1 text-xs text-muted-foreground shrink-0">
-                                <span>Đầu:</span>
-                                <span className="font-mono font-medium text-foreground">
-                                  {field.openingAmount?.toLocaleString()}
-                                </span>
-                                <span>→</span>
-                              </div>
-                            )}
-
-                            {/* Số lượng cuối ca */}
-                            <div className="flex-1">
-                              <Controller
-                                control={control}
-                                name={`foreignCurrencyBalances.${idx}.closingAmount`}
-                                render={({ field: f }) => (
-                                  <InputNumber
-                                    value={f.value ? Number(f.value) : null}
-                                    onChange={(v) => f.onChange(String(v ?? ''))}
-                                    placeholder="0"
-                                    status={
-                                      errors.foreignCurrencyBalances?.[idx]?.closingAmount
-                                        ? 'error'
-                                        : undefined
-                                    }
-                                    style={{ width: '100%' }}
-                                  />
-                                )}
-                              />
-                            </div>
-
-                            {/* Xóa (chỉ cho dòng thêm tay, không xóa dòng pre-filled) */}
-                            {!isPreFilled && (
-                              <button
-                                type="button"
-                                onClick={() => remove(idx)}
-                                className="h-6 w-6 flex items-center justify-center rounded text-muted-foreground hover:text-destructive hover:bg-destructive/5 transition-colors shrink-0"
-                              >
-                                <DeleteOutlined className="h-3.5 w-3.5" />
-                              </button>
-                            )}
-                          </div>
-                          {errors.foreignCurrencyBalances?.[idx]?.closingAmount && (
-                            <FieldError>
-                              {errors.foreignCurrencyBalances[idx].closingAmount?.message}
-                            </FieldError>
-                          )}
-                        </div>
-                      )
-                    })}
+                <div className="rounded-xl border overflow-hidden">
+                  {/* Header */}
+                  <div className="grid grid-cols-[36px_80px_1fr_96px_160px] bg-muted/50 border-b">
+                    <div className="px-3 py-2" />
+                    <div className="px-3 py-2 text-[11px] font-semibold text-muted-foreground uppercase tracking-wide">Mã</div>
+                    <div className="px-3 py-2 text-[11px] font-semibold text-muted-foreground uppercase tracking-wide">Tên tiền tệ</div>
+                    <div className="px-3 py-2 text-[11px] font-semibold text-muted-foreground uppercase tracking-wide text-right">Đầu ca</div>
+                    <div className="px-3 py-2 text-[11px] font-semibold text-muted-foreground uppercase tracking-wide text-right">Cuối ca</div>
                   </div>
-                )}
+
+                  {/* Body */}
+                  {currenciesLoading ? (
+                    <div className="divide-y divide-border/60">
+                      {[1, 2, 3].map((i) => (
+                        <div key={i} className="grid grid-cols-[36px_80px_1fr_96px_160px] items-center py-3">
+                          <div className="px-3"><Skeleton className="h-4 w-4 rounded" /></div>
+                          <div className="px-3"><Skeleton className="h-3.5 w-10" /></div>
+                          <div className="px-3"><Skeleton className="h-3.5 w-28" /></div>
+                          <div className="px-3"><Skeleton className="h-3.5 w-12 ml-auto" /></div>
+                          <div className="px-3"><Skeleton className="h-8 w-full" /></div>
+                        </div>
+                      ))}
+                    </div>
+                  ) : foreignCurrencies.length === 0 ? (
+                    <div className="py-8 text-center text-sm text-muted-foreground">
+                      Chưa có ngoại tệ nào được kích hoạt
+                    </div>
+                  ) : (
+                    <div className="overflow-y-auto max-h-52 divide-y divide-border/50 [&::-webkit-scrollbar]:w-1 [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb]:bg-border [&::-webkit-scrollbar-track]:bg-transparent">
+                      {foreignCurrencies.map((c) => (
+                        <div key={c.code} className="grid grid-cols-[36px_80px_1fr_96px_160px] items-center py-1.5 hover:bg-muted/30 transition-colors">
+                          <div className="px-3 text-center text-base leading-none select-none">
+                            {c.flag ?? '💱'}
+                          </div>
+                          <div className="px-3 font-mono font-bold text-sm">{c.code}</div>
+                          <div className="px-3 text-sm text-muted-foreground truncate">{c.name}</div>
+                          <div className="px-3 text-xs tabular-nums text-muted-foreground text-right">
+                            {openingMap.has(c.code) ? openingMap.get(c.code)?.toLocaleString() : '—'}
+                          </div>
+                          <div className="px-3">
+                            <Controller
+                              control={control}
+                              name={`closingAmounts.${c.code}`}
+                              render={({ field }) => (
+                                <InputNumber
+                                  value={field.value ? Number(field.value) : null}
+                                  onChange={(v) => field.onChange(v != null ? String(v) : '')}
+                                  placeholder="0"
+                                  min={0}
+                                  suffix={
+                                    <span className="text-xs font-semibold text-muted-foreground select-none">
+                                      {c.symbol}
+                                    </span>
+                                  }
+                                  style={{ width: '100%' }}
+                                />
+                              )}
+                            />
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
               </div>
 
               <DialogFooter>
-                <Button
-                  variant="outline"
-                  type="button"
-                  onClick={handleClose}
-                  disabled={isPending}
-                >
+                <Button variant="outline" type="button" onClick={handleClose} disabled={isPending}>
                   Hủy
                 </Button>
                 <Button variant="destructive" type="submit" loading={isPending}>
