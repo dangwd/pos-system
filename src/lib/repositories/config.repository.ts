@@ -7,6 +7,7 @@ import type {
   TogglePriceTableActiveDto,
   ExchangeRate,
   UpdateExchangeRateDto,
+  BulkUpdateExchangeRatesRequest,
   StonePriceRule,
   CreateStonePriceRuleDto,
   UpdateStonePriceRuleDto,
@@ -75,6 +76,24 @@ export class ConfigRepository {
   async updateExchangeRate(dto: UpdateExchangeRateDto): Promise<ExchangeRate> {
     try {
       const { data } = await api.post<ExchangeRate>('/api/config/exchange-rates', dto)
+      return data
+    } catch (err) { throw handleAxiosError(err) }
+  }
+
+  async getExchangeRateHistory(limit = 50): Promise<ExchangeRate[]> {
+    try {
+      const { data } = await api.get<ExchangeRate[] | RawPagedResult<ExchangeRate>>(
+        '/api/config/exchange-rates/history',
+        { params: { limit } },
+      )
+      if (Array.isArray(data)) return data
+      return normalizePaged(data).data
+    } catch (err) { throw handleAxiosError(err) }
+  }
+
+  async bulkUpdateExchangeRates(dto: BulkUpdateExchangeRatesRequest): Promise<ExchangeRate[]> {
+    try {
+      const { data } = await api.post<ExchangeRate[]>('/api/config/exchange-rates/bulk', dto)
       return data
     } catch (err) { throw handleAxiosError(err) }
   }

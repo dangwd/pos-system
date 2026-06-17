@@ -4,7 +4,9 @@ import { usePermission } from '@/hooks/usePermission'
 import { ForbiddenPage } from '@/components/shared/ForbiddenPage'
 import { useState, useMemo } from 'react'
 import { useTranslations } from 'next-intl'
-import { EditOutlined, SyncOutlined, SearchOutlined, SwapOutlined, CheckOutlined, CloseOutlined } from '@ant-design/icons'
+import { EditOutlined, SyncOutlined, SearchOutlined, SwapOutlined, CheckOutlined, CloseOutlined, FormOutlined, HistoryOutlined } from '@ant-design/icons'
+import { Table } from 'antd'
+import type { TableColumnsType } from 'antd'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { InputNumber } from '@/components/ui/antd-number-input'
@@ -13,7 +15,7 @@ import { Dialog, DialogContent, DialogFooter } from '@/components/ui/dialog'
 import { Field, FieldLabel } from '@/components/ui/field'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { TablePageSkeleton } from '@/components/shared/PageSkeleton'
-import { useExchangeRates, useUpdateExchangeRate, useCurrencies } from '@/hooks/useConfig'
+import { useExchangeRates, useUpdateExchangeRate, useCurrencies, useBulkUpdateExchangeRates, useExchangeRateHistory } from '@/hooks/useConfig'
 import { cn } from '@/lib/utils'
 import type { ExchangeRate, Currency } from '@/types/config'
 
@@ -361,6 +363,194 @@ function CurrencyCard({ rate, currencyName, currencyFlag, onEdit }: { rate: Exch
   )
 }
 
+// ─── Bulk edit dialog ──────────────────────────────────────────────────────────
+
+type BulkForm = Record<string, { rateToLak: string; adjustment: string }>
+
+function BulkEditDialog({ open, onClose }: { open: boolean; onClose: () => void }) {
+  const { data: rates = [] } = useExchangeRates()
+  const { data: currencies = [] } = useCurrencies()
+  const { mutate: bulkUpdate, isPending } = useBulkUpdateExchangeRates()
+
+  // form initialized at mount — key prop in parent forces remount when dialog opens
+  const [form, setForm] = useState<BulkForm>(() =>
+    Object.fromEntries(rates.map(r => [r.currencyCode, {
+      rateToLak: String(r.rateToLak),
+      adjustment: String(r.adjustment),
+    }]))
+  )
+
+  const flagMap = useMemo(
+    () => Object.fromEntries(currencies.filter(c => c.flag).map(c => [c.code, c.flag!])),
+    [currencies],
+  )
+  const nameMap = useMemo(
+    () => Object.fromEntries(currencies.map(c => [c.code, c.name])),
+    [currencies],
+  )
+
+  function setField(code: string, field: 'rateToLak' | 'adjustment', val: string) {
+    setForm(f => ({ ...f, [code]: { ...f[code], [field]: val } }))
+  }
+
+  function handleSubmit() {
+    const items = rates.map(r => ({
+      currencyCode: r.currencyCode,
+      rateToLak: Number(form[r.currencyCode]?.rateToLak ?? r.rateToLak),
+      adjustment: Number(form[r.currencyCode]?.adjustment ?? r.adjustment),
+    }))
+    bulkUpdate({ items }, { onSuccess: onClose })
+  }
+
+  return (
+    <Dialog open={open} onOpenChange={o => !o && onClose()}>
+      <DialogContent
+        className="sm:max-w-2xl"
+        title="Thiết lập tỷ giá"
+        footer={
+          <DialogFooter>
+            <Button variant="outline" onClick={onClose} disabled={isPending}>Hủy</Button>
+            <Button onClick={handleSubmit} disabled={isPending || rates.length === 0}>
+              {isPending && <Spinner className="mr-2" />}
+              Lưu tất cả
+            </Button>
+          </DialogFooter>
+        }
+      >
+        <div className="space-y-2 py-1 max-h-[60vh] overflow-y-auto pr-1">
+          {rates.map(rate => {
+            const flag = flagMap[rate.currencyCode] ?? CURRENCY_META[rate.currencyCode]?.flag ?? '💱'
+            const name = nameMap[rate.currencyCode] ?? CURRENCY_META[rate.currencyCode]?.name ?? rate.currencyCode
+            const rateVal   = Number(form[rate.currencyCode]?.rateToLak) || 0
+            const adjVal    = Number(form[rate.currencyCode]?.adjustment) || 0
+            const effective = rateVal + adjVal
+            return (
+              <div
+                key={rate.currencyCode}
+                className="grid grid-cols-[2rem_auto_1fr_1fr_5.5rem] items-center gap-3 rounded-lg border px-3 py-2.5"
+              >
+                <span className="text-xl leading-none">{flag}</span>
+                <div className="min-w-18">
+                  <div className="text-sm font-bold">{rate.currencyCode}</div>
+                  <div className="text-[11px] text-muted-foreground max-w-20 truncate">{name}</div>
+                </div>
+                <div>
+                  <p className="text-[11px] text-muted-foreground mb-0.5">Giá gốc (₭)</p>
+                  <InputNumber
+                    min={0}
+                    precision={2}
+                    value={form[rate.currencyCode]?.rateToLak ? Number(form[rate.currencyCode].rateToLak) : null}
+                    onChange={v => setField(rate.currencyCode, 'rateToLak', String(v ?? ''))}
+                    style={{ width: '100%' }}
+                    size="small"
+                  />
+                </div>
+                <div>
+                  <p className="text-[11px] text-muted-foreground mb-0.5">Điều chỉnh</p>
+                  <InputNumber
+                    precision={2}
+                    value={form[rate.currencyCode]?.adjustment !== undefined ? Number(form[rate.currencyCode].adjustment) : null}
+                    onChange={v => setField(rate.currencyCode, 'adjustment', String(v ?? 0))}
+                    style={{ width: '100%' }}
+                    size="small"
+                  />
+                </div>
+                <div className="text-right shrink-0">
+                  <div className="text-[11px] text-muted-foreground">Hiệu lực</div>
+                  <div className={cn('text-sm font-bold tabular-nums', effective > 0 ? 'text-primary' : 'text-muted-foreground')}>
+                    {effective > 0 ? effective.toLocaleString('lo-LA') : '—'}
+                  </div>
+                </div>
+              </div>
+            )
+          })}
+        </div>
+      </DialogContent>
+    </Dialog>
+  )
+}
+
+// ─── History section ───────────────────────────────────────────────────────────
+
+const historyColumns: TableColumnsType<{ id: string; currencyCode: string; rateToLak: number; adjustment: number; effectiveRate: number; effectiveFrom: string }> = [
+  {
+    title: 'Thời gian',
+    dataIndex: 'effectiveFrom',
+    key: 'effectiveFrom',
+    render: (v: string) => formatDateShort(v),
+    width: 160,
+  },
+  {
+    title: 'Loại tiền',
+    dataIndex: 'currencyCode',
+    key: 'currencyCode',
+    render: (code: string) => (
+      <span className="font-medium">{CURRENCY_META[code]?.flag ?? '💱'} {code}</span>
+    ),
+    width: 100,
+  },
+  {
+    title: 'Giá gốc',
+    dataIndex: 'rateToLak',
+    key: 'rateToLak',
+    align: 'right',
+    render: (v: number) => v.toLocaleString('lo-LA'),
+  },
+  {
+    title: 'Điều chỉnh',
+    dataIndex: 'adjustment',
+    key: 'adjustment',
+    align: 'right',
+    render: (v: number) => `${v >= 0 ? '+' : ''}${v.toLocaleString('lo-LA')}`,
+  },
+  {
+    title: 'Tỷ giá hiệu lực',
+    dataIndex: 'effectiveRate',
+    key: 'effectiveRate',
+    align: 'right',
+    render: (v: number) => <strong className="text-primary tabular-nums">{v.toLocaleString('lo-LA')} ₭</strong>,
+  },
+]
+
+function HistorySection() {
+  const [expanded, setExpanded] = useState(false)
+  const { data: history = [], isLoading } = useExchangeRateHistory(expanded)
+
+  if (!expanded) {
+    return (
+      <div className="rounded-xl border bg-card px-4 py-3 flex items-center justify-between shadow-card">
+        <div>
+          <h2 className="text-base font-semibold">Lịch sử thay đổi</h2>
+          <p className="text-xs text-muted-foreground mt-0.5">Tất cả lần cập nhật tỷ giá</p>
+        </div>
+        <Button variant="outline" size="sm" onClick={() => setExpanded(true)}>
+          <HistoryOutlined className="mr-1.5 h-3.5 w-3.5" />
+          Xem lịch sử
+        </Button>
+      </div>
+    )
+  }
+
+  return (
+    <div className="rounded-xl border bg-card shadow-card">
+      <div className="flex items-center justify-between px-4 py-3 border-b">
+        <h2 className="text-base font-semibold">Lịch sử thay đổi</h2>
+        {!isLoading && <span className="text-xs text-muted-foreground">{history.length} bản ghi</span>}
+      </div>
+      <div className="p-4">
+        <Table
+          dataSource={history}
+          columns={historyColumns}
+          rowKey="id"
+          size="small"
+          loading={isLoading}
+          pagination={{ pageSize: 10, showSizeChanger: false, hideOnSinglePage: true }}
+        />
+      </div>
+    </div>
+  )
+}
+
 // ─── Page ───────────────────────────────────────────────────────────────────────
 
 export default function ExchangeRatesPage() {
@@ -369,6 +559,7 @@ export default function ExchangeRatesPage() {
   const [editing, setEditing] = useState<ExchangeRate | null>(null)
   const [form, setForm] = useState({ rateToLak: '', adjustment: '' })
   const [search, setSearch] = useState('')
+  const [bulkOpen, setBulkOpen] = useState(false)
 
   const { data: rates = [], isLoading, refetch, isFetching } = useExchangeRates()
   const { data: currencies = [] } = useCurrencies()
@@ -412,8 +603,12 @@ export default function ExchangeRatesPage() {
 
   return (
     <div className="p-6 space-y-6">
-      <div>
+      <div className="flex items-center justify-between">
         <h1 className="text-2xl font-bold">{t('title')}</h1>
+        <Button onClick={() => setBulkOpen(true)} disabled={rates.length === 0}>
+          <FormOutlined className="mr-1.5 h-4 w-4" />
+          Thiết lập tỷ giá
+        </Button>
       </div>
 
       {isLoading ? (
@@ -468,6 +663,11 @@ export default function ExchangeRatesPage() {
           </div>
         </div>
       )}
+
+      <HistorySection />
+
+      {/* Bulk edit dialog — key forces remount on open so form re-initializes from cache */}
+      <BulkEditDialog key={String(bulkOpen)} open={bulkOpen} onClose={() => setBulkOpen(false)} />
 
       {/* Edit dialog */}
       <Dialog open={!!editing} onOpenChange={(o) => !o && setEditing(null)}>

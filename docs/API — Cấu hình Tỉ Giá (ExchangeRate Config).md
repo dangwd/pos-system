@@ -1,26 +1,29 @@
 # API — Cấu hình Tỉ Giá Ngoại Tệ
 
-> **Tạo:** 2026-06-16  
-> Tài liệu này mô tả các API quản lý tỉ giá ngoại tệ (THB, USD → LAK) dùng cho màn hình **Cấu hình → Tỉ giá** và màn hình **Đổi Ngoại Tệ**.
+> **Tạo:** 2026-06-16 | **Cập nhật:** 2026-06-17
+> Tài liệu này mô tả các API quản lý tỉ giá ngoại tệ (THB, USD, CNY, EUR, VND → LAK) dùng cho màn hình **Cấu hình → Tỉ giá** và màn hình **Đổi Ngoại Tệ**.
 
-Base URL: `https://<host>/api`  
-Auth: `Authorization: Bearer <accessToken>`  
-Quyền cần có: `config:price` (Manager / SystemAdmin)
+Base URL: `https://<host>/api`
+Auth: `Authorization: Bearer <accessToken>`
+Quyền cần có để ghi: `config:price` (Manager / SystemAdmin)
 
 ---
 
 ## Mục lục
 
 1. [Lấy tỉ giá hiện tại — GET /api/config/exchange-rates](#1-lấy-tỉ-giá-hiện-tại)
-2. [Cập nhật tỉ giá — POST /api/config/exchange-rates](#2-cập-nhật-tỉ-giá)
-3. [Cấu trúc tỉ giá hiệu lực](#3-cấu-trúc-tỉ-giá-hiệu-lực)
-4. [Mã lỗi liên quan](#4-mã-lỗi-liên-quan)
+2. [Lịch sử thay đổi tỉ giá — GET /api/config/exchange-rates/history](#2-lịch-sử-thay-đổi-tỉ-giá)
+3. [Cập nhật một tỉ giá — POST /api/config/exchange-rates](#3-cập-nhật-một-tỉ-giá)
+4. [Cập nhật hàng loạt — POST /api/config/exchange-rates/bulk](#4-cập-nhật-hàng-loạt)
+5. [Cấu trúc tỉ giá hiệu lực](#5-cấu-trúc-tỉ-giá-hiệu-lực)
+6. [Mã lỗi liên quan](#6-mã-lỗi-liên-quan)
+7. [Gợi ý tích hợp FE](#7-gợi-ý-tích-hợp-fe)
 
 ---
 
 ## 1. Lấy tỉ giá hiện tại
 
-Trả về danh sách tỉ giá **đang hiệu lực** cho tất cả loại ngoại tệ (mỗi loại 1 bản ghi mới nhất).
+Trả về danh sách tỉ giá **đang hiệu lực** — mỗi loại ngoại tệ chỉ có 1 bản ghi mới nhất.
 
 ```
 GET /api/config/exchange-rates
@@ -38,8 +41,8 @@ Authorization: Bearer <accessToken>
     "adjustment": 5.0,       // biên độ điều chỉnh
     "effectiveRate": 825.0,  // tỉ giá thực dùng = rateToLak + adjustment
     "updatedBy": "uuid-của-người-cập-nhật",
-    "updatedAt": "2026-06-16T08:30:00Z",
-    "effectiveFrom": "2026-06-16T08:30:00Z"
+    "updatedAt": "2026-06-17T08:30:00Z",
+    "effectiveFrom": "2026-06-17T08:30:00Z"
   },
   {
     "id": "...",
@@ -48,19 +51,66 @@ Authorization: Bearer <accessToken>
     "adjustment": 100.0,
     "effectiveRate": 20600.0,
     "updatedBy": "...",
-    "updatedAt": "2026-06-15T14:00:00Z",
-    "effectiveFrom": "2026-06-15T14:00:00Z"
+    "updatedAt": "2026-06-16T14:00:00Z",
+    "effectiveFrom": "2026-06-16T14:00:00Z"
   }
 ]
 ```
 
-> **Lưu ý**: `effectiveRate = rateToLak + adjustment`. Đây là con số FE phải dùng khi tính tiền quy đổi. **Không tự cộng lại.**
+> `effectiveRate = rateToLak + adjustment`. Đây là con số dùng khi tính tiền quy đổi — **không tự cộng lại**.
 
 ---
 
-## 2. Cập nhật tỉ giá
+## 2. Lịch sử thay đổi tỉ giá
 
-Mỗi lần gọi API này sẽ **tạo bản ghi mới** cho loại ngoại tệ đó (không ghi đè). Tỉ giá mới có hiệu lực ngay lập tức (`effectiveFrom = now`).
+Trả về toàn bộ lịch sử các lần cập nhật tỉ giá, tất cả các loại ngoại tệ, sắp xếp từ mới nhất đến cũ nhất.
+
+```
+GET /api/config/exchange-rates/history?limit=50
+Authorization: Bearer <accessToken>
+```
+
+### Query Parameters
+
+| Tham số | Kiểu | Mặc định | Ghi chú |
+|---------|------|----------|---------|
+| `limit` | `int` | `50` | Số bản ghi tối đa trả về |
+
+### Response — 200 OK
+
+```jsonc
+[
+  {
+    "id": "uuid-mới-nhất",
+    "currencyCode": "THB",
+    "rateToLak": 822.0,
+    "adjustment": 3.0,
+    "effectiveRate": 825.0,
+    "updatedBy": "uuid-manager",
+    "updatedAt": "2026-06-17T09:00:00Z",
+    "effectiveFrom": "2026-06-17T09:00:00Z"
+  },
+  {
+    "id": "uuid-cũ-hơn",
+    "currencyCode": "USD",
+    "rateToLak": 20500.0,
+    "adjustment": 100.0,
+    "effectiveRate": 20600.0,
+    "updatedBy": "uuid-manager",
+    "updatedAt": "2026-06-17T08:30:00Z",
+    "effectiveFrom": "2026-06-17T08:30:00Z"
+  },
+  // ... các bản ghi cũ hơn
+]
+```
+
+> Khác với `GET /api/config/exchange-rates` (chỉ trả bản mới nhất per currency), endpoint này trả **tất cả** bản ghi, kể cả nhiều bản cùng loại tiền từ các thời điểm khác nhau. FE dùng để hiển thị bảng lịch sử.
+
+---
+
+## 3. Cập nhật một tỉ giá
+
+Cập nhật tỉ giá cho **một loại ngoại tệ**. Mỗi lần gọi tạo **bản ghi mới** (không ghi đè bản cũ), tỉ giá có hiệu lực ngay lập tức.
 
 ```
 POST /api/config/exchange-rates
@@ -72,21 +122,21 @@ Content-Type: application/json
 
 ```jsonc
 {
-  "currencyCode": "THB",   // mã ngoại tệ: "THB" | "USD" | "CNY" (chữ hoa hoặc thường đều được)
-  "rateToLak": 820.0,      // 1 đơn vị ngoại tệ = X LAK (giá thị trường tham chiếu)
-  "adjustment": 5.0        // biên độ cộng thêm vào rateToLak khi áp dụng (có thể âm)
+  "currencyCode": "THB",   // mã ngoại tệ: "THB" | "USD" | "CNY" | "EUR" | "VND"
+  "rateToLak": 820.0,      // 1 đơn vị ngoại tệ = X LAK
+  "adjustment": 5.0        // biên độ điều chỉnh (có thể âm hoặc 0)
 }
 ```
 
 | Trường | Kiểu | Bắt buộc | Ghi chú |
 |--------|------|----------|---------|
-| `currencyCode` | `string` | ✅ | Ví dụ: `"THB"`, `"USD"`. Backend tự chuyển sang chữ hoa. |
+| `currencyCode` | `string` | ✅ | Backend tự chuyển sang chữ hoa |
 | `rateToLak` | `decimal` | ✅ | Giá gốc: 1 ngoại tệ = X LAK |
-| `adjustment` | `decimal` | ✅ | Biên độ điều chỉnh. Có thể là `0` nếu không muốn điều chỉnh. |
+| `adjustment` | `decimal` | ✅ | Truyền `0` nếu không điều chỉnh |
 
 ### Response — 200 OK
 
-Trả về bản ghi tỉ giá vừa tạo (cùng cấu trúc như GET):
+Trả về bản ghi tỉ giá vừa tạo:
 
 ```jsonc
 {
@@ -96,18 +146,111 @@ Trả về bản ghi tỉ giá vừa tạo (cùng cấu trúc như GET):
   "adjustment": 5.0,
   "effectiveRate": 825.0,
   "updatedBy": "uuid-của-người-cập-nhật",
-  "updatedAt": "2026-06-16T09:00:00Z",
-  "effectiveFrom": "2026-06-16T09:00:00Z"
+  "updatedAt": "2026-06-17T09:00:00Z",
+  "effectiveFrom": "2026-06-17T09:00:00Z"
 }
 ```
 
 ---
 
-## 3. Cấu trúc tỉ giá hiệu lực
+## 4. Cập nhật hàng loạt
+
+Cập nhật tỉ giá cho **nhiều loại ngoại tệ cùng lúc** trong một request duy nhất. Mỗi currency trong danh sách tạo một bản ghi mới; tất cả được lưu trong cùng một transaction DB.
 
 ```
-rateToLak   = giá gốc tham chiếu (ví dụ: 820 LAK/THB)
-adjustment  = biên độ điều chỉnh (ví dụ: +5 hoặc -10)
+POST /api/config/exchange-rates/bulk
+Authorization: Bearer <accessToken>
+Content-Type: application/json
+```
+
+### Request Body
+
+```jsonc
+{
+  "items": [
+    {
+      "currencyCode": "THB",
+      "rateToLak": 820.0,
+      "adjustment": 5.0
+    },
+    {
+      "currencyCode": "USD",
+      "rateToLak": 20500.0,
+      "adjustment": 100.0
+    },
+    {
+      "currencyCode": "CNY",
+      "rateToLak": 2800.0,
+      "adjustment": 0.0
+    },
+    {
+      "currencyCode": "EUR",
+      "rateToLak": 22000.0,
+      "adjustment": 200.0
+    },
+    {
+      "currencyCode": "VND",
+      "rateToLak": 0.8,
+      "adjustment": 0.0
+    }
+  ]
+}
+```
+
+| Trường | Kiểu | Bắt buộc | Ghi chú |
+|--------|------|----------|---------|
+| `items` | `array` | ✅ | Tối thiểu 1 phần tử; mỗi phần tử là một tỉ giá |
+| `items[].currencyCode` | `string` | ✅ | Backend tự chuyển sang chữ hoa |
+| `items[].rateToLak` | `decimal` | ✅ | Giá gốc |
+| `items[].adjustment` | `decimal` | ✅ | Truyền `0` nếu không điều chỉnh |
+
+### Response — 200 OK
+
+Trả về danh sách các bản ghi tỉ giá vừa tạo, cùng thứ tự với `items` trong request:
+
+```jsonc
+[
+  {
+    "id": "uuid-thb",
+    "currencyCode": "THB",
+    "rateToLak": 820.0,
+    "adjustment": 5.0,
+    "effectiveRate": 825.0,
+    "updatedBy": "uuid-manager",
+    "updatedAt": "2026-06-17T09:00:00Z",
+    "effectiveFrom": "2026-06-17T09:00:00Z"
+  },
+  {
+    "id": "uuid-usd",
+    "currencyCode": "USD",
+    "rateToLak": 20500.0,
+    "adjustment": 100.0,
+    "effectiveRate": 20600.0,
+    "updatedBy": "uuid-manager",
+    "updatedAt": "2026-06-17T09:00:00Z",
+    "effectiveFrom": "2026-06-17T09:00:00Z"
+  }
+  // ...
+]
+```
+
+> Tất cả các bản ghi có cùng `effectiveFrom` (thời điểm gọi request), dùng để nhận biết đây là một "phiên cập nhật hàng loạt".
+
+### Lỗi — 422 Unprocessable Entity
+
+```jsonc
+{ "status": 422, "errorCode": "CONFIG_EXCHANGE_RATE_ITEMS_EMPTY" }
+```
+
+Xảy ra khi `items` là mảng rỗng `[]`.
+
+---
+
+## 5. Cấu trúc tỉ giá hiệu lực
+
+```
+rateToLak     = giá gốc tham chiếu (ví dụ: 820 LAK/THB)
+adjustment    = biên độ điều chỉnh  (ví dụ: +5 hoặc -10)
 effectiveRate = rateToLak + adjustment  ← dùng con số này khi tính tiền
 ```
 
@@ -116,57 +259,68 @@ effectiveRate = rateToLak + adjustment  ← dùng con số này khi tính tiền
 ```
 Khách đổi 1,000 THB → LAK
 effectiveRate = 820 + 5 = 825
-Số LAK nhận = 1,000 × 825 = 825,000 ₭
+Số LAK nhận  = 1,000 × 825 = 825,000 ₭
 ```
 
-### Vòng đời bản ghi tỉ giá
+### Vòng đời bản ghi
 
-- Mỗi lần `POST /api/config/exchange-rates` tạo **1 bản ghi mới** (không xóa/ghi đè bản cũ).
-- `GET /api/config/exchange-rates` luôn trả về **bản ghi mới nhất** của mỗi loại tiền tệ.
-- Backend group by `currencyCode`, lấy `MAX(effectiveFrom)` → FE không cần lo lịch sử.
+- Mỗi lần POST (đơn hoặc bulk) tạo **bản ghi mới** — không xóa/ghi đè bản cũ.
+- `GET /api/config/exchange-rates` luôn trả về **bản mới nhất** của mỗi loại tiền.
+- `GET /api/config/exchange-rates/history` trả **toàn bộ lịch sử** không lọc.
+- Backend group by `currencyCode`, lấy `MAX(effectiveFrom)` cho endpoint hiện tại.
 
 ---
 
-## 4. Mã lỗi liên quan
+## 6. Mã lỗi liên quan
 
 | Mã lỗi | HTTP | Nguyên nhân |
 |--------|------|-------------|
-| `AUTH_FORBIDDEN` | 403 | Không có quyền `config:price` (chỉ Manager / SystemAdmin mới được cập nhật) |
+| `CONFIG_EXCHANGE_RATE_ITEMS_EMPTY` | 422 | Gọi `/bulk` với `items: []` |
+| `AUTH_FORBIDDEN` | 403 | Không có quyền `config:price` (chỉ Manager / SystemAdmin) |
 | `AUTH_TOKEN_EXPIRED` | 401 | Access token hết hạn, cần refresh |
 | `SYSTEM_INTERNAL_ERROR` | 500 | Lỗi server không xác định |
 
-> **Không có lỗi validation đặc biệt** cho exchange rate: backend không kiểm tra trùng lặp hay range — FE chịu trách nhiệm validate giá trị hợp lệ (> 0) trước khi gửi.
-
 ---
 
-## Gợi ý tích hợp FE
+## 7. Gợi ý tích hợp FE
 
-### Màn hình Cấu hình → Tỉ giá
+### Màn hình Cấu hình → Tỉ giá (luồng mới — dialog hàng loạt)
 
 ```
-1. Mount: gọi GET /api/config/exchange-rates → hiển thị danh sách tỉ giá hiện tại
-2. Nhân viên nhập rateToLak + adjustment cho từng loại tiền
-3. Submit: gọi POST /api/config/exchange-rates cho từng loại tiền thay đổi
-4. Sau khi POST thành công → cập nhật lại state bằng response trả về (không cần GET lại)
+1. Mount: gọi GET /api/config/exchange-rates → hiển thị bảng tỉ giá hiện tại
+2. User nhấn "Thiết lập tỉ giá" → mở dialog
+3. Dialog pre-fill tất cả currencies với giá hiện tại từ bước 1
+4. User chỉnh sửa một hoặc nhiều currencies trong dialog
+5. Submit: gọi POST /api/config/exchange-rates/bulk với toàn bộ danh sách
+6. Sau khi thành công → gọi lại GET /api/config/exchange-rates để refresh state
+```
+
+### Màn hình Cấu hình → Tỉ giá (hiển thị lịch sử — lazy load)
+
+```
+1. Lần đầu mở tab / accordion lịch sử:
+   GET /api/config/exchange-rates/history?limit=50
+2. Hiển thị bảng lịch sử, phân trang phía FE (10 bản/trang)
+3. Không cần reload sau mỗi lần cập nhật — đặt historyLoaded = false để trigger load lại
 ```
 
 ### Màn hình Đổi Ngoại Tệ — lấy tỉ giá để tính tiền
 
 ```
 1. Khi mở màn hình: gọi GET /api/config/exchange-rates → lưu vào store/state
-2. Khi tính tiền: dùng effectiveRate (đã có trong response, KHÔNG tự cộng rateToLak + adjustment)
+2. Khi tính tiền: dùng effectiveRate (đã có trong response — KHÔNG tự cộng lại)
 3. Khi tạo giao dịch: truyền exchangeRate = effectiveRate vào body POST /api/transactions
 ```
 
-### TypeScript type gợi ý
+### TypeScript types
 
 ```typescript
 interface ExchangeRateDto {
   id: string;
-  currencyCode: string;       // "THB" | "USD" | "CNY"
+  currencyCode: string;       // "THB" | "USD" | "CNY" | "EUR" | "VND"
   rateToLak: number;
   adjustment: number;
-  effectiveRate: number;      // = rateToLak + adjustment, dùng con số này
+  effectiveRate: number;      // = rateToLak + adjustment — dùng con số này
   updatedBy: string;
   updatedAt: string;          // ISO 8601
   effectiveFrom: string;      // ISO 8601
@@ -176,5 +330,9 @@ interface UpdateExchangeRateRequest {
   currencyCode: string;
   rateToLak: number;
   adjustment: number;
+}
+
+interface BulkUpdateExchangeRatesRequest {
+  items: UpdateExchangeRateRequest[];
 }
 ```
