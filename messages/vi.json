@@ -295,6 +295,7 @@
         "stockOut": "Xuất kho",
         "adjustments": "Lịch sử điều chỉnh",
         "trade": "Mua-Bán",
+        "salesShifts": "Ca bán hàng",
         "cashLedger": "Sổ quỹ",
         "reports": "Báo cáo",
         "reportInventory": "Báo cáo tồn kho",

@@ -213,14 +213,21 @@ export const useInvoiceTabStore = create<InvoiceTabStore>()(
         });
       },
 
-      updateCartItemInActive(productId: string, patch: Partial<CartItem>) {
+      updateCartItemInActive(productId: string, patch: Partial<CartItem>, itemRole?: 'Normal' | 'ExchangeIn') {
         const { tabs } = get();
         const activeId = resolveActiveId(tabs, get().activeTabId);
         if (!activeId) return;
         set({
           tabs: tabs.map((t) => {
             if (t.id !== activeId) return t;
-            return { ...t, items: t.items.map((i) => i.productId === productId ? { ...i, ...patch } : i) };
+            return {
+              ...t,
+              items: t.items.map((i) => {
+                if (i.productId !== productId) return i;
+                if (itemRole != null && i.itemRole !== itemRole) return i;
+                return { ...i, ...patch };
+              }),
+            };
           }),
         });
       },

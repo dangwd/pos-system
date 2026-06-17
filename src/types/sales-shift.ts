@@ -101,12 +101,27 @@ export interface ShiftTransactionItem {
   id: string
   nghiepVu: string
   chungTuGoc: string
-  trangThai: string
+  trangThai: 'Completed' | 'Cancelled'
   soPT_PC: string | null
   thoiGian: string
   hinhThucTT: string
   giaTri: number
+  /** Tiền mặt LAK — có giá trị khi hinhThucTT = COMBINED; null với TradeTxn */
+  cashAmount: number | null
+  /** Chuyển khoản LAK — có giá trị khi hinhThucTT = COMBINED; null với TradeTxn */
+  bankAmount: number | null
   doiTuong: string | null
   khachHang: string | null
   quay: string
+  // Fields đặc thù Thu đổi ngoại tệ (null với các loại khác)
+  sourceCurrency: string | null
+  foreignAmount: number | null
+  targetCurrency: string | null
+  targetAmount: number | null
+  // Fields đặc thù TradeTxn (null với các loại khác)
+  /** Có dấu: > 0 khách trả thêm; < 0 cửa hàng hoàn tiền */
+  chenhLech: number | null
+  itemCuName: string | null
+  /** null nếu nghiệp vụ là Đổi thành tiền */
+  itemMoiName: string | null
 }

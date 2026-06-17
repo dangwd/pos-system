@@ -69,7 +69,7 @@ export interface InvoiceTabStore {
   clearActiveCart: () => void;
 
   /** Cập nhật một số trường của CartItem trong active tab (dùng cho Tiền công/ HAO HỤT) */
-  updateCartItemInActive: (productId: string, patch: Partial<CartItem>) => void;
+  updateCartItemInActive: (productId: string, patch: Partial<CartItem>, itemRole?: 'Normal' | 'ExchangeIn') => void;
 
   /** Load items từ HĐ cũ vào active tab dưới dạng ExchangeIn */
   setLinkedInvoice: (code: string, items: CartItem[]) => void;

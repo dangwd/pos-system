@@ -43,10 +43,10 @@ function InvoiceRow({
         {item.productName}
       </td>
       <td className="border border-gray-400 px-1 py-[2px] text-center">
-        {item.unitName || "—"}
+        {item.quantity}
       </td>
       <td className="border border-gray-400 px-1 py-[2px] text-center">
-        {item.quantity}
+        {item.unitName || "—"}
       </td>
       <td className="border border-gray-400 px-2 py-[2px] text-right tabular-nums">
         {item.unitPriceLak > 0
@@ -198,11 +198,11 @@ function InvoiceTemplate({ inv }: { inv: PrintInvoice }) {
               <th className="border border-gray-400 px-2 py-1 text-left">
                 Tên hàng / ຊື່ສິນຄ້າ
               </th>
-              <th className="border border-gray-400 px-1 py-1 text-center w-12">
-                ĐVT
-              </th>
               <th className="border border-gray-400 px-1 py-1 text-center w-8">
                 SL
+              </th>
+              <th className="border border-gray-400 px-1 py-1 text-center w-12">
+                ĐVT
               </th>
               <th className="border border-gray-400 px-2 py-1 text-right w-24">
                 Đơn giá ₭

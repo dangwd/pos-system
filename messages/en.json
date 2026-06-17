@@ -295,6 +295,7 @@
         "stockOut": "Stock out",
         "adjustments": "Adjustment history",
         "trade": "Trade",
+        "salesShifts": "Sales Shifts",
         "cashLedger": "Cash Ledger",
         "reports": "Reports",
         "reportInventory": "Inventory Report",
