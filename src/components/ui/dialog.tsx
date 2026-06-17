@@ -63,6 +63,8 @@ function DialogClose({ children, className, ...props }: React.ComponentProps<'sp
 
 function parseWidth(className?: string): number {
   if (!className) return 520
+  if (className.includes('max-w-7xl')) return 1280
+  if (className.includes('max-w-6xl')) return 1100
   if (className.includes('max-w-5xl')) return 900
   if (className.includes('max-w-4xl')) return 800
   if (className.includes('max-w-3xl')) return 720

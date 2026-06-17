@@ -959,13 +959,15 @@ function ExchangeGoldTable({
   ) => void;
   onDeleteExchangeIn: (id: string) => void;
   onDeleteNormal: (id: string) => void;
-  onUpdate: (id: string, patch: Partial<CartItem>) => void;
+  onUpdate: (id: string, patch: Partial<CartItem>, role?: 'Normal' | 'ExchangeIn') => void;
   onAddExchangeIn: (p: ProductWithStock) => void;
   priceConfig: PriceConfig | undefined;
   weightUnits: WeightUnit[];
 }) {
   const exchangeItems = items.filter((i) => i.itemRole === "ExchangeIn");
   const normalItems = items.filter((i) => i.itemRole === "Normal");
+  const onUpdateExchangeIn = (id: string, patch: Partial<CartItem>) => onUpdate(id, patch, 'ExchangeIn');
+  const onUpdateNormal     = (id: string, patch: Partial<CartItem>) => onUpdate(id, patch, 'Normal');
 
   return (
     <div className="flex flex-col min-h-0">
@@ -1024,7 +1026,7 @@ function ExchangeGoldTable({
                 key={item.productId}
                 item={item}
                 index={i}
-                onUpdate={onUpdate}
+                onUpdate={onUpdateExchangeIn}
                 onDelete={onDeleteExchangeIn}
                 onQtyChange={onQtyChange}
                 priceConfig={priceConfig}
@@ -1059,7 +1061,7 @@ function ExchangeGoldTable({
           items={normalItems}
           onQtyChange={onQtyChange}
           onDelete={onDeleteNormal}
-          onUpdate={onUpdate}
+          onUpdate={onUpdateNormal}
           priceConfig={priceConfig}
           weightUnits={weightUnits}
         />

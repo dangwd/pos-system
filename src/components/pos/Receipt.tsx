@@ -85,7 +85,7 @@ export function Receipt({ open, transaction, onClose }: ReceiptProps) {
     <>
       <Dialog open={open} onOpenChange={handleClose}>
         <DialogContent
-          className={isExchange ? "sm:max-w-3xl min-w-3xl" : "sm:max-w-2xl min-w-2xl"}
+          className={isExchange ? "sm:max-w-5xl min-w-5xl" : "sm:max-w-3xl min-w-3xl"}
           title={
             isCancelled ? (
               <span className="flex items-center gap-2 text-destructive">
@@ -239,6 +239,7 @@ export function Receipt({ open, transaction, onClose }: ReceiptProps) {
                         <TableRow>
                           <TableHead>{t("columnProduct")}</TableHead>
                           <TableHead className="text-center">{t("columnQty")}</TableHead>
+                          <TableHead className="text-center">Đơn vị</TableHead>
                           <TableHead className="text-right">Giá đơn vị</TableHead>
                           <TableHead className="text-right text-amber-600">Giá trị</TableHead>
                         </TableRow>
@@ -247,12 +248,12 @@ export function Receipt({ open, transaction, onClose }: ReceiptProps) {
                         {exchangeInItems.map((item) => (
                           <TableRow key={item.id}>
                             <TableCell className="text-sm">{item.productSnapshotName}</TableCell>
-                            <TableCell className="text-center text-sm">
-                              {item.quantity}
-                              {item.weightUnitName ? ` ${item.weightUnitName}` : ""}
+                            <TableCell className="text-center text-sm">{item.quantity}</TableCell>
+                            <TableCell className="text-center text-sm text-muted-foreground">
+                              {item.weightUnitName || "—"}
                             </TableCell>
                             <TableCell className="text-right text-sm">
-                              {formatKip(item.unitPriceLak)}
+                              {formatKip(item.tableUnitPriceLak || item.unitPriceLak)}
                             </TableCell>
                             <TableCell className="text-right text-sm font-semibold text-amber-700 dark:text-amber-400">
                               {formatKip(item.lineTotal)}
@@ -280,6 +281,8 @@ export function Receipt({ open, transaction, onClose }: ReceiptProps) {
                         <TableRow>
                           <TableHead>{t("columnProduct")}</TableHead>
                           <TableHead className="text-center">{t("columnQty")}</TableHead>
+                          <TableHead className="text-center">Đơn vị</TableHead>
+                          <TableHead className="text-right">Giá đơn vị</TableHead>
                           <TableHead className="text-right">{t("columnLaborFee")}</TableHead>
                           <TableHead className="text-right">{t("columnStoneFee")}</TableHead>
                           <TableHead className="text-right">{t("columnTotal")}</TableHead>
@@ -289,9 +292,12 @@ export function Receipt({ open, transaction, onClose }: ReceiptProps) {
                         {normalItems.map((item) => (
                           <TableRow key={item.id}>
                             <TableCell className="text-sm">{item.productSnapshotName}</TableCell>
-                            <TableCell className="text-center text-sm">
-                              {item.quantity}
-                              {item.weightUnitName ? ` ${item.weightUnitName}` : ""}
+                            <TableCell className="text-center text-sm">{item.quantity}</TableCell>
+                            <TableCell className="text-center text-sm text-muted-foreground">
+                              {item.weightUnitName || "—"}
+                            </TableCell>
+                            <TableCell className="text-right text-sm">
+                              {formatKip(item.tableUnitPriceLak || item.unitPriceLak)}
                             </TableCell>
                             <TableCell className="text-right text-sm">
                               {item.laborFee > 0 ? formatKip(item.laborFee) : "—"}
@@ -321,6 +327,10 @@ export function Receipt({ open, transaction, onClose }: ReceiptProps) {
                     <TableHead className="text-center">
                       {t("columnQty")}
                     </TableHead>
+                    <TableHead className="text-center">Đơn vị</TableHead>
+                    <TableHead className="text-right">
+                      {isBuy ? "Giá mua" : "Giá đơn vị"}
+                    </TableHead>
                     {!isBuy && (
                       <TableHead className="text-right">
                         {t("columnLaborFee")}
@@ -332,7 +342,7 @@ export function Receipt({ open, transaction, onClose }: ReceiptProps) {
                       </TableHead>
                     )}
                     <TableHead className="text-right">
-                      {t("columnTotal")}
+                      {isBuy ? "Tiệm chi" : t("columnTotal")}
                     </TableHead>
                   </TableRow>
                 </TableHeader>
@@ -345,6 +355,12 @@ export function Receipt({ open, transaction, onClose }: ReceiptProps) {
                       <TableCell className="text-center text-sm">
                         {item.quantity}
                       </TableCell>
+                      <TableCell className="text-center text-sm text-muted-foreground">
+                        {item.weightUnitName || "—"}
+                      </TableCell>
+                      <TableCell className="text-right text-sm">
+                        {formatKip(item.tableUnitPriceLak || item.unitPriceLak)}
+                      </TableCell>
                       {!isBuy && (
                         <TableCell className="text-right text-sm">
                           {item.laborFee > 0 ? formatKip(item.laborFee) : "—"}
@@ -355,7 +371,7 @@ export function Receipt({ open, transaction, onClose }: ReceiptProps) {
                           {item.stoneFee > 0 ? formatKip(item.stoneFee) : "—"}
                         </TableCell>
                       )}
-                      <TableCell className="text-right text-sm">
+                      <TableCell className="text-right text-sm font-semibold">
                         {formatKip(item.lineTotal)}
                       </TableCell>
                     </TableRow>

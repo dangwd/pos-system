@@ -1,12 +1,3 @@
-/**
- * hooks/useSalesShift.ts — Boundary layer cho ca bán hàng
- *
- * useActiveShift        → GET /api/sales-shifts/active (staleTime 30s)
- * useOpenShift          → POST /api/sales-shifts/open
- * useCloseShift         → POST /api/sales-shifts/{id}/close
- * useActiveShiftDetail  → đọc detail đã cache từ lần open gần nhất
- */
-
 import { extractErrorMessage, type AppLocale } from '@/lib/errors'
 import { salesShiftRepository } from '@/lib/repositories/sales-shift.repository'
 import type {
@@ -14,6 +5,7 @@ import type {
   CurrencyBalance,
   OpenShiftRequest,
   SalesShiftDetailDto,
+  SalesShiftListParams,
 } from '@/types/sales-shift'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useLocale } from 'next-intl'
@@ -77,5 +69,37 @@ export function useCloseShift(onSuccess?: (data: SalesShiftDetailDto) => void) {
     onError: (err: unknown) => {
       toast.error(extractErrorMessage(err, locale))
     },
+  })
+}
+
+/** Danh sách ca bán hàng (yêu cầu permission SALES_SHIFT_MANAGE) */
+export function useSalesShiftList(params?: SalesShiftListParams) {
+  return useQuery({
+    queryKey: ['sales-shifts', 'list', params],
+    queryFn: () => salesShiftRepository.getList(params),
+    staleTime: 30_000,
+  })
+}
+
+/** Chi tiết một ca kèm summary (yêu cầu permission SALES_SHIFT_MANAGE) */
+export function useShiftDetail(id: string | null) {
+  return useQuery({
+    queryKey: ['sales-shifts', 'detail', id],
+    queryFn: () => salesShiftRepository.getById(id!),
+    enabled: !!id,
+    staleTime: 30_000,
+  })
+}
+
+/** Danh sách giao dịch trong ca (yêu cầu permission SALES_SHIFT_MANAGE) */
+export function useShiftTransactions(
+  shiftId: string | null,
+  params?: { q?: string; page?: number; pageSize?: number },
+) {
+  return useQuery({
+    queryKey: ['sales-shifts', 'transactions', shiftId, params],
+    queryFn: () => salesShiftRepository.getTransactions(shiftId!, params),
+    enabled: !!shiftId,
+    staleTime: 30_000,
   })
 }
