@@ -104,6 +104,11 @@ const ERROR_MESSAGES: Record<string, ErrorMap> = {
     vi: "Không có tỷ giá cho loại ngoại tệ này",
     en: "Exchange rate not found for this currency",
   },
+  CONFIG_EXCHANGE_RATE_ITEMS_EMPTY: {
+    lo: "ລາຍການອັດຕາແລກປ່ຽນບໍ່ສາມາດຫວ່າງໄດ້",
+    vi: "Danh sách tỷ giá không được rỗng",
+    en: "Exchange rate items cannot be empty",
+  },
   CONFIG_PRICE_ITEMS_EMPTY: {
     lo: "ລາຍການລາຄາບໍ່ສາມາດຫວ່າງໄດ້",
     vi: "Danh sách giá không được rỗng",

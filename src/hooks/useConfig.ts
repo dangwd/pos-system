@@ -14,6 +14,7 @@ import type {
   TogglePriceTableActiveDto,
   ExchangeRate,
   UpdateExchangeRateDto,
+  BulkUpdateExchangeRatesRequest,
   StonePriceRule,
   CreateStonePriceRuleDto,
   UpdateStonePriceRuleDto,
@@ -35,7 +36,8 @@ import type {
 
 // ─── Query keys ───────────────────────────────────────────────────────────────
 
-const EXCHANGE_RATES_KEY = ['config', 'exchange-rates'] as const
+const EXCHANGE_RATES_KEY         = ['config', 'exchange-rates'] as const
+const EXCHANGE_RATE_HISTORY_KEY  = ['config', 'exchange-rates', 'history'] as const
 const STONE_RULES_KEY = ['config', 'stone-price-rules'] as const
 const WEIGHT_UNITS_KEY = ['config', 'weight-units'] as const
 const GOLD_PURITIES_KEY = ['config', 'gold-purities'] as const
@@ -153,6 +155,32 @@ export function useUpdateExchangeRate() {
     onSuccess: () => {
       invalidate(EXCHANGE_RATES_KEY)
       toast.success(locale === 'lo' ? 'ອັບເດດອັດຕາສຳເລັດ' : locale === 'vi' ? 'Cập nhật tỷ giá thành công' : 'Exchange rate updated')
+    },
+    onError: (err) => toast.error(getErrorMessage(err.code, locale)),
+  })
+}
+
+export function useExchangeRateHistory(enabled: boolean) {
+  return useQuery({
+    queryKey: EXCHANGE_RATE_HISTORY_KEY,
+    queryFn: () => configRepository.getExchangeRateHistory(50),
+    staleTime: 30_000,
+    enabled,
+  })
+}
+
+export function useBulkUpdateExchangeRates() {
+  const { locale, toast, invalidate } = useConfigBase()
+  return useMutation<ExchangeRate[], ApiError, BulkUpdateExchangeRatesRequest>({
+    mutationFn: (dto) => configRepository.bulkUpdateExchangeRates(dto),
+    onSuccess: () => {
+      invalidate(EXCHANGE_RATES_KEY)
+      invalidate(EXCHANGE_RATE_HISTORY_KEY)
+      toast.success(
+        locale === 'lo' ? 'ອັບເດດອັດຕາທັງໝົດສຳເລັດ'
+          : locale === 'vi' ? 'Cập nhật tỷ giá hàng loạt thành công'
+          : 'Bulk exchange rate update successful',
+      )
     },
     onError: (err) => toast.error(getErrorMessage(err.code, locale)),
   })

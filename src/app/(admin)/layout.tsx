@@ -14,9 +14,11 @@ import { cn } from "@/lib/utils";
 import { useAuthStore } from "@/stores/auth.store";
 import {
   ArrowLeftOutlined,
+  AppstoreOutlined,
   BarChartOutlined,
   BankOutlined,
-  ControlOutlined,
+  ColumnWidthOutlined,
+  CrownOutlined,
   DownOutlined,
   ExportOutlined,
   ImportOutlined,
@@ -25,14 +27,12 @@ import {
   GoldOutlined,
   DashboardOutlined,
   LogoutOutlined,
-  InboxOutlined,
   MenuFoldOutlined,
   MenuUnfoldOutlined,
-  SyncOutlined,
+  SwapOutlined,
   SearchOutlined,
   SafetyCertificateOutlined,
   ScheduleOutlined,
-  StarOutlined,
   TagOutlined,
   UserSwitchOutlined,
   TeamOutlined,
@@ -105,7 +105,7 @@ export default function AdminLayout({
       {
         label: t("nav.groupCatalog"),
         items: [
-          { href: "/admin/products", label: t("nav.products"), icon: InboxOutlined },
+          { href: "/admin/products", label: t("nav.products"), icon: AppstoreOutlined },
           { href: "/admin/customers", label: t("nav.customers"), icon: TeamOutlined },
         ],
       },
@@ -135,10 +135,10 @@ export default function AdminLayout({
         label: t("nav.groupConfig"),
         items: [
           { href: "/admin/config/prices", label: t("nav.prices"), icon: TagOutlined },
-          { href: "/admin/config/exchange-rates", label: t("nav.exchangeRates"), icon: SyncOutlined },
-          { href: "/admin/config/stone-prices", label: t("nav.stonePrices"), icon: GoldOutlined },
-          { href: "/admin/config/weight-units", label: t("nav.weightUnits"), icon: ControlOutlined },
-          { href: "/admin/config/gold-purities", label: t("nav.goldPurities"), icon: StarOutlined },
+          { href: "/admin/config/exchange-rates", label: t("nav.exchangeRates"), icon: SwapOutlined },
+          { href: "/admin/config/stone-prices", label: t("nav.stonePrices"), icon: CrownOutlined },
+          { href: "/admin/config/weight-units", label: t("nav.weightUnits"), icon: ColumnWidthOutlined },
+          { href: "/admin/config/gold-purities", label: t("nav.goldPurities"), icon: GoldOutlined },
           { href: "/admin/config/currencies", label: t("nav.currencies"), icon: MoneyCollectOutlined },
         ],
       },
@@ -224,8 +224,8 @@ export default function AdminLayout({
             className="h-7 w-7 flex items-center justify-center rounded-md text-sidebar-foreground/50 hover:text-sidebar-accent-foreground hover:bg-sidebar-accent transition-colors shrink-0"
           >
             {collapsed
-              ? <MenuUnfoldOutlined className="h-4 w-4" />
-              : <MenuFoldOutlined className="h-4 w-4" />}
+              ? <MenuUnfoldOutlined style={{ fontSize: '14px' }} />
+              : <MenuFoldOutlined style={{ fontSize: '14px' }} />}
           </button>
         </div>
 
@@ -233,7 +233,7 @@ export default function AdminLayout({
         {!collapsed && (
           <div className="px-3 py-2.5 border-b border-sidebar-border">
             <div className="relative">
-              <SearchOutlined className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-sidebar-foreground/50 pointer-events-none" />
+              <SearchOutlined style={{ fontSize: '13px' }} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-sidebar-foreground/50 pointer-events-none" />
               <input
                 type="text"
                 placeholder={t("searchPlaceholder")}
@@ -268,8 +268,9 @@ export default function AdminLayout({
                   >
                     <span>{group.label}</span>
                     <DownOutlined
+                      style={{ fontSize: '11px' }}
                       className={cn(
-                        "h-3 w-3 transition-transform duration-200",
+                        "transition-transform duration-200",
                         isOpen && "rotate-180",
                       )}
                     />
@@ -315,12 +316,13 @@ export default function AdminLayout({
                                       : "text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground",
                                   )}
                                 >
-                                  <Icon className="h-4 w-4 shrink-0" />
+                                  <Icon style={{ fontSize: '14px' }} className="shrink-0" />
                                   {!collapsed && <span className="flex-1 text-left">{label}</span>}
                                   {!collapsed && (
                                     <DownOutlined
+                                      style={{ fontSize: '11px' }}
                                       className={cn(
-                                        "h-3.5 w-3.5 shrink-0 transition-transform duration-200",
+                                        "shrink-0 transition-transform duration-200",
                                         open && "rotate-180",
                                       )}
                                     />
@@ -392,7 +394,7 @@ export default function AdminLayout({
                                   transition={{ type: "spring", stiffness: 380, damping: 32 }}
                                 />
                               )}
-                              <Icon className="relative h-4 w-4 shrink-0" />
+                              <Icon style={{ fontSize: '14px' }} className="relative shrink-0" />
                               {!collapsed && <span className="relative">{label}</span>}
                             </Link>
                           );
@@ -426,7 +428,7 @@ export default function AdminLayout({
               onClick={() => router.push("/pos")}
               className="gap-1.5 text-xs h-8"
             >
-              <ArrowLeftOutlined className="h-3.5 w-3.5" />
+              <ArrowLeftOutlined style={{ fontSize: '13px' }} />
               {t("nav.backToPOS")}
             </Button>
             <LocaleSwitcher />
@@ -444,7 +446,7 @@ export default function AdminLayout({
                       {user.role}
                     </span>
                   </div>
-                  <DownOutlined className="h-3.5 w-3.5 text-muted-foreground ml-0.5" />
+                  <DownOutlined style={{ fontSize: '11px' }} className="text-muted-foreground ml-0.5" />
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end" className="min-w-52">
                   <div className="px-3 py-2.5 border-b">
@@ -456,7 +458,7 @@ export default function AdminLayout({
                     disabled={isLoggingOut}
                     className="text-destructive focus:text-destructive cursor-pointer gap-2 mb-1"
                   >
-                    <LogoutOutlined className="h-3.5 w-3.5" />
+                    <LogoutOutlined style={{ fontSize: '13px' }} />
                     {tAuth("logout")}
                   </DropdownMenuItem>
                 </DropdownMenuContent>

@@ -69,13 +69,15 @@ export interface TogglePriceTableActiveDto {
 
 // ─── Tỷ giá ngoại tệ ─────────────────────────────────────────────────────────
 
-/** GET /api/config/exchange-rates */
+/** GET /api/config/exchange-rates  |  GET /api/config/exchange-rates/history */
 export interface ExchangeRate {
   id: string
   currencyCode: string   // "THB", "USD"
   rateToLak: number
   adjustment: number
   effectiveRate: number  // = rateToLak + adjustment — tỷ giá thực áp dụng
+  updatedBy?: string     // UUID người cập nhật
+  updatedAt?: string     // ISO 8601
   effectiveFrom: string
 }
 
@@ -84,6 +86,11 @@ export interface UpdateExchangeRateDto {
   currencyCode: string
   rateToLak: number
   adjustment: number
+}
+
+/** POST /api/config/exchange-rates/bulk */
+export interface BulkUpdateExchangeRatesRequest {
+  items: UpdateExchangeRateDto[]
 }
 
 // ─── Bảng phí đá đính kèm ────────────────────────────────────────────────────
