@@ -3,7 +3,8 @@
 
 import { useMemo } from 'react'
 import { useTranslations } from 'next-intl'
-import { Table, InputNumber, Button, Empty, Tooltip } from 'antd'
+import { Table, Button, Empty, Tooltip } from 'antd'
+import { InputNumber } from '@/components/ui/antd-number-input'
 import { DeleteOutlined, WarningOutlined } from '@ant-design/icons'
 import type { TableColumnsType } from 'antd'
 import { useWeightUnits } from '@/hooks/useConfig'

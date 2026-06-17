@@ -22,7 +22,6 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
   Button as AntBtn,
   Input as AntInput,
-  InputNumber,
   Select as AntSelect,
   Card,
   DatePicker,
@@ -31,6 +30,7 @@ import {
   Tag,
 } from "antd";
 import type { ColumnsType } from "antd/es/table/interface";
+import { InputNumber } from "@/components/ui/antd-number-input";
 import dayjs from "dayjs";
 import { FileExcelOutlined, PlusOutlined } from "@ant-design/icons";
 import { useTranslations } from "next-intl";

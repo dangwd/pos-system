@@ -2,7 +2,8 @@
 
 import { useState } from 'react'
 import { useTranslations } from 'next-intl'
-import { InputNumber, Select } from 'antd'
+import { Select } from 'antd'
+import { InputNumber } from '@/components/ui/antd-number-input'
 import { PlusOutlined, DeleteOutlined } from '@ant-design/icons'
 import { Dialog, DialogContent, DialogFooter } from '@/components/ui/dialog'
 import { Button } from '@/components/ui/button'

@@ -28,10 +28,12 @@ import {
 } from "@/lib/strategies/payment.strategy";
 import { cn } from "@/lib/utils";
 import type { Customer } from "@/types/customer";
-import { Button, InputNumber } from "antd";
+import { Button } from "antd";
+import { InputNumber } from "@/components/ui/antd-number-input";
 import {
   AppstoreOutlined,
   BankOutlined,
+  WalletOutlined,
   CloseCircleOutlined,
   CloseOutlined,
   CreditCardOutlined,
@@ -630,7 +632,7 @@ function PaymentMethodSection({
                 : "border-border hover:bg-accent text-foreground",
             )}
           >
-            {key === "cash" && <BankOutlined className="h-4 w-4 shrink-0" />}
+            {key === "cash" && <WalletOutlined className="h-4 w-4 shrink-0" />}
             {key === "bank-transfer" && <BankOutlined className="h-4 w-4 shrink-0" />}
             {key === "combined" && <AppstoreOutlined className="h-4 w-4 shrink-0" />}
             <span className="text-center leading-tight">{tMethods(key)}</span>
@@ -655,7 +657,7 @@ function PaymentMethodSection({
           <div className="grid grid-cols-2 gap-2">
             <div className="space-y-1">
               <Label className="text-xs text-muted-foreground flex items-center gap-1">
-                <BankOutlined className="h-3 w-3" /> Tiền mặt
+                <WalletOutlined className="h-3 w-3" /> Tiền mặt
               </Label>
               <InputNumber
                 min={0} placeholder="0" value={cashInput ? Number(cashInput) : null}

@@ -35,7 +35,8 @@ import {
   VerticalAlignBottomOutlined,
   VerticalAlignTopOutlined,
 } from "@ant-design/icons";
-import { InputNumber, Select } from "antd";
+import { Select } from "antd";
+import { InputNumber } from "@/components/ui/antd-number-input";
 import { useTranslations } from "next-intl";
 import { useEffect, useState } from "react";
 import { CurrencyExchangeForm } from "./CurrencyExchangeForm";
@@ -335,10 +336,10 @@ function SellTable({
             {t("columns.item")}
           </th>
           <th className="px-3 py-2 text-left text-[10px] font-semibold text-muted-foreground uppercase tracking-wide whitespace-nowrap">
-            Đơn vị
+            {t("columns.qty")}
           </th>
           <th className="px-3 py-2 text-left text-[10px] font-semibold text-muted-foreground uppercase tracking-wide whitespace-nowrap">
-            {t("columns.qty")}
+            Đơn vị
           </th>
           <th className="px-3 py-2 text-left text-[10px] font-semibold text-muted-foreground uppercase tracking-wide whitespace-nowrap">
             {t("columns.unitPrice")}
@@ -377,6 +378,15 @@ function SellTable({
                   {item.purity}
                 </p>
               </td>
+              <td className="px-3 py-2.5">
+                <QtyControl
+                  qty={item.qty}
+                  disabled={item.isReadOnly}
+                  onDecrease={() => onQtyChange(item.productId, item.qty - 1)}
+                  onIncrease={() => onQtyChange(item.productId, item.qty + 1)}
+                  onSetQty={(q) => onQtyChange(item.productId, q)}
+                />
+              </td>
               <td className="px-2 py-2.5">
                 <UnitSelect
                   item={item}
@@ -385,15 +395,6 @@ function SellTable({
                   isBuyMode={false}
                   onUpdate={onUpdate}
                   disabled={item.isReadOnly}
-                />
-              </td>
-              <td className="px-3 py-2.5">
-                <QtyControl
-                  qty={item.qty}
-                  disabled={item.isReadOnly}
-                  onDecrease={() => onQtyChange(item.productId, item.qty - 1)}
-                  onIncrease={() => onQtyChange(item.productId, item.qty + 1)}
-                  onSetQty={(q) => onQtyChange(item.productId, q)}
                 />
               </td>
               <td className="px-3 py-2.5">
@@ -521,6 +522,15 @@ function BuyGoldRow({
           {item.purity}
         </p>
       </td>
+      <td className="px-3 py-2">
+        <QtyControl
+          qty={item.qty}
+          disabled={item.isReadOnly}
+          onDecrease={() => onQtyChange(item.productId, item.qty - 1)}
+          onIncrease={() => onQtyChange(item.productId, item.qty + 1)}
+          onSetQty={(q) => onQtyChange(item.productId, q)}
+        />
+      </td>
       <td className="px-2 py-2">
         <UnitSelect
           item={item}
@@ -529,15 +539,6 @@ function BuyGoldRow({
           isBuyMode={true}
           onUpdate={onUpdate}
           disabled={item.isReadOnly}
-        />
-      </td>
-      <td className="px-3 py-2">
-        <QtyControl
-          qty={item.qty}
-          disabled={item.isReadOnly}
-          onDecrease={() => onQtyChange(item.productId, item.qty - 1)}
-          onIncrease={() => onQtyChange(item.productId, item.qty + 1)}
-          onSetQty={(q) => onQtyChange(item.productId, q)}
         />
       </td>
 
@@ -669,10 +670,10 @@ function BuyGoldTable({
             Sản phẩm mua vào
           </th>
           <th className="px-3 py-2 text-left text-[10px] font-semibold text-muted-foreground uppercase tracking-wide whitespace-nowrap">
-            Đơn vị
+            Số lượng
           </th>
           <th className="px-3 py-2 text-left text-[10px] font-semibold text-muted-foreground uppercase tracking-wide whitespace-nowrap">
-            Số lượng
+            Đơn vị
           </th>
           <th className="px-2 py-2 text-left text-[10px] font-semibold text-muted-foreground uppercase tracking-wide whitespace-nowrap">
             Giá mua
@@ -815,16 +816,6 @@ function ExchangeInRow({
           {item.purity}
         </p>
       </td>
-      <td className="px-2 py-2">
-        <UnitSelect
-          item={item}
-          priceConfig={priceConfig}
-          weightUnits={weightUnits}
-          isBuyMode={true}
-          onUpdate={onUpdate}
-          disabled={item.isReadOnly}
-        />
-      </td>
       <td className="px-3 py-2">
         {item.isReadOnly ? (
           <span className="text-xs tabular-nums font-semibold">{item.qty}</span>
@@ -840,6 +831,16 @@ function ExchangeInRow({
             onSetQty={(q) => onQtyChange(item.productId, q, "ExchangeIn")}
           />
         )}
+      </td>
+      <td className="px-2 py-2">
+        <UnitSelect
+          item={item}
+          priceConfig={priceConfig}
+          weightUnits={weightUnits}
+          isBuyMode={true}
+          onUpdate={onUpdate}
+          disabled={item.isReadOnly}
+        />
       </td>
       <td className="px-3 py-2 w-36">
         {item.isReadOnly ? (
@@ -993,11 +994,11 @@ function ExchangeGoldTable({
               <th className="px-3 py-1.5 text-[9px] font-semibold text-muted-foreground uppercase text-left">
                 Sản phẩm
               </th>
-              <th className="px-2 py-1.5 text-[9px] font-semibold text-muted-foreground uppercase text-left whitespace-nowrap">
-                Đơn vị
-              </th>
               <th className="px-3 py-1.5 text-[9px] font-semibold text-muted-foreground uppercase text-left whitespace-nowrap">
                 SL
+              </th>
+              <th className="px-2 py-1.5 text-[9px] font-semibold text-muted-foreground uppercase text-left whitespace-nowrap">
+                Đơn vị
               </th>
               <th className="px-3 py-1.5 text-[9px] font-semibold text-muted-foreground uppercase text-left whitespace-nowrap">
                 Giá/chỉ

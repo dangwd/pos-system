@@ -13,7 +13,7 @@
 import { Button } from "@/components/ui/button";
 import { Field, FieldError, FieldLabel } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
-import { InputNumber } from "antd";
+import { InputNumber } from "@/components/ui/antd-number-input";
 import { Separator } from "@/components/ui/separator";
 import { Textarea } from "@/components/ui/textarea";
 import { useLogout } from "@/hooks/useAuth";

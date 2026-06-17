@@ -11,7 +11,7 @@
 import { Button } from '@/components/ui/button'
 import { Dialog, DialogContent, DialogFooter } from '@/components/ui/dialog'
 import { Field, FieldError, FieldLabel } from '@/components/ui/field'
-import { InputNumber } from 'antd'
+import { InputNumber } from '@/components/ui/antd-number-input'
 import { Separator } from '@/components/ui/separator'
 import { useCloseShift } from '@/hooks/useSalesShift'
 import { cn } from '@/lib/utils'
