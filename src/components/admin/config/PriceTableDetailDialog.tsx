@@ -5,8 +5,6 @@ import {
   Dialog,
   DialogContent,
   DialogFooter,
-  DialogHeader,
-  DialogTitle,
 } from '@/components/ui/dialog'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
@@ -93,49 +91,65 @@ export function PriceTableDetailDialog({ table, branchMap, onCopy, onClose }: Pr
     toggle({ id: table.id, active: !table.active }, { onSuccess: onClose })
   }
 
+  const header = (
+    <div className="space-y-2 pr-6">
+      <div className="text-base font-semibold">{table.name}</div>
+
+      {/* Scope + updatedAt + status */}
+      <div className="flex items-center gap-2 text-xs text-muted-foreground font-normal flex-wrap">
+        {table.scope === 'all' ? (
+          <><GlobalOutlined /><span>{t('scopeAll')}</span></>
+        ) : (
+          <><ShopOutlined /><span>{t('branchCount', { count: table.branches.length })}</span></>
+        )}
+        <span>·</span>
+        <span>{new Date(table.updatedAt).toLocaleString('lo-LA')}</span>
+        <Badge
+          className={table.active ? 'bg-green-100 text-green-800 border-green-200' : ''}
+          variant={table.active ? 'outline' : 'secondary'}
+        >
+          {table.active ? t('statusActive') : t('statusInactive')}
+        </Badge>
+      </div>
+
+      {/* Creator */}
+      <div className="flex items-center gap-2 text-xs text-muted-foreground font-normal">
+        <AvatarChip name={table.createdBy} />
+        <span>{t('createdBy')}: <strong>{table.createdBy || '—'}</strong></span>
+        <span>·</span>
+        <span>{t('createdAt')}: {new Date(table.createdAt).toLocaleDateString('lo-LA')}</span>
+      </div>
+
+      {/* Scope pills */}
+      {table.scope === 'branch' && table.branches.length > 0 && <ScopePills ids={table.branches} map={branchMap} />}
+    </div>
+  )
+
+  const footer = (
+    <DialogFooter className="flex-row justify-between gap-2">
+      <div className="flex gap-2">
+        <Button variant="outline" size="sm" onClick={onCopy}>
+          <CopyOutlined className="mr-1.5" />
+          {t('copy')}
+        </Button>
+        <Button variant="outline" size="sm" onClick={handleToggle} disabled={isPending}>
+          {table.active ? t('deactivate') : t('activate')}
+        </Button>
+      </div>
+      <Button size="sm" onClick={onClose}>{t('close')}</Button>
+    </DialogFooter>
+  )
+
   return (
     <Dialog open onOpenChange={onClose}>
-      <DialogContent className="max-w-2xl">
-        <DialogHeader className="space-y-2">
-          <DialogTitle className="text-base font-semibold">{table.name}</DialogTitle>
-
-          {/* Scope + updatedAt + status */}
-          <div className="flex items-center gap-2 text-xs text-muted-foreground flex-wrap">
-            {table.scope === 'all' ? (
-              <><GlobalOutlined /><span>{t('scopeAll')}</span></>
-            ) : (
-              <><ShopOutlined /><span>{t('branchCount', { count: table.branches.length })}</span></>
-            )}
-            <span>·</span>
-            <span>{new Date(table.updatedAt).toLocaleString('lo-LA')}</span>
-            <span>·</span>
-            <Badge
-              className={table.active ? 'bg-green-100 text-green-800 border-green-200' : ''}
-              variant={table.active ? 'outline' : 'secondary'}
-            >
-              {table.active ? t('statusActive') : t('statusInactive')}
-            </Badge>
-          </div>
-
-          {/* Creator */}
-          <div className="flex items-center gap-2 text-xs text-muted-foreground">
-            <AvatarChip name={table.createdBy} />
-            <span>{t('createdBy')}: <strong>{table.createdBy || '—'}</strong></span>
-            <span>·</span>
-            <span>{t('createdAt')}: {new Date(table.createdAt).toLocaleDateString('lo-LA')}</span>
-          </div>
-
-          {/* Scope pills */}
-          {table.scope === 'branch' && table.branches.length > 0 && <ScopePills ids={table.branches} map={branchMap} />}
-        </DialogHeader>
-
-        <div className="space-y-4 max-h-[55vh] overflow-y-auto pr-1">
+      <DialogContent className="max-w-2xl" title={header} footer={footer}>
+        <div className="space-y-5 max-h-[55vh] overflow-y-auto py-2 pr-1">
           {goldPrices.length > 0 && (
             <section>
               <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-2">
                 {t('groupGold')}
               </p>
-              <div className="space-y-1.5">
+              <div className="space-y-2">
                 {goldPrices.map((row, i) => (
                   <PriceCard key={i} row={row} buyLabel={t('columns.buy')} sellLabel={t('columns.sell')} />
                 ))}
@@ -147,7 +161,7 @@ export function PriceTableDetailDialog({ table, branchMap, onCopy, onClose }: Pr
               <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-2">
                 {t('groupSilver')}
               </p>
-              <div className="space-y-1.5">
+              <div className="space-y-2">
                 {silverPrices.map((row, i) => (
                   <PriceCard key={i} row={row} buyLabel={t('columns.buy')} sellLabel={t('columns.sell')} />
                 ))}
@@ -158,19 +172,6 @@ export function PriceTableDetailDialog({ table, branchMap, onCopy, onClose }: Pr
             <p className="text-center text-xs text-muted-foreground py-6">{t('empty')}</p>
           )}
         </div>
-
-        <DialogFooter className="flex-row justify-between gap-2">
-          <div className="flex gap-2">
-            <Button variant="outline" size="sm" onClick={onCopy}>
-              <CopyOutlined className="mr-1.5" />
-              {t('copy')}
-            </Button>
-            <Button variant="outline" size="sm" onClick={handleToggle} disabled={isPending}>
-              {table.active ? t('deactivate') : t('activate')}
-            </Button>
-          </div>
-          <Button size="sm" onClick={onClose}>{t('close')}</Button>
-        </DialogFooter>
       </DialogContent>
     </Dialog>
   )
