@@ -2,6 +2,7 @@ import api from '@/lib/axios'
 import type {
   DashboardReport, DailyReport, ReportParams, DailyReportParams,
   InventoryReport, InventoryReportParams,
+  StockPeriodReport, StockPeriodReportParams,
   RevenueReport, RevenueReportParams,
   CurrencyExchangeReport, CurrencyExchangeReportParams,
 } from '@/types/report'
@@ -20,6 +21,26 @@ export class ReportsRepository {
   async getInventory(params?: InventoryReportParams): Promise<InventoryReport> {
     const { data } = await api.get<InventoryReport>('/api/reports/inventory', { params })
     return data
+  }
+
+  async getStockPeriod(params: StockPeriodReportParams): Promise<StockPeriodReport> {
+    const { data } = await api.get<StockPeriodReport>('/api/stock/period-report', { params })
+    return data
+  }
+
+  async exportStockPeriod(params: StockPeriodReportParams): Promise<void> {
+    const response = await api.get('/api/stock/period-report/export', { params, responseType: 'blob' })
+    const blob = new Blob([response.data], {
+      type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+    })
+    const url = URL.createObjectURL(blob)
+    const a = document.createElement('a')
+    a.href = url
+    a.download = `ton-kho-theo-ky-${params.fromDate}_${params.toDate}.xlsx`
+    document.body.appendChild(a)
+    a.click()
+    document.body.removeChild(a)
+    URL.revokeObjectURL(url)
   }
 
   async getRevenue(params: RevenueReportParams): Promise<RevenueReport> {

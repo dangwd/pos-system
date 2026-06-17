@@ -4,7 +4,7 @@ import { useQuery, keepPreviousData } from '@tanstack/react-query'
 import { reportsRepository } from '@/lib/repositories/reports.repository'
 import type {
   ReportParams, DailyReportParams, InventoryReportParams, RevenueReportParams,
-  CurrencyExchangeReportParams,
+  CurrencyExchangeReportParams, StockPeriodReportParams,
 } from '@/types/report'
 
 export function useDashboardReport(params?: ReportParams) {
@@ -34,6 +34,21 @@ export function useInventoryReport(params?: InventoryReportParams) {
     ],
     queryFn: () => reportsRepository.getInventory(params),
     staleTime: 60_000,
+    placeholderData: keepPreviousData,
+  })
+}
+
+export function useStockPeriodReport(params: StockPeriodReportParams, enabled = true) {
+  return useQuery({
+    queryKey: [
+      'reports', 'stock-period',
+      params.fromDate, params.toDate,
+      params.branchId ?? null, params.categoryId ?? null,
+      params.karat ?? null, params.search ?? null,
+    ],
+    queryFn: () => reportsRepository.getStockPeriod(params),
+    staleTime: 60_000,
+    enabled: enabled && !!params.fromDate && !!params.toDate,
     placeholderData: keepPreviousData,
   })
 }

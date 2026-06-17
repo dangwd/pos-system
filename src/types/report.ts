@@ -111,6 +111,48 @@ export interface InventoryReportParams {
   pageSize?: number
 }
 
+// ─── Báo cáo tồn kho theo kỳ (GET /api/stock/period-report) ───────────────────
+
+export interface StockPeriodSummary {
+  openQty: number;    openWeight: number;
+  receiptQty: number; issueQty: number;
+  midQty: number;     midWeight: number;
+  closeQty: number;   closeWeight: number;
+}
+
+/** Tổng hợp theo hàm lượng — dùng cho biểu đồ. */
+export interface StockPeriodKaratRow {
+  karat: string;
+  openQty: number; receiptQty: number; issueQty: number;
+  midQty: number;  closeQty: number;
+}
+
+/** Một dòng chi tiết theo sản phẩm. */
+export interface StockPeriodItem {
+  productId: string;  productCode: string; productName: string;
+  category: string;   karat: string;       unit: string;
+  branchId: string;   branchName: string;  source: string;
+  openQty: number;    openWeight: number;
+  receiptQty: number; issueQty: number;
+  midQty: number;     midWeight: number;
+  closeQty: number;   closeWeight: number;
+}
+
+export interface StockPeriodReport {
+  summary: StockPeriodSummary;
+  byKarat: StockPeriodKaratRow[];
+  items: StockPeriodItem[];
+}
+
+export interface StockPeriodReportParams {
+  fromDate: string;   // YYYY-MM-DD
+  toDate: string;     // YYYY-MM-DD
+  branchId?: string;
+  categoryId?: string;
+  karat?: string;
+  search?: string;
+}
+
 // ─── Báo cáo doanh thu (GET /api/reports/revenue) ─────────────────────────────
 
 export type RevenuePeriod = 'week' | 'month' | 'year'
