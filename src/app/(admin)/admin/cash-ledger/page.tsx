@@ -236,7 +236,7 @@ function SummaryStrip({
     <div
       style={{
         display: "grid",
-        gridTemplateColumns: "repeat(4, 1fr)",
+        gridTemplateColumns: `repeat(${items.length}, 1fr)`,
         background: "#fff",
         border: "1px solid #e5e7eb",
         borderRadius: 8,
@@ -428,11 +428,6 @@ export default function CashLedgerPage() {
       label: t("totalOut"),
       valueStr: formatAmount(hasNative ? (activities?.totalOut ?? 0) : (activities?.totalOutLak ?? 0), sym),
       color: "#DC2626",
-    },
-    {
-      label: t("closingBalance"),
-      valueStr: formatAmount(hasNative ? (activities?.closingBalance ?? 0) : (activities?.closingBalanceLak ?? 0), sym),
-      color: "#16A34A",
     },
   ];
 

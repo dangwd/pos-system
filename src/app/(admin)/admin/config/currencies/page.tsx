@@ -5,7 +5,7 @@ import { ForbiddenPage } from '@/components/shared/ForbiddenPage'
 import { useState } from 'react'
 import { useTranslations } from 'next-intl'
 import {
-  PlusOutlined, EditOutlined, DeleteOutlined, WarningOutlined, DownOutlined, CloseOutlined, MoneyCollectOutlined,
+  PlusOutlined, EditOutlined, DeleteOutlined, WarningOutlined, DownOutlined, CloseOutlined, MoneyCollectOutlined, EnterOutlined,
 } from '@ant-design/icons'
 import { cn } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
@@ -104,7 +104,11 @@ type DialogState =
   | { mode: 'delete'; currency: Currency }
   | null
 
-const EMPTY_FORM = { code: '', name: '', symbol: '', flag: '', sortOrder: '1', isActive: true }
+const EMPTY_FORM = {
+  code: '', name: '', symbol: '', flag: '', sortOrder: '1', isActive: true,
+  denominations: [] as number[],
+  denomInput: '' as string,
+}
 
 // ─── Page ─────────────────────────────────────────────────────────────────────
 
@@ -115,6 +119,24 @@ export default function CurrenciesPage() {
   const [form, setForm] = useState(EMPTY_FORM)
   const [flagPickerOpen, setFlagPickerOpen] = useState(false)
   const [symbolPickerOpen, setSymbolPickerOpen] = useState(false)
+
+  function addDenomination() {
+    const v = parseFloat(form.denomInput)
+    if (isNaN(v) || v <= 0) return
+    if (form.denominations.includes(v)) {
+      setForm(f => ({ ...f, denomInput: '' }))
+      return
+    }
+    setForm(f => ({
+      ...f,
+      denominations: [...f.denominations, v].sort((a, b) => a - b),
+      denomInput: '',
+    }))
+  }
+
+  function removeDenomination(v: number) {
+    setForm(f => ({ ...f, denominations: f.denominations.filter(d => d !== v) }))
+  }
 
   const { data: currencies = [], isLoading } = useCurrencies()
   const { mutate: create, isPending: isCreating } = useCreateCurrency()
@@ -145,6 +167,8 @@ export default function CurrenciesPage() {
       flag: currency.flag ?? '',
       sortOrder: String(currency.sortOrder),
       isActive: currency.isActive,
+      denominations: (currency.denominations ?? []).map(d => d.value),
+      denomInput: '',
     })
     closePickers()
     setDialog({ mode: 'edit', currency })
@@ -157,12 +181,23 @@ export default function CurrenciesPage() {
     if (dialog?.mode === 'create') {
       if (!form.code.trim()) return
       create(
-        { code: form.code.trim().toUpperCase(), name: form.name.trim(), symbol: form.symbol.trim(), flag: form.flag.trim() || undefined, sortOrder, isActive: form.isActive },
+        {
+          code: form.code.trim().toUpperCase(), name: form.name.trim(), symbol: form.symbol.trim(),
+          flag: form.flag.trim() || undefined, sortOrder, isActive: form.isActive,
+          denominations: form.denominations.length > 0 ? form.denominations : undefined,
+        },
         { onSuccess: () => setDialog(null) },
       )
     } else if (dialog?.mode === 'edit') {
       update(
-        { id: dialog.currency.id, dto: { name: form.name.trim(), symbol: form.symbol.trim(), flag: form.flag.trim() || undefined, isActive: form.isActive, sortOrder } },
+        {
+          id: dialog.currency.id,
+          dto: {
+            name: form.name.trim(), symbol: form.symbol.trim(),
+            flag: form.flag.trim() || undefined, isActive: form.isActive, sortOrder,
+            denominations: form.denominations,
+          },
+        },
         { onSuccess: () => setDialog(null) },
       )
     }
@@ -230,6 +265,7 @@ export default function CurrenciesPage() {
                 <th style={TH_STYLE}>{t('columns.symbol')}</th>
                 <th style={TH_STYLE}>{t('columns.code')}</th>
                 <th style={{ ...TH_STYLE, width: '100%' }}>{t('columns.name')}</th>
+                <th style={TH_STYLE}>{t('columns.denominations')}</th>
                 <th style={TH_STYLE}>{t('columns.status')}</th>
                 <th style={{ ...TH_STYLE, textAlign: 'right' }} />
               </tr>
@@ -238,7 +274,7 @@ export default function CurrenciesPage() {
               {sorted.length === 0 ? (
                 <tr>
                   <td
-                    colSpan={7}
+                    colSpan={8}
                     style={{ padding: '48px 0', textAlign: 'center', color: '#9ca3af', fontSize: 13 }}
                   >
                     <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 8 }}>
@@ -276,6 +312,36 @@ export default function CurrenciesPage() {
                     </td>
                     <td style={TD_STYLE}>
                       <span style={{ fontWeight: 500, color: '#111827' }}>{c.name}</span>
+                    </td>
+                    <td style={TD_STYLE}>
+                      {(c.denominations ?? []).length === 0 ? (
+                        <span style={{ color: '#d1d5db', fontSize: 12 }}>—</span>
+                      ) : (
+                        <div style={{ display: 'flex', flexWrap: 'nowrap', gap: 3, alignItems: 'center' }}>
+                          {c.denominations.slice(0, 4).map(d => (
+                            <span
+                              key={d.value}
+                              style={{
+                                display: 'inline-block', padding: '1px 7px', borderRadius: 4,
+                                background: '#f3f4f6', border: '1px solid #e5e7eb',
+                                fontSize: 11, fontFamily: 'monospace', color: '#374151',
+                                whiteSpace: 'nowrap',
+                              }}
+                            >
+                              {d.value.toLocaleString()}
+                            </span>
+                          ))}
+                          {c.denominations.length > 4 && (
+                            <span style={{
+                              fontSize: 11, color: '#6b7280', whiteSpace: 'nowrap',
+                              padding: '1px 6px', borderRadius: 4,
+                              background: '#f3f4f6', border: '1px solid #e5e7eb',
+                            }}>
+                              +{c.denominations.length - 4}
+                            </span>
+                          )}
+                        </div>
+                      )}
                     </td>
                     <td style={TD_STYLE}>
                       <Badge variant={c.isActive ? 'default' : 'secondary'}>
@@ -504,6 +570,65 @@ export default function CurrenciesPage() {
                 </Label>
               </div>
             </div>
+
+            {/* ── Denominations ── */}
+            <Field>
+              <FieldLabel>{t('form.denominations')}</FieldLabel>
+              <div className="flex gap-2">
+                <InputNumber
+                  placeholder={t('form.denominationPlaceholder')}
+                  precision={0}
+                  min={1}
+                  value={form.denomInput ? Number(form.denomInput) : null}
+                  onChange={(v) => setForm(f => ({ ...f, denomInput: v != null ? String(v) : '' }))}
+                  onPressEnter={addDenomination}
+                  style={{ flex: 1 }}
+                />
+                <AntBtn
+                  type="default"
+                  icon={<EnterOutlined />}
+                  onClick={addDenomination}
+                  disabled={!form.denomInput || isNaN(parseFloat(form.denomInput))}
+                >
+                  {t('form.addDenomination')}
+                </AntBtn>
+              </div>
+              {form.denominations.length > 0 && (
+                <div className="flex flex-wrap gap-1.5 mt-2 p-2.5 rounded-md bg-muted/40 border border-border/50">
+                  {form.denominations.map(v => (
+                    <span
+                      key={v}
+                      style={{
+                        display: 'inline-flex', alignItems: 'center', gap: 4,
+                        padding: '2px 6px 2px 8px', borderRadius: 5,
+                        background: '#eef2ff', border: '1px solid #c7d2fe',
+                        fontSize: 12, fontFamily: 'monospace', color: '#4f46e5',
+                      }}
+                    >
+                      {v.toLocaleString()}
+                      <button
+                        type="button"
+                        onClick={() => removeDenomination(v)}
+                        style={{
+                          display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
+                          width: 14, height: 14, borderRadius: 3, border: 'none',
+                          background: 'transparent', color: '#818cf8', cursor: 'pointer', padding: 0,
+                        }}
+                        onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.color = '#4f46e5' }}
+                        onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.color = '#818cf8' }}
+                      >
+                        <CloseOutlined style={{ fontSize: 9 }} />
+                      </button>
+                    </span>
+                  ))}
+                </div>
+              )}
+              {form.denominations.length === 0 && (
+                <p className="text-xs text-muted-foreground mt-1">
+                  {t('form.denominationsEmpty')}
+                </p>
+              )}
+            </Field>
           </div>
         </DialogContent>
       </Dialog>

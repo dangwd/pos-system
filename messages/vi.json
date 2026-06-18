@@ -1370,6 +1370,7 @@
           "symbol": "Ký hiệu",
           "code": "Mã",
           "name": "Tên",
+          "denominations": "Mệnh giá",
           "status": "Trạng thái"
         },
         "form": {
@@ -1378,7 +1379,11 @@
           "flag": "Cờ (emoji)",
           "symbol": "Ký hiệu",
           "sortOrder": "Thứ tự sắp xếp",
-          "isActive": "Đang hoạt động"
+          "isActive": "Đang hoạt động",
+          "denominations": "Mệnh giá",
+          "denominationPlaceholder": "Nhập giá trị...",
+          "addDenomination": "Thêm",
+          "denominationsEmpty": "Chưa có mệnh giá. Nhập giá trị và nhấn Thêm."
         }
       }
     },

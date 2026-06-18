@@ -2,7 +2,7 @@
 
 export type CashDirection = 'IN' | 'OUT'
 export type CashMethod    = 'CASH' | 'BANK' | 'COMBINED'
-export type CashCurrency  = 'LAK' | 'THB' | 'USD'
+export type CashCurrency  = string
 export type CashSource    = 'Transaction' | 'Manual' | 'Handover' | 'Cancellation'
 
 export type CashEntryType =

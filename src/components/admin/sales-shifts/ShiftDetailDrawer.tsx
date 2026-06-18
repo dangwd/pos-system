@@ -1,7 +1,7 @@
 'use client'
 
 import { useShiftDetail, useShiftTransactions } from '@/hooks/useSalesShift'
-import type { ShiftTransactionItem } from '@/types/sales-shift'
+import type { ShiftDenominationEntry, ShiftTransactionItem } from '@/types/sales-shift'
 import { Drawer, Table, Tabs, Tag, Tooltip } from 'antd'
 import type { TableColumnsType } from 'antd'
 import { Spinner } from '@/components/ui/spinner'
@@ -41,6 +41,59 @@ const HINH_THUC_COLOR: Record<string, string> = {
   CASH:     'green',
   BANK:     'blue',
   COMBINED: 'purple',
+}
+
+// ─── DenomTable ──────────────────────────────────────────────────────────────
+
+function DenomTable({
+  entries,
+  currency,
+  hasClosing,
+}: {
+  entries: ShiftDenominationEntry[]
+  currency: string
+  hasClosing: boolean
+}) {
+  const active = entries.filter(e => (e.openingQuantity ?? 0) > 0 || (e.closingQuantity ?? 0) > 0)
+  if (active.length === 0) return null
+
+  const openingTotal = active.reduce((s, e) => s + e.value * (e.openingQuantity ?? 0), 0)
+  const closingTotal = active.reduce((s, e) => s + e.value * (e.closingQuantity ?? 0), 0)
+  const cols = hasClosing ? '1fr 72px 72px' : '1fr 72px'
+
+  return (
+    <div style={{ margin: '4px 0 10px', padding: '6px 10px', background: '#f9fafb', borderRadius: 6, border: '1px solid #e5e7eb' }}>
+      <div style={{ display: 'grid', gridTemplateColumns: cols, gap: 4, marginBottom: 4 }}>
+        <span style={{ fontSize: 10, color: '#9ca3af', fontWeight: 700, letterSpacing: '0.05em' }}>MỆNH GIÁ</span>
+        <span style={{ fontSize: 10, color: '#9ca3af', fontWeight: 700, textAlign: 'right' }}>ĐẦU CA</span>
+        {hasClosing && <span style={{ fontSize: 10, color: '#9ca3af', fontWeight: 700, textAlign: 'right' }}>CUỐI CA</span>}
+      </div>
+      {active.map(e => (
+        <div key={e.value} style={{ display: 'grid', gridTemplateColumns: cols, gap: 4, padding: '2px 0', borderTop: '1px solid #f3f4f6' }}>
+          <span style={{ fontSize: 12, color: '#374151' }}>{e.value.toLocaleString('lo-LA')} {currency}</span>
+          <span style={{ fontSize: 12, textAlign: 'right', color: '#111827' }}>
+            {e.openingQuantity != null ? `×${e.openingQuantity}` : '—'}
+          </span>
+          {hasClosing && (
+            <span style={{ fontSize: 12, textAlign: 'right', color: '#111827' }}>
+              {e.closingQuantity != null ? `×${e.closingQuantity}` : '—'}
+            </span>
+          )}
+        </div>
+      ))}
+      <div style={{ display: 'grid', gridTemplateColumns: cols, gap: 4, padding: '4px 0 0', borderTop: '1px solid #e5e7eb', marginTop: 2 }}>
+        <span style={{ fontSize: 11, color: '#6b7280', fontWeight: 600 }}>Tổng</span>
+        <span style={{ fontSize: 11, fontWeight: 700, textAlign: 'right', color: '#4f46e5' }}>
+          {openingTotal.toLocaleString('lo-LA')}
+        </span>
+        {hasClosing && (
+          <span style={{ fontSize: 11, fontWeight: 700, textAlign: 'right', color: '#4f46e5' }}>
+            {closingTotal.toLocaleString('lo-LA')}
+          </span>
+        )}
+      </div>
+    </div>
+  )
 }
 
 // ─── SummaryCard ─────────────────────────────────────────────────────────────
@@ -100,11 +153,19 @@ function SummaryTab({ shiftId }: { shiftId: string }) {
         <div style={{ fontSize: 12, fontWeight: 600, color: '#6b7280', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: 8 }}>
           Tiền mặt LAK
         </div>
-        <SummaryRow label="Đầu ca" value={formatKip(data.openingCashLak)} />
+        <SummaryRow label="Tiền mặt đầu ca" value={formatKip(data.openingCashLak)} />
+        <SummaryRow label="Ngân hàng đầu ca" value={formatKip(data.openingBankLak)} />
         <SummaryRow
-          label="Cuối ca"
+          label="Tiền mặt cuối ca"
           value={data.closingCashLak != null ? formatKip(data.closingCashLak) : <span style={{ color: '#d1d5db' }}>Chưa chốt</span>}
         />
+        <SummaryRow
+          label="Ngân hàng cuối ca"
+          value={data.closingBankLak != null ? formatKip(data.closingBankLak) : <span style={{ color: '#d1d5db' }}>Chưa chốt</span>}
+        />
+        {data.lakDenominations.length > 0 && (
+          <DenomTable entries={data.lakDenominations} currency="₭" hasClosing={data.status === 'Closed'} />
+        )}
         <SummaryRow label="Tồn quỹ ước tính" value={<b>{formatKip(s.netCashMovement)}</b>} highlight />
       </div>
 
@@ -115,19 +176,23 @@ function SummaryTab({ shiftId }: { shiftId: string }) {
             Ngoại tệ
           </div>
           {data.currencyBalances.map(b => (
-            <SummaryRow
-              key={b.currency}
-              label={b.currency}
-              value={
-                <span>
-                  <span>{b.openingAmount.toLocaleString('lo-LA')}</span>
-                  {b.closingAmount != null && (
-                    <span style={{ color: '#6b7280' }}> → {b.closingAmount.toLocaleString('lo-LA')}</span>
-                  )}
-                  {' '}{b.currency}
-                </span>
-              }
-            />
+            <div key={b.currency}>
+              <SummaryRow
+                label={b.currency}
+                value={
+                  <span>
+                    <span>{b.openingAmount.toLocaleString('lo-LA')}</span>
+                    {b.closingAmount != null && (
+                      <span style={{ color: '#6b7280' }}> → {b.closingAmount.toLocaleString('lo-LA')}</span>
+                    )}
+                    {' '}{b.currency}
+                  </span>
+                }
+              />
+              {b.denominations.length > 0 && (
+                <DenomTable entries={b.denominations} currency={b.currency} hasClosing={data.status === 'Closed'} />
+              )}
+            </div>
           ))}
         </div>
       )}

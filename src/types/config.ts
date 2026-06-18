@@ -167,6 +167,11 @@ export interface UpdateGoldPurityDto {
 
 // ─── Currencies — Ngoại tệ ────────────────────────────────────────────────────
 
+/** { value: number } — một mệnh giá tiền tệ */
+export interface CurrencyDenomination {
+  value: number
+}
+
 /** GET /api/currencies */
 export interface Currency {
   id: string
@@ -176,6 +181,7 @@ export interface Currency {
   flag?: string     // Emoji cờ quốc gia, e.g. "🇺🇸", "🇹🇭"
   isActive: boolean
   sortOrder: number
+  denominations: CurrencyDenomination[]
 }
 
 /** POST /api/currencies */
@@ -186,6 +192,7 @@ export interface CreateCurrencyDto {
   flag?: string
   sortOrder: number
   isActive?: boolean
+  denominations?: number[]
 }
 
 /** PUT /api/currencies/{id} — code không được phép thay đổi */
@@ -195,6 +202,7 @@ export interface UpdateCurrencyDto {
   flag?: string
   isActive: boolean
   sortOrder: number
+  denominations?: number[]
 }
 
 // ─── Roles & Permissions ──────────────────────────────────────────────────────

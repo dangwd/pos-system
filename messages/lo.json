@@ -1370,6 +1370,7 @@
           "symbol": "ສັນຍາລັກ",
           "code": "ລະຫັດ",
           "name": "ຊື່",
+          "denominations": "ມູນຄ່າ",
           "status": "ສະຖານະ"
         },
         "form": {
@@ -1378,7 +1379,11 @@
           "flag": "ທຸງ (emoji)",
           "symbol": "ສັນຍາລັກ",
           "sortOrder": "ລຳດັບ",
-          "isActive": "ກຳລັງໃຊ້ງານ"
+          "isActive": "ກຳລັງໃຊ້ງານ",
+          "denominations": "ມູນຄ່າ",
+          "denominationPlaceholder": "ໃສ່ມູນຄ່າ...",
+          "addDenomination": "ເພີ່ມ",
+          "denominationsEmpty": "ຍັງບໍ່ມີມູນຄ່າ. ໃສ່ຄ່າ ແລ້ວກົດ ເພີ່ມ."
         }
       }
     },

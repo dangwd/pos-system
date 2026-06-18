@@ -14,10 +14,18 @@ export interface ActiveShiftResponse {
   counterName: string | null
 }
 
+/** Một tờ mệnh giá trong ca — dùng cho cả LAK lẫn ngoại tệ */
+export interface ShiftDenominationEntry {
+  value: number
+  openingQuantity: number | null
+  closingQuantity: number | null
+}
+
 export interface CurrencyBalance {
   currency: string
   openingAmount: number
   closingAmount: number | null
+  denominations: ShiftDenominationEntry[]
 }
 
 export interface SalesShiftSummary {
@@ -48,7 +56,10 @@ export interface SalesShiftDetailDto {
   counterName: string
   status: 'Open' | 'Closed'
   openingCashLak: number
+  openingBankLak: number
   closingCashLak: number | null
+  closingBankLak: number | null
+  lakDenominations: ShiftDenominationEntry[]
   currencyBalances: CurrencyBalance[]
   note: string | null
   openedAt: string
@@ -74,15 +85,33 @@ export interface SalesShiftListItem {
   closedAt: string | null
 }
 
+/** { value, quantity } — input mệnh giá khi mở/chốt ca */
+export interface DenominationInput {
+  value: number
+  quantity: number
+}
+
 export interface OpenShiftRequest {
   openingCashLak: number
-  foreignCurrencyBalances?: { currency: string; openingAmount: number }[]
+  openingBankLak: number
+  lakDenominations?: DenominationInput[]
+  foreignCurrencyBalances?: {
+    currency: string
+    openingAmount: number
+    denominations?: DenominationInput[]
+  }[]
   note?: string
 }
 
 export interface CloseShiftRequest {
   closingCashLak: number
-  foreignCurrencyBalances?: { currency: string; closingAmount: number }[]
+  closingBankLak: number
+  lakDenominations?: DenominationInput[]
+  foreignCurrencyBalances?: {
+    currency: string
+    closingAmount: number
+    denominations?: DenominationInput[]
+  }[]
 }
 
 export interface SalesShiftListParams {

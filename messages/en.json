@@ -1372,6 +1372,7 @@
           "symbol": "Symbol",
           "code": "Code",
           "name": "Name",
+          "denominations": "Denominations",
           "status": "Status"
         },
         "form": {
@@ -1380,7 +1381,11 @@
           "flag": "Flag (emoji)",
           "symbol": "Symbol",
           "sortOrder": "Sort order",
-          "isActive": "Active"
+          "isActive": "Active",
+          "denominations": "Denominations",
+          "denominationPlaceholder": "Enter value...",
+          "addDenomination": "Add",
+          "denominationsEmpty": "No denominations yet. Enter a value and click Add."
         }
       }
     },

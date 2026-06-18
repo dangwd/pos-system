@@ -11,7 +11,6 @@
 Quản lý danh mục các loại tiền tệ được hỗ trợ trong hệ thống (LAK, USD, THB, ...).
 
 **Mục đích chính:**
-
 - Cung cấp danh sách tiền tệ cho **dropdown chọn ngoại tệ khi mở ca bán hàng** (`POST /api/sales-shifts/open`)
 - Quản lý `foreignCurrencyBalances` — số dư ngoại tệ đầu/cuối ca
 - Lưu **danh sách mệnh giá** (`denominations`) của từng tiền tệ — dùng ở **2 nơi**:
@@ -20,14 +19,14 @@ Quản lý danh mục các loại tiền tệ được hỗ trợ trong hệ th�
 
 **Nơi sử dụng `denominations` và trường tiền:**
 
-| Nghiệp vụ          | API                                   | Trường tiền LAK                                                           | Trường tiền ngoại tệ                                                     |
-| ------------------ | ------------------------------------- | ------------------------------------------------------------------------- | ------------------------------------------------------------------------ |
-| Mở ca              | `POST /api/sales-shifts/open`         | `openingCashLak` (tiền mặt) · `openingBankLak` (chuyển khoản)             | `foreignCurrencyBalances[].openingAmount`                                |
-| Mở ca — mệnh giá   | `POST /api/sales-shifts/open`         | `lakDenominations[].value`                                                | `foreignCurrencyBalances[].denominations[].value`                        |
-| Chốt ca            | `POST /api/sales-shifts/{id}/close`   | `closingCashLak` (tiền mặt) · `closingBankLak` (chuyển khoản)             | `foreignCurrencyBalances[].closingAmount`                                |
-| Chốt ca — mệnh giá | `POST /api/sales-shifts/{id}/close`   | `lakDenominations[].value`                                                | `foreignCurrencyBalances[].denominations[].value`                        |
-| Xem ca             | `GET /api/sales-shifts/{id}`          | `openingCashLak` · `openingBankLak` · `closingCashLak` · `closingBankLak` | `currencyBalances[].openingAmount` · `closingAmount` + `denominations[]` |
-| Kiểm đếm tiền      | `GET/PUT /api/cash-ledger/cash-count` | —                                                                         | `items[].denomination` · `items[].currency`                              |
+| Nghiệp vụ | API | Trường tiền LAK | Trường tiền ngoại tệ |
+|---|---|---|---|
+| Mở ca | `POST /api/sales-shifts/open` | `openingCashLak` (tiền mặt) · `openingBankLak` (chuyển khoản) | `foreignCurrencyBalances[].openingAmount` |
+| Mở ca — mệnh giá | `POST /api/sales-shifts/open` | `lakDenominations[].value` | `foreignCurrencyBalances[].denominations[].value` |
+| Chốt ca | `POST /api/sales-shifts/{id}/close` | `closingCashLak` (tiền mặt) · `closingBankLak` (chuyển khoản) | `foreignCurrencyBalances[].closingAmount` |
+| Chốt ca — mệnh giá | `POST /api/sales-shifts/{id}/close` | `lakDenominations[].value` | `foreignCurrencyBalances[].denominations[].value` |
+| Xem ca | `GET /api/sales-shifts/{id}` | `openingCashLak` · `openingBankLak` · `closingCashLak` · `closingBankLak` | `currencyBalances[].openingAmount` · `closingAmount` + `denominations[]` |
+| Kiểm đếm tiền | `GET/PUT /api/cash-ledger/cash-count` | — | `items[].denomination` · `items[].currency` |
 
 > **LAK tách cash/bank:** `openingCashLak` = tiền mặt thực đếm, `openingBankLak` = số dư tài khoản ngân hàng. Hai trường này **đều bắt buộc** khi mở/chốt ca.
 > **Ngoại tệ không tách cash/bank:** `openingAmount` / `closingAmount` là tổng số lượng ngoại tệ — không phân biệt tiền mặt hay chuyển khoản.
@@ -35,11 +34,11 @@ Quản lý danh mục các loại tiền tệ được hỗ trợ trong hệ th�
 
 **Seed mặc định:**
 
-| Code  | Tên       | Ký hiệu | Flag | SortOrder |
-| ----- | --------- | ------- | ---- | --------- |
-| `LAK` | Lao Kip   | ₭       | 🇱🇦   | 1         |
-| `THB` | Thai Baht | ฿       | 🇹🇭   | 2         |
-| `USD` | US Dollar | $       | 🇺🇸   | 3         |
+| Code | Tên | Ký hiệu | Flag | SortOrder |
+|---|---|---|---|---|
+| `LAK` | Lao Kip | ₭ | 🇱🇦 | 1 |
+| `THB` | Thai Baht | ฿ | 🇹🇭 | 2 |
+| `USD` | US Dollar | $ | 🇺🇸 | 3 |
 
 > LAK là đơn vị tiền tệ chính của hệ thống. Số dư LAK trong ca bán hàng được lưu riêng ở `openingCashLak` / `closingCashLak` — không dùng `currencyBalances`. Các entry trong `currencyBalances` chỉ dành cho ngoại tệ (USD, THB, ...).
 
@@ -47,13 +46,13 @@ Quản lý danh mục các loại tiền tệ được hỗ trợ trong hệ th�
 
 ## Danh sách Endpoint
 
-| Method   | Endpoint               | Auth          | Mô tả                                   |
-| -------- | ---------------------- | ------------- | --------------------------------------- |
-| `GET`    | `/api/currencies`      | Đăng nhập     | Danh sách tất cả tiền tệ (kèm mệnh giá) |
-| `GET`    | `/api/currencies/{id}` | Đăng nhập     | Chi tiết một tiền tệ (kèm mệnh giá)     |
-| `POST`   | `/api/currencies`      | `ConfigPrice` | Thêm tiền tệ mới (có thể kèm mệnh giá)  |
-| `PUT`    | `/api/currencies/{id}` | `ConfigPrice` | Cập nhật thông tin và mệnh giá tiền tệ  |
-| `DELETE` | `/api/currencies/{id}` | `ConfigPrice` | Xóa tiền tệ                             |
+| Method | Endpoint | Auth | Mô tả |
+|---|---|---|---|
+| `GET` | `/api/currencies` | Đăng nhập | Danh sách tất cả tiền tệ (kèm mệnh giá) |
+| `GET` | `/api/currencies/{id}` | Đăng nhập | Chi tiết một tiền tệ (kèm mệnh giá) |
+| `POST` | `/api/currencies` | `ConfigPrice` | Thêm tiền tệ mới (có thể kèm mệnh giá) |
+| `PUT` | `/api/currencies/{id}` | `ConfigPrice` | Cập nhật thông tin và mệnh giá tiền tệ |
+| `DELETE` | `/api/currencies/{id}` | `ConfigPrice` | Xóa tiền tệ |
 
 > **Policy `ConfigPrice`:** áp dụng cho Manager và SystemAdmin.
 
@@ -150,9 +149,9 @@ Lấy chi tiết một loại tiền tệ theo UUID, kèm danh sách mệnh giá
 
 **Lỗi có thể xảy ra:**
 
-| Mã lỗi               | HTTP | Nguyên nhân                          |
-| -------------------- | ---- | ------------------------------------ |
-| `CURRENCY_NOT_FOUND` | 404  | Không tìm thấy tiền tệ với ID đã cho |
+| Mã lỗi | HTTP | Nguyên nhân |
+|---|---|---|
+| `CURRENCY_NOT_FOUND` | 404 | Không tìm thấy tiền tệ với ID đã cho |
 
 ---
 
@@ -176,15 +175,15 @@ Thêm một loại tiền tệ mới vào danh mục, có thể kèm theo danh s
 }
 ```
 
-| Field           | Bắt buộc | Kiểu         | Mô tả                                                                                                              |
-| --------------- | -------- | ------------ | ------------------------------------------------------------------------------------------------------------------ |
-| `code`          | ✅       | string       | Mã ISO 4217, viết hoa, tối đa 10 ký tự (ví dụ: `USD`, `CNY`)                                                       |
-| `name`          | ✅       | string       | Tên đầy đủ của tiền tệ, tối đa 100 ký tự                                                                           |
-| `symbol`        | ✅       | string       | Ký hiệu hiển thị, tối đa 10 ký tự (ví dụ: `$`, `¥`)                                                                |
-| `sortOrder`     | ✅       | int          | Thứ tự sắp xếp trong danh sách dropdown                                                                            |
-| `flag`          | ❌       | string\|null | Emoji hoặc icon cờ quốc gia (ví dụ: `🇺🇸`), tối đa 50 ký tự                                                         |
-| `isActive`      | ❌       | bool         | Mặc định `true` — tiền tệ đang hoạt động                                                                           |
-| `denominations` | ❌       | number[]     | Danh sách mệnh giá (số nguyên hoặc thập phân). Mặc định `[]` nếu bỏ qua. Tự động dedup và sắp xếp tăng dần khi lưu |
+| Field | Bắt buộc | Kiểu | Mô tả |
+|---|---|---|---|
+| `code` | ✅ | string | Mã ISO 4217, viết hoa, tối đa 10 ký tự (ví dụ: `USD`, `CNY`) |
+| `name` | ✅ | string | Tên đầy đủ của tiền tệ, tối đa 100 ký tự |
+| `symbol` | ✅ | string | Ký hiệu hiển thị, tối đa 10 ký tự (ví dụ: `$`, `¥`) |
+| `sortOrder` | ✅ | int | Thứ tự sắp xếp trong danh sách dropdown |
+| `flag` | ❌ | string\|null | Emoji hoặc icon cờ quốc gia (ví dụ: `🇺🇸`), tối đa 50 ký tự |
+| `isActive` | ❌ | bool | Mặc định `true` — tiền tệ đang hoạt động |
+| `denominations` | ❌ | number[] | Danh sách mệnh giá (số nguyên hoặc thập phân). Mặc định `[]` nếu bỏ qua. Tự động dedup và sắp xếp tăng dần khi lưu |
 
 > `code` phải **duy nhất** trong toàn hệ thống (unique index). Sau khi tạo, mã không thể đổi.
 
@@ -192,9 +191,9 @@ Thêm một loại tiền tệ mới vào danh mục, có thể kèm theo danh s
 
 **Lỗi có thể xảy ra:**
 
-| Mã lỗi                    | HTTP | Nguyên nhân                                   |
-| ------------------------- | ---- | --------------------------------------------- |
-| `CURRENCY_CODE_DUPLICATE` | 422  | Mã tiền tệ (`code`) đã tồn tại trong hệ thống |
+| Mã lỗi | HTTP | Nguyên nhân |
+|---|---|---|
+| `CURRENCY_CODE_DUPLICATE` | 422 | Mã tiền tệ (`code`) đã tồn tại trong hệ thống |
 
 ---
 
@@ -219,14 +218,14 @@ Cập nhật thông tin của một tiền tệ và **thay thế toàn bộ danh
 }
 ```
 
-| Field           | Bắt buộc | Kiểu         | Mô tả                                                                                              |
-| --------------- | -------- | ------------ | -------------------------------------------------------------------------------------------------- |
-| `name`          | ✅       | string       | Tên đầy đủ mới, tối đa 100 ký tự                                                                   |
-| `symbol`        | ✅       | string       | Ký hiệu mới, tối đa 10 ký tự                                                                       |
-| `flag`          | ✅       | string\|null | Emoji cờ quốc gia, hoặc `null` để xóa                                                              |
-| `isActive`      | ✅       | bool         | `true` = đang hoạt động / `false` = tạm ẩn khỏi dropdown                                           |
-| `sortOrder`     | ✅       | int          | Thứ tự sắp xếp mới                                                                                 |
-| `denominations` | ❌       | number[]     | **Thay thế toàn bộ** danh sách mệnh giá cũ. Gửi `[]` để xóa hết mệnh giá. Mặc định `[]` nếu bỏ qua |
+| Field | Bắt buộc | Kiểu | Mô tả |
+|---|---|---|---|
+| `name` | ✅ | string | Tên đầy đủ mới, tối đa 100 ký tự |
+| `symbol` | ✅ | string | Ký hiệu mới, tối đa 10 ký tự |
+| `flag` | ✅ | string\|null | Emoji cờ quốc gia, hoặc `null` để xóa |
+| `isActive` | ✅ | bool | `true` = đang hoạt động / `false` = tạm ẩn khỏi dropdown |
+| `sortOrder` | ✅ | int | Thứ tự sắp xếp mới |
+| `denominations` | ❌ | number[] | **Thay thế toàn bộ** danh sách mệnh giá cũ. Gửi `[]` để xóa hết mệnh giá. Mặc định `[]` nếu bỏ qua |
 
 > **Lưu ý `denominations`:** Mỗi lần PUT đều **xóa toàn bộ mệnh giá cũ và lưu lại danh sách mới** (replace strategy). Nếu muốn giữ nguyên mệnh giá, phải gửi lại toàn bộ danh sách cũ trong request.
 
@@ -234,9 +233,9 @@ Cập nhật thông tin của một tiền tệ và **thay thế toàn bộ danh
 
 **Lỗi có thể xảy ra:**
 
-| Mã lỗi               | HTTP | Nguyên nhân                          |
-| -------------------- | ---- | ------------------------------------ |
-| `CURRENCY_NOT_FOUND` | 404  | Không tìm thấy tiền tệ với ID đã cho |
+| Mã lỗi | HTTP | Nguyên nhân |
+|---|---|---|
+| `CURRENCY_NOT_FOUND` | 404 | Không tìm thấy tiền tệ với ID đã cho |
 
 ---
 
@@ -252,10 +251,10 @@ Xóa vĩnh viễn một loại tiền tệ khỏi danh mục. Mệnh giá của 
 
 **Lỗi có thể xảy ra:**
 
-| Mã lỗi               | HTTP | Nguyên nhân                                                                     |
-| -------------------- | ---- | ------------------------------------------------------------------------------- |
-| `CURRENCY_NOT_FOUND` | 404  | Không tìm thấy tiền tệ với ID đã cho                                            |
-| `CURRENCY_IN_USE`    | 422  | Tiền tệ đang được sử dụng trong `sales_shift_currency_balances` — không thể xóa |
+| Mã lỗi | HTTP | Nguyên nhân |
+|---|---|---|
+| `CURRENCY_NOT_FOUND` | 404 | Không tìm thấy tiền tệ với ID đã cho |
+| `CURRENCY_IN_USE` | 422 | Tiền tệ đang được sử dụng trong `sales_shift_currency_balances` — không thể xóa |
 
 > Để vô hiệu hóa tiền tệ mà không xóa (giữ lịch sử), dùng `PUT` với `isActive: false`.
 
@@ -283,15 +282,15 @@ Xóa vĩnh viễn một loại tiền tệ khỏi danh mục. Mệnh giá của 
 }
 ```
 
-| Field           | Kiểu                        | Mô tả                                                       |
-| --------------- | --------------------------- | ----------------------------------------------------------- |
-| `id`            | Guid                        | UUID của tiền tệ                                            |
-| `code`          | string                      | Mã ISO viết hoa — định danh cố định (không đổi sau khi tạo) |
-| `name`          | string                      | Tên đầy đủ                                                  |
-| `symbol`        | string                      | Ký hiệu hiển thị trên UI                                    |
-| `flag`          | string\|null                | Emoji cờ quốc gia, `null` nếu chưa cấu hình                 |
-| `isActive`      | bool                        | `true` = đang hoạt động                                     |
-| `sortOrder`     | int                         | Thứ tự sắp xếp trong dropdown (nhỏ hơn = hiện trước)        |
+| Field | Kiểu | Mô tả |
+|---|---|---|
+| `id` | Guid | UUID của tiền tệ |
+| `code` | string | Mã ISO viết hoa — định danh cố định (không đổi sau khi tạo) |
+| `name` | string | Tên đầy đủ |
+| `symbol` | string | Ký hiệu hiển thị trên UI |
+| `flag` | string\|null | Emoji cờ quốc gia, `null` nếu chưa cấu hình |
+| `isActive` | bool | `true` = đang hoạt động |
+| `sortOrder` | int | Thứ tự sắp xếp trong dropdown (nhỏ hơn = hiện trước) |
 | `denominations` | `CurrencyDenominationDto[]` | Danh sách mệnh giá sắp xếp tăng dần, `[]` nếu chưa cấu hình |
 
 ### Schema: `CurrencyDenominationDto`
@@ -300,28 +299,28 @@ Xóa vĩnh viễn một loại tiền tệ khỏi danh mục. Mệnh giá của 
 { "value": 50000 }
 ```
 
-| Field   | Kiểu    | Mô tả                                                     |
-| ------- | ------- | --------------------------------------------------------- |
+| Field | Kiểu | Mô tả |
+|---|---|---|
 | `value` | decimal | Giá trị mệnh giá, lưu với độ chính xác 2 chữ số thập phân |
 
 ---
 
 ## Bảng DB liên quan
 
-| Bảng                     | Mô tả                                                             |
-| ------------------------ | ----------------------------------------------------------------- |
-| `currencies`             | Thông tin tiền tệ (code, name, symbol, flag, isActive, sortOrder) |
-| `currency_denominations` | Mệnh giá — FK `currency_id` → `currencies.id`, cascade delete     |
+| Bảng | Mô tả |
+|---|---|
+| `currencies` | Thông tin tiền tệ (code, name, symbol, flag, isActive, sortOrder) |
+| `currency_denominations` | Mệnh giá — FK `currency_id` → `currencies.id`, cascade delete |
 
 ---
 
 ## Mã lỗi
 
-| Mã lỗi                    | HTTP | Nguyên nhân                                              |
-| ------------------------- | ---- | -------------------------------------------------------- |
-| `CURRENCY_NOT_FOUND`      | 404  | Không tìm thấy tiền tệ với ID đã cho                     |
-| `CURRENCY_CODE_DUPLICATE` | 422  | Mã tiền tệ đã tồn tại — không được phép trùng            |
-| `CURRENCY_IN_USE`         | 422  | Tiền tệ đang được dùng trong ca bán hàng — không thể xóa |
+| Mã lỗi | HTTP | Nguyên nhân |
+|---|---|---|
+| `CURRENCY_NOT_FOUND` | 404 | Không tìm thấy tiền tệ với ID đã cho |
+| `CURRENCY_CODE_DUPLICATE` | 422 | Mã tiền tệ đã tồn tại — không được phép trùng |
+| `CURRENCY_IN_USE` | 422 | Tiền tệ đang được dùng trong ca bán hàng — không thể xóa |
 
 ---
 
@@ -443,5 +442,5 @@ Xóa vĩnh viễn một loại tiền tệ khỏi danh mục. Mệnh giá của 
 ## Liên quan
 
 - [API Sales Shifts — Ca Bán Hàng](./API%20Sales%20Shifts%20—%20Ca%20Bán%20Hàng.md) — `lakDenominations` và `currencyBalances[].denominations` khi mở/chốt ca
-- [API Sổ Quỹ — Ngoại Tệ](<./API%20Sổ%20Quỹ%20—%20Ngoại%20Tệ%20(Foreign%20Currency).md>) — `items[].denomination` trong cash-count
+- [API Sổ Quỹ — Ngoại Tệ](./API%20Sổ%20Quỹ%20—%20Ngoại%20Tệ%20(Foreign%20Currency).md) — `items[].denomination` trong cash-count
 - Bảng DB: `currencies`, `currency_denominations`, `sales_shift_denomination_entries`

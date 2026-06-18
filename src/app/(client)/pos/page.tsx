@@ -71,7 +71,7 @@ export default function PosPage() {
         <Splitter.Panel defaultSize="70%" min="40%" style={{ overflow: 'hidden' }}>
           <TransactionTable />
         </Splitter.Panel>
-        <Splitter.Panel min={300} max={500} style={{ overflow: 'hidden' }}>
+        <Splitter.Panel defaultSize="30%" min={300} style={{ overflow: 'hidden' }}>
           <PaymentPanel
             isCheckingOut={pos.isCheckingOut}
             paymentMethod={pos.paymentMethod}
