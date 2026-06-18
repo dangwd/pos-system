@@ -26,6 +26,7 @@ const CARD_STYLE: React.CSSProperties  = {
   borderRadius: 10,
   boxShadow: '0 1px 4px rgba(0,0,0,0.07), 0 4px 12px rgba(0,0,0,0.04)',
   border: '1px solid #e5e7eb',
+  overflow: 'hidden',
 }
 const CHART_HEAD: React.CSSProperties  = {
   padding: '12px 16px', fontSize: 13, fontWeight: 600, color: '#111827',
@@ -74,7 +75,21 @@ function StatCard({
   label: string; value: string | number; icon: React.ElementType; iconColor: string
 }) {
   return (
-    <Card style={CARD_STYLE} styles={{ body: { padding: '16px 20px 20px' } }}>
+    <Card style={CARD_STYLE} styles={{ body: { padding: '16px 20px 20px', position: 'relative' } }}>
+      <span
+        aria-hidden="true"
+        style={{
+          position: 'absolute',
+          right: -32,
+          bottom: -32,
+          width: 128,
+          height: 128,
+          borderRadius: '50%',
+          background: iconColor,
+          opacity: 0.09,
+          pointerEvents: 'none',
+        }}
+      />
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
         <span style={{ fontSize: 12, color: '#6b7280', fontWeight: 500 }}>{label}</span>
         <Icon size={15} color={iconColor} />
