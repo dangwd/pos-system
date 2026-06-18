@@ -15,9 +15,11 @@ import {
 import { Spinner } from "@/components/ui/spinner";
 import { useBranches, useCounters } from "@/hooks/useBranches";
 import { usePermission } from "@/hooks/usePermission";
+import { useCurrencies } from "@/hooks/useConfig";
 import { cashLedgerRepository } from "@/lib/repositories/cash-ledger.repository";
 import { useAuthStore } from "@/stores/auth.store";
 import type { ActivityItem, CashCurrency } from "@/types/cash-ledger";
+import type { Currency } from "@/types/config";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
   Button as AntBtn,
@@ -34,7 +36,7 @@ import { InputNumber } from "@/components/ui/antd-number-input";
 import dayjs from "dayjs";
 import { FileExcelOutlined, PlusOutlined } from "@ant-design/icons";
 import { useTranslations } from "next-intl";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useToast } from "@/lib/toast";
 
 const PAGE_SIZE = 20;
@@ -246,6 +248,59 @@ function SummaryStrip({
   );
 }
 
+// ─── Currency tabs ────────────────────────────────────────────────────────────
+function CurrencyTabs({
+  currencies,
+  selected,
+  allLabel,
+  onChange,
+}: {
+  currencies: Currency[];
+  selected: string | undefined;
+  allLabel: string;
+  onChange: (code: string | undefined) => void;
+}) {
+  const tabs = [
+    { code: undefined, label: allLabel, flag: undefined },
+    ...currencies
+      .filter((c) => c.isActive)
+      .sort((a, b) => a.sortOrder - b.sortOrder)
+      .map((c) => ({ code: c.code, label: c.code, flag: c.flag })),
+  ];
+
+  return (
+    <div style={{ display: "flex", gap: 6, marginBottom: 12 }}>
+      {tabs.map((tab) => {
+        const active = selected === tab.code;
+        return (
+          <button
+            key={tab.code ?? "__all__"}
+            onClick={() => onChange(tab.code)}
+            style={{
+              display: "flex",
+              alignItems: "center",
+              gap: 5,
+              padding: "5px 16px",
+              borderRadius: 20,
+              border: `1.5px solid ${active ? "#4f46e5" : "#e5e7eb"}`,
+              background: active ? "#eef2ff" : "#fff",
+              color: active ? "#4338ca" : "#374151",
+              fontWeight: active ? 600 : 400,
+              fontSize: 13,
+              cursor: "pointer",
+              transition: "all 0.15s",
+              boxShadow: active ? "0 0 0 3px rgba(79,70,229,0.08)" : "none",
+            }}
+          >
+            {tab.flag && <span>{tab.flag}</span>}
+            {tab.label}
+          </button>
+        );
+      })}
+    </div>
+  );
+}
+
 // ─── Main page ────────────────────────────────────────────────────────────────
 export default function CashLedgerPage() {
   const { hasPermission } = usePermission();
@@ -266,6 +321,9 @@ export default function CashLedgerPage() {
   const [addOpen, setAddOpen] = useState(false);
   const [addDir, setAddDir] = useState<"IN" | "OUT">("IN");
   const [isExporting, setIsExporting] = useState(false);
+  const [selectedCurrency, setSelectedCurrency] = useState<string | undefined>();
+
+  const { data: currencies = [] } = useCurrencies();
 
   async function handleExport() {
     setIsExporting(true);
@@ -290,6 +348,12 @@ export default function CashLedgerPage() {
   const { data: branches = [] } = useBranches();
   const { data: counters = [] } = useCounters(filterBranchId ?? null);
 
+  useEffect(() => {
+    if (!filterBranchId && branches.length > 0) {
+      setFilterBranchId(branches[0].id);
+    }
+  }, [branches, filterBranchId]);
+
   // Table + summary: GET /activities (trả về cả summary fields đồng bộ với bộ lọc)
   const { data: activities, isLoading } = useQuery({
     queryKey: [
@@ -300,6 +364,7 @@ export default function CashLedgerPage() {
       fromDate,
       toDate,
       keyword,
+      selectedCurrency,
       page,
     ],
     queryFn: () =>
@@ -309,6 +374,7 @@ export default function CashLedgerPage() {
         fromDate,
         toDate,
         keyword: keyword.trim() || undefined,
+        currency: selectedCurrency,
         page,
         pageSize: PAGE_SIZE,
       }),
@@ -349,6 +415,7 @@ export default function CashLedgerPage() {
           <span style={{ fontFamily: "monospace", fontSize: 12 }}>{v}</span>
         ),
       },
+
       {
         title: t("columns.time"),
         dataIndex: "timeLabel",
@@ -362,6 +429,14 @@ export default function CashLedgerPage() {
         dataIndex: "createdByName",
         width: 140,
         render: (v: string) => <span style={{ fontSize: 13 }}>{v}</span>,
+      },
+      {
+        title: t("columns.currency"),
+        dataIndex: "currency",
+        width: 80,
+        render: (v: string) => (
+          <Tag style={{ borderRadius: 10, fontSize: 11, fontWeight: 600 }}>{v}</Tag>
+        ),
       },
       {
         title: t("columns.method"),
@@ -433,6 +508,14 @@ export default function CashLedgerPage() {
 
           {/* ── Summary ── */}
           <SummaryStrip items={summaryItems} />
+
+          {/* ── Currency tabs ── */}
+          <CurrencyTabs
+            currencies={currencies}
+            selected={selectedCurrency}
+            allLabel={t("filterAllCurrencies")}
+            onChange={(code) => { setSelectedCurrency(code); setPage(1); }}
+          />
 
           {/* ── Table card ── */}
           <Card
@@ -517,11 +600,7 @@ export default function CashLedgerPage() {
                 expandRowByClick: true,
                 showExpandColumn: false,
                 onExpand: (expanded, record) =>
-                  setExpandedKeys(
-                    expanded
-                      ? [...expandedKeys, record.id]
-                      : expandedKeys.filter((k) => k !== record.id),
-                  ),
+                  setExpandedKeys(expanded ? [record.id] : []),
                 expandedRowRender: (record) => (
                   <CashLedgerExpandedRow activityId={record.id} />
                 ),

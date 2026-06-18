@@ -981,6 +981,7 @@
       "filterIncome": "Receipt",
       "filterExpense": "Payment",
       "filterCounter": "Counter",
+      "filterAllCurrencies": "All",
       "clearFilter": "Clear filters",
       "showTotal": "Showing {from} - {to} of {total} entries",
       "columns": {
@@ -1038,7 +1039,8 @@
       "source": {
         "Transaction": "POS transaction",
         "Manual": "Manual entry",
-        "Handover": "Shift handover"
+        "Handover": "Shift handover",
+        "Cancellation": "Cancellation"
       }
     },
     "reports": {

@@ -3,7 +3,7 @@
 export type CashDirection = 'IN' | 'OUT'
 export type CashMethod    = 'CASH' | 'BANK' | 'COMBINED'
 export type CashCurrency  = 'LAK' | 'THB' | 'USD'
-export type CashSource    = 'Transaction' | 'Manual' | 'Handover'
+export type CashSource    = 'Transaction' | 'Manual' | 'Handover' | 'Cancellation'
 
 export type CashEntryType =
   | 'SellGold'
@@ -40,6 +40,8 @@ export interface ActivityItem {
   branchName: string
   methodLabel: string    // "Tiền mặt" | "Chuyển khoản ngân hàng" | "Tiền mặt & Chuyển khoản"
   direction: CashDirection
+  currency: CashCurrency
+  amountLak?: number
 }
 
 export interface CashLedgerActivitiesParams {
@@ -48,6 +50,7 @@ export interface CashLedgerActivitiesParams {
   fromDate?: string
   toDate?: string
   keyword?: string
+  currency?: string
   page?: number
   pageSize?: number
 }

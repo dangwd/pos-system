@@ -979,11 +979,12 @@
       "filterIncome": "Phiếu thu",
       "filterExpense": "Phiếu chi",
       "filterCounter": "Quầy thu/chi",
+      "filterAllCurrencies": "Tất cả",
       "clearFilter": "Xoá lọc",
       "showTotal": "Hiển thị {from} - {to} trên tổng {total} sổ quỹ",
       "columns": {
         "description": "Mô tả",
-        "direction": "Chiều",
+        "direction": "Loại",
         "entryCode": "Mã phiếu",
         "method": "Phương thức",
         "currency": "Ngoại tệ",
@@ -1036,7 +1037,8 @@
       "source": {
         "Transaction": "Giao dịch POS",
         "Manual": "Nhập thủ công",
-        "Handover": "Bàn giao ca"
+        "Handover": "Bàn giao ca",
+        "Cancellation": "Huỷ giao dịch"
       }
     },
     "reports": {
