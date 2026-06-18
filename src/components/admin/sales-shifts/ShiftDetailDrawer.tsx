@@ -294,20 +294,24 @@ function TransactionsTab({ shiftId }: { shiftId: string }) {
   ]
 
   return (
-    <Table<ShiftTransactionItem>
-      rowKey="id"
-      dataSource={items}
-      columns={columns}
-      loading={isLoading}
-      size="small"
-      bordered
-      pagination={items.length > 20 ? { pageSize: 20, showSizeChanger: false } : false}
-      expandable={{
-        expandedRowRender: (r) => <TxnExpandedRow record={r} />,
-        rowExpandable: () => true,
-      }}
-      locale={{ emptyText: 'Chưa có giao dịch trong ca này' }}
-    />
+    <>
+      <Table<ShiftTransactionItem>
+        rowKey="id"
+        dataSource={items}
+        columns={columns}
+        loading={isLoading}
+        size="small"
+        bordered
+        scroll={{ x: 860 }}
+        pagination={items.length > 20 ? { pageSize: 20, showSizeChanger: false } : false}
+        expandable={{
+          expandedRowRender: (r) => <TxnExpandedRow record={r} />,
+          rowExpandable: () => true,
+        }}
+        locale={{ emptyText: 'Chưa có giao dịch trong ca này' }}
+      />
+      <style>{`.ant-drawer .ant-table-thead > tr > th { white-space: nowrap; }`}</style>
+    </>
   )
 }
 

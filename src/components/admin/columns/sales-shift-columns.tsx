@@ -1,10 +1,10 @@
-import { Badge } from '@/components/ui/badge'
 import type { SalesShiftListItem } from '@/types/sales-shift'
 import { EyeOutlined } from '@ant-design/icons'
-import { Button } from 'antd'
+import { Button, Tag } from 'antd'
 import type { TableColumnsType } from 'antd'
 
-function formatKip(n: number) {
+function formatKip(n: number | null | undefined) {
+  if (n == null) return '—'
   return n.toLocaleString('lo-LA') + ' ₭'
 }
 
@@ -74,8 +74,8 @@ export function createSalesShiftColumns(
       align: 'center' as const,
       render: (v: string) =>
         v === 'Open'
-          ? <Badge style={{ backgroundColor: '#dcfce7', color: '#15803d', border: '1px solid #bbf7d0' }}>{labels.statusOpen}</Badge>
-          : <Badge style={{ backgroundColor: '#f3f4f6', color: '#374151', border: '1px solid #e5e7eb' }}>{labels.statusClosed}</Badge>,
+          ? <Tag color="success">{labels.statusOpen}</Tag>
+          : <Tag color="default">{labels.statusClosed}</Tag>,
     },
     {
       title: labels.colOpeningCash,
