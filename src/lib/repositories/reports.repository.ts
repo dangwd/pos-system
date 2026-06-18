@@ -3,6 +3,7 @@ import type {
   DashboardReport, DailyReport, ReportParams, DailyReportParams,
   InventoryReport, InventoryReportParams,
   StockPeriodReport, StockPeriodReportParams,
+  StockTrendReport, StockTrendParams,
   StockMovementLine, StockMovementParams,
   RevenueReport, RevenueReportParams,
   CurrencyExchangeReport, CurrencyExchangeReportParams,
@@ -26,6 +27,11 @@ export class ReportsRepository {
 
   async getStockPeriod(params: StockPeriodReportParams): Promise<StockPeriodReport> {
     const { data } = await api.get<StockPeriodReport>('/api/stock/period-report', { params })
+    return data
+  }
+
+  async getStockTrend(params: StockTrendParams): Promise<StockTrendReport> {
+    const { data } = await api.get<StockTrendReport>('/api/stock/period-report/trend', { params })
     return data
   }
 

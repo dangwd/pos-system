@@ -120,13 +120,6 @@ export interface StockPeriodSummary {
   closeQty: number;   closeWeight: number;
 }
 
-/** Tổng hợp theo hàm lượng — dùng cho biểu đồ. */
-export interface StockPeriodKaratRow {
-  karat: string;
-  openQty: number; receiptQty: number; issueQty: number;
-  midQty: number;  closeQty: number;
-}
-
 /** Một dòng chi tiết theo sản phẩm. */
 export interface StockPeriodItem {
   productId: string;  productCode: string; productName: string;
@@ -140,13 +133,50 @@ export interface StockPeriodItem {
 
 export interface StockPeriodReport {
   summary: StockPeriodSummary;
-  byKarat: StockPeriodKaratRow[];
   items: StockPeriodItem[];
 }
 
 export interface StockPeriodReportParams {
   fromDate: string;   // YYYY-MM-DD
   toDate: string;     // YYYY-MM-DD
+  branchId?: string;
+  categoryId?: string;
+  karat?: string;
+  search?: string;
+}
+
+// ─── Biến động tồn kho theo thời gian (GET /api/stock/period-report/trend) ─────
+// Time-series tồn CUỐI mỗi mốc thời gian (running balance).
+
+export type StockTrendGranularity = 'day' | 'week' | 'month'
+export type StockMetal = 'Gold' | 'Silver'
+
+export interface StockTrendPoint {
+  date: string;        // ISO datetime của mốc cuối bucket (=== buckets[i])
+  closeQty: number;    // tồn SL cuối bucket (đã cộng dồn từ tồn đầu kỳ)
+  closeWeight: number; // tồn KL (g) cuối bucket
+}
+
+export interface StockTrendSeries {
+  branchId: string | null;  // null = gộp toàn hệ thống (dùng cho chế độ "Gộp CN")
+  branchName: string;
+  metal: StockMetal;
+  // Phải có đúng 1 điểm cho mỗi bucket trong `buckets`, cùng thứ tự (carry-forward khi không phát sinh).
+  points: StockTrendPoint[];
+}
+
+export interface StockTrendReport {
+  granularity: StockTrendGranularity;
+  fromDate: string;           // ISO datetime
+  toDate: string;             // ISO datetime
+  buckets: string[];          // trục X — ISO datetime mốc CUỐI mỗi bucket (căn index với points)
+  series: StockTrendSeries[];
+}
+
+export interface StockTrendParams {
+  fromDate: string;           // YYYY-MM-DD
+  toDate: string;             // YYYY-MM-DD
+  granularity?: StockTrendGranularity;  // default: 'day'
   branchId?: string;
   categoryId?: string;
   karat?: string;

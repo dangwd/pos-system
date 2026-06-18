@@ -2,7 +2,7 @@
 
 import { useMemo, useState } from 'react'
 import { useTranslations } from 'next-intl'
-import { Table, Select, DatePicker, Tabs, Badge as AntBadge } from 'antd'
+import { Table, Select, DatePicker, Tabs } from 'antd'
 import dayjs from 'dayjs'
 import { Badge } from '@/components/ui/badge'
 import { createOrderColumns } from '@/components/admin/columns/order-columns'
@@ -72,10 +72,6 @@ function InventoryTab({ product }: { product: Product }) {
     {
       title: t('detail.invWeight'), dataIndex: 'weightGram', key: 'weightGram', align: 'right' as const, width: 120,
       render: (v: number) => `${v} g`,
-    },
-    {
-      title: t('detail.invStatus'), dataIndex: 'trangThai', key: 'trangThai', width: 130,
-      render: (v: string) => <AntBadge status="processing" text={v} />,
     },
   ]
 

@@ -13,9 +13,10 @@ import { ForbiddenPage } from '@/components/shared/ForbiddenPage'
 import { TablePageSkeleton } from '@/components/shared/PageSkeleton'
 import { EmptyHint, formatNum, formatGram } from '@/components/admin/reports/report-ui'
 import { StockPeriodTable } from '@/components/admin/reports/stock-period/StockPeriodTable'
+import { StockTrendChart } from '@/components/admin/reports/stock-period/StockTrendChart'
 import { useBranches } from '@/hooks/useBranches'
 import { useCategories } from '@/hooks/useProducts'
-import { useStockPeriodReport } from '@/hooks/useReports'
+import { useStockPeriodReport, useStockTrendReport } from '@/hooks/useReports'
 import { reportsRepository } from '@/lib/repositories/reports.repository'
 import { useToast } from '@/lib/toast'
 
@@ -99,6 +100,7 @@ export default function StockPeriodReportPage() {
     search: search || undefined,
   }
   const { data, isLoading, isFetching } = useStockPeriodReport(params)
+  const { data: trend, isFetching: trendLoading } = useStockTrendReport(params)
 
   const branchName = branches.find(b => b.id === branchId)?.name
   const categoryName = categories.find(c => c.id === categoryId)?.name
@@ -130,7 +132,6 @@ export default function StockPeriodReportPage() {
       <div className="flex items-start justify-between gap-4">
         <div>
           <h1 className="text-2xl font-bold">{t('title')}</h1>
-          <p className="text-sm text-muted-foreground">{t('subtitle')}</p>
         </div>
         <Button icon={<DownloadOutlined />} onClick={handleExport} loading={exporting}>
           {t('export')}
@@ -159,7 +160,9 @@ export default function StockPeriodReportPage() {
         <Select
           allowClear showSearch optionFilterProp="label"
           placeholder={t('filterCategory')} style={{ width: 170 }}
-          options={categories.map(c => ({ value: c.id, label: c.name }))}
+          options={categories
+            .filter(c => c.name === 'Vàng' || c.name === 'Bạc')
+            .map(c => ({ value: c.id, label: c.name }))}
           value={categoryId} onChange={v => setCategoryId(v ?? null)}
         />
         <Select
@@ -219,6 +222,9 @@ export default function StockPeriodReportPage() {
             <span>{t('resultCount', { count: data.items.length })}</span>
             <span style={{ color: '#185FA5' }}>{fmtD(fromDate)} → {fmtD(toDate)}</span>
           </div>
+
+          {/* Biểu đồ biến động tồn kho theo thời gian */}
+          <StockTrendChart data={trend} loading={trendLoading} />
 
           {/* Detail table */}
           <div className="rounded-lg border bg-card p-4 shadow-card">
