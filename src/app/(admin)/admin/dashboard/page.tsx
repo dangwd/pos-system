@@ -4,7 +4,7 @@ import { useState } from 'react'
 import { useDashboardReport } from '@/hooks/useReports'
 import { useTransactions } from '@/hooks/useTransactions'
 import { Skeleton } from '@/components/ui/skeleton'
-import { RiseOutlined, FallOutlined, CloseCircleOutlined, BarChartOutlined } from '@ant-design/icons'
+import { RiseOutlined, FallOutlined, CloseCircleOutlined } from '@ant-design/icons'
 import { useTranslations } from 'next-intl'
 import { Card, DatePicker } from 'antd'
 import type { Dayjs } from 'dayjs'
@@ -309,10 +309,9 @@ export default function DashboardPage() {
       {statsLoading ? (
         <StatSkeleton />
       ) : (
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 16, marginBottom: 16 }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 16, marginBottom: 16 }}>
           <StatCard label={t('stats.totalRevenue')}   value={formatKip(stats?.totalRevenue ?? 0)}  icon={<RiseOutlined />}         iconColor="#22c55e" />
           <StatCard label={t('stats.totalPurchase')}  value={formatKip(stats?.totalPurchase ?? 0)} icon={<FallOutlined />}         iconColor="#f97316" />
-          <StatCard label={t('stats.grossProfit')}    value={formatKip(grossProfit)}               icon={<BarChartOutlined />}     iconColor="#6366f1" />
           <StatCard label={t('stats.cancelledCount')} value={stats?.cancelledCount ?? 0}           icon={<CloseCircleOutlined />}  iconColor="#ef4444" />
         </div>
       )}
