@@ -11,7 +11,7 @@
 
 'use client'
 
-import { ShiftGuard } from '@/components/pos/shift/ShiftGuard'
+// import { ShiftGuard } from '@/components/pos/shift/ShiftGuard'
 import { useInvoiceTabShortcuts } from '@/hooks/useInvoiceTabShortcuts'
 
 function ShortcutsProvider() {
@@ -23,9 +23,9 @@ export default function ClientLayout({ children }: { children: React.ReactNode }
   return (
     <div className="h-screen overflow-hidden flex flex-col">
       <ShortcutsProvider />
-      <ShiftGuard>
+      {/* <ShiftGuard> */}
         {children}
-      </ShiftGuard>
+      {/* </ShiftGuard> */}
     </div>
   )
 }

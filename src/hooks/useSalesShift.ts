@@ -17,7 +17,9 @@ export function useActiveShift() {
   return useQuery({
     queryKey: ['sales-shifts', 'active'],
     queryFn: () => salesShiftRepository.getActive(),
-    staleTime: 30_000,
+    staleTime: 15_000,
+    refetchInterval: 30_000,       // poll 30s — bắt kịp giao dịch phát sinh
+    refetchIntervalInBackground: false,
     refetchOnWindowFocus: true,
   })
 }
@@ -87,7 +89,21 @@ export function useShiftDetail(id: string | null) {
     queryKey: ['sales-shifts', 'detail', id],
     queryFn: () => salesShiftRepository.getById(id!),
     enabled: !!id,
-    staleTime: 30_000,
+    staleTime: 0,                  // luôn fetch fresh — summary thay đổi theo giao dịch
+    refetchOnMount: true,
+  })
+}
+
+/** Chi tiết ca đang mở — dùng trong CloseShiftModal, poll để bắt kịp giao dịch mới */
+export function useLiveShiftDetail(id: string | null) {
+  return useQuery({
+    queryKey: ['sales-shifts', 'detail', id],
+    queryFn: () => salesShiftRepository.getById(id!),
+    enabled: !!id,
+    staleTime: 0,
+    refetchInterval: 30_000,
+    refetchIntervalInBackground: false,
+    refetchOnMount: true,
   })
 }
 

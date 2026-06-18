@@ -93,7 +93,7 @@ export interface DenominationInput {
 
 export interface OpenShiftRequest {
   openingCashLak: number
-  openingBankLak: number
+  openingBankLak?: number
   lakDenominations?: DenominationInput[]
   foreignCurrencyBalances?: {
     currency: string

@@ -41,8 +41,8 @@ export interface ActivityItem {
   methodLabel: string    // "Tiền mặt" | "Chuyển khoản ngân hàng" | "Tiền mặt & Chuyển khoản"
   direction: CashDirection
   currency: CashCurrency
-  amount?: number        // Số tiền gốc theo đồng tiền của phiếu — backend cần trả về
-  amountLak?: number     // Số tiền quy đổi sang LAK
+  originalAmount?: number  // Số tiền gốc theo đồng tiền của phiếu
+  amountLak?: number       // Số tiền quy đổi sang LAK
 }
 
 export interface CashLedgerActivitiesParams {
@@ -67,11 +67,11 @@ export interface CashLedgerActivitiesResult {
   totalInLak: number
   totalOutLak: number
   closingBalanceLak: number
-  // Native currency totals — populated khi có currency filter; backend cần thêm
-  openingBalance?: number
-  totalIn?: number
-  totalOut?: number
-  closingBalance?: number
+  // Native currency totals — populated khi có currency filter
+  openingBalanceOriginal?: number
+  totalInOriginal?: number
+  totalOutOriginal?: number
+  closingBalanceOriginal?: number
 }
 
 // ── GET /activities/{id} · POST /vouchers · GET /vouchers/{id} ─────────────────

@@ -1,835 +1,960 @@
-# API Sổ Quỹ — Cash Ledger
+# API — Sổ Quỹ (Cash Ledger)
 
-> Base URL: `https://<host>/api/cash-ledger`
-> Xác thực: **JWT Bearer Token** — gửi qua header `Authorization: Bearer <accessToken>`
-> Required policy: `CASH_LEDGER_MANAGE` (ThuQuy, Manager, SystemAdmin)
-> Content-Type: `application/json`
+> Base path: `/api/cash-ledger`
+> Auth: **Bearer JWT** — tất cả endpoint yêu cầu policy `CashLedgerManage` (role: `ThuQuy`, `Manager`, `SystemAdmin`)
 
----
-
-## Tổng quan
-
-Module Sổ Quỹ quản lý toàn bộ dòng tiền mặt của chi nhánh/quầy. Bao gồm 4 nhóm chức năng chính:
-
-| Nhóm                                 | Mục đích                                                  |
-| ------------------------------------ | --------------------------------------------------------- |
-| **Phiên quỹ** (`/session`)           | Mở / chốt phiên làm việc, ghi nhận số dư đầu cuối ngày    |
-| **Hoạt động** (`/activities`)        | Nhật ký thu/chi toàn bộ (tự động từ POS + phiếu thủ công) |
-| **Phiếu thu/chi** (`/vouchers`)      | Lập và tra cứu phiếu PTTT / PCTT có mã lý do              |
-| **Bảng kê đếm tiền** (`/cash-count`) | Kiểm đếm mệnh giá tiền mặt cuối kỳ                        |
-
-**Quy tắc phân quyền dữ liệu (Data Scope):**
-
-| Role                | Phạm vi xem                                        |
-| ------------------- | -------------------------------------------------- |
-| `Cashier`           | Chỉ chi nhánh + quầy của chính mình (lấy từ JWT)   |
-| `ThuQuy`, `Manager` | Toàn bộ chi nhánh mình thuộc (không giới hạn quầy) |
-| `SystemAdmin`       | Toàn bộ (truyền `branchId` + `counterId` tuỳ ý)    |
-
-> Server tự áp dụng data scope — client không cần ẩn/lộ param theo role.
-
-**Phân biệt Phiên Quỹ & Ca Bán Hàng:**
-
-|          | Phiên Quỹ (`CashSession`)         | Ca Bán Hàng (`SalesShift`) |
-| -------- | --------------------------------- | -------------------------- |
-| Gắn với  | Chi nhánh / Quầy                  | Nhân viên + Quầy           |
-| Ai mở    | ThuQuy                            | Cashier                    |
-| Mục đích | Đối chiếu quỹ tiền mặt            | Kiểm soát giao dịch POS    |
-| Độc lập? | ✅ Hai thực thể hoàn toàn độc lập | ✅                         |
+> **Cập nhật từ API Reference:** Tài liệu này đồng bộ với API Reference v3 (2026-06-18).
+> Xem các thay đổi breaking so với phiên bản cũ ở [cuối trang](#breaking-changes).
 
 ---
 
-## Danh sách Endpoint
+## Mục lục
 
-| Method | Endpoint                             | Mô tả                                               |
-| ------ | ------------------------------------ | --------------------------------------------------- |
-| `GET`  | `/api/cash-ledger/daily`             | Tổng hợp sổ quỹ hàng ngày                           |
-| `POST` | `/api/cash-ledger/opening-balance`   | Ghi số dư đầu kỳ (legacy)                           |
-| `GET`  | `/api/cash-ledger/session`           | Trạng thái phiên quỹ                                |
-| `POST` | `/api/cash-ledger/session/open`      | Mở phiên quỹ                                        |
-| `POST` | `/api/cash-ledger/session/close`     | Chốt phiên quỹ                                      |
-| `GET`  | `/api/cash-ledger/activities`        | Danh sách hoạt động thu/chi (phân trang, đa filter) |
-| `GET`  | `/api/cash-ledger/activities/export` | Xuất Excel danh sách hoạt động                      |
-| `GET`  | `/api/cash-ledger/activities/{id}`   | Chi tiết một hoạt động                              |
-| `POST` | `/api/cash-ledger/manual-entry`      | Tạo bút toán thủ công (legacy)                      |
-| `POST` | `/api/cash-ledger/vouchers`          | Lập phiếu thu / phiếu chi                           |
-| `GET`  | `/api/cash-ledger/vouchers`          | Danh sách phiếu thu/chi                             |
-| `GET`  | `/api/cash-ledger/vouchers/{id}`     | Chi tiết phiếu thu/chi                              |
-| `GET`  | `/api/cash-ledger/voucher-reasons`   | Danh mục lý do thu/chi                              |
-| `GET`  | `/api/cash-ledger/cash-count`        | Bảng kê đếm tiền                                    |
-| `PUT`  | `/api/cash-ledger/cash-count`        | Lưu bảng kê đếm tiền                                |
-| `POST` | `/api/cash-ledger/handover`          | Bàn giao ca cuối ngày (legacy)                      |
+1. [Quy ước mã phiếu (EntryCode)](#1-quy-ước-mã-phiếu-entrycode)
+2. [GET /daily — Tổng hợp quỹ ngày](#2-get-daily--tổng-hợp-quỹ-ngày)
+3. [POST /opening-balance — Ghi số dư đầu ngày](#3-post-opening-balance--ghi-số-dư-đầu-ngày)
+4. [POST /manual-entry — Thu/chi thủ công nhanh](#4-post-manual-entry--thuχi-thủ-công-nhanh)
+5. [GET /activities — Danh sách toàn bộ hoạt động](#5-get-activities--danh-sách-toàn-bộ-hoạt-động)
+6. [GET /activities/export — Xuất Excel](#6-get-activitiesexport--xuất-excel)
+7. [GET /activities/{id} — Chi tiết hoạt động](#7-get-activitiesid--chi-tiết-hoạt-động)
+8. [POST /vouchers — Lập phiếu thu/chi chính thức](#8-post-vouchers--lập-phiếu-thuχi-chính-thức)
+9. [GET /vouchers — Danh sách phiếu thủ công](#9-get-vouchers--danh-sách-phiếu-thủ-công)
+10. [GET /vouchers/{id} — Chi tiết phiếu](#10-get-vouchersid--chi-tiết-phiếu)
+11. [GET /voucher-reasons — Danh mục lý do thu/chi](#11-get-voucher-reasons--danh-mục-lý-do-thuχi)
+12. [GET /cash-count — Lấy bảng kê đếm tiền](#12-get-cash-count--lấy-bảng-kê-đếm-tiền)
+13. [PUT /cash-count — Lưu bảng kê đếm tiền](#13-put-cash-count--lưu-bảng-kê-đếm-tiền)
+14. [POST /handover — Chốt bàn giao ca](#14-post-handover--chốt-bàn-giao-ca)
+15. [GET /session — Trạng thái phiên quỹ](#15-get-session--trạng-thái-phiên-quỹ)
+16. [POST /session/open — Mở phiên quỹ](#16-post-sessionopen--mở-phiên-quỹ)
+17. [POST /session/close — Chốt phiên quỹ](#17-post-sessionclose--chốt-phiên-quỹ)
+18. [Struct CashVoucherDto](#18-struct-cashvoucherdto)
+19. [Enum & Hằng số](#19-enum--hằng-số)
+20. [Mã lỗi](#20-mã-lỗi)
+21. [Luồng tích hợp FE](#21-luồng-tích-hợp-fe)
+22. [Breaking Changes](#breaking-changes)
 
 ---
 
-## `GET /api/cash-ledger/daily`
+## 1. Quy ước mã phiếu (EntryCode)
 
-Tổng hợp sổ quỹ tiền mặt trong ngày: quỹ đầu kỳ, tổng thu, tổng chi, tồn quỹ.
+| Prefix | Loại | Sinh bởi |
+|---|---|---|
+| `PTTT000001` | Phiếu Thu Tiền Tệ (IN) | PostgreSQL sequence `seq_cash_voucher_thu` — tăng dần, không reset theo ngày |
+| `PCTT000001` | Phiếu Chi Tiền Tệ (OUT) | PostgreSQL sequence `seq_cash_voucher_chi` — tăng dần, không reset theo ngày |
+| `TC-yyyyMMdd-XXXXXX` | Log nội bộ bàn giao ca | Random — **không hiển thị cho người dùng** |
 
-**Query params:**
+Tất cả phiếu thu/chi tạo thủ công (`POST /manual-entry`, `POST /vouchers`) và bút toán tự động từ giao dịch POS đều dùng chung sequence PTTT/PCTT.
 
-| Param       | Bắt buộc | Kiểu      | Mô tả                               |
-| ----------- | -------- | --------- | ----------------------------------- |
-| `branchId`  | ✅       | Guid      | Chi nhánh cần xem                   |
-| `counterId` | ❌       | Guid?     | Lọc theo quầy cụ thể                |
-| `date`      | ❌       | DateOnly? | Ngày cần xem (mặc định hôm nay UTC) |
+---
 
-**Response `200 OK`:**
+## 2. GET /daily — Tổng hợp quỹ ngày
+
+Trả về **4 chỉ số tổng hợp** của quỹ trong ngày. **Không trả danh sách entries** (dùng `GET /activities` để lấy danh sách).
+
+### Query params
+
+| Param | Kiểu | Bắt buộc | Mô tả |
+|---|---|---|---|
+| `branchId` | `uuid` | ✅ | ID chi nhánh |
+| `counterId` | `uuid` | ❌ | Lọc theo quầy cụ thể |
+| `date` | `DateOnly` (`yyyy-MM-dd`) | ❌ | Mặc định: hôm nay |
+
+### Response `200 OK`
 
 ```json
 {
-  "date": "2026-06-16",
-  "branchId": "bbb22222-0000-0000-0000-000000000001",
+  "date": "2026-06-15",
+  "branchId": "bb5a8354-14c8-4a01-a0ae-ca79d60229e1",
   "branchName": "Vientiane Main",
-  "openingBalanceId": "aaa11111-...",
-  "openingBalanceLak": 5000000,
-  "totalInLak": 28500000,
-  "totalOutLak": 12000000,
-  "closingBalanceLak": 21500000
+  "openingBalanceId": "uuid-or-null",
+  "openingBalanceLak": 50000000,
+  "totalInLak": 6700000,
+  "totalOutLak": 0,
+  "closingBalanceLak": 56700000
 }
 ```
 
-| Field               | Kiểu    | Mô tả                                                                   |
-| ------------------- | ------- | ----------------------------------------------------------------------- |
-| `openingBalanceId`  | Guid?   | ID phiên quỹ đang mở (null nếu chưa mở phiên)                           |
-| `openingBalanceLak` | decimal | Quỹ đầu kỳ (LAK): lấy từ phiên quỹ nếu đã mở, fallback cộng dồn lịch sử |
-| `totalInLak`        | decimal | Tổng thu trong ngày (LAK)                                               |
-| `totalOutLak`       | decimal | Tổng chi trong ngày (LAK)                                               |
-| `closingBalanceLak` | decimal | Tồn quỹ = đầu kỳ + thu − chi                                            |
+| Field | Mô tả |
+|---|---|
+| `openingBalanceId` | `null` nếu chưa thiết lập số dư đầu ngày |
+| `openingBalanceLak` | Quỹ đầu kỳ (tiền mặt + ngân hàng) |
+| `totalInLak` | Tổng thu trong ngày (tất cả `Direction = IN`) |
+| `totalOutLak` | Tổng chi trong ngày (tất cả `Direction = OUT`) |
+| `closingBalanceLak` | Tồn quỹ dự kiến = `openingBalanceLak + totalInLak − totalOutLak` |
 
-**Lỗi có thể xảy ra:**
-
-| Mã lỗi             | HTTP | Nguyên nhân              |
-| ------------------ | ---- | ------------------------ |
-| `BRANCH_NOT_FOUND` | 404  | Không tìm thấy chi nhánh |
+> **Lưu ý so với phiên bản cũ**: `openingCashLak` và `openingBankLak` đã được **gộp** thành `openingBalanceLak`. Endpoint này không còn trả `entries[]`.
 
 ---
 
-## `POST /api/cash-ledger/opening-balance`
+## 3. POST /opening-balance — Ghi số dư đầu ngày
 
-Ghi nhận số dư đầu kỳ (mở phiên quỹ nếu chưa có). Dùng khi chưa có endpoint `/session/open`.
+Đặt hoặc cập nhật số dư mở đầu ngày (upsert — gọi nhiều lần được).
 
-> **Khuyến nghị:** Ưu tiên dùng `POST /session/open` thay cho endpoint này.
-
-**Request body:**
+### Request body
 
 ```json
 {
-  "branchId": "bbb22222-0000-0000-0000-000000000001",
+  "branchId": "3fa85f64-5717-4562-b3fc-2c963f66afa6",
   "counterId": null,
-  "date": "2026-06-16",
-  "cashAmountLak": 5000000,
-  "bankAmountLak": 0
+  "date": "2026-06-15",
+  "cashAmountLak": 50000000,
+  "bankAmountLak": 100000000
 }
 ```
 
-| Field           | Bắt buộc | Kiểu     | Mô tả                       |
-| --------------- | -------- | -------- | --------------------------- |
-| `branchId`      | ✅       | Guid     | Chi nhánh                   |
-| `counterId`     | ❌       | Guid?    | Quầy (null = cấp chi nhánh) |
-| `date`          | ✅       | DateOnly | Ngày mở quỹ                 |
-| `cashAmountLak` | ✅       | decimal  | Tiền mặt đầu ca (LAK)       |
-| `bankAmountLak` | ✅       | decimal  | Tiền ngân hàng đầu ca (LAK) |
+| Field | Kiểu | Bắt buộc | Mô tả |
+|---|---|---|---|
+| `branchId` | `uuid` | ✅ | |
+| `counterId` | `uuid\|null` | ❌ | Nếu null → thiết lập cho toàn chi nhánh |
+| `date` | `DateOnly` | ✅ | Ngày áp dụng |
+| `cashAmountLak` | `decimal` | ✅ | Tiền mặt tồn đầu ngày (LAK) |
+| `bankAmountLak` | `decimal` | ✅ | Số dư ngân hàng/chuyển khoản đầu ngày (LAK) |
 
-**Response `200 OK`:** `{ "message": "OK" }`
-
----
-
-## `GET /api/cash-ledger/session`
-
-Trạng thái phiên quỹ của chi nhánh / quầy trong ngày.
-
-**Query params:**
-
-| Param       | Bắt buộc | Kiểu     | Mô tả             |
-| ----------- | -------- | -------- | ----------------- |
-| `branchId`  | ✅       | Guid     | Chi nhánh         |
-| `counterId` | ❌       | Guid?    | Quầy cụ thể       |
-| `date`      | ✅       | DateOnly | Ngày cần kiểm tra |
-
-**Response `200 OK`:** [`CashSessionDto`](#schema-cashsessiondto)
-
-Trả `isOpen: false` với tất cả field null nếu chưa có phiên nào trong ngày.
-
----
-
-## `POST /api/cash-ledger/session/open`
-
-Mở phiên quỹ cho chi nhánh / quầy trong ngày. Mỗi (chi nhánh, quầy, ngày) chỉ được mở **một** phiên.
-
-**Request body:**
+### Response `200 OK`
 
 ```json
-{
-  "branchId": "bbb22222-0000-0000-0000-000000000001",
-  "counterId": "ccc33333-0000-0000-0000-000000000001",
-  "date": "2026-06-16",
-  "openingCashLak": 5000000,
-  "openingBankLak": 0
-}
+{ "message": "OK" }
 ```
 
-| Field            | Bắt buộc | Kiểu     | Mô tả                        |
-| ---------------- | -------- | -------- | ---------------------------- |
-| `branchId`       | ✅       | Guid     | Chi nhánh                    |
-| `counterId`      | ❌       | Guid?    | Quầy (null = cấp chi nhánh)  |
-| `date`           | ✅       | DateOnly | Ngày mở phiên                |
-| `openingCashLak` | ✅       | decimal  | Tiền mặt đầu ca (LAK)        |
-| `openingBankLak` | ✅       | decimal  | Số dư ngân hàng đầu ca (LAK) |
-
-**Response `201 Created`:** [`CashSessionDto`](#schema-cashsessiondto)
-
-**Lỗi có thể xảy ra:**
-
-| Mã lỗi                      | HTTP | Nguyên nhân                   |
-| --------------------------- | ---- | ----------------------------- |
-| `CASH_SESSION_ALREADY_OPEN` | 422  | Phiên quỹ ngày này đã tồn tại |
-
 ---
 
-## `POST /api/cash-ledger/session/close`
+## 4. POST /manual-entry — Thu/chi thủ công nhanh
 
-Chốt phiên quỹ — lưu kiểm đếm tiền mặt và tính chênh lệch so với số dư kỳ vọng.
+Ghi một khoản thu hoặc chi nhanh, không cần chọn lý do từ danh mục. Mã phiếu sinh tự động theo sequence PTTT/PCTT.
 
-**Request body:**
+### Request body
 
 ```json
 {
-  "branchId": "bbb22222-0000-0000-0000-000000000001",
-  "counterId": "ccc33333-0000-0000-0000-000000000001",
-  "date": "2026-06-16",
-  "countedByName": "Nguyễn Thị Lan",
-  "items": [
-    { "currency": "LAK", "denomination": 100000, "quantity": 30 },
-    { "currency": "LAK", "denomination": 50000, "quantity": 20 },
-    { "currency": "THB", "denomination": 1000, "quantity": 5 }
-  ],
-  "actualAmountLak": 4850000,
-  "expectedAmountLak": 5000000
-}
-```
-
-| Field                  | Bắt buộc | Kiểu     | Mô tả                                        |
-| ---------------------- | -------- | -------- | -------------------------------------------- |
-| `branchId`             | ✅       | Guid     | Chi nhánh                                    |
-| `counterId`            | ❌       | Guid?    | Quầy                                         |
-| `date`                 | ✅       | DateOnly | Ngày chốt                                    |
-| `countedByName`        | ✅       | string   | Tên người kiểm đếm                           |
-| `items`                | ✅       | array    | Danh sách mệnh giá đếm được                  |
-| `items[].currency`     | ✅       | string   | `LAK` / `THB` / `USD`                        |
-| `items[].denomination` | ✅       | int      | Mệnh giá                                     |
-| `items[].quantity`     | ✅       | int      | Số tờ / đồng                                 |
-| `actualAmountLak`      | ✅       | decimal  | Tổng tiền thực tế đếm được (LAK)             |
-| `expectedAmountLak`    | ✅       | decimal  | Tổng tiền kỳ vọng = đầu kỳ + thu − chi (LAK) |
-
-**Response `200 OK`:**
-
-```json
-{
-  "handoverCode": "BGQ-20260616-A3F2B1",
-  "closingCashLak": 4850000,
-  "closingBankLak": 0,
-  "difference": -150000
-}
-```
-
-| Field          | Mô tả                                                     |
-| -------------- | --------------------------------------------------------- |
-| `handoverCode` | Mã bàn giao tự động (`BGQ-YYYYMMDD-XXXXXX`)               |
-| `difference`   | Chênh lệch = thực tế − kỳ vọng (âm = thiếu, dương = thừa) |
-
-**Lỗi có thể xảy ra:**
-
-| Mã lỗi                   | HTTP | Nguyên nhân                       |
-| ------------------------ | ---- | --------------------------------- |
-| `CASH_SESSION_NOT_FOUND` | 404  | Không tìm thấy phiên quỹ ngày này |
-| `CASH_SESSION_NOT_OPEN`  | 422  | Phiên quỹ đã được chốt trước đó   |
-
----
-
-## `GET /api/cash-ledger/activities`
-
-Danh sách hoạt động thu/chi sổ quỹ (toàn bộ nguồn: giao dịch POS tự động + phiếu thủ công). Có phân trang.
-
-**Query params:**
-
-| Param       | Kiểu      | Mô tả                                                         |
-| ----------- | --------- | ------------------------------------------------------------- |
-| `branchId`  | Guid?     | Lọc theo chi nhánh (SystemAdmin có thể bỏ qua để xem tất cả)  |
-| `counterId` | Guid?     | Lọc theo quầy cụ thể                                          |
-| `fromDate`  | DateOnly? | Từ ngày (mặc định hôm nay)                                    |
-| `toDate`    | DateOnly? | Đến ngày (mặc định hôm nay)                                   |
-| `keyword`   | string?   | Tìm theo mã phiếu hoặc nội dung mô tả                         |
-| `currency`  | string?   | Lọc theo loại tiền: `LAK` / `THB` / `USD`                     |
-| `method`    | string?   | Lọc theo phương thức thanh toán: `CASH` / `BANK` / `COMBINED` |
-| `page`      | int       | Trang hiện tại (mặc định `1`)                                 |
-| `pageSize`  | int       | Số dòng mỗi trang (mặc định `20`)                             |
-
-> Tất cả filter là tuỳ chọn — không truyền thì không áp dụng filter đó.
-
-**Response `200 OK`:**
-
-```json
-{
-  "items": [
-    {
-      "id": "fff55555-0000-0000-0000-000000000001",
-      "entryCode": "PTTT000123",
-      "timeLabel": "09:15:30 - 16/06/2026",
-      "createdByName": "Nguyễn Thị Lan",
-      "branchName": "Vientiane Main",
-      "methodLabel": "Tiền mặt",
-      "direction": "IN",
-      "currency": "LAK",
-      "method": "CASH"
-    },
-    {
-      "id": "ggg66666-0000-0000-0000-000000000002",
-      "entryCode": "PCTT000045",
-      "timeLabel": "10:30:00 - 16/06/2026",
-      "createdByName": "Trần Văn Nam",
-      "branchName": "Vientiane Main",
-      "methodLabel": "Chuyển khoản ngân hàng",
-      "direction": "OUT",
-      "currency": "THB",
-      "method": "BANK"
-    }
-  ],
-  "totalCount": 48,
-  "page": 1,
-  "pageSize": 20,
-  "totalPages": 3,
-  "openingBalanceLak": 5000000,
-  "totalInLak": 28500000,
-  "totalOutLak": 12000000,
-  "closingBalanceLak": 21500000
-}
-```
-
-**Chi tiết fields `items[]`:**
-
-| Field           | Kiểu    | Mô tả                                                             |
-| --------------- | ------- | ----------------------------------------------------------------- |
-| `id`            | Guid    | ID bút toán                                                       |
-| `entryCode`     | string  | Mã phiếu: `PTTT…` (thu) hoặc `PCTT…` (chi)                        |
-| `timeLabel`     | string  | Thời gian theo múi giờ ICT (`HH:mm:ss - dd/MM/yyyy`)              |
-| `createdByName` | string? | Tên người tạo                                                     |
-| `branchName`    | string  | Tên chi nhánh                                                     |
-| `methodLabel`   | string  | `Tiền mặt` / `Chuyển khoản ngân hàng` / `Tiền mặt & Chuyển khoản` |
-| `direction`     | string  | `IN` (thu) hoặc `OUT` (chi)                                       |
-| `currency`      | string  | Loại tiền gốc: `LAK` / `THB` / `USD`                              |
-| `method`        | string  | Phương thức thanh toán raw: `CASH` / `BANK` / `COMBINED`          |
-
-**Chi tiết fields tổng hợp:**
-
-| Field               | Mô tả                                           |
-| ------------------- | ----------------------------------------------- |
-| `openingBalanceLak` | Quỹ đầu kỳ (chỉ có ý nghĩa khi lọc 1 chi nhánh) |
-| `totalInLak`        | Tổng thu trong kỳ lọc (LAK)                     |
-| `totalOutLak`       | Tổng chi trong kỳ lọc (LAK)                     |
-| `closingBalanceLak` | Tồn quỹ = đầu kỳ + thu − chi                    |
-
----
-
-## `GET /api/cash-ledger/activities/export`
-
-Xuất file Excel danh sách hoạt động thu/chi theo **cùng bộ lọc** với `GET /activities`.
-
-**Query params:** Giống `GET /activities`, bỏ `page` và `pageSize`.
-
-| Param       | Kiểu      | Mô tả                        |
-| ----------- | --------- | ---------------------------- |
-| `branchId`  | Guid?     | Lọc theo chi nhánh           |
-| `counterId` | Guid?     | Lọc theo quầy                |
-| `fromDate`  | DateOnly? | Từ ngày                      |
-| `toDate`    | DateOnly? | Đến ngày                     |
-| `keyword`   | string?   | Tìm theo mã phiếu / nội dung |
-| `currency`  | string?   | `LAK` / `THB` / `USD`        |
-| `method`    | string?   | `CASH` / `BANK` / `COMBINED` |
-
-**Response `200 OK`:**
-Binary — file `.xlsx`
-Content-Type: `application/vnd.openxmlformats-officedocument.spreadsheetml.sheet`
-Filename: `so-quy-YYYYMMDD-HHmmss.xlsx`
-
----
-
-## `GET /api/cash-ledger/activities/{id}`
-
-Chi tiết một hoạt động thu/chi theo Id (phiếu lập tay PTTT/PCTT hoặc bút toán tự động từ giao dịch POS).
-
-**Path param:** `id` (Guid)
-
-**Response `200 OK`:** [`CashVoucherDto`](#schema-cashvoucherdto)
-
-**Lỗi có thể xảy ra:**
-
-| Mã lỗi                    | HTTP | Nguyên nhân              |
-| ------------------------- | ---- | ------------------------ |
-| `CASH_ACTIVITY_NOT_FOUND` | 404  | Không tìm thấy hoạt động |
-
----
-
-## `POST /api/cash-ledger/manual-entry`
-
-Tạo một bút toán thu/chi thủ công nhanh (không cần mã lý do). Dành cho các khoản nhỏ không thuộc danh mục lý do cố định.
-
-> **Khuyến nghị:** Dùng `POST /vouchers` để có đầy đủ thông tin phiếu (mã lý do, khách hàng, ghi chú).
-
-**Request body:**
-
-```json
-{
-  "branchId": "bbb22222-0000-0000-0000-000000000001",
-  "counterId": "ccc33333-0000-0000-0000-000000000001",
-  "description": "Chi tiền mua văn phòng phẩm",
+  "branchId": "3fa85f64-5717-4562-b3fc-2c963f66afa6",
+  "counterId": null,
+  "description": "Chi tiền vệ sinh văn phòng",
   "direction": "OUT",
   "method": "CASH",
   "currency": "LAK",
-  "originalAmount": 150000,
+  "originalAmount": 500000,
   "exchangeRate": 1
 }
 ```
 
-| Field            | Bắt buộc | Kiểu    | Mô tả                                            |
-| ---------------- | -------- | ------- | ------------------------------------------------ |
-| `branchId`       | ✅       | Guid    | Chi nhánh                                        |
-| `counterId`      | ❌       | Guid?   | Quầy                                             |
-| `description`    | ✅       | string  | Nội dung / mô tả khoản thu chi                   |
-| `direction`      | ✅       | string  | `IN` (thu) hoặc `OUT` (chi)                      |
-| `method`         | ✅       | string  | `CASH` / `BANK`                                  |
-| `currency`       | ✅       | string  | `LAK` / `THB` / `USD`                            |
-| `originalAmount` | ✅       | decimal | Số tiền (theo `currency`)                        |
-| `exchangeRate`   | ✅       | decimal | Tỷ giá quy đổi ra LAK (`1` nếu currency = `LAK`) |
+| Field | Kiểu | Bắt buộc | Mô tả |
+|---|---|---|---|
+| `branchId` | `uuid` | ✅ | |
+| `counterId` | `uuid\|null` | ❌ | |
+| `description` | `string` | ✅ | Diễn giải khoản thu/chi |
+| `direction` | `"IN"\|"OUT"` | ✅ | `IN` = thu vào, `OUT` = chi ra |
+| `method` | `"CASH"\|"BANK"` | ✅ | Hình thức thanh toán |
+| `currency` | `"LAK"\|"THB"\|"USD"` | ✅ | Đơn vị tiền tệ gốc |
+| `originalAmount` | `decimal` | ✅ | Số tiền theo đơn vị `currency` |
+| `exchangeRate` | `decimal` | ✅ | Tỷ giá quy LAK — nếu `currency = LAK` thì truyền `1` |
 
-**Response `200 OK`:**
+> `amountLak = originalAmount × exchangeRate` — tính tự động phía backend.
+
+### Response `200 OK` — `ManualEntryDto`
 
 ```json
 {
-  "id": "fff55555-0000-0000-0000-000000000001",
-  "entryCode": "PTTT000123",
-  "counterId": "ccc33333-...",
-  "description": "Chi tiền mua văn phòng phẩm",
+  "id": "3fa85f64-5717-4562-b3fc-2c963f66afa6",
+  "entryCode": "PCTT000003",
+  "counterId": null,
+  "description": "Chi tiền vệ sinh văn phòng",
   "direction": "OUT",
   "method": "CASH",
   "currency": "LAK",
-  "originalAmount": 150000,
+  "originalAmount": 500000,
   "exchangeRate": 1,
-  "amountLak": 150000,
-  "createdAt": "2026-06-16T02:15:30Z"
+  "amountLak": 500000,
+  "createdAt": "2026-06-15T08:30:00Z"
 }
 ```
 
 ---
 
-## `POST /api/cash-ledger/vouchers`
+## 5. GET /activities — Danh sách toàn bộ hoạt động
 
-Lập phiếu thu (PTTT) hoặc phiếu chi (PCTT) có đầy đủ thông tin: mã lý do, khách hàng, quầy đi/nhận, ghi chú.
+Lấy **toàn bộ** hoạt động thu/chi sổ quỹ, bao gồm:
+- Phiếu PTTT/PCTT lập tay (`POST /manual-entry`, `POST /vouchers`)
+- Bút toán tự động phát sinh từ giao dịch POS
 
-Mã phiếu sinh tự động theo sequence Postgres: `PTTT000001`, `PCTT000001`, …
+Sắp xếp giảm dần theo thời gian (`createdAt DESC`).
 
-**Request body:**
+### Query params
 
-```json
-{
-  "branchId": "bbb22222-0000-0000-0000-000000000001",
-  "direction": "IN",
-  "reasonCode": "SALE_REVENUE",
-  "currency": "USD",
-  "exchangeRate": 21000,
-  "cashAmount": 100,
-  "bankAmount": 0,
-  "customerId": null,
-  "customerName": "Khách vãng lai",
-  "fromCounterId": null,
-  "toCounterId": "ccc33333-0000-0000-0000-000000000001",
-  "referenceInvoiceCode": "HD-20260616-000045",
-  "originalReceiptCode": null,
-  "note": "Thu đổi ngoại tệ USD"
-}
-```
+| Param | Kiểu | Bắt buộc | Mặc định | Mô tả |
+|---|---|---|---|---|
+| `branchId` | `uuid` | ❌ | — | Lọc theo chi nhánh (null = tất cả) |
+| `counterId` | `uuid` | ❌ | — | Lọc theo quầy |
+| `fromDate` | `DateOnly` | ❌ | Hôm nay | Ngày bắt đầu |
+| `toDate` | `DateOnly` | ❌ | Hôm nay | Ngày kết thúc |
+| `keyword` | `string` | ❌ | — | Tìm theo `entryCode` hoặc `description` |
+| `currency` | `"LAK"\|"THB"\|"USD"` | ❌ | — | Lọc theo loại tiền |
+| `method` | `"CASH"\|"BANK"\|"COMBINED"` | ❌ | — | Lọc theo hình thức |
+| `page` | `int` | ❌ | `1` | |
+| `pageSize` | `int` | ❌ | `20` | |
 
-| Field                  | Bắt buộc | Kiểu    | Mô tả                                                  |
-| ---------------------- | -------- | ------- | ------------------------------------------------------ |
-| `branchId`             | ✅       | Guid    | Chi nhánh                                              |
-| `direction`            | ✅       | string  | `IN` (phiếu thu) hoặc `OUT` (phiếu chi)                |
-| `reasonCode`           | ✅       | string  | Mã lý do (lấy từ `GET /voucher-reasons`)               |
-| `currency`             | ✅       | string  | `LAK` / `THB` / `USD`                                  |
-| `exchangeRate`         | ✅       | decimal | Tỷ giá: số LAK tương đương 1 đơn vị `currency` (LAK→1) |
-| `cashAmount`           | ✅       | decimal | Phần tiền mặt (theo `currency`)                        |
-| `bankAmount`           | ✅       | decimal | Phần chuyển khoản (theo `currency`)                    |
-| `customerId`           | ❌       | Guid?   | Khách hàng trong hệ thống                              |
-| `customerName`         | ❌       | string? | Tên khách (ưu tiên nếu không có `customerId`)          |
-| `fromCounterId`        | ❌       | Guid?   | Quầy xuất tiền đi                                      |
-| `toCounterId`          | ❌       | Guid?   | Quầy nhận tiền                                         |
-| `referenceInvoiceCode` | ❌       | string? | Số hóa đơn gốc liên quan                               |
-| `originalReceiptCode`  | ❌       | string? | Mã phiếu thu gốc                                       |
-| `note`                 | ❌       | string? | Ghi chú tự do                                          |
-
-> `cashAmount + bankAmount` phải > 0.
-> `method` được hệ thống tự suy ra: cả hai = `COMBINED`; chỉ cash = `CASH`; chỉ bank = `BANK`.
-
-**Response `200 OK`:** [`CashVoucherDto`](#schema-cashvoucherdto)
-
-**Lỗi có thể xảy ra:**
-
-| Mã lỗi                           | HTTP | Nguyên nhân                                     |
-| -------------------------------- | ---- | ----------------------------------------------- |
-| `CASH_VOUCHER_INVALID_DIRECTION` | 422  | `direction` không phải `IN` hoặc `OUT`          |
-| `CASH_VOUCHER_INVALID_AMOUNT`    | 422  | `cashAmount` hoặc `bankAmount` âm               |
-| `CASH_VOUCHER_AMOUNT_REQUIRED`   | 422  | Tổng `cashAmount + bankAmount = 0`              |
-| `CASH_VOUCHER_REASON_INVALID`    | 422  | `reasonCode` không tồn tại hoặc sai `direction` |
-
----
-
-## `GET /api/cash-ledger/vouchers`
-
-Danh sách phiếu thu/chi kèm tổng hợp quỹ trong kỳ. Chỉ trả phiếu lập tay (Source = Manual, có `reasonCode`) — không bao gồm bút toán tự động từ POS.
-
-**Query params:**
-
-| Param       | Kiểu      | Mô tả                                     |
-| ----------- | --------- | ----------------------------------------- |
-| `branchId`  | Guid      | Chi nhánh (bắt buộc)                      |
-| `fromDate`  | DateOnly? | Từ ngày (mặc định hôm nay)                |
-| `toDate`    | DateOnly? | Đến ngày (mặc định hôm nay)               |
-| `direction` | string?   | `IN` / `OUT` / bỏ trống = tất cả          |
-| `keyword`   | string?   | Tìm theo mã phiếu / tên khách / số HĐ gốc |
-| `page`      | int       | Mặc định `1`                              |
-| `pageSize`  | int       | Mặc định `20`                             |
-
-**Response `200 OK`:**
+### Response `200 OK`
 
 ```json
 {
-  "vouchers": [
-    /* mảng CashVoucherDto */
+  "items": [
+    {
+      "id": "55b4f934-12c7-4029-8817-930fd01d58f3",
+      "entryCode": "PTTT000001",
+      "timeLabel": "10:08:52 - 15/06/2026",
+      "createdByName": "Nguyễn Đăng",
+      "branchName": "Vientiane Main",
+      "methodLabel": "Tiền mặt",
+      "direction": "IN",
+      "currency": "LAK",
+      "method": "CASH",
+      "amountLak": 6700000,
+      "originalAmount": 6700000,
+      "description": "[BV-20260615-85A7EDF0] Doanh thu bán vàng: Nhẫn cưới (1 cái) - Khách Nguyễn Văn A",
+      "referenceInvoiceCode": "BV-20260615-85A7EDF0",
+      "entryType": "SellGold",
+      "source": "Transaction",
+      "customerName": "Nguyễn Văn A",
+      "cashAmountLak": 6700000,
+      "bankAmountLak": 0,
+      "note": null
+    }
   ],
-  "openingBalanceLak": 5000000,
-  "totalInLak": 28500000,
-  "totalOutLak": 12000000,
-  "closingBalanceLak": 21500000,
-  "totalCount": 15,
+  "totalCount": 97,
   "page": 1,
   "pageSize": 20,
-  "totalPages": 1
+  "totalPages": 5,
+  "currency": null,
+  "openingBalanceLak": 50000000,
+  "totalInLak": 6700000,
+  "totalOutLak": 0,
+  "openingBalanceOriginal": 50000000,
+  "totalInOriginal": 6700000,
+  "totalOutOriginal": 0
 }
 ```
 
-| Field               | Mô tả                                             |
-| ------------------- | ------------------------------------------------- |
-| `openingBalanceLak` | Quỹ đầu kỳ tính đến `fromDate` (cộng dồn lịch sử) |
-| `totalInLak`        | Tổng thu phiếu thủ công + giao dịch POS trong kỳ  |
-| `totalOutLak`       | Tổng chi phiếu thủ công + giao dịch POS trong kỳ  |
-| `closingBalanceLak` | Tồn quỹ = đầu kỳ + thu − chi                      |
+**Fields trong mỗi item:**
+
+| Field | Mô tả |
+|---|---|
+| `entryCode` | Mã phiếu: `PTTT…` (thu) hoặc `PCTT…` (chi) |
+| `timeLabel` | Giờ và ngày hiển thị: `"HH:mm:ss - dd/MM/yyyy"` |
+| `methodLabel` | `"Tiền mặt"` \| `"Chuyển khoản ngân hàng"` \| `"Tiền mặt & Chuyển khoản"` |
+| `direction` | `"IN"` (thu) \| `"OUT"` (chi) |
+| `currency` | Loại tiền gốc: `"LAK"` \| `"THB"` \| `"USD"` |
+| `method` | Hình thức thô: `"CASH"` \| `"BANK"` \| `"COMBINED"` |
+| `amountLak` | Tổng quy đổi ra LAK |
+| `originalAmount` | Số tiền gốc theo `currency` |
+| `cashAmountLak` | Phần tiền mặt (LAK) |
+| `bankAmountLak` | Phần chuyển khoản (LAK) |
+| `description` | Nội dung — bút toán POS chứa mã hóa đơn `[BV-...]` |
+| `referenceInvoiceCode` | Mã hóa đơn gốc (chỉ có với bút toán POS) |
+| `entryType` | Xem bảng [entryType](#entrytype) |
+| `source` | `"Transaction"` \| `"Manual"` \| `"Handover"` |
+| `customerName` | Tên khách hàng (snapshot) |
+| `note` | Ghi chú (nếu có) |
+
+**Fields tổng hợp ở root response:**
+
+| Field | Mô tả |
+|---|---|
+| `currency` | Giá trị filter `currency` đã áp dụng (`null` = tất cả) |
+| `openingBalanceLak` | Quỹ đầu kỳ quy LAK |
+| `totalInLak` | Tổng thu quy LAK |
+| `totalOutLak` | Tổng chi quy LAK |
+| `openingBalanceOriginal` | Quỹ đầu kỳ theo đơn vị `currency` (= LAK nếu không lọc hoặc lọc LAK) |
+| `totalInOriginal` | Tổng thu theo đơn vị `currency` |
+| `totalOutOriginal` | Tổng chi theo đơn vị `currency` |
+
+> Để xem chi tiết từng dòng → `GET /activities/{id}`.
 
 ---
 
-## `GET /api/cash-ledger/vouchers/{id}`
+## 6. GET /activities/export — Xuất Excel
 
-Chi tiết một phiếu thu/chi theo Id.
+Xuất file Excel danh sách hoạt động thu/chi theo **cùng bộ lọc** với `GET /activities` (không có `page`/`pageSize` — xuất toàn bộ).
 
-**Path param:** `id` (Guid)
+### Query params
 
-**Response `200 OK`:** [`CashVoucherDto`](#schema-cashvoucherdto)
+Giống hệt `GET /activities` nhưng **bỏ** `page` và `pageSize`.
 
-**Lỗi có thể xảy ra:**
+| Param | Kiểu | Bắt buộc | Mô tả |
+|---|---|---|---|
+| `branchId` | `uuid` | ❌ | |
+| `counterId` | `uuid` | ❌ | |
+| `fromDate` | `DateOnly` | ❌ | |
+| `toDate` | `DateOnly` | ❌ | |
+| `keyword` | `string` | ❌ | |
+| `currency` | `"LAK"\|"THB"\|"USD"` | ❌ | |
+| `method` | `"CASH"\|"BANK"\|"COMBINED"` | ❌ | |
 
-| Mã lỗi                   | HTTP | Nguyên nhân          |
-| ------------------------ | ---- | -------------------- |
-| `CASH_VOUCHER_NOT_FOUND` | 404  | Không tìm thấy phiếu |
+### Response `200 OK`
+
+Binary file — `Content-Type: application/vnd.openxmlformats-officedocument.spreadsheetml.sheet`
+`Content-Disposition: attachment; filename="so-quy-yyyyMMdd-HHmmss.xlsx"`
+
+> **FE**: dùng `window.location.href` hoặc thẻ `<a href="...">` với token query param / Authorization header để tải file.
 
 ---
 
-## `GET /api/cash-ledger/voucher-reasons`
+## 7. GET /activities/{id} — Chi tiết hoạt động
 
-Danh mục lý do thu/chi cố định (được hard-code trong `CashVoucherReasonCatalog`).
+Chi tiết một hoạt động thu/chi bất kỳ (phiếu PTTT/PCTT hoặc bút toán POS).
 
-**Query params:**
+### Response `200 OK`
 
-| Param       | Kiểu    | Mô tả                            |
-| ----------- | ------- | -------------------------------- |
-| `direction` | string? | `IN` / `OUT` / bỏ trống = tất cả |
+Trả về `CashVoucherDto` — xem [cấu trúc đầy đủ ở mục 18](#18-struct-cashvoucherdto).
 
-**Response `200 OK`:**
+### Response `404`
+
+```json
+{ "status": 404, "errorCode": "CASH_ACTIVITY_NOT_FOUND" }
+```
+
+---
+
+## 8. POST /vouchers — Lập phiếu thu/chi chính thức
+
+Lập phiếu thu (`Direction = IN` → `PTTT…`) hoặc phiếu chi (`Direction = OUT` → `PCTT…`) **chính thức**, có lý do từ danh mục (khác với `/manual-entry` là nhập tự do).
+
+### Request body
+
+```json
+{
+  "branchId": "3fa85f64-5717-4562-b3fc-2c963f66afa6",
+  "direction": "OUT",
+  "reasonCode": "CHI_HANG",
+  "currency": "LAK",
+  "exchangeRate": 1,
+  "cashAmount": 15000000,
+  "bankAmount": 0,
+  "customerId": null,
+  "customerName": "Nguyễn Đăng Đoàn",
+  "fromCounterId": "uuid-quay-di",
+  "toCounterId": null,
+  "referenceInvoiceCode": null,
+  "originalReceiptCode": null,
+  "note": "Chi tiền mua hàng"
+}
+```
+
+| Field | Kiểu | Bắt buộc | Mô tả |
+|---|---|---|---|
+| `branchId` | `uuid` | ✅ | |
+| `direction` | `"IN"\|"OUT"` | ✅ | |
+| `reasonCode` | `string` | ✅ | Lấy từ `GET /voucher-reasons` |
+| `currency` | `"LAK"\|"THB"\|"USD"` | ✅ | |
+| `exchangeRate` | `decimal` | ✅ | Tỷ giá quy LAK (`1` nếu LAK) |
+| `cashAmount` | `decimal` | ❌ | Phần tiền mặt (LAK) |
+| `bankAmount` | `decimal` | ❌ | Phần chuyển khoản (LAK) |
+| `customerId` | `uuid\|null` | ❌ | Khách hàng liên quan (nếu có) |
+| `customerName` | `string\|null` | ❌ | Tên khách — dùng khi chưa có trong hệ thống |
+| `fromCounterId` | `uuid\|null` | ❌ | Quầy chi tiền ra (phiếu chi) |
+| `toCounterId` | `uuid\|null` | ❌ | Quầy nhận tiền (phiếu thu) |
+| `referenceInvoiceCode` | `string\|null` | ❌ | Mã hóa đơn tham chiếu |
+| `originalReceiptCode` | `string\|null` | ❌ | Mã chứng từ gốc |
+| `note` | `string\|null` | ❌ | Ghi chú |
+
+> `cashAmount + bankAmount` phải > 0.
+
+### Response `200 OK`
+
+Trả về `CashVoucherDto` — xem [mục 18](#18-struct-cashvoucherdto).
+
+### Lỗi
+
+| `errorCode` | Tình huống |
+|---|---|
+| `CASH_VOUCHER_INVALID_DIRECTION` | `direction` không hợp lệ |
+| `CASH_VOUCHER_INVALID_AMOUNT` | `cashAmount + bankAmount ≤ 0` |
+| `CASH_VOUCHER_AMOUNT_REQUIRED` | Thiếu cả `cashAmount` và `bankAmount` |
+| `CASH_VOUCHER_REASON_INVALID` | `reasonCode` không tồn tại hoặc không khớp `direction` |
+
+---
+
+## 9. GET /vouchers — Danh sách phiếu thủ công
+
+Danh sách phiếu thu/chi lập **thủ công** (chỉ PTTT/PCTT, **không** bao gồm bút toán POS tự động), kèm tổng hợp quỹ trong kỳ.
+
+### Query params
+
+| Param | Kiểu | Bắt buộc | Mô tả |
+|---|---|---|---|
+| `branchId` | `uuid` | ✅ | |
+| `fromDate` | `DateOnly` | ❌ | |
+| `toDate` | `DateOnly` | ❌ | |
+| `direction` | `"IN"\|"OUT"` | ❌ | Bỏ qua = lấy tất cả |
+| `keyword` | `string` | ❌ | Tìm theo `entryCode` hoặc `description` |
+| `page` | `int` | ❌ | Mặc định `1` |
+| `pageSize` | `int` | ❌ | Mặc định `20` |
+
+### Response `200 OK`
+
+```json
+{
+  "vouchers": [ /* CashVoucherDto[] */ ],
+  "openingBalanceLak": 50000000,
+  "totalInLak": 6700000,
+  "totalOutLak": 0,
+  "closingBalanceLak": 56700000,
+  "totalCount": 38,
+  "page": 1,
+  "pageSize": 10,
+  "totalPages": 4
+}
+```
+
+---
+
+## 10. GET /vouchers/{id} — Chi tiết phiếu
+
+Chi tiết một phiếu thu/chi theo Id. Trả về `CashVoucherDto`.
+
+**Lỗi:** `404 CASH_VOUCHER_NOT_FOUND`.
+
+---
+
+## 11. GET /voucher-reasons — Danh mục lý do thu/chi
+
+Danh mục lý do cố định, dùng để điền `reasonCode` khi lập phiếu chính thức (`POST /vouchers`).
+
+### Query params
+
+| Param | Kiểu | Mô tả |
+|---|---|---|
+| `direction` | `"IN"\|"OUT"` | Lọc theo chiều (bỏ qua = tất cả) |
+
+### Response `200 OK`
 
 ```json
 [
-  {
-    "code": "SALE_REVENUE",
-    "direction": "IN",
-    "label": "Thu doanh thu bán hàng"
-  },
-  {
-    "code": "CURRENCY_EXCHANGE",
-    "direction": "IN",
-    "label": "Thu đổi ngoại tệ"
-  },
-  { "code": "PURCHASE_EXPENSE", "direction": "OUT", "label": "Chi mua hàng" },
-  {
-    "code": "TRANSFER_OUT",
-    "direction": "OUT",
-    "label": "Chuyển quỹ sang quầy khác"
-  }
+  { "code": "CHI_HANG",  "direction": "OUT", "label": "Chi tiền mua hàng" },
+  { "code": "THU_KHACH", "direction": "IN",  "label": "Thu tiền từ khách" }
 ]
 ```
 
+> FE nên gọi endpoint này để populate dropdown `reasonCode` trong form lập phiếu.
+
 ---
 
-## `GET /api/cash-ledger/cash-count`
+## 12. GET /cash-count — Lấy bảng kê đếm tiền
 
-Lấy bảng kê đếm tiền (theo mệnh giá) cho một ngày. Nếu chưa nhập, trả mệnh giá mặc định với `quantity = 0`.
+Trả về bảng kê đếm tiền mặt theo mệnh giá cho một ngày. Nếu chưa có bản ghi → trả về danh sách mệnh giá mặc định với `quantity = 0`.
 
-**Query params:**
+### Query params
 
-| Param       | Bắt buộc | Kiểu      | Mô tả                   |
-| ----------- | -------- | --------- | ----------------------- |
-| `branchId`  | ✅       | Guid      | Chi nhánh               |
-| `counterId` | ❌       | Guid?     | Quầy                    |
-| `date`      | ❌       | DateOnly? | Ngày (mặc định hôm nay) |
+| Param | Kiểu | Bắt buộc | Mô tả |
+|---|---|---|---|
+| `branchId` | `uuid` | ✅ | |
+| `counterId` | `uuid` | ❌ | |
+| `date` | `DateOnly` | ❌ | Mặc định: hôm nay |
 
-**Response `200 OK`:**
+### Response `200 OK`
 
 ```json
 {
-  "id": "ddd44444-0000-0000-0000-000000000001",
+  "id": "3fa85f64-...",
   "isFinalized": false,
   "handoverCode": null,
-  "countedByName": "",
+  "countedByName": "Nguyễn Thị B",
   "items": [
-    { "currency": "LAK", "denomination": 100000, "quantity": 30 },
-    { "currency": "LAK", "denomination": 50000, "quantity": 20 },
-    { "currency": "LAK", "denomination": 20000, "quantity": 10 },
-    { "currency": "LAK", "denomination": 10000, "quantity": 5 },
-    { "currency": "LAK", "denomination": 5000, "quantity": 0 },
-    { "currency": "LAK", "denomination": 2000, "quantity": 0 },
-    { "currency": "THB", "denomination": 1000, "quantity": 5 },
-    { "currency": "THB", "denomination": 500, "quantity": 0 },
-    { "currency": "USD", "denomination": 100, "quantity": 2 },
-    { "currency": "USD", "denomination": 50, "quantity": 0 }
+    { "currency": "LAK", "denomination": 100000, "quantity": 5 },
+    { "currency": "LAK", "denomination": 50000,  "quantity": 10 },
+    { "currency": "LAK", "denomination": 20000,  "quantity": 0 },
+    { "currency": "LAK", "denomination": 10000,  "quantity": 0 },
+    { "currency": "LAK", "denomination": 5000,   "quantity": 0 },
+    { "currency": "LAK", "denomination": 2000,   "quantity": 0 },
+    { "currency": "THB", "denomination": 1000,   "quantity": 2 },
+    { "currency": "THB", "denomination": 500,    "quantity": 0 },
+    { "currency": "USD", "denomination": 100,    "quantity": 1 },
+    { "currency": "USD", "denomination": 50,     "quantity": 0 }
   ]
 }
 ```
 
-| Field          | Mô tả                                           |
-| -------------- | ----------------------------------------------- |
-| `id`           | Guid? — null nếu chưa có bảng kê nào trong ngày |
-| `isFinalized`  | `true` khi đã chốt bàn giao                     |
-| `handoverCode` | Mã bàn giao (nếu đã finalized)                  |
+| Field | Mô tả |
+|---|---|
+| `id` | `null` nếu chưa lưu lần nào |
+| `isFinalized` | `true` sau khi đã chốt bàn giao — không sửa được nữa |
+| `handoverCode` | `null` nếu chưa chốt. Sau chốt: format `HO-yyyyMMdd-XXXXX` |
+| `countedByName` | Tên người đếm tiền |
+
+**Mệnh giá mặc định** (khi chưa có bản ghi):
+
+| Tiền tệ | Mệnh giá |
+|---|---|
+| LAK | 100,000 · 50,000 · 20,000 · 10,000 · 5,000 · 2,000 |
+| THB | 1,000 · 500 |
+| USD | 100 · 50 |
 
 ---
 
-## `PUT /api/cash-ledger/cash-count`
+## 13. PUT /cash-count — Lưu bảng kê đếm tiền
 
-Lưu / cập nhật bảng kê đếm tiền. Ghi đè bảng kê hiện có (nếu có).
+Lưu (upsert) bảng kê đếm tiền. Có thể gọi nhiều lần để cập nhật số lượng từng mệnh giá trước khi chốt.
 
-**Request body:**
+### Request body
 
 ```json
 {
-  "branchId": "bbb22222-0000-0000-0000-000000000001",
+  "branchId": "3fa85f64-5717-4562-b3fc-2c963f66afa6",
   "counterId": null,
-  "date": "2026-06-16",
-  "countedByName": "Nguyễn Thị Lan",
+  "date": "2026-06-15",
+  "countedByName": "Nguyễn Đăng",
   "items": [
-    { "currency": "LAK", "denomination": 100000, "quantity": 30 },
-    { "currency": "LAK", "denomination": 50000, "quantity": 20 },
-    { "currency": "THB", "denomination": 1000, "quantity": 5 },
-    { "currency": "USD", "denomination": 100, "quantity": 2 }
+    { "currency": "LAK", "denomination": 100000, "quantity": 5 },
+    { "currency": "LAK", "denomination": 50000,  "quantity": 10 },
+    { "currency": "THB", "denomination": 1000,   "quantity": 2 },
+    { "currency": "USD", "denomination": 100,    "quantity": 1 }
   ]
 }
 ```
 
-**Response `200 OK`:** `{ "id": "ddd44444-..." }` — Id của bảng kê đã lưu.
+| Field | Kiểu | Bắt buộc | Mô tả |
+|---|---|---|---|
+| `branchId` | `uuid` | ✅ | |
+| `counterId` | `uuid\|null` | ❌ | |
+| `date` | `DateOnly` | ✅ | |
+| `countedByName` | `string` | ✅ | Tên người thực hiện đếm tiền |
+| `items` | `CashCountItem[]` | ✅ | Danh sách mệnh giá và số lượng |
+| `items[].currency` | `"LAK"\|"THB"\|"USD"` | ✅ | |
+| `items[].denomination` | `int` | ✅ | Mệnh giá |
+| `items[].quantity` | `int` | ✅ | Số tờ/đồng (≥ 0) |
+
+### Response `200 OK`
+
+```json
+{ "id": "3fa85f64-5717-4562-b3fc-2c963f66afa6" }
+```
+
+> `id` là UUID của bản ghi `CashCountSheet` vừa tạo/cập nhật.
 
 ---
 
-## `POST /api/cash-ledger/handover`
+## 14. POST /handover — Chốt bàn giao ca
 
-Bàn giao chốt ca cuối ngày — finalize bảng kê đếm tiền và ghi log chênh lệch.
+Tổng kết và chốt bàn giao ca làm việc. **Không thể hoàn tác** — sau khi chốt, bảng kê đếm tiền sẽ `isFinalized = true`.
 
-> **Khuyến nghị:** Dùng `POST /session/close` thay cho endpoint này.
+Backend tự động:
+- Tính chênh lệch `actualAmountLak − expectedAmountLak`
+- Ghi bút toán đối chiếu vào sổ quỹ (`BALANCED` / `SURPLUS` / `DEFICIT`)
+- Sinh `handoverCode` định danh biên bản bàn giao
 
-**Request body:** Giống `PUT /cash-count` nhưng thêm `actualAmountLak` và `expectedAmountLak`.
+### Request body
 
 ```json
 {
-  "branchId": "bbb22222-0000-0000-0000-000000000001",
+  "branchId": "3fa85f64-5717-4562-b3fc-2c963f66afa6",
   "counterId": null,
-  "date": "2026-06-16",
-  "countedByName": "Nguyễn Thị Lan",
+  "date": "2026-06-15",
+  "countedByName": "Nguyễn Đăng",
   "items": [
-    /* mảng CashCountItemDto */
+    { "currency": "LAK", "denomination": 100000, "quantity": 5 },
+    { "currency": "LAK", "denomination": 50000,  "quantity": 10 },
+    { "currency": "THB", "denomination": 1000,   "quantity": 2 },
+    { "currency": "USD", "denomination": 100,    "quantity": 1 }
   ],
-  "actualAmountLak": 4850000,
-  "expectedAmountLak": 5000000
+  "actualAmountLak": 56700000,
+  "expectedAmountLak": 56700000
 }
 ```
 
-**Response `200 OK`:** `{ "handoverCode": "BGQ-20260616-A3F2B1" }`
+| Field | Kiểu | Bắt buộc | Mô tả |
+|---|---|---|---|
+| `branchId` | `uuid` | ✅ | |
+| `counterId` | `uuid\|null` | ❌ | |
+| `date` | `DateOnly` | ✅ | |
+| `countedByName` | `string` | ✅ | Tên người bàn giao |
+| `items` | `CashCountItem[]` | ✅ | Bảng kê mệnh giá (giống PUT /cash-count) |
+| `actualAmountLak` | `decimal` | ✅ | Tổng tiền mặt LAK thực đếm được |
+| `expectedAmountLak` | `decimal` | ✅ | Tổng tiền dự kiến từ sổ quỹ — lấy từ `GET /daily` → `closingBalanceLak` |
+
+> **Gợi ý FE**:
+> - `expectedAmountLak` = `GET /daily` → `closingBalanceLak`
+> - `actualAmountLak` = `Σ (denomination × quantity)` chỉ tính mệnh giá **LAK** trong `items`
+
+### Response `200 OK`
+
+```json
+{ "handoverCode": "HO-20260615-XXXXX" }
+```
 
 ---
 
-## Schema: `CashSessionDto`
+## 15. GET /session — Trạng thái phiên quỹ
 
+Lấy trạng thái phiên quỹ của một chi nhánh / quầy trong ngày. Nếu chưa có phiên nào → trả về `isOpen = false`.
+
+### Query params
+
+| Param | Kiểu | Bắt buộc | Mô tả |
+|---|---|---|---|
+| `branchId` | `uuid` | ✅ | |
+| `counterId` | `uuid` | ❌ | |
+| `date` | `DateOnly` (`yyyy-MM-dd`) | ✅ | |
+
+### Response `200 OK` — `CashSessionDto`
+
+**Trường hợp chưa có phiên:**
 ```json
 {
-  "isOpen": true,
-  "sessionId": "eee55555-0000-0000-0000-000000000001",
-  "status": "Open",
-  "openingCashLak": 5000000,
+  "isOpen": false,
+  "sessionId": null,
+  "status": null,
+  "openingCashLak": 0,
   "openingBankLak": 0,
   "closingCashLak": null,
   "closingBankLak": null,
   "cashDifferenceLak": null,
   "handoverCode": null,
-  "openedAt": "2026-06-16T01:00:00Z",
+  "openedAt": null,
   "closedAt": null,
   "closedByName": null
 }
 ```
 
-| Field               | Kiểu     | Mô tả                                            |
-| ------------------- | -------- | ------------------------------------------------ |
-| `isOpen`            | bool     | `true` nếu phiên đang mở                         |
-| `status`            | string?  | `"Open"` / `"Closed"` / `null` (chưa có phiên)   |
-| `openingCashLak`    | decimal  | Tiền mặt đầu kỳ (LAK)                            |
-| `openingBankLak`    | decimal  | Số dư ngân hàng đầu kỳ (LAK)                     |
-| `closingCashLak`    | decimal? | Tiền mặt thực đếm cuối kỳ (`null` khi chưa chốt) |
-| `closingBankLak`    | decimal? | Ngân hàng cuối kỳ (`null` khi chưa chốt)         |
-| `cashDifferenceLak` | decimal? | Chênh lệch = thực tế − kỳ vọng                   |
-| `handoverCode`      | string?  | Mã bàn giao (`null` khi chưa chốt)               |
-
----
-
-## Schema: `CashVoucherDto`
-
+**Trường hợp đang mở phiên:**
 ```json
 {
-  "id": "fff55555-0000-0000-0000-000000000001",
-  "entryCode": "PTTT000123",
-  "direction": "IN",
-  "date": "2026-06-16",
-  "createdAt": "2026-06-16T02:15:30Z",
-  "timeLabel": "09:15:30 - 16/06/2026",
-  "branchId": "bbb22222-...",
-  "branchName": "Vientiane Main",
-  "amountLak": 2100000,
-  "cashAmountLak": 2100000,
-  "bankAmountLak": 0,
-  "currency": "USD",
-  "exchangeRate": 21000,
-  "method": "CASH",
-  "reasonCode": "CURRENCY_EXCHANGE",
-  "reasonLabel": "Thu đổi ngoại tệ",
-  "customerId": null,
-  "customerName": "Khách vãng lai",
-  "fromCounterId": null,
-  "fromCounterName": null,
-  "toCounterId": "ccc33333-...",
-  "toCounterName": "Quầy 1 — Bán vàng",
-  "referenceInvoiceCode": "HD-20260616-000045",
-  "originalReceiptCode": null,
-  "createdById": "aaa11111-...",
-  "createdByName": "Nguyễn Thị Lan",
-  "note": "Thu đổi ngoại tệ USD",
-  "description": "PTTT000123 - Thu đổi ngoại tệ - Khách vãng lai",
-  "entryType": "IN",
-  "source": "Manual"
+  "isOpen": true,
+  "sessionId": "3fa85f64-5717-4562-b3fc-2c963f66afa6",
+  "status": "Open",
+  "openingCashLak": 50000000,
+  "openingBankLak": 100000000,
+  "closingCashLak": null,
+  "closingBankLak": null,
+  "cashDifferenceLak": null,
+  "handoverCode": null,
+  "openedAt": "2026-06-18T01:00:00Z",
+  "closedAt": null,
+  "closedByName": null
 }
 ```
 
-| Field           | Mô tả                                                                         |
-| --------------- | ----------------------------------------------------------------------------- |
-| `amountLak`     | Tổng giá trị quy đổi ra LAK = `(cashAmount + bankAmount) × exchangeRate`      |
-| `cashAmountLak` | Phần tiền mặt (LAK)                                                           |
-| `bankAmountLak` | Phần chuyển khoản (LAK)                                                       |
-| `currency`      | Loại tiền gốc của phiếu: `LAK` / `THB` / `USD`                                |
-| `exchangeRate`  | Tỷ giá tại thời điểm lập phiếu                                                |
-| `method`        | `CASH` / `BANK` / `COMBINED`                                                  |
-| `entryType`     | Loại bút toán: `IN` / `OUT` / `SellGold` / `BuyGold` / ... (từ giao dịch POS) |
-| `source`        | Nguồn tạo: `Manual` / `Transaction` / `Cancellation` / `Handover`             |
-
----
-
-## Mã lỗi
-
-| Mã lỗi                           | HTTP | Nguyên nhân                                    |
-| -------------------------------- | ---- | ---------------------------------------------- |
-| `BRANCH_NOT_FOUND`               | 404  | Không tìm thấy chi nhánh                       |
-| `CASH_SESSION_ALREADY_OPEN`      | 422  | Phiên quỹ ngày này đã tồn tại                  |
-| `CASH_SESSION_NOT_FOUND`         | 404  | Không tìm thấy phiên quỹ                       |
-| `CASH_SESSION_NOT_OPEN`          | 422  | Phiên quỹ đã được chốt                         |
-| `CASH_VOUCHER_NOT_FOUND`         | 404  | Không tìm thấy phiếu thu/chi                   |
-| `CASH_ACTIVITY_NOT_FOUND`        | 404  | Không tìm thấy hoạt động sổ quỹ                |
-| `CASH_VOUCHER_INVALID_DIRECTION` | 422  | `direction` không phải `IN` hoặc `OUT`         |
-| `CASH_VOUCHER_INVALID_AMOUNT`    | 422  | Số tiền âm                                     |
-| `CASH_VOUCHER_AMOUNT_REQUIRED`   | 422  | Tổng `cashAmount + bankAmount = 0`             |
-| `CASH_VOUCHER_REASON_INVALID`    | 422  | `reasonCode` không hợp lệ hoặc sai `direction` |
-| `AUTH_FORBIDDEN`                 | 403  | Không có quyền `CASH_LEDGER_MANAGE`            |
-
----
-
-## Luồng sử dụng điển hình
-
-### ThuQuy mở quỹ và theo dõi thu/chi
-
-```
-1. Xem trạng thái phiên
-   GET /api/cash-ledger/session?branchId=<b>&date=2026-06-16
-   → { isOpen: false }
-
-2. Mở phiên quỹ buổi sáng
-   POST /api/cash-ledger/session/open
-   body: { branchId, date, openingCashLak: 5000000, openingBankLak: 0 }
-   → 201: CashSessionDto { isOpen: true, sessionId: "..." }
-
-3. Giao dịch POS diễn ra tự động trong ngày
-   (bút toán được tạo tự động khi hoàn tất Transaction)
-
-4. Lập phiếu thu khi thu tiền ngoài POS
-   POST /api/cash-ledger/vouchers
-   body: {
-     branchId, direction: "IN", reasonCode: "CURRENCY_EXCHANGE",
-     currency: "USD", exchangeRate: 21000,
-     cashAmount: 100, bankAmount: 0,
-     customerName: "Khách vãng lai",
-     referenceInvoiceCode: "HD-20260616-000045"
-   }
-   → 200: CashVoucherDto { entryCode: "PTTT000001", amountLak: 2100000 }
-
-5. Lọc hoạt động theo ngoại tệ USD
-   GET /api/cash-ledger/activities?branchId=<b>&currency=USD&fromDate=2026-06-16&toDate=2026-06-16
-   → 200: { items: [...], totalInLak: 2100000, totalOutLak: 0, ... }
-
-6. Lọc hoạt động theo phương thức thanh toán
-   GET /api/cash-ledger/activities?branchId=<b>&method=CASH&fromDate=2026-06-16
-   → 200: { items: [...tiền mặt only...] }
-
-7. Xem tổng quan sổ quỹ ngày
-   GET /api/cash-ledger/daily?branchId=<b>&date=2026-06-16
-   → 200: { openingBalanceLak: 5000000, totalInLak: ..., closingBalanceLak: ... }
-
-8. Đếm tiền cuối ngày
-   PUT /api/cash-ledger/cash-count
-   body: { branchId, date, countedByName, items: [...mệnh giá...] }
-
-9. Chốt phiên quỹ
-   POST /api/cash-ledger/session/close
-   body: { branchId, date, countedByName, items, actualAmountLak: 4850000, expectedAmountLak: 5000000 }
-   → 200: { handoverCode: "BGQ-20260616-A3F2B1", difference: -150000 }
-
-10. Xuất Excel sổ quỹ ngày
-    GET /api/cash-ledger/activities/export?branchId=<b>&fromDate=2026-06-16&toDate=2026-06-16
-    → file .xlsx
+**Trường hợp đã chốt:**
+```json
+{
+  "isOpen": false,
+  "sessionId": "3fa85f64-5717-4562-b3fc-2c963f66afa6",
+  "status": "Closed",
+  "openingCashLak": 50000000,
+  "openingBankLak": 100000000,
+  "closingCashLak": 56700000,
+  "closingBankLak": 0,
+  "cashDifferenceLak": 0,
+  "handoverCode": "BGQ-20260618-A1B2C3",
+  "openedAt": "2026-06-18T01:00:00Z",
+  "closedAt": "2026-06-18T09:30:00Z",
+  "closedByName": "Nguyễn Đăng"
+}
 ```
 
+| Field | Mô tả |
+|---|---|
+| `isOpen` | `true` nếu phiên đang mở |
+| `status` | `"Open"` \| `"Closed"` \| `null` (chưa có phiên) |
+| `openingCashLak` | Tiền mặt đầu ca (LAK) |
+| `openingBankLak` | Số dư ngân hàng đầu ca (LAK) |
+| `closingCashLak` | Tiền mặt chốt cuối ca (LAK) — `null` khi chưa chốt |
+| `cashDifferenceLak` | Chênh lệch = `closingCashLak − expectedCashLak` — `null` khi chưa chốt |
+| `handoverCode` | Mã biên bản bàn giao — `null` khi chưa chốt. Format: `BGQ-yyyyMMdd-XXXXXX` |
+
+> **Lưu ý**: `handoverCode` của phiên session dùng format `BGQ-yyyyMMdd-XXXXXX` (khác với `POST /handover` dùng `HO-yyyyMMdd-XXXXX`).
+
 ---
 
-## Ghi chú kỹ thuật
+## 16. POST /session/open — Mở phiên quỹ
 
-- **Múi giờ:** Server lưu `DateTime` theo UTC. `timeLabel` đã cộng +7 giờ (ICT/Vientiane) khi trả về.
-- **Tỷ giá:** `exchangeRate` = số LAK tương đương 1 đơn vị `currency` (LAK luôn = 1). Ví dụ: 1 USD = 21,000 LAK → `exchangeRate = 21000`.
-- **Sequence mã phiếu:** `PTTT` / `PCTT` dùng Postgres sequence riêng biệt — an toàn dưới truy cập đồng thời, không bao giờ bị trùng.
-- **Tự động bù source:** Bút toán từ giao dịch POS có `source = "Transaction"`, lập tay có `source = "Manual"`. Endpoint `/activities` trả cả hai; `/vouchers` chỉ trả `Manual`.
-- **Filter `currency`/`method`:** Áp dụng đồng thời nếu truyền cả hai (AND logic). Truyền `currency=LAK&method=CASH` → chỉ lấy giao dịch LAK tiền mặt.
+Mở phiên quỹ cho một chi nhánh / quầy trong ngày. Mỗi `(branchId, counterId, date)` chỉ được mở **một phiên duy nhất**.
+
+### Request body
+
+```json
+{
+  "branchId": "3fa85f64-5717-4562-b3fc-2c963f66afa6",
+  "counterId": null,
+  "date": "2026-06-18",
+  "openingCashLak": 50000000,
+  "openingBankLak": 100000000
+}
+```
+
+| Field | Kiểu | Bắt buộc | Mô tả |
+|---|---|---|---|
+| `branchId` | `uuid` | ✅ | |
+| `counterId` | `uuid\|null` | ❌ | Nếu null → mở cho toàn chi nhánh |
+| `date` | `DateOnly` | ✅ | Ngày mở ca |
+| `openingCashLak` | `decimal` | ✅ | Tiền mặt tồn đầu ca (LAK) |
+| `openingBankLak` | `decimal` | ✅ | Số dư ngân hàng đầu ca (LAK) |
+
+### Response `201 Created` — `CashSessionDto`
+
+```json
+{
+  "isOpen": true,
+  "sessionId": "3fa85f64-5717-4562-b3fc-2c963f66afa6",
+  "status": "Open",
+  "openingCashLak": 50000000,
+  "openingBankLak": 100000000,
+  "closingCashLak": null,
+  "closingBankLak": null,
+  "cashDifferenceLak": null,
+  "handoverCode": null,
+  "openedAt": "2026-06-18T01:00:00Z",
+  "closedAt": null,
+  "closedByName": null
+}
+```
+
+### Lỗi
+
+| `errorCode` | Tình huống |
+|---|---|
+| `CASH_SESSION_ALREADY_OPEN` | Phiên trong ngày đã được mở trước đó |
+
+---
+
+## 17. POST /session/close — Chốt phiên quỹ
+
+Chốt phiên quỹ cuối ca. Lưu kiểm đếm tiền mặt, tính chênh lệch, sinh `handoverCode`. **Không thể hoàn tác** sau khi chốt.
+
+Backend tự động:
+- Lưu bảng kê đếm tiền (nếu `items` không rỗng)
+- Tính `cashDifferenceLak = actualAmountLak − expectedAmountLak`
+- Cập nhật trạng thái phiên thành `Closed`
+- Sinh `handoverCode` format `BGQ-yyyyMMdd-XXXXXX`
+
+### Request body
+
+```json
+{
+  "branchId": "3fa85f64-5717-4562-b3fc-2c963f66afa6",
+  "counterId": null,
+  "date": "2026-06-18",
+  "countedByName": "Nguyễn Đăng",
+  "items": [
+    { "currency": "LAK", "denomination": 100000, "quantity": 5 },
+    { "currency": "LAK", "denomination": 50000,  "quantity": 10 },
+    { "currency": "THB", "denomination": 1000,   "quantity": 2 },
+    { "currency": "USD", "denomination": 100,    "quantity": 1 }
+  ],
+  "actualAmountLak": 56700000,
+  "expectedAmountLak": 56700000
+}
+```
+
+| Field | Kiểu | Bắt buộc | Mô tả |
+|---|---|---|---|
+| `branchId` | `uuid` | ✅ | |
+| `counterId` | `uuid\|null` | ❌ | |
+| `date` | `DateOnly` | ✅ | |
+| `countedByName` | `string` | ✅ | Tên người chốt ca |
+| `items` | `CashCountItem[]` | ✅ | Bảng kê mệnh giá (có thể rỗng `[]`) |
+| `actualAmountLak` | `decimal` | ✅ | Tổng tiền mặt LAK thực đếm được |
+| `expectedAmountLak` | `decimal` | ✅ | Tổng tiền dự kiến — lấy từ `GET /daily` → `closingBalanceLak` |
+
+> **Gợi ý FE**:
+> - `expectedAmountLak` = `GET /daily` → `closingBalanceLak`
+> - `actualAmountLak` = `Σ (denomination × quantity)` chỉ tính mệnh giá **LAK** trong `items`
+
+### Response `200 OK` — `CloseSessionResult`
+
+```json
+{
+  "handoverCode": "BGQ-20260618-A1B2C3",
+  "closingCashLak": 56700000,
+  "closingBankLak": 0,
+  "difference": 0
+}
+```
+
+| Field | Mô tả |
+|---|---|
+| `handoverCode` | Mã biên bản bàn giao. Format: `BGQ-yyyyMMdd-XXXXXX` |
+| `closingCashLak` | Tiền mặt thực đếm (= `actualAmountLak`) |
+| `closingBankLak` | Số dư ngân hàng cuối ca (hiện tại luôn = `0`) |
+| `difference` | Chênh lệch = `actualAmountLak − expectedAmountLak` (âm = thiếu, dương = thừa) |
+
+### Lỗi
+
+| `errorCode` | Tình huống |
+|---|---|
+| `CASH_SESSION_NOT_FOUND` | Chưa có phiên nào được mở trong ngày |
+| `CASH_SESSION_NOT_OPEN` | Phiên đã chốt trước đó |
+
+---
+
+## 18. Struct CashVoucherDto
+
+Dùng ở `GET /activities/{id}`, `POST /vouchers`, `GET /vouchers`, `GET /vouchers/{id}`.
+
+```json
+{
+  "id": "55b4f934-...",
+  "entryCode": "PTTT000001",
+  "direction": "IN",
+  "date": "2026-06-15",
+  "createdAt": "2026-06-15T02:48:29Z",
+  "timeLabel": "09:48:29 - 15/06/2026",
+  "branchId": "...",
+  "branchName": "Vientiane Main",
+  "amountLak": 6700000,
+  "cashAmountLak": 6700000,
+  "bankAmountLak": 0,
+  "currency": "LAK",
+  "exchangeRate": 1,
+  "method": "CASH",
+  "reasonCode": null,
+  "reasonLabel": null,
+  "customerId": null,
+  "customerName": "Nguyễn Văn A",
+  "fromCounterId": null,
+  "fromCounterName": null,
+  "toCounterId": "uuid",
+  "toCounterName": "Quầy vàng A1",
+  "referenceInvoiceCode": "BV-20260615-85A7EDF0",
+  "originalReceiptCode": null,
+  "createdById": "...",
+  "createdByName": "Nguyễn Đăng",
+  "note": null,
+  "description": "[BV-20260615-85A7EDF0] Doanh thu bán vàng: Nhẫn cưới (1 cái) - Khách Nguyễn Văn A",
+  "entryType": "SellGold",
+  "source": "Transaction"
+}
+```
+
+| Field | Mô tả |
+|---|---|
+| `amountLak` | Tổng quy LAK |
+| `cashAmountLak` | Phần tiền mặt (LAK) |
+| `bankAmountLak` | Phần chuyển khoản (LAK) |
+| `method` | `"CASH"` \| `"BANK"` \| `"COMBINED"` |
+| `reasonCode` | Mã lý do (chỉ có với phiếu chính thức) |
+| `reasonLabel` | Tên lý do (đã resolve từ `reasonCode`) |
+| `description` | Nội dung đầy đủ — với bút toán POS chứa mã hóa đơn `[BV-...]` |
+| `entryType` | Xem bảng [entryType](#entrytype) |
+| `source` | `"Transaction"` \| `"Manual"` \| `"Handover"` |
+| `referenceInvoiceCode` | Với bút toán POS: mã hóa đơn gốc |
+| `fromCounterId/Name` | Quầy chi tiền ra (phiếu chi / bút toán OUT) |
+| `toCounterId/Name` | Quầy nhận tiền vào (phiếu thu / bút toán IN) |
+
+---
+
+## 19. Enum & Hằng số
+
+### `direction`
+
+| Giá trị | Ý nghĩa |
+|---|---|
+| `"IN"` | Thu vào |
+| `"OUT"` | Chi ra |
+
+### `method`
+
+| Giá trị | Ý nghĩa |
+|---|---|
+| `"CASH"` | Tiền mặt |
+| `"BANK"` | Ngân hàng / chuyển khoản |
+| `"COMBINED"` | Kết hợp tiền mặt + chuyển khoản |
+
+### `currency`
+
+| Giá trị | Ý nghĩa |
+|---|---|
+| `"LAK"` | Kip Lào |
+| `"THB"` | Baht Thái |
+| `"USD"` | Đô la Mỹ |
+
+### `entryType`
+
+| Giá trị | `source` | Ý nghĩa |
+|---|---|---|
+| `"SellGold"` | Transaction | Bán vàng |
+| `"SellSilver"` | Transaction | Bán bạc |
+| `"BuyGold"` | Transaction | Mua/thu vàng |
+| `"ExchangeGold"` | Transaction | Thu đổi vàng |
+| `"ExchangeCurrency"` | Transaction | Đổi ngoại tệ |
+| `"BuyMoreGold"` | Transaction | Bán vàng (Mua thêm) |
+| `"ExchangeFree"` | Transaction | Đổi miễn phí (sign = 0) |
+| `"ExchangeToMoney"` | Transaction | Đổi thành tiền mặt |
+| `"IN"` | Manual | Thu thủ công |
+| `"OUT"` | Manual | Chi thủ công |
+
+### `source`
+
+| Giá trị | Ý nghĩa |
+|---|---|
+| `"Transaction"` | Tự động từ giao dịch POS |
+| `"Manual"` | Nhập tay bởi thủ quỹ |
+| `"Handover"` | Bút toán bàn giao ca |
+
+---
+
+## 20. Mã lỗi
+
+| HTTP | `errorCode` | Tình huống |
+|---|---|---|
+| 404 | `BRANCH_NOT_FOUND` | `branchId` không tồn tại |
+| 404 | `CASH_ACTIVITY_NOT_FOUND` | `GET /activities/{id}` không tìm thấy |
+| 404 | `CASH_VOUCHER_NOT_FOUND` | `GET /vouchers/{id}` không tìm thấy |
+| 404 | `CASH_SESSION_NOT_FOUND` | `POST /session/close` — chưa có phiên nào được mở |
+| 401 | `AUTH_TOKEN_EXPIRED` | Token hết hạn |
+| 403 | `AUTH_FORBIDDEN` | Không đủ quyền (`CashLedgerManage`) |
+| 422 | `CASH_VOUCHER_INVALID_DIRECTION` | `direction` không hợp lệ |
+| 422 | `CASH_VOUCHER_INVALID_AMOUNT` | `cashAmount + bankAmount ≤ 0` |
+| 422 | `CASH_VOUCHER_AMOUNT_REQUIRED` | Thiếu cả hai trường amount |
+| 422 | `CASH_VOUCHER_REASON_INVALID` | `reasonCode` không hợp lệ hoặc sai chiều |
+| 422 | `CASH_SESSION_ALREADY_OPEN` | `POST /session/open` — phiên trong ngày đã tồn tại |
+| 422 | `CASH_SESSION_NOT_OPEN` | `POST /session/close` — phiên đã chốt trước đó |
+| 422 | `CASH_SESSION_ALREADY_CLOSED` | Domain guard — phiên đã đóng, không close lại được |
+| 422 | `VALIDATION_FAILED` | Thiếu/sai trường bắt buộc (kèm `errors[]`) |
+| 500 | `SYSTEM_INTERNAL_ERROR` | Lỗi server |
+
+---
+
+## 21. Luồng tích hợp FE
+
+```
+Đầu ngày (Thủ quỹ mở ca):
+1. GET  /session          ← kiểm tra phiên: isOpen = false → chưa mở
+2. POST /session/open     ← mở phiên, truyền openingCashLak + openingBankLak → nhận CashSessionDto
+   (hoặc POST /opening-balance nếu không dùng luồng phiên session)
+
+Trong ngày:
+3. GET  /session          ← kiểm tra isOpen khi load trang
+4. GET  /daily            ← widget tổng hợp: openingBalanceLak, totalInLak, totalOutLak, closingBalanceLak
+5. GET  /activities       ← danh sách bút toán (tab "Sổ quỹ"), hỗ trợ filter currency/method
+   GET  /activities/{id}  ← xem chi tiết một bút toán
+   GET  /activities/export ← xuất Excel cùng bộ lọc
+6. GET  /voucher-reasons  ← populate dropdown lý do khi lập phiếu
+   POST /vouchers         ← lập phiếu thu/chi chính thức (có reasonCode)
+   POST /manual-entry     ← ghi nhanh không cần lý do
+7. GET  /vouchers         ← tab "Phiếu thủ công" (chỉ PTTT/PCTT tay, không có POS)
+
+Cuối ngày (Chốt phiên / bàn giao):
+8. GET  /cash-count       ← load bảng kê mệnh giá hiện có
+9. PUT  /cash-count       ← lưu nháp số lượng từng mệnh giá (lưu nhiều lần được)
+10. POST /session/close   ← chốt phiên → nhận CloseSessionResult { handoverCode, difference }
+    Điền actualAmountLak  = Σ (denomination × quantity) của các mệnh giá LAK
+    Điền expectedAmountLak = GET /daily → closingBalanceLak
+    (hoặc POST /handover nếu không dùng luồng phiên session)
+```
+
+> **Khác biệt `/session/close` vs `/handover`**: Cả hai đều chốt cuối ca và sinh `handoverCode`. Dùng `/session/close` khi đã mở phiên bằng `/session/open` (quản lý phiên rõ ràng hơn). Dùng `/handover` cho luồng cũ không có phiên session.
+
+---
+
+## Breaking Changes
+
+> Dành cho FE đang dùng phiên bản API cũ.
+
+| Thay đổi | Cũ | Mới |
+|---|---|---|
+| `GET /daily` response | Trả `entries[]`, `openingCashLak`, `openingBankLak` | Chỉ trả 4 chỉ số tổng; `openingCashLak + openingBankLak` gộp thành `openingBalanceLak` |
+| `GET /activities` response | Chỉ 7 field cơ bản | Thêm `currency`, `method`, `amountLak`, `originalAmount`, `description`, `referenceInvoiceCode`, `entryType`, `source`, `customerName`, `cashAmountLak`, `bankAmountLak`, `note`; thêm summary totals ở root |
+| `GET /activities` query | Không có filter `currency`, `method` | Thêm filter `currency` và `method` |
+| `POST /manual-entry` response | `id`, `entryCode`, `description`, `direction`, `method`, `amountLak`, `createdAt` | Thêm `counterId`, `currency`, `originalAmount`, `exchangeRate` |
+| `handoverCode` format (`POST /handover`) | `BGQ-yyyyMMdd-XXXXXX` | `HO-yyyyMMdd-XXXXX` |
+| Mã phiếu `manual-entry` | `TC-yyyyMMdd-XXXXXX` | `PTTT…` / `PCTT…` (sequence) |
+| Endpoint mới (v2) | — | `GET/POST /vouchers`, `GET /vouchers/{id}`, `GET /voucher-reasons`, `GET /activities/{id}` |
+| Endpoint mới (v3) | — | `GET /activities/export`, `GET /session`, `POST /session/open`, `POST /session/close` |

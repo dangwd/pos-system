@@ -15,7 +15,6 @@
 "use client";
 
 import { LocaleSwitcher } from "@/components/shared/LocaleSwitcher";
-import { ShiftStatusBadge } from "@/components/pos/shift/ShiftStatusBadge";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 import {
   DropdownMenu,
@@ -35,9 +34,9 @@ import { useInvoiceTabStore } from "@/stores/invoice-tab.store";
 import type { InvoiceTab } from "@/types/invoice-tab";
 import type { ProductWithStock } from "@/types/product";
 import type { TransactionType } from "@/types/transaction";
-import { Button } from "antd";
 import {
   BankOutlined,
+  CloseOutlined,
   DashboardOutlined,
   DownOutlined,
   GoldOutlined,
@@ -48,9 +47,9 @@ import {
   PlusSquareOutlined,
   RightOutlined,
   SearchOutlined,
-  CloseOutlined,
   SwapOutlined,
 } from "@ant-design/icons";
+import { Button } from "antd";
 import { useTranslations } from "next-intl";
 import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
@@ -134,7 +133,9 @@ function ProductSearch({ onSelect }: ProductSearchProps) {
         id="pos-product-search"
         placeholder={t("searchPlaceholder")}
         className="h-8 text-xs"
-        prefix={<SearchOutlined className="h-3.5 w-3.5 text-muted-foreground" />}
+        prefix={
+          <SearchOutlined className="h-3.5 w-3.5 text-muted-foreground" />
+        }
         suffix={isFetching ? <Spinner className="h-3 w-3" /> : null}
         value={search}
         onChange={(e) => {
@@ -455,19 +456,28 @@ export function PosTopBar({ onAddProduct }: PosTopBarProps) {
     const ro = new ResizeObserver(checkScroll);
     ro.observe(el);
     return () => ro.disconnect();
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [tabs]);
 
   // Cuộn tab đang active vào vùng nhìn thấy
   useEffect(() => {
     const el = tabsScrollRef.current;
     if (!el) return;
-    const activeEl = el.querySelector('[aria-selected="true"]') as HTMLElement | null;
-    activeEl?.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'nearest' });
+    const activeEl = el.querySelector(
+      '[aria-selected="true"]',
+    ) as HTMLElement | null;
+    activeEl?.scrollIntoView({
+      behavior: "smooth",
+      block: "nearest",
+      inline: "nearest",
+    });
   }, [activeTabId]);
 
-  const scrollTabs = (dir: 'left' | 'right') => {
-    tabsScrollRef.current?.scrollBy({ left: dir === 'left' ? -200 : 200, behavior: 'smooth' });
+  const scrollTabs = (dir: "left" | "right") => {
+    tabsScrollRef.current?.scrollBy({
+      left: dir === "left" ? -200 : 200,
+      behavior: "smooth",
+    });
   };
 
   const handleCloseRequest = (tab: InvoiceTab) => {
@@ -500,7 +510,7 @@ export function PosTopBar({ onAddProduct }: PosTopBarProps) {
           {/* Nút cuộn trái */}
           {canScrollLeft && (
             <button
-              onClick={() => scrollTabs('left')}
+              onClick={() => scrollTabs("left")}
               className="absolute left-0 bottom-0 z-20 h-full px-1 flex items-center bg-linear-to-r from-primary via-primary/90 to-transparent text-white/60 hover:text-white transition-colors"
             >
               <LeftOutlined className="h-3.5 w-3.5" />
@@ -537,7 +547,7 @@ export function PosTopBar({ onAddProduct }: PosTopBarProps) {
           {/* Nút cuộn phải */}
           {canScrollRight && (
             <button
-              onClick={() => scrollTabs('right')}
+              onClick={() => scrollTabs("right")}
               className="absolute right-0 bottom-0 z-20 h-full px-1 flex items-center bg-linear-to-l from-primary via-primary/90 to-transparent text-white/60 hover:text-white transition-colors"
             >
               <RightOutlined className="h-3.5 w-3.5" />
@@ -547,7 +557,7 @@ export function PosTopBar({ onAddProduct }: PosTopBarProps) {
 
         {/* ── Right: Locale + User menu ───────────────────────────────────── */}
         <div className="flex items-center gap-2 px-3">
-          <ShiftStatusBadge />
+          {/* <ShiftStatusBadge /> */}
           <LocaleSwitcher />
 
           {user && (

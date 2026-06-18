@@ -32,7 +32,7 @@ import {
   SwapOutlined,
   SearchOutlined,
   SafetyCertificateOutlined,
-  ScheduleOutlined,
+  // ScheduleOutlined,
   TagOutlined,
   UserSwitchOutlined,
   TeamOutlined,
@@ -119,7 +119,7 @@ export default function AdminLayout({
       {
         label: t("nav.groupFinance"),
         items: [
-          { href: "/admin/sales-shifts", label: t("nav.salesShifts"), icon: ScheduleOutlined },
+          // { href: "/admin/sales-shifts", label: t("nav.salesShifts"), icon: ScheduleOutlined },
           { href: "/admin/cash-ledger", label: t("nav.cashLedger"), icon: WalletOutlined },
           {
             href: "/admin/reports", label: t("nav.reports"), icon: BarChartOutlined,

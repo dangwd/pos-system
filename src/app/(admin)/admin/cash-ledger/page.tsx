@@ -34,7 +34,15 @@ import {
 import type { ColumnsType } from "antd/es/table/interface";
 import { InputNumber } from "@/components/ui/antd-number-input";
 import dayjs from "dayjs";
-import { FileExcelOutlined, PlusOutlined } from "@ant-design/icons";
+import {
+  CalculatorOutlined,
+  FallOutlined,
+  FileExcelOutlined,
+  PlusOutlined,
+  RiseOutlined,
+  WalletOutlined,
+} from "@ant-design/icons";
+import { StatCard } from "@/components/admin/shared/StatCard";
 import { useTranslations } from "next-intl";
 import { useEffect, useMemo, useState } from "react";
 import { useToast } from "@/lib/toast";
@@ -56,10 +64,6 @@ function getCurrencySymbol(code: string): string {
     LAK: '₭', USD: '$', THB: '฿', CNY: '¥', KRW: '₩', EUR: '€', JPY: '¥', GBP: '£',
   }
   return map[code] ?? code
-}
-
-function formatAmount(n: number, sym: string) {
-  return n.toLocaleString('lo-LA') + ' ' + sym
 }
 
 function formatKip(n: number) {
@@ -228,40 +232,66 @@ function AddEntryDialog({
 
 // ─── Summary strip ────────────────────────────────────────────────────────────
 function SummaryStrip({
-  items,
+  openingBalance,
+  totalIn,
+  totalOut,
+  closingBalance,
+  symbol,
 }: {
-  items: { label: string; valueStr: string; color: string }[];
+  openingBalance: number;
+  totalIn: number;
+  totalOut: number;
+  closingBalance: number;
+  symbol: string;
 }) {
+  const fmt = (n: number) => n.toLocaleString("lo-LA") + " " + symbol;
+  const netChange = totalIn - totalOut;
+
   return (
     <div
       style={{
         display: "grid",
-        gridTemplateColumns: `repeat(${items.length}, 1fr)`,
-        background: "#fff",
-        border: "1px solid #e5e7eb",
-        borderRadius: 8,
-        padding: "14px 20px",
+        gridTemplateColumns: "repeat(4, 1fr)",
+        gap: 12,
         marginBottom: 16,
-        boxShadow: "0 1px 4px rgba(0,0,0,0.07), 0 4px 12px rgba(0,0,0,0.04)",
       }}
     >
-      {items.map(({ label, valueStr, color }, i) => (
-        <div
-          key={label}
-          style={{
-            textAlign: i === 0 ? "left" : "center",
-            padding: "0 16px",
-            borderLeft: i > 0 ? "1px solid #f0f0f0" : "none",
-          }}
-        >
-          <div style={{ fontSize: 12, color: "#6b7280", marginBottom: 4 }}>
-            {label}
-          </div>
-          <div style={{ fontSize: 16, fontWeight: 700, color }}>
-            {valueStr}
-          </div>
-        </div>
-      ))}
+      <StatCard
+        label="Đầu kỳ"
+        value={fmt(openingBalance)}
+        icon={<WalletOutlined />}
+        iconColor="#3b82f6"
+        sub="Số dư mở đầu kỳ"
+      />
+      <StatCard
+        label="Tổng thu"
+        value={"+" + fmt(totalIn)}
+        icon={<RiseOutlined />}
+        iconColor="#22c55e"
+        valueColor="#166534"
+        sub="Tổng thu trong kỳ"
+      />
+      <StatCard
+        label="Tổng chi"
+        value={"−" + fmt(totalOut)}
+        icon={<FallOutlined />}
+        iconColor="#ef4444"
+        valueColor="#991b1b"
+        sub="Tổng chi trong kỳ"
+      />
+      <StatCard
+        label="Cuối kỳ"
+        value={fmt(closingBalance)}
+        icon={<CalculatorOutlined />}
+        iconColor="#6366f1"
+        highlight
+        sub="Tồn quỹ dự kiến"
+        delta={
+          netChange !== 0
+            ? { value: netChange, text: symbol }
+            : undefined
+        }
+      />
     </div>
   );
 }
@@ -411,25 +441,12 @@ export default function CashLedgerPage() {
   const totalCount = activities?.totalCount ?? 0;
 
   const sym = selectedCurrency ? getCurrencySymbol(selectedCurrency) : '₭';
-  const hasNative = !!(selectedCurrency && activities?.totalIn !== undefined);
+  const hasNative = !!(selectedCurrency && activities?.totalInOriginal !== undefined);
 
-  const summaryItems = [
-    {
-      label: t("openingBalance"),
-      valueStr: formatAmount(hasNative ? (activities?.openingBalance ?? 0) : (activities?.openingBalanceLak ?? 0), sym),
-      color: "#111827",
-    },
-    {
-      label: t("totalIn"),
-      valueStr: formatAmount(hasNative ? (activities?.totalIn ?? 0) : (activities?.totalInLak ?? 0), sym),
-      color: "#16A34A",
-    },
-    {
-      label: t("totalOut"),
-      valueStr: formatAmount(hasNative ? (activities?.totalOut ?? 0) : (activities?.totalOutLak ?? 0), sym),
-      color: "#DC2626",
-    },
-  ];
+  const summaryOpening = hasNative ? (activities?.openingBalanceOriginal ?? 0) : (activities?.openingBalanceLak ?? 0);
+  const summaryTotalIn = hasNative ? (activities?.totalInOriginal ?? 0) : (activities?.totalInLak ?? 0);
+  const summaryTotalOut = hasNative ? (activities?.totalOutOriginal ?? 0) : (activities?.totalOutLak ?? 0);
+  const summaryClosing = summaryOpening + summaryTotalIn - summaryTotalOut;
 
   const columns = useMemo(
     (): ColumnsType<ActivityItem> => [
@@ -460,7 +477,7 @@ export default function CashLedgerPage() {
         width: 150,
         align: "right" as const,
         render: (_: unknown, record: ActivityItem) => {
-          const val = record.amount ?? record.amountLak ?? 0;
+          const val = record.originalAmount ?? record.amountLak ?? 0;
           const csym = getCurrencySymbol(record.currency);
           return (
             <span style={{
@@ -567,7 +584,13 @@ export default function CashLedgerPage() {
           </div>
 
           {/* ── Summary ── */}
-          <SummaryStrip items={summaryItems} />
+          <SummaryStrip
+            openingBalance={summaryOpening}
+            totalIn={summaryTotalIn}
+            totalOut={summaryTotalOut}
+            closingBalance={summaryClosing}
+            symbol={sym}
+          />
 
           {/* ── Currency tabs ── */}
           <CurrencyTabs
