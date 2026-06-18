@@ -12,7 +12,7 @@
 
 import api from '@/lib/axios'
 import { handleAxiosError } from '@/lib/api-error'
-import { normalizePaged, type RawPagedResult } from '@/types/common'
+import type { PagedResult } from '@/types/common'
 import type {
   ActiveShiftResponse,
   CloseShiftRequest,
@@ -22,6 +22,18 @@ import type {
   SalesShiftListParams,
   ShiftTransactionItem,
 } from '@/types/sales-shift'
+
+/** Dạng response phân trang thực tế từ backend (items + totalCount) */
+interface RawItemsResult<T> {
+  items: T[]
+  totalCount: number
+  page: number
+  pageSize: number
+}
+
+function toPagedResult<T>(raw: RawItemsResult<T>): PagedResult<T> {
+  return { data: raw.items, total: raw.totalCount, page: raw.page, pageSize: raw.pageSize }
+}
 
 export class SalesShiftRepository {
   private readonly base = '/api/sales-shifts'
@@ -57,11 +69,11 @@ export class SalesShiftRepository {
   }
 
   /** Danh sách ca (yêu cầu permission SALES_SHIFT_MANAGE) */
-  async getList(params?: SalesShiftListParams) {
+  async getList(params?: SalesShiftListParams): Promise<PagedResult<SalesShiftListItem>> {
     try {
       const queryParams = { page: 1, pageSize: 20, ...params }
-      const { data } = await api.get<RawPagedResult<SalesShiftListItem>>(this.base, { params: queryParams })
-      return normalizePaged(data)
+      const { data } = await api.get<RawItemsResult<SalesShiftListItem>>(this.base, { params: queryParams })
+      return toPagedResult(data)
     } catch (err) {
       throw handleAxiosError(err)
     }
@@ -78,14 +90,14 @@ export class SalesShiftRepository {
   }
 
   /** Danh sách GD trong ca (yêu cầu permission SALES_SHIFT_MANAGE) */
-  async getTransactions(id: string, params?: { q?: string; page?: number; pageSize?: number }) {
+  async getTransactions(id: string, params?: { q?: string; page?: number; pageSize?: number }): Promise<PagedResult<ShiftTransactionItem>> {
     try {
       const queryParams = { page: 1, pageSize: 20, ...params }
-      const { data } = await api.get<RawPagedResult<ShiftTransactionItem>>(
+      const { data } = await api.get<RawItemsResult<ShiftTransactionItem>>(
         `${this.base}/${id}/transactions`,
         { params: queryParams },
       )
-      return normalizePaged(data)
+      return toPagedResult(data)
     } catch (err) {
       throw handleAxiosError(err)
     }
