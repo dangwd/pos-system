@@ -205,37 +205,36 @@ export interface StockMovementParams {
   toDate: string;
 }
 
-// ─── Báo cáo doanh thu (GET /api/reports/revenue) ─────────────────────────────
+// ─── Báo cáo doanh thu (GET /api/revenue/report) ──────────────────────────────
+// Mọi giá trị tiền tệ là KIP nguyên. FE quy đổi sang tiền tệ hiển thị (client-side).
 
-export type RevenuePeriod = 'week' | 'month' | 'year'
+export interface RevenueSummary {
+  sellTotal: number       // tổng doanh thu bán ra (KIP)
+  buyTotal: number        // tổng chi phí mua vào (KIP)
+  exchangeTotal: number   // tổng doanh thu đổi hàng + đổi ngoại tệ (KIP)
+  invoiceCount: number    // số hóa đơn
+  tradeCount: number      // số giao dịch trade
+}
 
-export interface RevenueBreakdownRow {
-  label: string             // ngày (week/month) hoặc tháng (year)
-  doanhThuBan: number
-  chiPhiMua: number
-  doanhThuDoi: number
-  laiGop: number
-  soHoaDon: number
-  soGiaoDichTrade: number
+export interface RevenueByDateRow {
+  date: string            // "yyyy-mm-dd"
+  sellTotal: number
+  buyTotal: number
+  exchangeTotal: number
+  invoiceCount: number
+  tradeCount: number
 }
 
 export interface RevenueReport {
-  periodLabel: string       // "Tháng 6/2026" | "09/06 - 15/06/2026" | "Năm 2026"
-  from: string
-  to: string
-  totalDoanhThuBan: number
-  totalChiPhiMua: number
-  totalDoanhThuDoi: number
-  totalLaiGop: number
-  totalHoaDon: number
-  totalGiaoDichTrade: number
-  breakdown: RevenueBreakdownRow[]
+  summary: RevenueSummary
+  byDate: RevenueByDateRow[]
 }
 
 export interface RevenueReportParams {
-  branchId: string          // bắt buộc
-  period?: RevenuePeriod    // default: month
-  date?: string             // ngày bất kỳ trong kỳ — default: hôm nay
+  fromDate: string          // YYYY-MM-DD
+  toDate: string            // YYYY-MM-DD
+  branchId?: string
+  counterId?: string
 }
 
 // ─── Báo cáo đổi ngoại tệ (GET /api/reports/currency-exchange) ────────────────

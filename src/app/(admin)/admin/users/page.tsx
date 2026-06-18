@@ -8,13 +8,10 @@ import { Table, Button, Input, Select, Card } from 'antd'
 import { PlusOutlined } from '@ant-design/icons'
 import { createUserColumns } from '@/components/admin/columns/user-columns'
 import { UserCreateDialog } from '@/components/admin/users/UserCreateDialog'
-import { UserEditInfoDialog } from '@/components/admin/users/UserEditInfoDialog'
-import { UserEditRoleDialog } from '@/components/admin/users/UserEditRoleDialog'
 import { UserResetPasswordDialog } from '@/components/admin/users/UserResetPasswordDialog'
-import { UserAssignCounterDialog } from '@/components/admin/users/UserAssignCounterDialog'
 import { UserExpandedRow } from '@/components/admin/users/UserExpandedRow'
-import { useUsersPaged, useActivateUser, useDeactivateUser } from '@/hooks/useUsers'
-import { useBranches } from '@/hooks/useBranches'
+import { useUsersPaged, useActivateUser, useDeactivateUser, useRoles } from '@/hooks/useUsers'
+import { useBranches, useCounters } from '@/hooks/useBranches'
 import type { AdminUser } from '@/types/admin-user'
 
 const PAGE_SIZE = 20
@@ -36,18 +33,19 @@ export default function UsersPage() {
   const t = useTranslations('admin.users')
 
   const [createOpen,          setCreateOpen]          = useState(false)
-  const [editInfoUser,        setEditInfoUser]        = useState<AdminUser | null>(null)
-  const [editRoleUser,        setEditRoleUser]        = useState<AdminUser | null>(null)
   const [resetPwUser,         setResetPwUser]         = useState<AdminUser | null>(null)
-  const [assignCounterUser,   setAssignCounterUser]   = useState<AdminUser | null>(null)
   const [expandedKeys,        setExpandedKeys]        = useState<string[]>([])
 
   const [keyword,         setKeyword]         = useState('')
   const [filterBranchId,  setFilterBranchId]  = useState<string | null>(null)
+  const [filterCounterId, setFilterCounterId] = useState<string | null>(null)
+  const [filterRoleId,    setFilterRoleId]    = useState<string | null>(null)
   const [filterIsActive,  setFilterIsActive]  = useState<string | null>(null)
   const [page,            setPage]            = useState(1)
 
   const { data: branches = [] } = useBranches()
+  const { data: roles = [] }    = useRoles()
+  const { data: counters = [] } = useCounters(filterBranchId)
   const branchMap = useMemo(
     () => Object.fromEntries(branches.map(b => [b.id, b.name])),
     [branches],
@@ -55,6 +53,8 @@ export default function UsersPage() {
 
   const { data, isLoading } = useUsersPaged({
     branchId:  filterBranchId ?? undefined,
+    counterId: filterCounterId ?? undefined,
+    roleId:    filterRoleId ?? undefined,
     search:    keyword || undefined,
     isActive:  filterIsActive !== null ? (filterIsActive === 'active') : undefined,
     page,
@@ -99,7 +99,14 @@ export default function UsersPage() {
             {t('subtitle', { count: data?.total ?? 0 })}
           </p>
         </div>
-        <div style={{ display: 'flex', gap: 8 }}>
+        <Button type="primary" icon={<PlusOutlined />} onClick={() => setCreateOpen(true)}>
+          {t('addButton')}
+        </Button>
+      </div>
+
+      {/* ── Bảng ── */}
+      <Card style={CARD_STYLE} styles={{ body: { padding: 0, overflow: 'hidden' } }}>
+        <div style={FILTER_STYLE}>
           <Input.Search
             placeholder={t('searchPlaceholder')}
             allowClear
@@ -107,15 +114,6 @@ export default function UsersPage() {
             onSearch={v => { setKeyword(v); setPage(1) }}
             onChange={e => { if (!e.target.value) { setKeyword(''); setPage(1) } }}
           />
-          <Button type="primary" icon={<PlusOutlined />} onClick={() => setCreateOpen(true)}>
-            {t('addButton')}
-          </Button>
-        </div>
-      </div>
-
-      {/* ── Bảng ── */}
-      <Card style={CARD_STYLE} styles={{ body: { padding: 0, overflow: 'hidden' } }}>
-        <div style={FILTER_STYLE}>
           <Select
             allowClear
             placeholder={t('filterAll')}
@@ -123,7 +121,26 @@ export default function UsersPage() {
             options={branches.map(b => ({ value: b.id, label: b.name }))}
             value={filterBranchId || undefined}
             popupMatchSelectWidth={false}
-            onChange={v => { setFilterBranchId(v ?? null); setPage(1) }}
+            onChange={v => { setFilterBranchId(v ?? null); setFilterCounterId(null); setPage(1) }}
+          />
+          <Select
+            allowClear
+            placeholder={filterBranchId ? t('filterAllCounter') : t('filterCounterHint')}
+            style={{ width: 180 }}
+            disabled={!filterBranchId}
+            options={counters.filter(c => c.isActive).map(c => ({ value: c.id, label: c.counterName }))}
+            value={filterCounterId || undefined}
+            popupMatchSelectWidth={false}
+            onChange={v => { setFilterCounterId(v ?? null); setPage(1) }}
+          />
+          <Select
+            allowClear
+            placeholder={t('filterAllRole')}
+            style={{ width: 180 }}
+            options={roles.map(r => ({ value: r.id, label: r.name }))}
+            value={filterRoleId || undefined}
+            popupMatchSelectWidth={false}
+            onChange={v => { setFilterRoleId(v ?? null); setPage(1) }}
           />
           <Select
             allowClear
@@ -161,10 +178,7 @@ export default function UsersPage() {
               <UserExpandedRow
                 user={record}
                 branchMap={branchMap}
-                onEditInfo={setEditInfoUser}
-                onEditRole={setEditRoleUser}
                 onResetPassword={setResetPwUser}
-                onAssignCounter={setAssignCounterUser}
                 onActivate={(u) => activate(u.id)}
                 onDeactivate={(u) => deactivate(u.id)}
               />
@@ -189,10 +203,7 @@ export default function UsersPage() {
       `}</style>
 
       <UserCreateDialog          open={createOpen}              onClose={() => setCreateOpen(false)} />
-      <UserEditInfoDialog        user={editInfoUser}            onClose={() => setEditInfoUser(null)} />
-      <UserEditRoleDialog        user={editRoleUser}            onClose={() => setEditRoleUser(null)} />
       <UserResetPasswordDialog   user={resetPwUser}             onClose={() => setResetPwUser(null)} />
-      <UserAssignCounterDialog   user={assignCounterUser}       onClose={() => setAssignCounterUser(null)} />
     </div>
   )
 }

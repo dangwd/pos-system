@@ -82,10 +82,15 @@ export function useStockMovements(params: StockMovementParams, enabled = true) {
 
 export function useRevenueReport(params: RevenueReportParams, enabled = true) {
   return useQuery({
-    queryKey: ['reports', 'revenue', params.branchId, params.period ?? 'month', params.date ?? null],
+    queryKey: [
+      'reports', 'revenue',
+      params.fromDate, params.toDate,
+      params.branchId ?? null, params.counterId ?? null,
+    ],
     queryFn: () => reportsRepository.getRevenue(params),
     staleTime: 60_000,
-    enabled: enabled && !!params.branchId,
+    enabled: enabled && !!params.fromDate && !!params.toDate,
+    placeholderData: keepPreviousData,
   })
 }
 

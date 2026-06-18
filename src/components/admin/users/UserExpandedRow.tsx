@@ -1,25 +1,22 @@
 'use client'
 
+import { useState } from 'react'
 import { useTranslations } from 'next-intl'
 import { Button } from 'antd'
 import {
   EditOutlined,
-  SwapOutlined,
   LockOutlined,
-  AppstoreAddOutlined,
   CheckCircleOutlined,
   StopOutlined,
 } from '@ant-design/icons'
 import { Badge } from '@/components/ui/badge'
+import { UserInlineEditForm } from './UserInlineEditForm'
 import type { AdminUser } from '@/types/admin-user'
 
 interface Props {
   user: AdminUser
   branchMap: Record<string, string>
-  onEditInfo:       (user: AdminUser) => void
-  onEditRole:       (user: AdminUser) => void
   onResetPassword:  (user: AdminUser) => void
-  onAssignCounter:  (user: AdminUser) => void
   onActivate:       (user: AdminUser) => void
   onDeactivate:     (user: AdminUser) => void
 }
@@ -41,23 +38,25 @@ function Field({ label, value }: { label: string; value?: React.ReactNode }) {
 export function UserExpandedRow({
   user,
   branchMap,
-  onEditInfo,
-  onEditRole,
   onResetPassword,
-  onAssignCounter,
   onActivate,
   onDeactivate,
 }: Props) {
   const t  = useTranslations('admin.users')
   const tc = useTranslations('admin.users.columns')
+  const [editing, setEditing] = useState(false)
 
-  const roleCode = typeof user.role === 'object' && user.role !== null
-    ? user.role.code
-    : (user.role as string)
-  const roleName = typeof user.role === 'object' && user.role !== null && user.role.name
-    ? user.role.name
-    : roleCode
+  if (editing) {
+    return (
+      <UserInlineEditForm
+        user={user}
+        onCancel={() => setEditing(false)}
+        onSaved={() => setEditing(false)}
+      />
+    )
+  }
 
+  const roleName = user.role?.name || user.role?.code
   const branchName = branchMap[user.branchId] ?? user.branchId
 
   return (
@@ -104,17 +103,11 @@ export function UserExpandedRow({
         display: 'flex', gap: 8, flexWrap: 'wrap', alignItems: 'center',
         padding: '12px 0', borderTop: '1px solid #e5e7eb',
       }}>
-        <Button size="small" icon={<EditOutlined />}        onClick={() => onEditInfo(user)}>
+        <Button size="small" icon={<EditOutlined />} onClick={() => setEditing(true)}>
           {tc('editInfo')}
         </Button>
-        <Button size="small" icon={<SwapOutlined />}        onClick={() => onEditRole(user)}>
-          {tc('editRole')}
-        </Button>
-        <Button size="small" icon={<LockOutlined />}        onClick={() => onResetPassword(user)}>
+        <Button size="small" icon={<LockOutlined />} onClick={() => onResetPassword(user)}>
           {tc('resetPassword')}
-        </Button>
-        <Button size="small" icon={<AppstoreAddOutlined />} onClick={() => onAssignCounter(user)}>
-          {tc('assignCounter')}
         </Button>
 
         <div style={{ width: 1, height: 20, background: '#e5e7eb', margin: '0 4px' }} />

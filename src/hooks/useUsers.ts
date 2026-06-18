@@ -2,6 +2,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useLocale, useTranslations } from 'next-intl'
 import { useToast } from '@/lib/toast'
 import { userRepository, type UserListParams } from '@/lib/repositories/user.repository'
+import { rolesRepository } from '@/lib/repositories/roles.repository'
 import { getErrorMessage } from '@/lib/errors'
 import type { AppLocale } from '@/lib/errors'
 import type { ApiError } from '@/lib/api-error'
@@ -49,6 +50,14 @@ export function useUser(id: string) {
     queryFn: () => userRepository.getById(id),
     staleTime: 60_000,
     enabled: !!id,
+  })
+}
+
+export function useRoles() {
+  return useQuery({
+    queryKey: ['roles'],
+    queryFn: () => rolesRepository.getList(),
+    staleTime: 300_000,
   })
 }
 

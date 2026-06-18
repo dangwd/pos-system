@@ -13,6 +13,8 @@ import type {
 
 export interface UserListParams {
   branchId?: string
+  counterId?: string
+  roleId?: string
   search?: string
   isActive?: boolean
   page?: number

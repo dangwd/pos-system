@@ -2,141 +2,154 @@
 
 import { useState } from 'react'
 import { useTranslations } from 'next-intl'
-import { Select, Segmented, DatePicker } from 'antd'
-import dayjs from 'dayjs'
-import {
-  ComposedChart, Bar, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer,
-} from 'recharts'
+import { Select, Button } from 'antd'
+import { DownloadOutlined, CloseOutlined } from '@ant-design/icons'
 import { usePermission } from '@/hooks/usePermission'
 import { ForbiddenPage } from '@/components/shared/ForbiddenPage'
-import { DataTable } from '@/components/shared/DataTable'
 import { TablePageSkeleton } from '@/components/shared/PageSkeleton'
-import { StatCard, Panel, EmptyHint, formatKip, formatNum, compactKip } from '@/components/admin/reports/report-ui'
-import { useBranches } from '@/hooks/useBranches'
+import { EmptyHint } from '@/components/admin/reports/report-ui'
+import { RevenueStatCards } from '@/components/admin/reports/revenue/RevenueStatCards'
+import { RevenueCharts } from '@/components/admin/reports/revenue/RevenueCharts'
+import { RevenueTable } from '@/components/admin/reports/revenue/RevenueTable'
+import { FILTER_DIVIDER, todayIso } from '@/components/admin/reports/revenue/revenue-theme'
+import { useBranches, useCounters } from '@/hooks/useBranches'
 import { useRevenueReport } from '@/hooks/useReports'
-import { useAuthStore } from '@/stores/auth.store'
-import type { TableColumnsType } from 'antd'
-import type { RevenuePeriod, RevenueBreakdownRow } from '@/types/report'
+import { reportsRepository } from '@/lib/repositories/reports.repository'
+import { useToast } from '@/lib/toast'
+import { CURRENCY_CODES, CURRENCIES, type CurrencyCode } from '@/lib/currency'
 
-function todayIso() {
-  return new Date().toISOString().slice(0, 10)
+function Labeled({ label, children }: { label: string; children: React.ReactNode }) {
+  return (
+    <div className="flex flex-col gap-1">
+      <span className="text-[10px] font-medium uppercase tracking-wide text-muted-foreground">{label}</span>
+      {children}
+    </div>
+  )
 }
 
-const SERIES = { ban: '#22c55e', mua: '#ef4444', doi: '#f59e0b', lai: '#6366f1' }
+const dateInputCls =
+  'h-8 rounded-md border border-[var(--border)] bg-card px-2 text-sm outline-none focus:border-primary'
 
 export default function RevenueReportPage() {
   const { hasPermission } = usePermission()
   const t = useTranslations('admin.reports.revenue')
-  const user = useAuthStore(s => s.user)
+  const toast = useToast()
 
   const [branchId, setBranchId] = useState<string | null>(null)
-  const [period, setPeriod] = useState<RevenuePeriod>('month')
-  const [date, setDate] = useState(todayIso())
+  const [counterId, setCounterId] = useState<string | null>(null)
+  const [fromDate, setFromDate] = useState(todayIso())
+  const [toDate, setToDate] = useState(todayIso())
+  const [currency, setCurrency] = useState<CurrencyCode>('KIP')
+  const [exporting, setExporting] = useState(false)
 
   const { data: branches = [] } = useBranches()
-  const effectiveBranchId = branchId ?? user?.branchId ?? branches[0]?.id ?? null
+  const { data: counters = [] } = useCounters(branchId)
 
-  const { data, isLoading } = useRevenueReport(
-    { branchId: effectiveBranchId ?? '', period, date },
-    !!effectiveBranchId,
-  )
+  // Đổi chi nhánh → reset quầy (cùng lúc, tránh setState trong effect)
+  function changeBranch(v: string | null) {
+    setBranchId(v)
+    setCounterId(null)
+  }
 
-  const pickerMode = period === 'year' ? 'year' : period === 'month' ? 'month' : 'date'
-  const dateFormat = period === 'year' ? 'YYYY' : period === 'month' ? 'MM/YYYY' : 'DD/MM/YYYY'
+  const params = {
+    fromDate, toDate,
+    branchId: branchId ?? undefined,
+    counterId: counterId ?? undefined,
+  }
+  const { data, isLoading, isFetching } = useRevenueReport(params)
 
-  const columns: TableColumnsType<RevenueBreakdownRow> = [
-    { title: t('colLabel'), dataIndex: 'label', key: 'label', render: (v: string) => <span className="font-medium">{v}</span> },
-    { title: t('colDoanhThuBan'), dataIndex: 'doanhThuBan', key: 'doanhThuBan', align: 'right', render: (v: number) => formatKip(v) },
-    { title: t('colChiPhiMua'), dataIndex: 'chiPhiMua', key: 'chiPhiMua', align: 'right', render: (v: number) => formatKip(v) },
-    { title: t('colDoanhThuDoi'), dataIndex: 'doanhThuDoi', key: 'doanhThuDoi', align: 'right', render: (v: number) => formatKip(v) },
-    { title: t('colLaiGop'), dataIndex: 'laiGop', key: 'laiGop', align: 'right', render: (v: number) => <b className="tabular-nums">{formatKip(v)}</b> },
-    { title: t('colSoHoaDon'), dataIndex: 'soHoaDon', key: 'soHoaDon', align: 'right', render: (v: number) => formatNum(v) },
-    { title: t('colSoGiaoDichTrade'), dataIndex: 'soGiaoDichTrade', key: 'soGiaoDichTrade', align: 'right', render: (v: number) => formatNum(v) },
-  ]
+  const hasFilter = !!(branchId || counterId || fromDate !== todayIso() || toDate !== todayIso())
+  function clearAll() {
+    setBranchId(null); setCounterId(null)
+    setFromDate(todayIso()); setToDate(todayIso())
+    setCurrency('KIP')
+  }
+
+  async function handleExport() {
+    setExporting(true)
+    try {
+      await reportsRepository.exportRevenue(params)
+    } catch {
+      toast.error(t('exportError'))
+    } finally {
+      setExporting(false)
+    }
+  }
 
   if (!hasPermission('REPORT_DASHBOARD')) return <ForbiddenPage />
 
   return (
     <div className="p-6 space-y-5">
-      <div>
-        <h1 className="text-2xl font-bold">{t('title')}</h1>
-        <p className="text-sm text-muted-foreground">
-          {data ? `${data.periodLabel}` : t('subtitle')}
-        </p>
+      {/* Header */}
+      <div className="flex items-start justify-between gap-4">
+        <h1 className="text-[22px] font-medium">{t('title')}</h1>
+        <Button icon={<DownloadOutlined />} onClick={handleExport} loading={exporting}>
+          {t('export')}
+        </Button>
       </div>
 
       {/* Filters */}
-      <div className="flex flex-wrap items-center gap-2">
-        <Select
-          showSearch optionFilterProp="label"
-          placeholder={t('filterBranch')} style={{ width: 200 }}
-          options={branches.map(b => ({ value: b.id, label: b.name }))}
-          value={effectiveBranchId} onChange={v => setBranchId(v)}
-        />
-        <Segmented<RevenuePeriod>
-          value={period}
-          onChange={v => setPeriod(v)}
-          options={[
-            { label: t('periodWeek'), value: 'week' },
-            { label: t('periodMonth'), value: 'month' },
-            { label: t('periodYear'), value: 'year' },
-          ]}
-        />
-        <DatePicker
-          picker={pickerMode}
-          value={date ? dayjs(date) : null}
-          onChange={d => setDate(d ? d.format('YYYY-MM-DD') : todayIso())}
-          format={dateFormat}
-          allowClear={false}
-          className="h-8"
-        />
+      <div className="flex flex-wrap items-end gap-3">
+        <Labeled label={t('filterBranch')}>
+          <Select
+            allowClear showSearch optionFilterProp="label"
+            placeholder={t('allBranches')} style={{ width: 180 }} className="h-8"
+            options={branches.map((b) => ({ value: b.id, label: b.name }))}
+            value={branchId} onChange={(v) => changeBranch(v ?? null)}
+          />
+        </Labeled>
+        <Labeled label={t('filterCounter')}>
+          <Select
+            allowClear showSearch optionFilterProp="label" disabled={!branchId}
+            placeholder={t('allCounters')} style={{ width: 160 }} className="h-8"
+            options={counters.map((c) => ({ value: c.id, label: c.counterName }))}
+            value={counterId} onChange={(v) => setCounterId(v ?? null)}
+          />
+        </Labeled>
+        <Labeled label={t('filterFrom')}>
+          <input type="date" className={dateInputCls} value={fromDate}
+            max={toDate} onChange={(e) => setFromDate(e.target.value || todayIso())} />
+        </Labeled>
+        <Labeled label={t('filterTo')}>
+          <input type="date" className={dateInputCls} value={toDate}
+            min={fromDate} onChange={(e) => setToDate(e.target.value || todayIso())} />
+        </Labeled>
+
+        <div style={{ width: 1, height: 36, background: FILTER_DIVIDER }} />
+
+        <Labeled label={t('filterCurrency')}>
+          <Select<CurrencyCode>
+            style={{ width: 160 }} className="h-8 rev-currency-select"
+            value={currency} onChange={setCurrency}
+            options={CURRENCY_CODES.map((c) => ({ value: c, label: `${t(`currency.${c}`)} (${CURRENCIES[c].sym})` }))}
+          />
+        </Labeled>
+
+        {hasFilter && (
+          <Button className="ml-auto" icon={<CloseOutlined />} onClick={clearAll}>
+            {t('clearFilters')}
+          </Button>
+        )}
       </div>
 
-      {!effectiveBranchId ? (
-        <EmptyHint>{t('noBranch')}</EmptyHint>
-      ) : isLoading ? (
-        <div className="space-y-4">
-          <div className="grid gap-4 sm:grid-cols-3"><TablePageSkeleton cols={3} rows={2} /></div>
-        </div>
+      {isLoading ? (
+        <TablePageSkeleton cols={6} rows={6} />
       ) : !data ? (
-        <EmptyHint>—</EmptyHint>
+        <EmptyHint>{t('empty')}</EmptyHint>
       ) : (
         <div className="space-y-4">
-          {/* Summary */}
-          <div className="grid gap-4 sm:grid-cols-3">
-            <StatCard label={t('totalDoanhThuBan')} value={formatKip(data.totalDoanhThuBan)} />
-            <StatCard label={t('totalChiPhiMua')} value={formatKip(data.totalChiPhiMua)} />
-            <StatCard label={t('totalDoanhThuDoi')} value={formatKip(data.totalDoanhThuDoi)} />
-            <StatCard label={t('totalLaiGop')} value={formatKip(data.totalLaiGop)} sub={t('laiGopNote')} />
-            <StatCard label={t('totalHoaDon')} value={formatNum(data.totalHoaDon)} />
-            <StatCard label={t('totalGiaoDichTrade')} value={formatNum(data.totalGiaoDichTrade)} />
-          </div>
-
-          {/* Chart */}
-          <Panel title={t('chartTitle')}>
-            {data.breakdown.length === 0 ? <EmptyHint>—</EmptyHint> : (
-              <ResponsiveContainer width="100%" height={300}>
-                <ComposedChart data={data.breakdown} margin={{ top: 8, right: 8, left: 0, bottom: 0 }}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" />
-                  <XAxis dataKey="label" tick={{ fontSize: 11 }} />
-                  <YAxis tickFormatter={compactKip} tick={{ fontSize: 11 }} />
-                  <Tooltip formatter={(v) => formatKip(Number(v))} contentStyle={{ fontSize: 12, borderRadius: 8 }} />
-                  <Legend wrapperStyle={{ fontSize: 11 }} />
-                  <Bar name={t('colDoanhThuBan')} dataKey="doanhThuBan" fill={SERIES.ban} radius={[3, 3, 0, 0]} maxBarSize={28} />
-                  <Bar name={t('colChiPhiMua')} dataKey="chiPhiMua" fill={SERIES.mua} radius={[3, 3, 0, 0]} maxBarSize={28} />
-                  <Bar name={t('colDoanhThuDoi')} dataKey="doanhThuDoi" fill={SERIES.doi} radius={[3, 3, 0, 0]} maxBarSize={28} />
-                  <Line name={t('colLaiGop')} type="monotone" dataKey="laiGop" stroke={SERIES.lai} strokeWidth={2} dot={{ r: 3 }} />
-                </ComposedChart>
-              </ResponsiveContainer>
-            )}
-          </Panel>
-
-          {/* Table */}
-          <Panel title={t('tableTitle')}>
-            <DataTable columns={columns} data={data.breakdown} rowKey="label" hideSearch maxHeight={false} pageSize={50} />
-          </Panel>
+          <RevenueStatCards summary={data.summary} currency={currency} />
+          <RevenueCharts byDate={data.byDate} summary={data.summary} currency={currency} fromDate={fromDate} toDate={toDate} />
+          <RevenueTable byDate={data.byDate} summary={data.summary} currency={currency} loading={isFetching} />
         </div>
       )}
+
+      <style>{`
+        .rev-currency-select.ant-select-focused .ant-select-selector {
+          border-color: #B8860B !important;
+          box-shadow: 0 0 0 2px rgba(184,134,11,.15) !important;
+        }
+      `}</style>
     </div>
   )
 }

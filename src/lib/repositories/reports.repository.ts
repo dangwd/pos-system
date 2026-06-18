@@ -56,8 +56,23 @@ export class ReportsRepository {
   }
 
   async getRevenue(params: RevenueReportParams): Promise<RevenueReport> {
-    const { data } = await api.get<RevenueReport>('/api/reports/revenue', { params })
+    const { data } = await api.get<RevenueReport>('/api/revenue/report', { params })
     return data
+  }
+
+  async exportRevenue(params: RevenueReportParams): Promise<void> {
+    const response = await api.get('/api/revenue/report/export', { params, responseType: 'blob' })
+    const blob = new Blob([response.data], {
+      type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+    })
+    const url = URL.createObjectURL(blob)
+    const a = document.createElement('a')
+    a.href = url
+    a.download = `bao-cao-doanh-thu-${params.fromDate}_${params.toDate}.xlsx`
+    document.body.appendChild(a)
+    a.click()
+    document.body.removeChild(a)
+    URL.revokeObjectURL(url)
   }
 
   async getCurrencyExchange(params?: CurrencyExchangeReportParams): Promise<CurrencyExchangeReport> {
