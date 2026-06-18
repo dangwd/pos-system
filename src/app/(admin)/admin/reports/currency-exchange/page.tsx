@@ -2,7 +2,8 @@
 
 import { useState } from 'react'
 import { useTranslations } from 'next-intl'
-import { Select, DatePicker, Table } from 'antd'
+import { Select, DatePicker, Table, Button } from 'antd'
+import { CloseOutlined } from '@ant-design/icons'
 import dayjs from 'dayjs'
 import { usePermission } from '@/hooks/usePermission'
 import { ForbiddenPage } from '@/components/shared/ForbiddenPage'
@@ -13,6 +14,15 @@ import { useBranches, useCounters } from '@/hooks/useBranches'
 import { useCurrencyExchangeReport } from '@/hooks/useReports'
 import type { TableColumnsType } from 'antd'
 import type { CurrencyExchangeBalanceRow, CurrencyExchangeTx } from '@/types/report'
+
+// Màu nhóm cột (đồng bộ với bảng tồn kho theo kỳ)
+const GRP = {
+  open:   { background: '#E6F1FB', color: '#0C447C' },
+  change: { background: '#F1EFE8', color: '#444441' },
+  close:  { background: '#EAF3DE', color: '#27500A' },
+}
+const SEP = '1.5px solid var(--border)'
+const sepCell = () => ({ style: { borderLeft: SEP } })
 
 function todayIso() {
   return new Date().toISOString().slice(0, 10)
@@ -33,14 +43,15 @@ export default function CurrencyExchangeReportPage() {
   const [from, setFrom] = useState(yesterdayIso())
   const [to, setTo] = useState(todayIso())
   const [page, setPage] = useState(1)
+  const [selectedCurrency, setSelectedCurrency] = useState<string | null>(null)
   const PAGE_SIZE = 20
 
   const { data: branches = [] } = useBranches()
   const { data: counters = [] } = useCounters(branchId)
 
-  // Reset trang khi filter đổi
-  const [prevFilters, setPrevFilters] = useState({ from, to, branchId, counterId })
-  const curFilters = { from, to, branchId, counterId }
+  // Reset trang khi filter (kể cả loại tiền) đổi
+  const [prevFilters, setPrevFilters] = useState({ from, to, branchId, counterId, selectedCurrency })
+  const curFilters = { from, to, branchId, counterId, selectedCurrency }
   if (JSON.stringify(curFilters) !== JSON.stringify(prevFilters)) {
     setPrevFilters(curFilters)
     setPage(1)
@@ -51,6 +62,7 @@ export default function CurrencyExchangeReportPage() {
     to: to + 'T23:59:59Z',
     branchId: branchId ?? undefined,
     counterId: counterId ?? undefined,
+    currency: selectedCurrency ?? undefined,
     page,
     pageSize: PAGE_SIZE,
   })
@@ -67,35 +79,52 @@ export default function CurrencyExchangeReportPage() {
       dataIndex: 'openingBalance',
       key: 'openingBalance',
       align: 'right',
+      width: 240,
+      onHeaderCell: () => ({ style: { ...GRP.open, borderLeft: SEP } }),
+      onCell: sepCell,
       render: (v: number) => <span className="tabular-nums">{formatNum(v)}</span>,
     },
     {
-      title: t('colTotalIn'),
-      dataIndex: 'totalIn',
-      key: 'totalIn',
-      align: 'right',
-      render: (v: number) => (
-        v === 0
-          ? <span className="text-muted-foreground">–</span>
-          : <span className="tabular-nums text-green-600">+{formatNum(v)}</span>
-      ),
-    },
-    {
-      title: t('colTotalOut'),
-      dataIndex: 'totalOut',
-      key: 'totalOut',
-      align: 'right',
-      render: (v: number) => (
-        v === 0
-          ? <span className="text-muted-foreground">–</span>
-          : <span className="tabular-nums text-destructive">−{formatNum(v)}</span>
-      ),
+      title: t('colInPeriod'),
+      align: 'center',
+      onHeaderCell: () => ({ style: { ...GRP.change, borderLeft: SEP } }),
+      children: [
+        {
+          title: t('colTotalIn'),
+          dataIndex: 'totalIn',
+          key: 'totalIn',
+          align: 'right',
+          width: 200,
+          onCell: sepCell,
+          onHeaderCell: sepCell,
+          render: (v: number) => (
+            v === 0
+              ? <span className="text-muted-foreground">–</span>
+              : <span className="tabular-nums text-green-600">+{formatNum(v)}</span>
+          ),
+        },
+        {
+          title: t('colTotalOut'),
+          dataIndex: 'totalOut',
+          key: 'totalOut',
+          align: 'right',
+          width: 200,
+          render: (v: number) => (
+            v === 0
+              ? <span className="text-muted-foreground">–</span>
+              : <span className="tabular-nums text-destructive">−{formatNum(v)}</span>
+          ),
+        },
+      ],
     },
     {
       title: t('colClosing'),
       dataIndex: 'closingBalance',
       key: 'closingBalance',
       align: 'right',
+      width: 240,
+      onHeaderCell: () => ({ style: { ...GRP.close, borderLeft: SEP } }),
+      onCell: sepCell,
       render: (v: number) => <b className="tabular-nums">{formatNum(v)}</b>,
     },
   ]
@@ -229,24 +258,42 @@ export default function CurrencyExchangeReportPage() {
         <EmptyHint>—</EmptyHint>
       ) : (
         <div className="space-y-5">
-          {/* Bảng tồn quỹ */}
+          {/* Bảng tồn quỹ — click 1 dòng để lọc GD theo loại tiền */}
           <Panel title={t('balanceTitle')}>
             {data.balanceSummary.length === 0 ? (
               <EmptyHint>—</EmptyHint>
             ) : (
               <Table
+                className="cx-balance-table"
                 columns={balanceColumns}
                 dataSource={data.balanceSummary}
                 rowKey="currencyCode"
                 pagination={false}
                 size="small"
+                bordered
                 scroll={{ x: 'max-content' }}
+                rowClassName={(r) =>
+                  `cursor-pointer ${r.currencyCode === selectedCurrency ? 'cx-row-selected' : ''}`
+                }
+                onRow={(r) => ({
+                  onClick: () =>
+                    setSelectedCurrency((cur) => (cur === r.currencyCode ? null : r.currencyCode)),
+                })}
               />
             )}
           </Panel>
 
           {/* Danh sách giao dịch */}
-          <Panel title={`${t('txTitle')} (${data.totalTransactions})`}>
+          <Panel
+            title={`${t('txTitle')}${selectedCurrency ? ` — ${selectedCurrency}` : ''} (${data.totalTransactions})`}
+            action={
+              selectedCurrency && (
+                <Button size="small" icon={<CloseOutlined />} onClick={() => setSelectedCurrency(null)}>
+                  {t('clearFilter')}
+                </Button>
+              )
+            }
+          >
             {data.transactions.data.length === 0 ? (
               <EmptyHint>—</EmptyHint>
             ) : (
@@ -268,6 +315,12 @@ export default function CurrencyExchangeReportPage() {
           </Panel>
         </div>
       )}
+
+      <style>{`
+        .cx-balance-table .ant-table-thead > tr > th { text-align: center !important; }
+        .cx-row-selected > td { background: #E6F1FB !important; }
+        .cx-row-selected > td:first-child { box-shadow: inset 3px 0 0 #0C447C; }
+      `}</style>
     </div>
   )
 }

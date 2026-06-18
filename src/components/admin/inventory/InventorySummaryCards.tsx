@@ -2,6 +2,7 @@
 
 import { useTranslations } from 'next-intl'
 import { MoneyCollectOutlined, GoldOutlined, WalletOutlined } from '@ant-design/icons'
+import { StatCard } from '@/components/admin/shared/StatCard'
 import { GRAM_PER_CHI, type InventoryTotals } from '@/lib/inventory-valuation'
 
 interface Props {
@@ -19,46 +20,24 @@ export function InventorySummaryCards({ totals, totalAssetUsd }: Props) {
 
   return (
     <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
-      <Card
-        icon={<MoneyCollectOutlined className="h-4 w-4" />}
+      <StatCard
+        icon={<MoneyCollectOutlined />} iconColor="#d97706"
         label={t('goldStock')}
         value={`${num(totals.goldStockChi)} Chỉ`}
         sub={`~${num(goldGram, 1)}g`}
       />
-      <Card
-        icon={<GoldOutlined className="h-4 w-4" />}
+      <StatCard
+        icon={<GoldOutlined />} iconColor="#14b8a6"
         label={t('silverStock')}
         value={`${num(totals.silverStockGram)} g`}
         sub={`~${num(silverKg, 2)} Kg`}
       />
-      <Card
-        icon={<WalletOutlined className="h-4 w-4" />}
+      <StatCard
+        icon={<WalletOutlined />} iconColor="#6366f1" valueColor="#4338ca" highlight
         label={t('assetValue')}
         value={`${num(totals.totalAssetLak, 0)} ₭`}
         sub={`~${totalAssetUsd == null ? 'N/A' : num(totalAssetUsd, 0)} USD`}
-        emphasis
       />
-    </div>
-  )
-}
-
-function Card({
-  icon, label, value, sub, emphasis,
-}: {
-  icon: React.ReactNode
-  label: string
-  value: string
-  sub: string
-  emphasis?: boolean
-}) {
-  return (
-    <div className={`rounded-lg border p-3.5 shadow-card ${emphasis ? 'border-primary/30 bg-primary/5' : 'bg-muted/30'}`}>
-      <div className="flex items-center gap-1.5 text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">
-        {icon}
-        {label}
-      </div>
-      <div className={`mt-1.5 text-xl font-bold tabular-nums ${emphasis ? 'text-primary' : ''}`}>{value}</div>
-      <div className="text-xs text-muted-foreground tabular-nums">{sub}</div>
     </div>
   )
 }

@@ -2,7 +2,8 @@
 
 import { useState } from 'react'
 import { useTranslations } from 'next-intl'
-import { Select, Button } from 'antd'
+import { Select, Button, DatePicker } from 'antd'
+import dayjs from 'dayjs'
 import { DownloadOutlined, CloseOutlined } from '@ant-design/icons'
 import { usePermission } from '@/hooks/usePermission'
 import { ForbiddenPage } from '@/components/shared/ForbiddenPage'
@@ -26,9 +27,6 @@ function Labeled({ label, children }: { label: string; children: React.ReactNode
     </div>
   )
 }
-
-const dateInputCls =
-  'h-8 rounded-md border border-[var(--border)] bg-card px-2 text-sm outline-none focus:border-primary'
 
 export default function RevenueReportPage() {
   const { hasPermission } = usePermission()
@@ -106,13 +104,19 @@ export default function RevenueReportPage() {
             value={counterId} onChange={(v) => setCounterId(v ?? null)}
           />
         </Labeled>
-        <Labeled label={t('filterFrom')}>
-          <input type="date" className={dateInputCls} value={fromDate}
-            max={toDate} onChange={(e) => setFromDate(e.target.value || todayIso())} />
-        </Labeled>
-        <Labeled label={t('filterTo')}>
-          <input type="date" className={dateInputCls} value={toDate}
-            min={fromDate} onChange={(e) => setToDate(e.target.value || todayIso())} />
+        <Labeled label={t('filterDateRange')}>
+          <DatePicker.RangePicker
+            className="h-8"
+            value={[dayjs(fromDate), dayjs(toDate)]}
+            onChange={(range) => {
+              if (range?.[0] && range?.[1]) {
+                setFromDate(range[0].format('YYYY-MM-DD'))
+                setToDate(range[1].format('YYYY-MM-DD'))
+              }
+            }}
+            format="DD/MM/YYYY"
+            allowClear={false}
+          />
         </Labeled>
 
         <div style={{ width: 1, height: 36, background: FILTER_DIVIDER }} />

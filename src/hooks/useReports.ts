@@ -100,6 +100,7 @@ export function useCurrencyExchangeReport(params?: CurrencyExchangeReportParams)
       'reports', 'currency-exchange',
       params?.from ?? null, params?.to ?? null,
       params?.branchId ?? null, params?.counterId ?? null,
+      params?.currency ?? null,
       params?.page ?? 1, params?.pageSize ?? 20,
     ],
     queryFn: () => reportsRepository.getCurrencyExchange(params),

@@ -16,6 +16,7 @@ import {
 import type { Transaction } from '@/types/transaction'
 import { usePermission } from '@/hooks/usePermission'
 import { ForbiddenPage } from '@/components/shared/ForbiddenPage'
+import { StatCard } from '@/components/admin/shared/StatCard'
 
 const { RangePicker } = DatePicker
 
@@ -66,38 +67,6 @@ function ChartSkeleton({ height = 240 }: { height?: number }) {
         <Skeleton key={i} style={{ flex: 1, height: `${h}%`, borderRadius: 4 }} />
       ))}
     </div>
-  )
-}
-
-function StatCard({
-  label, value, icon: Icon, iconColor,
-}: {
-  label: string; value: string | number; icon: React.ElementType; iconColor: string
-}) {
-  return (
-    <Card style={CARD_STYLE} styles={{ body: { padding: '16px 20px 20px', position: 'relative' } }}>
-      <span
-        aria-hidden="true"
-        style={{
-          position: 'absolute',
-          right: -32,
-          bottom: -32,
-          width: 128,
-          height: 128,
-          borderRadius: '50%',
-          background: iconColor,
-          opacity: 0.09,
-          pointerEvents: 'none',
-        }}
-      />
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
-        <span style={{ fontSize: 12, color: '#6b7280', fontWeight: 500 }}>{label}</span>
-        <Icon size={15} color={iconColor} />
-      </div>
-      <div style={{ fontSize: 22, fontWeight: 700, color: '#111827', fontVariantNumeric: 'tabular-nums', letterSpacing: '-0.02em' }}>
-        {value}
-      </div>
-    </Card>
   )
 }
 
@@ -341,10 +310,10 @@ export default function DashboardPage() {
         <StatSkeleton />
       ) : (
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 16, marginBottom: 16 }}>
-          <StatCard label={t('stats.totalRevenue')}   value={formatKip(stats?.totalRevenue ?? 0)}  icon={RiseOutlined}         iconColor="#22c55e" />
-          <StatCard label={t('stats.totalPurchase')}  value={formatKip(stats?.totalPurchase ?? 0)} icon={FallOutlined}         iconColor="#f97316" />
-          <StatCard label={t('stats.grossProfit')}    value={formatKip(grossProfit)}               icon={BarChartOutlined}     iconColor="#6366f1" />
-          <StatCard label={t('stats.cancelledCount')} value={stats?.cancelledCount ?? 0}           icon={CloseCircleOutlined}  iconColor="#ef4444" />
+          <StatCard label={t('stats.totalRevenue')}   value={formatKip(stats?.totalRevenue ?? 0)}  icon={<RiseOutlined />}         iconColor="#22c55e" />
+          <StatCard label={t('stats.totalPurchase')}  value={formatKip(stats?.totalPurchase ?? 0)} icon={<FallOutlined />}         iconColor="#f97316" />
+          <StatCard label={t('stats.grossProfit')}    value={formatKip(grossProfit)}               icon={<BarChartOutlined />}     iconColor="#6366f1" />
+          <StatCard label={t('stats.cancelledCount')} value={stats?.cancelledCount ?? 0}           icon={<CloseCircleOutlined />}  iconColor="#ef4444" />
         </div>
       )}
 

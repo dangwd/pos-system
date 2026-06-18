@@ -12,6 +12,7 @@ import { usePermission } from '@/hooks/usePermission'
 import { ForbiddenPage } from '@/components/shared/ForbiddenPage'
 import { TablePageSkeleton } from '@/components/shared/PageSkeleton'
 import { EmptyHint, formatNum, formatGram } from '@/components/admin/reports/report-ui'
+import { StatCard } from '@/components/admin/shared/StatCard'
 import { StockPeriodTable } from '@/components/admin/reports/stock-period/StockPeriodTable'
 import { StockTrendChart } from '@/components/admin/reports/stock-period/StockTrendChart'
 import { useBranches } from '@/hooks/useBranches'
@@ -22,40 +23,6 @@ import { useToast } from '@/lib/toast'
 
 const KARATS = ['9999', '999', '750', '585', '375', '925', '800']
 const fmtD = (iso: string) => dayjs(iso).format('DD/MM/YYYY')
-
-// ─── Stat card ────────────────────────────────────────────────────────────────
-
-function PeriodCard({
-  icon, iconColor, label, value, sub, highlight, delta,
-}: {
-  icon: React.ReactNode; iconColor: string; label: string
-  value: React.ReactNode; sub: string; highlight?: boolean
-  delta?: { value: number; text: string }
-}) {
-  return (
-    <div
-      className="rounded-lg border bg-card p-4 space-y-1 shadow-card"
-      style={highlight ? { border: '1px solid #B5D4F4' } : undefined}
-    >
-      <div className="flex items-center gap-1.5">
-        <span style={{ color: iconColor }}>{icon}</span>
-        <p className="text-[11px] font-medium uppercase tracking-wide text-muted-foreground">{label}</p>
-      </div>
-      <p className="text-xl font-bold tabular-nums">{value}</p>
-      <p className="text-[11px] text-muted-foreground">{sub}</p>
-      {delta && delta.value !== 0 && (
-        <span
-          className="inline-block text-[10px] font-medium px-1.5 py-0.5 rounded mt-0.5"
-          style={delta.value > 0
-            ? { background: '#EAF3DE', color: '#3B6D11' }
-            : { background: '#FCEBEB', color: '#A32D2D' }}
-        >
-          {delta.value > 0 ? '+' : '−'}{formatNum(Math.abs(delta.value))} {delta.text} {delta.value > 0 ? '↑' : '↓'}
-        </span>
-      )}
-    </div>
-  )
-}
 
 function FilterTag({ label, onClear }: { label: string; onClear: () => void }) {
   return (
@@ -198,17 +165,17 @@ export default function StockPeriodReportPage() {
         <div className="space-y-4">
           {/* Stat cards */}
           <div className="grid gap-2.5 grid-cols-1 sm:grid-cols-3">
-            <PeriodCard
+            <StatCard
               icon={<CalendarOutlined />} iconColor="#185FA5"
               label={t('cardOpen')} value={`${formatNum(s!.openQty)} ${t('unitQty')}`}
               sub={`${formatGram(s!.openWeight)}`}
             />
-            <PeriodCard
+            <StatCard
               icon={<SwapOutlined />} iconColor="#444441"
               label={t('cardChange')} value={`+${formatNum(s!.receiptQty)} / −${formatNum(s!.issueQty)}`}
               sub={t('changeSub', { receipt: formatNum(s!.receiptQty), issue: formatNum(s!.issueQty) })}
             />
-            <PeriodCard
+            <StatCard
               icon={<CheckCircleOutlined />} iconColor="#3B6D11"
               label={t('cardClose')} value={`${formatNum(s!.closeQty)} ${t('unitQty')}`}
               sub={`${formatGram(s!.closeWeight)}`}

@@ -285,4 +285,5 @@ export interface CurrencyExchangeReportParams {
   counterId?: string
   page?: number
   pageSize?: number
+  currency?: string   // lọc GD theo loại tiền (nguồn hoặc đích); bỏ trống = tất cả
 }
