@@ -52,10 +52,15 @@ export function CashLedgerExpandedRow({ activityId }: Props) {
   return (
     <div style={{ padding: '16px 16px 16px 48px', background: '#f8faff', display: 'flex', gap: 40, flexWrap: 'wrap' }}>
       {/* Cột trái */}
-      <div style={{ minWidth: 300, flex: 1 }}>
+      <div style={{ minWidth: 260, flex: 1 }}>
         <Field label={t('detail.entryCode')} value={
           <span style={{ fontFamily: 'monospace' }}>{detail.entryCode}</span>
         } />
+        {detail.referenceInvoiceCode && (
+          <Field label={t('detail.referenceInvoice')} value={
+            <span style={{ fontFamily: 'monospace' }}>{detail.referenceInvoiceCode}</span>
+          } />
+        )}
         <Field label={t('detail.time')} value={detail.timeLabel} />
         <Field label={t('detail.description')} value={
           <span style={{ fontStyle: 'italic' }}>{detail.description}</span>
@@ -79,7 +84,7 @@ export function CashLedgerExpandedRow({ activityId }: Props) {
       </div>
 
       {/* Cột phải */}
-      <div style={{ minWidth: 220 }}>
+      <div style={{ minWidth: 260, flex: 1 }}>
         <Field label={t('detail.value')} value={
           <b style={{ color: isIncome ? '#16a34a' : '#dc2626', fontSize: 14 }}>
             {isIncome ? '+' : '−'}{formatKip(detail.amountLak)}
@@ -99,11 +104,6 @@ export function CashLedgerExpandedRow({ activityId }: Props) {
         )}
         <Field label={t('detail.createdBy')} value={detail.createdByName} />
         <Field label={t('detail.branch')} value={detail.branchName} />
-        {detail.referenceInvoiceCode && (
-          <Field label={t('detail.referenceInvoice')} value={
-            <span style={{ fontFamily: 'monospace' }}>{detail.referenceInvoiceCode}</span>
-          } />
-        )}
         {detail.customerName && (
           <Field label={t('detail.customer')} value={detail.customerName} />
         )}

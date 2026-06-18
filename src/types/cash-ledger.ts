@@ -3,7 +3,7 @@
 export type CashDirection = 'IN' | 'OUT'
 export type CashMethod    = 'CASH' | 'BANK' | 'COMBINED'
 export type CashCurrency  = 'LAK' | 'THB' | 'USD'
-export type CashSource    = 'Transaction' | 'Manual' | 'Handover'
+export type CashSource    = 'Transaction' | 'Manual' | 'Handover' | 'Cancellation'
 
 export type CashEntryType =
   | 'SellGold'
@@ -40,6 +40,9 @@ export interface ActivityItem {
   branchName: string
   methodLabel: string    // "Tiền mặt" | "Chuyển khoản ngân hàng" | "Tiền mặt & Chuyển khoản"
   direction: CashDirection
+  currency: CashCurrency
+  amount?: number        // Số tiền gốc theo đồng tiền của phiếu — backend cần trả về
+  amountLak?: number     // Số tiền quy đổi sang LAK
 }
 
 export interface CashLedgerActivitiesParams {
@@ -48,6 +51,8 @@ export interface CashLedgerActivitiesParams {
   fromDate?: string
   toDate?: string
   keyword?: string
+  currency?: string
+  method?: string
   page?: number
   pageSize?: number
 }
@@ -62,6 +67,11 @@ export interface CashLedgerActivitiesResult {
   totalInLak: number
   totalOutLak: number
   closingBalanceLak: number
+  // Native currency totals — populated khi có currency filter; backend cần thêm
+  openingBalance?: number
+  totalIn?: number
+  totalOut?: number
+  closingBalance?: number
 }
 
 // ── GET /activities/{id} · POST /vouchers · GET /vouchers/{id} ─────────────────

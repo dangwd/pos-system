@@ -979,6 +979,7 @@
       "filterIncome": "ໃບຮັບ",
       "filterExpense": "ໃບຈ່າຍ",
       "filterCounter": "ຕູ້ຮັບ/ຈ່າຍ",
+      "filterAllCurrencies": "ທັງໝົດ",
       "clearFilter": "ລ້າງຕົວກອງ",
       "showTotal": "ສະແດງ {from} - {to} ຈາກ {total} ລາຍການ",
       "columns": {
@@ -1036,7 +1037,8 @@
       "source": {
         "Transaction": "ກິດຈະກໍາ POS",
         "Manual": "ປ້ອນດ້ວຍຕົນ",
-        "Handover": "ສົ່ງ-ຮັບ ກະ"
+        "Handover": "ສົ່ງ-ຮັບ ກະ",
+        "Cancellation": "ຍົກເລີກການເຮັດທຸລະກໍາ"
       }
     },
     "reports": {

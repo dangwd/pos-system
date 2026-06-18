@@ -15,9 +15,11 @@ import {
 import { Spinner } from "@/components/ui/spinner";
 import { useBranches, useCounters } from "@/hooks/useBranches";
 import { usePermission } from "@/hooks/usePermission";
+import { useCurrencies } from "@/hooks/useConfig";
 import { cashLedgerRepository } from "@/lib/repositories/cash-ledger.repository";
 import { useAuthStore } from "@/stores/auth.store";
 import type { ActivityItem, CashCurrency } from "@/types/cash-ledger";
+import type { Currency } from "@/types/config";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
   Button as AntBtn,
@@ -34,7 +36,7 @@ import { InputNumber } from "@/components/ui/antd-number-input";
 import dayjs from "dayjs";
 import { FileExcelOutlined, PlusOutlined } from "@ant-design/icons";
 import { useTranslations } from "next-intl";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useToast } from "@/lib/toast";
 
 const PAGE_SIZE = 20;
@@ -49,6 +51,17 @@ const FILTER_STYLE: React.CSSProperties = {
   background: "#fafafa",
 };
 
+function getCurrencySymbol(code: string): string {
+  const map: Record<string, string> = {
+    LAK: '₭', USD: '$', THB: '฿', CNY: '¥', KRW: '₩', EUR: '€', JPY: '¥', GBP: '£',
+  }
+  return map[code] ?? code
+}
+
+function formatAmount(n: number, sym: string) {
+  return n.toLocaleString('lo-LA') + ' ' + sym
+}
+
 function formatKip(n: number) {
   return n.toLocaleString("lo-LA") + " ₭";
 }
@@ -58,11 +71,13 @@ function AddEntryDialog({
   branchId,
   open,
   defaultDirection,
+  currencies,
   onClose,
 }: {
   branchId: string;
   open: boolean;
   defaultDirection: "IN" | "OUT";
+  currencies: Currency[];
   onClose: () => void;
 }) {
   const t = useTranslations("admin.cashLedger");
@@ -180,9 +195,14 @@ function AddEntryDialog({
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="LAK">LAK</SelectItem>
-                  <SelectItem value="THB">THB</SelectItem>
-                  <SelectItem value="USD">USD</SelectItem>
+                  {currencies
+                    .filter((c) => c.isActive)
+                    .sort((a, b) => a.sortOrder - b.sortOrder)
+                    .map((c) => (
+                      <SelectItem key={c.code} value={c.code}>
+                        {c.flag ? `${c.flag} ` : ""}{c.code}
+                      </SelectItem>
+                    ))}
                 </SelectContent>
               </Select>
             </Form.Item>
@@ -210,7 +230,7 @@ function AddEntryDialog({
 function SummaryStrip({
   items,
 }: {
-  items: { label: string; value: number; color: string }[];
+  items: { label: string; valueStr: string; color: string }[];
 }) {
   return (
     <div
@@ -225,7 +245,7 @@ function SummaryStrip({
         boxShadow: "0 1px 4px rgba(0,0,0,0.07), 0 4px 12px rgba(0,0,0,0.04)",
       }}
     >
-      {items.map(({ label, value, color }, i) => (
+      {items.map(({ label, valueStr, color }, i) => (
         <div
           key={label}
           style={{
@@ -238,10 +258,58 @@ function SummaryStrip({
             {label}
           </div>
           <div style={{ fontSize: 16, fontWeight: 700, color }}>
-            {formatKip(value)}
+            {valueStr}
           </div>
         </div>
       ))}
+    </div>
+  );
+}
+
+// ─── Currency tabs ────────────────────────────────────────────────────────────
+function CurrencyTabs({
+  currencies,
+  selected,
+  onChange,
+}: {
+  currencies: Currency[];
+  selected: string | undefined;
+  onChange: (code: string | undefined) => void;
+}) {
+  const tabs = currencies
+    .filter((c) => c.isActive)
+    .sort((a, b) => a.sortOrder - b.sortOrder)
+    .map((c) => ({ code: c.code, label: c.code, flag: c.flag }));
+
+  return (
+    <div style={{ display: "flex", gap: 6, marginBottom: 12 }}>
+      {tabs.map((tab) => {
+        const active = selected === tab.code;
+        return (
+          <button
+            key={tab.code ?? "__all__"}
+            onClick={() => onChange(tab.code)}
+            style={{
+              display: "flex",
+              alignItems: "center",
+              gap: 5,
+              padding: "5px 16px",
+              borderRadius: 20,
+              border: `1.5px solid ${active ? "#4f46e5" : "#e5e7eb"}`,
+              background: active ? "#eef2ff" : "#fff",
+              color: active ? "#4338ca" : "#374151",
+              fontWeight: active ? 600 : 400,
+              fontSize: 13,
+              cursor: "pointer",
+              transition: "all 0.15s",
+              boxShadow: active ? "0 0 0 3px rgba(79,70,229,0.08)" : "none",
+            }}
+          >
+            {tab.flag && <span>{tab.flag}</span>}
+            {tab.label}
+          </button>
+        );
+      })}
     </div>
   );
 }
@@ -266,6 +334,10 @@ export default function CashLedgerPage() {
   const [addOpen, setAddOpen] = useState(false);
   const [addDir, setAddDir] = useState<"IN" | "OUT">("IN");
   const [isExporting, setIsExporting] = useState(false);
+  const [selectedCurrency, setSelectedCurrency] = useState<string | undefined>();
+  const [selectedMethod, setSelectedMethod] = useState<string | undefined>();
+
+  const { data: currencies = [] } = useCurrencies();
 
   async function handleExport() {
     setIsExporting(true);
@@ -290,6 +362,21 @@ export default function CashLedgerPage() {
   const { data: branches = [] } = useBranches();
   const { data: counters = [] } = useCounters(filterBranchId ?? null);
 
+  useEffect(() => {
+    if (!filterBranchId && branches.length > 0) {
+      setFilterBranchId(branches[0].id);
+    }
+  }, [branches, filterBranchId]);
+
+  useEffect(() => {
+    if (selectedCurrency === undefined && currencies.length > 0) {
+      const first = currencies
+        .filter((c) => c.isActive)
+        .sort((a, b) => a.sortOrder - b.sortOrder)[0];
+      if (first) setSelectedCurrency(first.code);
+    }
+  }, [currencies]);
+
   // Table + summary: GET /activities (trả về cả summary fields đồng bộ với bộ lọc)
   const { data: activities, isLoading } = useQuery({
     queryKey: [
@@ -300,6 +387,8 @@ export default function CashLedgerPage() {
       fromDate,
       toDate,
       keyword,
+      selectedCurrency,
+      selectedMethod,
       page,
     ],
     queryFn: () =>
@@ -309,6 +398,8 @@ export default function CashLedgerPage() {
         fromDate,
         toDate,
         keyword: keyword.trim() || undefined,
+        currency: selectedCurrency,
+        method: selectedMethod,
         page,
         pageSize: PAGE_SIZE,
       }),
@@ -319,11 +410,30 @@ export default function CashLedgerPage() {
   const items = activities?.items ?? [];
   const totalCount = activities?.totalCount ?? 0;
 
+  const sym = selectedCurrency ? getCurrencySymbol(selectedCurrency) : '₭';
+  const hasNative = !!(selectedCurrency && activities?.totalIn !== undefined);
+
   const summaryItems = [
-    { label: t("openingBalance"), value: activities?.openingBalanceLak ?? 0, color: "#111827" },
-    { label: t("totalIn"),        value: activities?.totalInLak ?? 0,        color: "#16A34A" },
-    { label: t("totalOut"),       value: activities?.totalOutLak ?? 0,       color: "#DC2626" },
-    { label: t("closingBalance"), value: activities?.closingBalanceLak ?? 0, color: "#16A34A" },
+    {
+      label: t("openingBalance"),
+      valueStr: formatAmount(hasNative ? (activities?.openingBalance ?? 0) : (activities?.openingBalanceLak ?? 0), sym),
+      color: "#111827",
+    },
+    {
+      label: t("totalIn"),
+      valueStr: formatAmount(hasNative ? (activities?.totalIn ?? 0) : (activities?.totalInLak ?? 0), sym),
+      color: "#16A34A",
+    },
+    {
+      label: t("totalOut"),
+      valueStr: formatAmount(hasNative ? (activities?.totalOut ?? 0) : (activities?.totalOutLak ?? 0), sym),
+      color: "#DC2626",
+    },
+    {
+      label: t("closingBalance"),
+      valueStr: formatAmount(hasNative ? (activities?.closingBalance ?? 0) : (activities?.closingBalanceLak ?? 0), sym),
+      color: "#16A34A",
+    },
   ];
 
   const columns = useMemo(
@@ -350,6 +460,28 @@ export default function CashLedgerPage() {
         ),
       },
       {
+        title: t("columns.amount"),
+        key: "amount",
+        width: 150,
+        align: "right" as const,
+        render: (_: unknown, record: ActivityItem) => {
+          const val = record.amount ?? record.amountLak ?? 0;
+          const csym = getCurrencySymbol(record.currency);
+          return (
+            <span style={{
+              color: record.direction === "IN" ? "#16a34a" : "#dc2626",
+              fontWeight: 600,
+              fontFamily: "monospace",
+              fontSize: 13,
+            }}>
+              {record.direction === "OUT" ? "−" : "+"}
+              {val.toLocaleString("lo-LA")} {csym}
+            </span>
+          );
+        },
+      },
+
+      {
         title: t("columns.time"),
         dataIndex: "timeLabel",
         width: 160,
@@ -362,6 +494,14 @@ export default function CashLedgerPage() {
         dataIndex: "createdByName",
         width: 140,
         render: (v: string) => <span style={{ fontSize: 13 }}>{v}</span>,
+      },
+      {
+        title: t("columns.currency"),
+        dataIndex: "currency",
+        width: 80,
+        render: (v: string) => (
+          <Tag style={{ borderRadius: 10, fontSize: 11, fontWeight: 600 }}>{v}</Tag>
+        ),
       },
       {
         title: t("columns.method"),
@@ -434,6 +574,13 @@ export default function CashLedgerPage() {
           {/* ── Summary ── */}
           <SummaryStrip items={summaryItems} />
 
+          {/* ── Currency tabs ── */}
+          <CurrencyTabs
+            currencies={currencies}
+            selected={selectedCurrency}
+            onChange={(code) => { setSelectedCurrency(code); setPage(1); }}
+          />
+
           {/* ── Table card ── */}
           <Card
             style={{
@@ -499,6 +646,21 @@ export default function CashLedgerPage() {
                   label: c.counterName,
                 }))}
               />
+              <AntSelect
+                allowClear
+                placeholder={t("columns.method")}
+                value={selectedMethod}
+                onChange={(v) => {
+                  setSelectedMethod(v);
+                  setPage(1);
+                }}
+                style={{ width: 160 }}
+                options={[
+                  { value: "CASH",     label: t("method.CASH") },
+                  { value: "BANK",     label: t("method.BANK") },
+                  { value: "COMBINED", label: t("method.COMBINED") },
+                ]}
+              />
             </div>
 
             <Table<ActivityItem>
@@ -517,11 +679,7 @@ export default function CashLedgerPage() {
                 expandRowByClick: true,
                 showExpandColumn: false,
                 onExpand: (expanded, record) =>
-                  setExpandedKeys(
-                    expanded
-                      ? [...expandedKeys, record.id]
-                      : expandedKeys.filter((k) => k !== record.id),
-                  ),
+                  setExpandedKeys(expanded ? [record.id] : []),
                 expandedRowRender: (record) => (
                   <CashLedgerExpandedRow activityId={record.id} />
                 ),
@@ -556,6 +714,7 @@ export default function CashLedgerPage() {
         branchId={branchId}
         open={addOpen}
         defaultDirection={addDir}
+        currencies={currencies}
         onClose={() => setAddOpen(false)}
       />
     </div>
