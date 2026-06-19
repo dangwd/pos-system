@@ -325,7 +325,8 @@
         "orderExchangeFree": "Đổi Miễn Phí",
         "orderExchangeToMoney": "Đổi Thành Tiền",
         "orderExchangeCurrency": "Thu Đổi Ngoại Tệ",
-        "currencies": "Loại tiền tệ"
+        "currencies": "Loại tiền tệ",
+        "auditLogs": "Lịch sử đăng nhập"
       },
       "collapse": "Thu gọn sidebar",
       "expand": "Mở rộng sidebar",
@@ -1628,6 +1629,31 @@
         "updateCounterSuccess": "Đã cập nhật quầy",
         "deactivateCounterSuccess": "Đã vô hiệu hóa quầy",
         "activateCounterSuccess": "Đã kích hoạt quầy"
+      }
+    },
+    "auditLogs": {
+      "title": "Lịch sử đăng nhập",
+      "subtitle": "{count} bản ghi",
+      "searchPlaceholder": "Tìm theo tên đăng nhập...",
+      "filterAllEvent": "Tất cả sự kiện",
+      "filterFrom": "Từ ngày",
+      "filterTo": "Đến ngày",
+      "refresh": "Làm mới",
+      "reset": "Xóa bộ lọc",
+      "unknownUser": "Không xác định",
+      "columns": {
+        "username": "Tên đăng nhập",
+        "eventType": "Sự kiện",
+        "ipAddress": "Địa chỉ IP",
+        "userAgent": "User Agent",
+        "occurredAt": "Thời điểm"
+      },
+      "events": {
+        "LoginSuccess": "Đăng nhập thành công",
+        "LoginFailedBadCredentials": "Sai mật khẩu",
+        "LoginFailedInactive": "Tài khoản bị vô hiệu hóa",
+        "Logout": "Đăng xuất",
+        "TokenRefreshed": "Làm mới token"
       }
     }
   },

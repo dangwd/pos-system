@@ -325,7 +325,8 @@
         "orderExchangeFree": "Free Exchange",
         "orderExchangeToMoney": "Exchange to Cash",
         "orderExchangeCurrency": "Currency Exchange",
-        "currencies": "Currencies"
+        "currencies": "Currencies",
+        "auditLogs": "Login History"
       },
       "collapse": "Collapse sidebar",
       "expand": "Expand sidebar",
@@ -1630,6 +1631,31 @@
         "updateCounterSuccess": "Counter updated",
         "deactivateCounterSuccess": "Counter deactivated",
         "activateCounterSuccess": "Counter activated"
+      }
+    },
+    "auditLogs": {
+      "title": "Login History",
+      "subtitle": "{count} records",
+      "searchPlaceholder": "Search by username...",
+      "filterAllEvent": "All events",
+      "filterFrom": "From date",
+      "filterTo": "To date",
+      "refresh": "Refresh",
+      "reset": "Clear filters",
+      "unknownUser": "Unknown",
+      "columns": {
+        "username": "Username",
+        "eventType": "Event",
+        "ipAddress": "IP Address",
+        "userAgent": "User Agent",
+        "occurredAt": "Time"
+      },
+      "events": {
+        "LoginSuccess": "Login success",
+        "LoginFailedBadCredentials": "Bad credentials",
+        "LoginFailedInactive": "Account inactive",
+        "Logout": "Logout",
+        "TokenRefreshed": "Token refreshed"
       }
     }
   },

@@ -48,3 +48,45 @@ export interface MeResponse {
   counterName: string | null
   lastLoginAt: string | null
 }
+
+export type LoginEventType =
+  | 'LoginSuccess'
+  | 'LoginFailedBadCredentials'
+  | 'LoginFailedInactive'
+  | 'Logout'
+  | 'TokenRefreshed'
+
+export const LOGIN_EVENT_TYPE_INT: Record<LoginEventType, number> = {
+  LoginSuccess: 1,
+  LoginFailedBadCredentials: 2,
+  LoginFailedInactive: 3,
+  Logout: 4,
+  TokenRefreshed: 5,
+}
+
+export interface LoginAuditLog {
+  id: string
+  userId: string | null
+  attemptedUsername: string
+  eventType: LoginEventType
+  ipAddress: string | null
+  userAgent: string | null
+  occurredAt: string
+}
+
+export interface AuditLogsParams {
+  userId?: string
+  username?: string
+  eventType?: number
+  from?: string
+  to?: string
+  page?: number
+  pageSize?: number
+}
+
+export interface AuditLogsPaginatedResponse {
+  items: LoginAuditLog[]
+  total: number
+  page: number
+  pageSize: number
+}

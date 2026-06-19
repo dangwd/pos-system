@@ -1,6 +1,6 @@
 import api from '@/lib/axios'
 import { handleAxiosError } from '@/lib/api-error'
-import type { LoginRequest, LoginResponse, RefreshResponse, MeResponse } from '@/types/auth'
+import type { LoginRequest, LoginResponse, RefreshResponse, MeResponse, AuditLogsParams, AuditLogsPaginatedResponse } from '@/types/auth'
 
 export class AuthRepository {
   static async login(dto: LoginRequest): Promise<LoginResponse> {
@@ -32,6 +32,15 @@ export class AuthRepository {
   static async getMe(): Promise<MeResponse> {
     try {
       const { data } = await api.get<MeResponse>('/api/auth/me')
+      return data
+    } catch (err) {
+      handleAxiosError(err)
+    }
+  }
+
+  static async getAuditLogs(params?: AuditLogsParams): Promise<AuditLogsPaginatedResponse> {
+    try {
+      const { data } = await api.get<AuditLogsPaginatedResponse>('/api/auth/audit-logs', { params })
       return data
     } catch (err) {
       handleAxiosError(err)

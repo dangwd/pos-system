@@ -325,7 +325,8 @@
         "orderExchangeFree": "ປ່ຽນຟຣີ",
         "orderExchangeToMoney": "ປ່ຽນເປັນເງິນ",
         "orderExchangeCurrency": "ແລກປ່ຽນເງິນຕ່າງປະເທດ",
-        "currencies": "ສະກຸນເງິນ"
+        "currencies": "ສະກຸນເງິນ",
+        "auditLogs": "ປະຫວັດການເຂົ້າສູ່ລະບົບ"
       },
       "collapse": "ຫຍໍ້ແຖບດ້ານຂ້າງ",
       "expand": "ຂະຫຍາຍແຖບດ້ານຂ້າງ",
@@ -1628,6 +1629,31 @@
         "updateCounterSuccess": "ອັບເດດເຄົ້າເຕີສຳເລັດ",
         "deactivateCounterSuccess": "ປິດໃຊ້ງານເຄົ້າເຕີສຳເລັດ",
         "activateCounterSuccess": "ເປີດໃຊ້ງານເຄົ້າເຕີສຳເລັດ"
+      }
+    },
+    "auditLogs": {
+      "title": "ປະຫວັດການເຂົ້າສູ່ລະບົບ",
+      "subtitle": "{count} ລາຍການ",
+      "searchPlaceholder": "ຄົ້ນຫາຊື່ຜູ້ໃຊ້...",
+      "filterAllEvent": "ທຸກເຫດການ",
+      "filterFrom": "ຈາກວັນທີ",
+      "filterTo": "ຫາວັນທີ",
+      "refresh": "ໂຫຼດໃໝ່",
+      "reset": "ລ້າງຕົວກອງ",
+      "unknownUser": "ບໍ່ຮູ້ຈັກ",
+      "columns": {
+        "username": "ຊື່ຜູ້ໃຊ້",
+        "eventType": "ເຫດການ",
+        "ipAddress": "IP Address",
+        "userAgent": "User Agent",
+        "occurredAt": "ເວລາ"
+      },
+      "events": {
+        "LoginSuccess": "ເຂົ້າລະບົບສຳເລັດ",
+        "LoginFailedBadCredentials": "ລະຫັດຜ່ານຜິດ",
+        "LoginFailedInactive": "ບັນຊີຖືກປິດໃຊ້ງານ",
+        "Logout": "ອອກຈາກລະບົບ",
+        "TokenRefreshed": "ຕໍ່ອາຍຸ Token"
       }
     }
   },
