@@ -98,7 +98,7 @@
       "methods": {
         "cash": "ເງິນສົດ",
         "bank-transfer": "ໂອນທະນາຄານ",
-        "combined": "ເງິນສົດ + ໂອນ"
+        "combined": "ເງິນສົດ + ໂອນທະນາຄານ"
       }
     },
     "receipt": {

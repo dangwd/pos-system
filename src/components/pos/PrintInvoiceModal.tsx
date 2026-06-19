@@ -30,10 +30,19 @@ function fmtTime(iso: string) {
 function InvoiceRow({
   item,
   amber = false,
+  isBuyType = false,
 }: {
   item: PrintItem;
   amber?: boolean;
+  isBuyType?: boolean;
 }) {
+  const col6 = isBuyType
+    ? (item.damageFee > 0 ? item.damageFee.toLocaleString("lo-LA") : "—")
+    : (item.laborFee > 0 ? item.laborFee.toLocaleString("lo-LA") : "—")
+  const col7 = isBuyType
+    ? (item.wearValue > 0 ? item.wearValue.toLocaleString("lo-LA") : "—")
+    : (item.stoneFee > 0 ? item.stoneFee.toLocaleString("lo-LA") : "—")
+
   return (
     <tr className={amber ? "bg-amber-50" : undefined}>
       <td className="border border-gray-400 px-1 py-[2px] text-center">
@@ -54,10 +63,10 @@ function InvoiceRow({
           : "—"}
       </td>
       <td className="border border-gray-400 px-2 py-[2px] text-right tabular-nums">
-        {item.laborFee > 0 ? item.laborFee.toLocaleString("lo-LA") : "—"}
+        {col6}
       </td>
       <td className="border border-gray-400 px-2 py-[2px] text-right tabular-nums">
-        {item.stoneFee > 0 ? item.stoneFee.toLocaleString("lo-LA") : "—"}
+        {col7}
       </td>
       <td
         className={`border border-gray-400 px-2 py-[2px] text-right font-semibold tabular-nums ${amber ? "text-amber-700" : ""}`}
@@ -78,6 +87,7 @@ function InvoiceTemplate({ inv }: { inv: PrintInvoice }) {
   const title = INVOICE_TITLE[inv.txnType];
   const isFx = inv.txnType === "ExchangeCurrency";
   const isExchange = EXCHANGE_TYPES.includes(inv.txnType);
+  const isBuyGold = inv.txnType === "BuyGold";
   // totalAmount = A - B (có thể âm với ExchangeGold). totalB = tổng vàng cũ cấn trừ.
   const totalB = inv.exchangeInItems.reduce((s, i) => s + i.lineTotal, 0);
   const totalA = inv.totalAmount + totalB;
@@ -208,10 +218,10 @@ function InvoiceTemplate({ inv }: { inv: PrintInvoice }) {
                 Đơn giá ₭
               </th>
               <th className="border border-gray-400 px-2 py-1 text-right w-20">
-                T. công ₭
+                {isBuyGold ? "Phí lỗi ₭" : "T. công ₭"}
               </th>
               <th className="border border-gray-400 px-2 py-1 text-right w-16">
-                Đá ₭
+                {isBuyGold ? "Hao mòn ₭" : "Đá ₭"}
               </th>
               <th className="border border-gray-400 px-2 py-1 text-right w-24">
                 Thành tiền ₭
@@ -220,7 +230,7 @@ function InvoiceTemplate({ inv }: { inv: PrintInvoice }) {
           </thead>
           <tbody>
             {inv.normalItems.map((item) => (
-              <InvoiceRow key={item.stt} item={item} />
+              <InvoiceRow key={item.stt} item={item} isBuyType={isBuyGold} />
             ))}
 
             {inv.exchangeInItems.length > 0 && (
@@ -234,7 +244,7 @@ function InvoiceTemplate({ inv }: { inv: PrintInvoice }) {
                   </td>
                 </tr>
                 {inv.exchangeInItems.map((item) => (
-                  <InvoiceRow key={`ex-${item.stt}`} item={item} amber />
+                  <InvoiceRow key={`ex-${item.stt}`} item={item} amber isBuyType />
                 ))}
               </>
             )}
@@ -264,6 +274,56 @@ function InvoiceTemplate({ inv }: { inv: PrintInvoice }) {
                       : "HOÀ VỐN / ສົມດຸນ:"}
                 </span>
                 <span className="tabular-nums">{kip(Math.abs(inv.totalAmount))}</span>
+              </div>
+            </>
+          ) : isBuyGold ? (
+            <>
+              {(() => {
+                // Primary: dùng phí đã được parseItemFees giải mã
+                const totalDamage = inv.normalItems.reduce((s, i) => s + i.damageFee, 0)
+                const totalWear = inv.normalItems.reduce((s, i) => s + i.wearValue, 0)
+                // Fallback: tính từ chênh lệch qty×unitPriceLak − lineTotal khi parseItemFees không giải mã được
+                const fallbackDeductions = totalDamage === 0 && totalWear === 0
+                  ? inv.normalItems.reduce(
+                      (s, i) => s + Math.max(0, i.quantity * i.unitPriceLak - i.lineTotal),
+                      0,
+                    )
+                  : 0
+                const hasDeductions = totalDamage > 0 || totalWear > 0 || fallbackDeductions > 0
+                // Giá thu vào: subtotalAmount từ backend, fallback: tổng + khấu trừ
+                const giaThúVao = inv.subtotalAmount > 0
+                  ? inv.subtotalAmount
+                  : inv.totalAmount + totalDamage + totalWear + fallbackDeductions
+                return hasDeductions ? (
+                  <>
+                    <div className="flex justify-between">
+                      <span>Giá thu vào / ລາຄາຊື້:</span>
+                      <span className="tabular-nums">{kip(giaThúVao)}</span>
+                    </div>
+                    {totalDamage > 0 && (
+                      <div className="flex justify-between text-orange-600">
+                        <span>Phí lỗi/hỏng / ຄ່າເສຍຫາຍ:</span>
+                        <span className="tabular-nums">−{kip(totalDamage)}</span>
+                      </div>
+                    )}
+                    {totalWear > 0 && (
+                      <div className="flex justify-between text-orange-600">
+                        <span>Hao mòn / ການສຶກຫໍໍ:</span>
+                        <span className="tabular-nums">−{kip(totalWear)}</span>
+                      </div>
+                    )}
+                    {fallbackDeductions > 0 && (
+                      <div className="flex justify-between text-orange-600">
+                        <span>Khấu trừ / ຫັກລົບ:</span>
+                        <span className="tabular-nums">−{kip(fallbackDeductions)}</span>
+                      </div>
+                    )}
+                  </>
+                ) : null
+              })()}
+              <div className="flex justify-between font-black text-[13px] border-t-2 border-black pt-1">
+                <span>TIỆM CHI RA / ຮ້ານຈ່າຍ:</span>
+                <span className="tabular-nums">{kip(inv.totalAmount)}</span>
               </div>
             </>
           ) : (

@@ -486,6 +486,42 @@ function PaymentBreakdown({
               <span className="text-xs font-medium tabular-nums text-amber-700 dark:text-amber-400">-{fmt(totalB)}</span>
             </div>
           </>
+        ) : isBuy ? (
+          <>
+            <div className="flex justify-between items-center">
+              <span className="text-xs text-muted-foreground">Giá mua vào</span>
+              <span className="text-xs font-medium tabular-nums">{fmt(subtotal)}</span>
+            </div>
+            {(() => {
+              const items = tab?.items ?? [];
+              const totalDamage = items
+                .filter((i) => i.itemRole === "Normal")
+                .reduce((s, i) => s + i.perItemDamage, 0);
+              const totalWearLak = items
+                .filter((i) => i.itemRole === "Normal")
+                .reduce(
+                  (s, i) =>
+                    s + Math.round(i.perItemWearChi * 3.75 * i.unitPriceLakPerGram),
+                  0,
+                );
+              return (
+                <>
+                  {totalDamage > 0 && (
+                    <div className="flex justify-between items-center">
+                      <span className="text-xs text-orange-600 dark:text-orange-400">Phí lỗi/hỏng</span>
+                      <span className="text-xs font-medium tabular-nums text-orange-600 dark:text-orange-400">-{fmt(totalDamage)}</span>
+                    </div>
+                  )}
+                  {totalWearLak > 0 && (
+                    <div className="flex justify-between items-center">
+                      <span className="text-xs text-orange-600 dark:text-orange-400">Hao mòn</span>
+                      <span className="text-xs font-medium tabular-nums text-orange-600 dark:text-orange-400">-{fmt(totalWearLak)}</span>
+                    </div>
+                  )}
+                </>
+              );
+            })()}
+          </>
         ) : (
           <div className="flex justify-between items-center">
             <span className="text-xs text-muted-foreground">{t("subtotalLabel")}</span>

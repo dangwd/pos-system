@@ -24,7 +24,7 @@ import {
   useDeleteCurrency,
 } from '@/hooks/useConfig'
 import type { Currency } from '@/types/config'
-import { Button as AntBtn, Popover as AntPopover } from 'antd'
+import { Button as AntBtn, Popover as AntPopover, Tag, Space } from 'antd'
 import { InputNumber } from '@/components/ui/antd-number-input'
 
 // ─── Shared panel styles (matches branches / users pages) ─────────────────────
@@ -136,6 +136,15 @@ export default function CurrenciesPage() {
 
   function removeDenomination(v: number) {
     setForm(f => ({ ...f, denominations: f.denominations.filter(d => d !== v) }))
+  }
+
+  function toggleDenomination(v: number) {
+    setForm(f => ({
+      ...f,
+      denominations: f.denominations.includes(v)
+        ? f.denominations.filter(d => d !== v)
+        : [...f.denominations, v].sort((a, b) => a - b),
+    }))
   }
 
   const { data: currencies = [], isLoading } = useCurrencies()
@@ -572,9 +581,48 @@ export default function CurrenciesPage() {
             </div>
 
             {/* ── Denominations ── */}
-            <Field>
-              <FieldLabel>{t('form.denominations')}</FieldLabel>
-              <div className="flex gap-2">
+            <div className="space-y-2.5">
+              <div className="flex items-center justify-between">
+                <FieldLabel className="mb-0">{t('form.denominations')}</FieldLabel>
+                {form.denominations.length > 0 && (
+                  <button
+                    type="button"
+                    onClick={() => setForm(f => ({ ...f, denominations: [] }))}
+                    className="text-xs text-muted-foreground hover:text-destructive transition-colors"
+                  >
+                    Xóa tất cả
+                  </button>
+                )}
+              </div>
+
+              {/* Quick presets */}
+              <div className="flex flex-wrap gap-1.5">
+                {[500, 1000, 2000, 5000, 10000, 20000, 50000, 100000, 500000, 1000000].map(preset => {
+                  const selected = form.denominations.includes(preset)
+                  return (
+                    <button
+                      key={preset}
+                      type="button"
+                      onClick={() => toggleDenomination(preset)}
+                      className={cn(
+                        'h-7 px-2.5 rounded-md border text-xs font-medium tabular-nums transition-all',
+                        selected
+                          ? 'bg-primary text-primary-foreground border-primary'
+                          : 'bg-background border-border text-muted-foreground hover:border-primary/60 hover:text-foreground',
+                      )}
+                    >
+                      {preset >= 1000000
+                        ? preset / 1000000 + 'M'
+                        : preset >= 1000
+                          ? (preset / 1000) + 'K'
+                          : preset.toString()}
+                    </button>
+                  )
+                })}
+              </div>
+
+              {/* Custom input */}
+              <Space.Compact style={{ width: '100%' }}>
                 <InputNumber
                   placeholder={t('form.denominationPlaceholder')}
                   precision={0}
@@ -582,53 +630,33 @@ export default function CurrenciesPage() {
                   value={form.denomInput ? Number(form.denomInput) : null}
                   onChange={(v) => setForm(f => ({ ...f, denomInput: v != null ? String(v) : '' }))}
                   onPressEnter={addDenomination}
-                  style={{ flex: 1 }}
+                  style={{ width: '100%' }}
                 />
                 <AntBtn
-                  type="default"
-                  icon={<EnterOutlined />}
+                  type="primary"
+                  icon={<PlusOutlined />}
                   onClick={addDenomination}
                   disabled={!form.denomInput || isNaN(parseFloat(form.denomInput))}
-                >
-                  {t('form.addDenomination')}
-                </AntBtn>
-              </div>
+                />
+              </Space.Compact>
+
+              {/* Selected tags */}
               {form.denominations.length > 0 && (
-                <div className="flex flex-wrap gap-1.5 mt-2 p-2.5 rounded-md bg-muted/40 border border-border/50">
+                <div className="flex flex-wrap gap-1.5 pt-0.5">
                   {form.denominations.map(v => (
-                    <span
+                    <Tag
                       key={v}
-                      style={{
-                        display: 'inline-flex', alignItems: 'center', gap: 4,
-                        padding: '2px 6px 2px 8px', borderRadius: 5,
-                        background: '#eef2ff', border: '1px solid #c7d2fe',
-                        fontSize: 12, fontFamily: 'monospace', color: '#4f46e5',
-                      }}
+                      closable
+                      onClose={() => removeDenomination(v)}
+                      color="blue"
+                      style={{ margin: 0, fontVariantNumeric: 'tabular-nums', fontWeight: 500, fontSize: 12 }}
                     >
                       {v.toLocaleString()}
-                      <button
-                        type="button"
-                        onClick={() => removeDenomination(v)}
-                        style={{
-                          display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
-                          width: 14, height: 14, borderRadius: 3, border: 'none',
-                          background: 'transparent', color: '#818cf8', cursor: 'pointer', padding: 0,
-                        }}
-                        onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.color = '#4f46e5' }}
-                        onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.color = '#818cf8' }}
-                      >
-                        <CloseOutlined style={{ fontSize: 9 }} />
-                      </button>
-                    </span>
+                    </Tag>
                   ))}
                 </div>
               )}
-              {form.denominations.length === 0 && (
-                <p className="text-xs text-muted-foreground mt-1">
-                  {t('form.denominationsEmpty')}
-                </p>
-              )}
-            </Field>
+            </div>
           </div>
         </DialogContent>
       </Dialog>

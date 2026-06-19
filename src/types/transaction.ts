@@ -48,6 +48,8 @@ export interface TransactionItem {
   itemRole: "Normal" | "ExchangeIn";
   laborFee: number; // Phí gia công
   stoneFee: number; // Phí đá
+  damageFee?: number; // Phí lỗi hỏng / hủy hoại (₭) — undefined khi backend cũ chưa trả
+  haoHutGram?: number; // Hao hụt trọng lượng (gram) — undefined khi backend cũ chưa trả
 }
 
 /** Thông tin khách hàng rút gọn trong transaction */

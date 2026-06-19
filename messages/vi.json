@@ -98,7 +98,7 @@
       "methods": {
         "cash": "Tiền mặt",
         "bank-transfer": "Chuyển khoản",
-        "combined": "Tiền mặt + CK"
+        "combined": "Tiền mặt + Chuyển khoản"
       }
     },
     "receipt": {

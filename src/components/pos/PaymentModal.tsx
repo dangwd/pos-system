@@ -124,7 +124,7 @@ function ItemRow({ item, index, hideFees }: { item: CartItem; index: number; hid
           )}
           {item.isDamaged && item.perItemDamage > 0 && (
             <span className="text-[10px] text-orange-500">
-              PHÍ KHÒ: {item.perItemDamage.toLocaleString("lo-LA")}₭
+              Tiền công: {item.perItemDamage.toLocaleString("lo-LA")}₭
             </span>
           )}
           {item.perItemWearChi > 0 && (
@@ -376,6 +376,47 @@ export function PaymentModal({
                   {discount > 0 && (
                     <Row
                       label="Giảm giá"
+                      value={`-${fmt(discount)}`}
+                      className="text-destructive"
+                    />
+                  )}
+                </>
+              ) : isBuy ? (
+                <>
+                  <Row label="Giá mua vào" value={fmt(subtotal)} />
+                  {(() => {
+                    const totalDamage = items
+                      .filter((i) => i.itemRole === "Normal")
+                      .reduce((s, i) => s + i.perItemDamage, 0);
+                    const totalWearLak = items
+                      .filter((i) => i.itemRole === "Normal")
+                      .reduce(
+                        (s, i) =>
+                          s + Math.round(i.perItemWearChi * 3.75 * i.unitPriceLakPerGram),
+                        0,
+                      );
+                    return (
+                      <>
+                        {totalDamage > 0 && (
+                          <Row
+                            label="Phí lỗi/hỏng"
+                            value={`-${fmt(totalDamage)}`}
+                            className="text-orange-600 dark:text-orange-400"
+                          />
+                        )}
+                        {totalWearLak > 0 && (
+                          <Row
+                            label="Hao mòn"
+                            value={`-${fmt(totalWearLak)}`}
+                            className="text-orange-600 dark:text-orange-400"
+                          />
+                        )}
+                      </>
+                    );
+                  })()}
+                  {discount > 0 && (
+                    <Row
+                      label={t("discount")}
                       value={`-${fmt(discount)}`}
                       className="text-destructive"
                     />

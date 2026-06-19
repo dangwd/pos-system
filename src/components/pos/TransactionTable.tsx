@@ -567,7 +567,7 @@ function BuyGoldRow({
         )}
       </td>
 
-      {/* PHÍ KHÒ — nhập trực tiếp */}
+      {/* Lỗi/Hỏng — nhập trực tiếp */}
       <td className="px-2 py-2 w-32">
         {item.isReadOnly ? (
           <span className="text-[10px] tabular-nums text-muted-foreground">

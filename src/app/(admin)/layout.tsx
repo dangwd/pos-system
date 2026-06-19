@@ -134,9 +134,9 @@ export default function AdminLayout({
       {
         label: t("nav.groupConfig"),
         items: [
-          { href: "/admin/config/prices", label: t("nav.prices"), icon: TagOutlined },
-          { href: "/admin/config/exchange-rates", label: t("nav.exchangeRates"), icon: SwapOutlined },
-          { href: "/admin/config/stone-prices", label: t("nav.stonePrices"), icon: CrownOutlined },
+          // { href: "/admin/config/prices", label: t("nav.prices"), icon: TagOutlined },
+          // { href: "/admin/config/exchange-rates", label: t("nav.exchangeRates"), icon: SwapOutlined },
+          // { href: "/admin/config/stone-prices", label: t("nav.stonePrices"), icon: CrownOutlined },
           { href: "/admin/config/weight-units", label: t("nav.weightUnits"), icon: ColumnWidthOutlined },
           { href: "/admin/config/gold-purities", label: t("nav.goldPurities"), icon: GoldOutlined },
           { href: "/admin/config/currencies", label: t("nav.currencies"), icon: MoneyCollectOutlined },

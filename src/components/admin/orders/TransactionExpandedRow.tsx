@@ -106,19 +106,6 @@ const BADGE_BASE: React.CSSProperties = {
 // Loại GD có thành phần "mua vàng cũ" — hiển thị phí lỗi hỏng & hao mòn thay vì gia công/đá
 const BUY_TYPES = new Set(['BuyGold', 'BuyMoreGold', 'ExchangeGold', 'ExchangeFree', 'ExchangeToMoney'])
 
-/** Parse phiKho và haoHutChi được encode trong productSnapshotName.
- *  Format: "Tên SP [PHÍ KHÒ: 1.500.000₭ | HAO HỤT: 0.4 Chỉ]"
- */
-function parseItemFees(name: string): { cleanName: string; phiKho: number; haoHutChi: number } {
-  const m = name.match(/^(.*?)\s*\[PHÍ KHÒ:\s*([\d.,]+)₭\s*\|\s*HAO HỤT:\s*([\d.,]+)\s*Chỉ\]$/)
-  if (!m) return { cleanName: name, phiKho: 0, haoHutChi: 0 }
-  return {
-    cleanName: m[1].trim(),
-    phiKho: parseInt(m[2].replace(/[.,]/g, ''), 10),
-    haoHutChi: parseFloat(m[3]),
-  }
-}
-
 export function TransactionExpandedRow({ record }: Props) {
   const t = useTranslations('admin.orders.expanded')
   const tOrders = useTranslations('admin.orders')
@@ -131,19 +118,14 @@ export function TransactionExpandedRow({ record }: Props) {
 
   const isBuyType = BUY_TYPES.has(record.type)
 
-  // Parse encoded fees từ tên sản phẩm — tính tổng để hiện ở cột info
-  const parsedItems = record.items.map(item => ({
-    ...parseItemFees(item.productSnapshotName),
-    unitPriceLak: item.unitPriceLak,
-    tableUnitPriceLak: item.tableUnitPriceLak,
-    weightGram: item.weightGram,
-  }))
-  const hasEncodedFees = parsedItems.some(p => p.phiKho > 0 || p.haoHutChi > 0)
-  const totalPhiKho = parsedItems.reduce((s, p) => s + p.phiKho, 0)
-  const totalHaoHutValue = parsedItems.reduce((s, p) => {
-    const pricePerUnit = p.tableUnitPriceLak || p.unitPriceLak
-    const gramPerUnit = p.weightGram > 0 ? p.weightGram : 3.75
-    return s + Math.round(p.haoHutChi * pricePerUnit / gramPerUnit * 3.75)
+  const hasBuyFees = isBuyType && record.items.some(i => (i.damageFee ?? 0) > 0 || (i.haoHutGram ?? 0) > 0)
+  const totalPhiKho = record.items.reduce((s, i) => s + (i.damageFee ?? 0), 0)
+  const totalHaoHutValue = record.items.reduce((s, i) => {
+    const haoHutGram = i.haoHutGram ?? 0
+    if (haoHutGram <= 0) return s
+    const pricePerUnit = i.tableUnitPriceLak || i.unitPriceLak
+    const gramPerUnit = i.weightGram > 0 ? i.weightGram : 3.75
+    return s + Math.round(haoHutGram * pricePerUnit / gramPerUnit)
   }, 0)
 
   const productColumns: ColumnsType<TransactionItem> = [
@@ -169,10 +151,9 @@ export function TransactionExpandedRow({ record }: Props) {
     },
     {
       title: t('colProductName'), dataIndex: 'productSnapshotName',
-      render: (v: string, row: TransactionItem) => {
-        const { cleanName } = parseItemFees(v)
-        return <span style={{ fontSize: 13, color: row.itemRole === 'ExchangeIn' ? '#1d4ed8' : undefined }}>{cleanName}</span>
-      },
+      render: (v: string, row: TransactionItem) => (
+        <span style={{ fontSize: 13, color: row.itemRole === 'ExchangeIn' ? '#1d4ed8' : undefined }}>{v}</span>
+      ),
     },
     {
       title: t('colQty'), dataIndex: 'quantity', width: 90, align: 'right' as const,
@@ -183,38 +164,35 @@ export function TransactionExpandedRow({ record }: Props) {
       render: (v: string) => v || '—',
     },
     {
-      title: t('colUnitPrice'), dataIndex: 'tableUnitPriceLak', width: 130, align: 'right' as const,
-      render: (v: number, row: TransactionItem) => formatKip(v || row.unitPriceLak),
+      title: t('colUnitPrice'), dataIndex: 'unitPriceLak', width: 130, align: 'right' as const,
+      render: (v: number) => formatKip(v),
     },
     // Loại mua/đổi → cột lỗi hỏng + hao mòn (như màn POS BuyGold)
     ...(isBuyType ? [
       {
-        title: t('colDamageFee'), dataIndex: 'productSnapshotName', key: 'phiKho',
+        title: t('colDamageFee'), dataIndex: 'damageFee', key: 'phiKho',
         width: 120, align: 'right' as const,
-        render: (v: string) => {
-          const { phiKho } = parseItemFees(v)
-          return phiKho > 0 ? formatKip(phiKho) : <span style={{ color: '#d1d5db' }}>—</span>
-        },
+        render: (v: number | undefined) => (v ?? 0) > 0 ? formatKip(v!) : <span style={{ color: '#d1d5db' }}>—</span>,
       },
       {
-        title: t('colWearChi'), dataIndex: 'productSnapshotName', key: 'haoHutChi',
+        title: t('colWearChi'), key: 'haoHutChi',
         width: 100, align: 'right' as const,
-        render: (v: string) => {
-          const { haoHutChi } = parseItemFees(v)
+        render: (_: unknown, row: TransactionItem) => {
+          const haoHutChi = (row.haoHutGram ?? 0) / 3.75
           return haoHutChi > 0
             ? <span>{haoHutChi.toLocaleString('lo-LA')} Chỉ</span>
             : <span style={{ color: '#d1d5db' }}>—</span>
         },
       },
       {
-        title: t('colWearValue'), dataIndex: 'productSnapshotName', key: 'haoHutValue',
+        title: t('colWearValue'), key: 'haoHutValue',
         width: 130, align: 'right' as const,
-        render: (v: string, row: TransactionItem) => {
-          const { haoHutChi } = parseItemFees(v)
-          if (haoHutChi <= 0) return <span style={{ color: '#d1d5db' }}>—</span>
+        render: (_: unknown, row: TransactionItem) => {
+          const haoHutGram = row.haoHutGram ?? 0
+          if (haoHutGram <= 0) return <span style={{ color: '#d1d5db' }}>—</span>
           const pricePerUnit = row.tableUnitPriceLak || row.unitPriceLak
           const gramPerUnit = row.weightGram > 0 ? row.weightGram : 3.75
-          const val = Math.round(haoHutChi * pricePerUnit / gramPerUnit * 3.75)
+          const val = Math.round(haoHutGram * pricePerUnit / gramPerUnit)
           return formatKip(val)
         },
       },
@@ -331,25 +309,29 @@ export function TransactionExpandedRow({ record }: Props) {
           )}
           {isBuyType ? (
             <>
-              {hasEncodedFees && (
+              {hasBuyFees && (
                 <Field label={t('fieldTotalDamageFee')} value={totalPhiKho > 0 ? formatKip(totalPhiKho) : '0'} />
               )}
-              {hasEncodedFees && (
+              {hasBuyFees && (
                 <Field label={t('fieldTotalWearValue')} value={totalHaoHutValue > 0 ? formatKip(totalHaoHutValue) : '0'} />
               )}
               {record.laborFee > 0 && (
                 <Field label={t('fieldLaborFee')} value={formatKip(record.laborFee)} />
               )}
             </>
-          ) : (
+          ) : record.type !== 'ExchangeCurrency' ? (
             <>
               <Field label={t('fieldLaborFee')} value={record.laborFee > 0 ? formatKip(record.laborFee) : '0'} />
               <Field label={t('fieldStoneFee')} value={record.stoneFee > 0 ? formatKip(record.stoneFee) : '0'} />
             </>
-          )}
+          ) : null}
           <Field label={t('fieldTotal')} value={<b style={{ fontSize: 14 }}>{formatKip(record.totalAmount)}</b>} />
-          <Field label={t('fieldCash')}  value={record.cashAmount != null ? formatKip(record.cashAmount) : undefined} />
-          <Field label={t('fieldBank')}  value={record.bankAmount != null ? formatKip(record.bankAmount) : undefined} />
+          {record.type !== 'ExchangeCurrency' && (
+            <>
+              <Field label={t('fieldCash')}  value={record.cashAmount != null ? formatKip(record.cashAmount) : undefined} />
+              <Field label={t('fieldBank')}  value={record.bankAmount != null ? formatKip(record.bankAmount) : undefined} />
+            </>
+          )}
         </div>
       </div>
 

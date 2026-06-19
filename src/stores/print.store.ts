@@ -20,13 +20,16 @@ import type { Transaction, TransactionType } from '@/types/transaction'
 /** Một dòng hàng trên hóa đơn in */
 export interface PrintItem {
   stt: number
-  productName: string         // Tên hàng hóa / dịch vụ (snapshot)
+  productName: string         // Tên hàng hóa / dịch vụ (đã strip encoding nếu có)
   unitName: string            // Đơn vị tính (Chỉ / Gram / Baht…)
   quantity: number            // Số lượng
   weightGram: number          // Tổng gram (tham khảo)
   unitPriceLak: number        // Đơn giá (LAK/đơn vị)
-  laborFee: number            // Tiền công / Phí gia công
-  stoneFee: number            // Phí đá
+  laborFee: number            // Tiền công / Phí gia công (SellGold)
+  stoneFee: number            // Phí đá (SellGold)
+  damageFee: number           // Phí lỗi/hỏng (BuyGold / ExchangeIn)
+  wearChi: number             // Hao hụt — số chỉ (BuyGold / ExchangeIn)
+  wearValue: number           // Giá trị hao hụt quy LAK (BuyGold / ExchangeIn)
   lineTotal: number           // Thành tiền
   itemRole: 'Normal' | 'ExchangeIn'
 }
@@ -101,26 +104,75 @@ export interface PrintInvoice {
 
 const EXCHANGE_TYPES: TransactionType[] = ['ExchangeGold', 'ExchangeFree', 'BuyMoreGold', 'ExchangeToMoney']
 
+/** Parse phiKho và haoHutChi được encode trong productSnapshotName.
+ *  Format: "Tên SP [PHÍ KHÒ: 1.500.000₭ | HAO HỤT: 0.4 Chỉ]"
+ */
+function parseItemFees(name: string): { cleanName: string; phiKho: number; haoHutChi: number } {
+  const m = name.match(/^(.*?)\s*\[PHÍ KHÒ:\s*([\d.,]+)₭\s*\|\s*HAO HỤT:\s*([\d.,]+)\s*Chỉ\]$/)
+  if (!m) return { cleanName: name, phiKho: 0, haoHutChi: 0 }
+  return {
+    cleanName: m[1].trim(),
+    phiKho: parseInt(m[2].replace(/[.,]/g, ''), 10),
+    haoHutChi: parseFloat(m[3]),
+  }
+}
+
 function normalize(tx: Transaction, ctx?: PrintContext): PrintInvoice {
-  const items: PrintItem[] = tx.items.map((item, idx) => ({
-    stt: idx + 1,
-    productName: item.productSnapshotName,
-    unitName: item.weightUnitName,
-    quantity: item.quantity,
-    weightGram: item.weightGram,
-    // tableUnitPriceLak = giá gốc từ bảng giá (backend lưu độc lập).
-    // Dùng cho in phiếu vì unitPriceLak có thể đã được điều chỉnh (hao hụt ExchangeIn).
-    unitPriceLak: item.tableUnitPriceLak || item.unitPriceLak,
-    laborFee: item.laborFee,
-    stoneFee: item.stoneFee,
-    lineTotal: item.lineTotal,
-    itemRole: item.itemRole,
-  }))
+  const isBuyGold = tx.type === 'BuyGold'
+  const items: PrintItem[] = tx.items.map((item, idx) => {
+    const { cleanName, phiKho, haoHutChi } = parseItemFees(item.productSnapshotName)
+    // BuyGold Normal: dùng unitPriceLak (giá mua thực tế nhập tay).
+    // tableUnitPriceLak là giá bảng tham chiếu — đúng cho SellGold/ExchangeIn,
+    // nhưng sai cho BuyGold vì giá mua thường khác giá bảng.
+    const isBuyNormal = isBuyGold && item.itemRole !== 'ExchangeIn'
+    const pricePerUnit = isBuyNormal
+      ? item.unitPriceLak
+      : (item.tableUnitPriceLak || item.unitPriceLak)
+    // gramPerUnit = weightGram (có thể là effectiveGram sau hao mòn nếu backend dùng override)
+    // pricePerGram = pricePerUnit / gramPerUnit (= giá gốc/gram khi BuyGold có hao mòn)
+    const gramPerUnit = item.weightGram > 0 ? item.weightGram : 3.75
+    const pricePerGram = pricePerUnit / gramPerUnit
+
+    // Ưu tiên: encoding trong tên → backend field → 0
+    const resolvedHaoHutChi = haoHutChi > 0
+      ? haoHutChi
+      : (item.haoHutGram && item.haoHutGram > 0 ? item.haoHutGram / 3.75 : 0)
+    const wearValue = resolvedHaoHutChi > 0
+      ? Math.round(resolvedHaoHutChi * 3.75 * pricePerGram)
+      : 0
+
+    const resolvedDamageFee = phiKho > 0
+      ? phiKho
+      : (item.damageFee ?? 0)
+
+    return {
+      stt: idx + 1,
+      productName: cleanName,
+      unitName: item.weightUnitName,
+      quantity: item.quantity,
+      weightGram: item.weightGram,
+      unitPriceLak: pricePerUnit,
+      laborFee: item.laborFee,
+      stoneFee: item.stoneFee,
+      damageFee: resolvedDamageFee,
+      wearChi: resolvedHaoHutChi,
+      wearValue,
+      lineTotal: item.lineTotal,
+      itemRole: item.itemRole,
+    }
+  })
 
   // Với ExchangeGold/ExchangeFree/BuyMoreGold/ExchangeToMoney, totalAmount = A - B (có thể âm).
   // Số tiền bằng chữ luôn dùng giá trị tuyệt đối — chiều đổi được thể hiện bằng label riêng.
   const isExchange = EXCHANGE_TYPES.includes(tx.type)
   const printAmount = isExchange ? Math.abs(tx.totalAmount) : tx.totalAmount
+
+  // BuyGold: subtotalAmount của backend là giá mua effective (đã trừ hao mòn).
+  // Phục hồi giá mua gốc = effective + wearValue để PrintInvoiceModal tính math đúng.
+  const normalItems = items.filter(i => i.itemRole === 'Normal')
+  const buyGoldOriginalGross = isBuyGold
+    ? normalItems.reduce((s, i) => s + i.quantity * i.unitPriceLak + i.wearValue, 0)
+    : 0
 
   return {
     invoiceCode: tx.invoiceCode,
@@ -136,10 +188,13 @@ function normalize(tx: Transaction, ctx?: PrintContext): PrintInvoice {
     customerPhone: tx.customer?.phoneNumber ?? null,
 
     items,
-    normalItems:     items.filter(i => i.itemRole === 'Normal'),
+    normalItems,
     exchangeInItems: items.filter(i => i.itemRole === 'ExchangeIn'),
 
-    subtotalAmount: tx.subtotalAmount,
+    // BuyGold: override subtotalAmount để giaThúVao trong PrintInvoiceModal hiển thị giá gốc
+    subtotalAmount: (isBuyGold && buyGoldOriginalGross > 0)
+      ? buyGoldOriginalGross
+      : tx.subtotalAmount,
     laborFee:       tx.laborFee,
     stoneFee:       tx.stoneFee,
     totalAmount:    tx.totalAmount,

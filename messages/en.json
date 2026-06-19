@@ -98,7 +98,7 @@
       "methods": {
         "cash": "Cash",
         "bank-transfer": "Bank Transfer",
-        "combined": "Cash + Transfer"
+        "combined": "Cash + Bank Transfer"
       }
     },
     "receipt": {

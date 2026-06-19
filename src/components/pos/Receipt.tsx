@@ -51,7 +51,8 @@ export function Receipt({ open, transaction, onClose }: ReceiptProps) {
   const methodKeyMap: Record<string, PaymentMethodKey> = {
     CASH: "cash",
     BANK: "bank-transfer",
-    MIXED: "cash",
+    MIXED: "combined",
+    COMBINED: "combined",
   };
   const rawKey = transaction.paymentMethod
     ? methodKeyMap[transaction.paymentMethod]
@@ -253,7 +254,7 @@ export function Receipt({ open, transaction, onClose }: ReceiptProps) {
                               {item.weightUnitName || "—"}
                             </TableCell>
                             <TableCell className="text-right text-sm">
-                              {formatKip(item.tableUnitPriceLak || item.unitPriceLak)}
+                              {formatKip(item.unitPriceLak)}
                             </TableCell>
                             <TableCell className="text-right text-sm font-semibold text-amber-700 dark:text-amber-400">
                               {formatKip(item.lineTotal)}
@@ -297,7 +298,7 @@ export function Receipt({ open, transaction, onClose }: ReceiptProps) {
                               {item.weightUnitName || "—"}
                             </TableCell>
                             <TableCell className="text-right text-sm">
-                              {formatKip(item.tableUnitPriceLak || item.unitPriceLak)}
+                              {formatKip(item.unitPriceLak)}
                             </TableCell>
                             <TableCell className="text-right text-sm">
                               {item.laborFee > 0 ? formatKip(item.laborFee) : "—"}
@@ -331,6 +332,12 @@ export function Receipt({ open, transaction, onClose }: ReceiptProps) {
                     <TableHead className="text-right">
                       {isBuy ? "Giá mua" : "Giá đơn vị"}
                     </TableHead>
+                    {isBuy && (
+                      <TableHead className="text-right">Lỗi/hỏng</TableHead>
+                    )}
+                    {isBuy && (
+                      <TableHead className="text-right">Hao mòn</TableHead>
+                    )}
                     {!isBuy && (
                       <TableHead className="text-right">
                         {t("columnLaborFee")}
@@ -359,8 +366,20 @@ export function Receipt({ open, transaction, onClose }: ReceiptProps) {
                         {item.weightUnitName || "—"}
                       </TableCell>
                       <TableCell className="text-right text-sm">
-                        {formatKip(item.tableUnitPriceLak || item.unitPriceLak)}
+                        {formatKip(item.unitPriceLak)}
                       </TableCell>
+                      {isBuy && (
+                        <TableCell className="text-right text-sm">
+                          {(item.damageFee ?? 0) > 0 ? formatKip(item.damageFee!) : "—"}
+                        </TableCell>
+                      )}
+                      {isBuy && (
+                        <TableCell className="text-right text-sm">
+                          {(item.haoHutGram ?? 0) > 0
+                            ? `${((item.haoHutGram ?? 0) / 3.75).toLocaleString("lo-LA")} Chỉ`
+                            : "—"}
+                        </TableCell>
+                      )}
                       {!isBuy && (
                         <TableCell className="text-right text-sm">
                           {item.laborFee > 0 ? formatKip(item.laborFee) : "—"}
@@ -416,25 +435,75 @@ export function Receipt({ open, transaction, onClose }: ReceiptProps) {
                 </>
               ) : !isFx ? (
                 <>
-                  <div className="flex justify-between text-muted-foreground">
-                    <span>{t("subtotalLabel")}</span>
-                    <span>{formatKip(transaction.subtotalAmount)}</span>
-                  </div>
-                  {!isBuy && transaction.laborFee > 0 && (
-                    <div className="flex justify-between text-muted-foreground">
-                      <span>{t("columnLaborFee")}</span>
-                      <span>{formatKip(transaction.laborFee)}</span>
-                    </div>
-                  )}
-                  {!isBuy && transaction.stoneFee > 0 && (
-                    <div className="flex justify-between text-muted-foreground">
-                      <span>{t("columnStoneFee")}</span>
-                      <span>{formatKip(transaction.stoneFee)}</span>
-                    </div>
+                  {isBuy ? (
+                    (() => {
+                      // Hao mòn (₭): dùng haoHutGram × pricePerGram nếu backend trả về.
+                      // pricePerGram = unitPriceLak / weightGram (vì backend đã điều chỉnh
+                      // unitPriceLak = effectiveGram × pricePerGram, weightGram = effectiveGram).
+                      const totalWear = transaction.items.reduce((s, i) => {
+                        if (!i.haoHutGram || i.haoHutGram <= 0 || !i.weightGram) return s;
+                        return s + Math.round(i.haoHutGram * (i.unitPriceLak / i.weightGram));
+                      }, 0);
+
+                      // Phí lỗi/hỏng: dùng damageFee nếu có, fallback: unitPriceLak × qty − lineTotal.
+                      const totalDamage = transaction.items.reduce((s, i) => {
+                        if (i.damageFee !== undefined) return s + i.damageFee;
+                        return s + Math.max(0, i.quantity * i.unitPriceLak - i.lineTotal);
+                      }, 0);
+
+                      // Giá mua gốc = effective + hao mòn (phục hồi giá ban đầu nếu biết haoHutGram).
+                      const buyGross = transaction.items.reduce((s, i) => {
+                        const effectiveValue = i.quantity * i.unitPriceLak;
+                        if (i.haoHutGram && i.haoHutGram > 0 && i.weightGram > 0) {
+                          return s + effectiveValue + Math.round(i.haoHutGram * (i.unitPriceLak / i.weightGram));
+                        }
+                        return s + effectiveValue;
+                      }, 0);
+
+                      return (
+                        <>
+                          <div className="flex justify-between text-muted-foreground">
+                            <span>Giá mua vào</span>
+                            <span>{formatKip(buyGross)}</span>
+                          </div>
+                          {totalWear > 0 && (
+                            <div className="flex justify-between text-orange-600 dark:text-orange-400">
+                              <span>Hao mòn (−)</span>
+                              <span>{formatKip(totalWear)}</span>
+                            </div>
+                          )}
+                          {totalDamage > 0 && (
+                            <div className="flex justify-between text-orange-600 dark:text-orange-400">
+                              <span>Phí lỗi/hỏng (−)</span>
+                              <span>{formatKip(totalDamage)}</span>
+                            </div>
+                          )}
+                        </>
+                      );
+                    })()
+                  ) : (
+                    <>
+                      <div className="flex justify-between text-muted-foreground">
+                        <span>{t("subtotalLabel")}</span>
+                        <span>{formatKip(transaction.subtotalAmount)}</span>
+                      </div>
+                      {transaction.laborFee > 0 && (
+                        <div className="flex justify-between text-muted-foreground">
+                          <span>{t("columnLaborFee")}</span>
+                          <span>{formatKip(transaction.laborFee)}</span>
+                        </div>
+                      )}
+                      {transaction.stoneFee > 0 && (
+                        <div className="flex justify-between text-muted-foreground">
+                          <span>{t("columnStoneFee")}</span>
+                          <span>{formatKip(transaction.stoneFee)}</span>
+                        </div>
+                      )}
+                    </>
                   )}
                   <div className="flex justify-between font-bold text-base pt-1">
-                    <span>{t("totalLabel")}</span>
-                    <span className="text-primary">
+                    <span>{isBuy ? "TIỆM CHI RA" : t("totalLabel")}</span>
+                    <span className={isBuy ? "text-blue-600 dark:text-blue-400" : "text-primary"}>
                       {formatKip(transaction.totalAmount)}
                     </span>
                   </div>
