@@ -101,7 +101,7 @@ export default function AdminLayout({
           { href: "/admin/users", label: t("nav.users"), icon: UserSwitchOutlined },
           { href: "/admin/roles", label: t("nav.roles"), icon: SafetyCertificateOutlined },
           { href: "/admin/branches", label: t("nav.branches"), icon: BankOutlined },
-          { href: "/admin/audit-logs", label: t("nav.auditLogs"), icon: AuditOutlined },
+          // { href: "/admin/audit-logs", label: t("nav.auditLogs"), icon: AuditOutlined },
         ],
       },
       {
