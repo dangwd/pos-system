@@ -10,6 +10,7 @@ const EVENT_TAG_COLOR: Record<LoginEventType, string> = {
   LoginFailedInactive:        'warning',
   Logout:                     'default',
   TokenRefreshed:             'processing',
+  ForceLogout:                'volcano',
 }
 
 export interface AuditLogColumnLabels {

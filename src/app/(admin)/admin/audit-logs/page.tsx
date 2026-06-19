@@ -19,6 +19,7 @@ const EVENT_TYPES: { value: number; key: LoginEventType }[] = [
   { value: 3, key: 'LoginFailedInactive' },
   { value: 4, key: 'Logout' },
   { value: 5, key: 'TokenRefreshed' },
+  { value: 6, key: 'ForceLogout' },
 ]
 
 const PAGE_STYLE: React.CSSProperties = { padding: '24px 24px 32px' }
@@ -60,6 +61,7 @@ export default function AuditLogsPage() {
     LoginFailedInactive:       t('events.LoginFailedInactive'),
     Logout:                    t('events.Logout'),
     TokenRefreshed:            t('events.TokenRefreshed'),
+    ForceLogout:               t('events.ForceLogout'),
   }), [t])
 
   const columns = useMemo(() => createAuditLogColumns({

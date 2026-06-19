@@ -10,7 +10,7 @@ import { createUserColumns } from '@/components/admin/columns/user-columns'
 import { UserCreateDialog } from '@/components/admin/users/UserCreateDialog'
 import { UserResetPasswordDialog } from '@/components/admin/users/UserResetPasswordDialog'
 import { UserExpandedRow } from '@/components/admin/users/UserExpandedRow'
-import { useUsersPaged, useActivateUser, useDeactivateUser, useRoles } from '@/hooks/useUsers'
+import { useUsersPaged, useActivateUser, useDeactivateUser, useForceLogout, useRoles } from '@/hooks/useUsers'
 import { useBranches, useCounters } from '@/hooks/useBranches'
 import type { AdminUser } from '@/types/admin-user'
 
@@ -62,8 +62,9 @@ export default function UsersPage() {
   })
   const users = data?.data ?? []
 
-  const { mutate: activate }   = useActivateUser()
-  const { mutate: deactivate } = useDeactivateUser()
+  const { mutate: activate }    = useActivateUser()
+  const { mutate: deactivate }  = useDeactivateUser()
+  const { mutate: forceLogout } = useForceLogout()
 
   const columns = useMemo(() => createUserColumns({
     employeeCode: t('columns.employeeCode'),
@@ -181,6 +182,7 @@ export default function UsersPage() {
                 onResetPassword={setResetPwUser}
                 onActivate={(u) => activate(u.id)}
                 onDeactivate={(u) => deactivate(u.id)}
+                onForceLogout={(u) => forceLogout(u.id)}
               />
             ),
           }}

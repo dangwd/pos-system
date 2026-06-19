@@ -55,6 +55,7 @@ export type LoginEventType =
   | 'LoginFailedInactive'
   | 'Logout'
   | 'TokenRefreshed'
+  | 'ForceLogout'
 
 export const LOGIN_EVENT_TYPE_INT: Record<LoginEventType, number> = {
   LoginSuccess: 1,
@@ -62,6 +63,7 @@ export const LOGIN_EVENT_TYPE_INT: Record<LoginEventType, number> = {
   LoginFailedInactive: 3,
   Logout: 4,
   TokenRefreshed: 5,
+  ForceLogout: 6,
 }
 
 export interface LoginAuditLog {

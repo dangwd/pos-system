@@ -1585,6 +1585,7 @@
       },
       "tabs": {
         "info": "ຂໍ້ມູນ",
+        "activity": "ການເຄື່ອນໄຫວ",
         "permissions": "ສິດທິ",
         "accessTime": "ເວລາເຂົ້າໃຊ້",
         "deviceHistory": "ປະຫວັດອຸປະກອນ"
@@ -1656,7 +1657,15 @@
         "updateSuccess": "ອັບເດດຂໍ້ມູນສຳເລັດ",
         "updateRoleSuccess": "ປ່ຽນຕຳແໜ່ງສຳເລັດ",
         "resetPasswordSuccess": "ຕັ້ງລະຫັດຜ່ານໃໝ່ສຳເລັດ",
-        "assignCounterSuccess": "ມອບໝາຍເຄົ້າເຕີສຳເລັດ"
+        "assignCounterSuccess": "ມອບໝາຍເຄົ້າເຕີສຳເລັດ",
+        "forceLogoutSuccess": "ໄດ້ຖອດທຸກເຊດຊັ່ນຂອງບັນຊີອອກແລ້ວ"
+      },
+      "forceLogout": {
+        "button": "ບັງຄັບອອກ",
+        "confirmTitle": "ບັງຄັບໃຫ້ອອກຈາກທຸກເຊດຊັ່ນ?",
+        "confirmDesc": "ໂທເຄັນການໂຊຄຢູ່ຈະຍັງໃຊ້ໄດ້ຈົນກ່ວາຈະໝົດອາຍຸ (ສູງສຸດ 8 ຊົ່ວໂມງ).",
+        "ok": "ບັງຄັບອອກ",
+        "cancel": "ຍົກເລີກ"
       },
       "assignCounterDialog": {
         "title": "ມອບໝາຍເຄົ້າເຕີ — {name}",
@@ -1752,7 +1761,8 @@
         "LoginFailedBadCredentials": "ລະຫັດຜ່ານຜິດ",
         "LoginFailedInactive": "ບັນຊີຖືກປິດໃຊ້ງານ",
         "Logout": "ອອກຈາກລະບົບ",
-        "TokenRefreshed": "ຕໍ່ອາຍຸ Token"
+        "TokenRefreshed": "ຕໍ່ອາຍຸ Token",
+        "ForceLogout": "ບັງຄັບອອກ (admin)"
       }
     }
   },

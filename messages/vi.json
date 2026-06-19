@@ -1585,6 +1585,7 @@
       },
       "tabs": {
         "info": "Thông tin",
+        "activity": "Hoạt động đăng nhập",
         "permissions": "Phân quyền",
         "accessTime": "Thời gian truy cập",
         "deviceHistory": "Lịch sử thiết bị"
@@ -1656,7 +1657,15 @@
         "updateSuccess": "Cập nhật thông tin thành công",
         "updateRoleSuccess": "Đổi vai trò thành công",
         "resetPasswordSuccess": "Đặt lại mật khẩu thành công",
-        "assignCounterSuccess": "Phân công quầy thành công"
+        "assignCounterSuccess": "Phân công quầy thành công",
+        "forceLogoutSuccess": "Đã kích tài khoản ra khỏi tất cả phiên đăng nhập"
+      },
+      "forceLogout": {
+        "button": "Kích đăng xuất",
+        "confirmTitle": "Kích tài khoản ra khỏi phiên?",
+        "confirmDesc": "Toàn bộ phiên đăng nhập sẽ bị thu hồi. Access token còn hiệu lực đến khi hết hạn (tối đa 8 giờ).",
+        "ok": "Kích xuất",
+        "cancel": "Hủy"
       },
       "assignCounterDialog": {
         "title": "Phân công quầy — {name}",
@@ -1752,7 +1761,8 @@
         "LoginFailedBadCredentials": "Sai mật khẩu",
         "LoginFailedInactive": "Tài khoản bị vô hiệu hóa",
         "Logout": "Đăng xuất",
-        "TokenRefreshed": "Làm mới token"
+        "TokenRefreshed": "Làm mới token",
+        "ForceLogout": "Kích đăng xuất (admin)"
       }
     }
   },

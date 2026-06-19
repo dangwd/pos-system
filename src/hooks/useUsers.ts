@@ -150,3 +150,13 @@ export function useAssignCounter() {
     onError: (err) => toast.error(getErrorMessage(err.code, locale)),
   })
 }
+
+export function useForceLogout() {
+  const { locale, t, toast } = useUserMutationBase()
+
+  return useMutation<void, ApiError, string>({
+    mutationFn: (id) => userRepository.forceLogout(id),
+    onSuccess: () => toast.success(t('toasts.forceLogoutSuccess')),
+    onError: (err) => toast.error(getErrorMessage(err.code, locale)),
+  })
+}

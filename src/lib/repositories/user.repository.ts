@@ -110,6 +110,14 @@ export class UserRepository {
       throw handleAxiosError(err)
     }
   }
+
+  async forceLogout(id: string): Promise<void> {
+    try {
+      await api.post(`/api/users/${id}/force-logout`)
+    } catch (err) {
+      throw handleAxiosError(err)
+    }
+  }
 }
 
 export const userRepository = new UserRepository()
