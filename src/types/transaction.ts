@@ -50,6 +50,13 @@ export interface TransactionItem {
   stoneFee: number; // Phí đá
   phiHuHai?: number; // Phí lỗi hỏng / hủy hoại (₭) — undefined khi backend cũ chưa trả
   haoHutGram?: number; // Hao hụt trọng lượng (gram) — undefined khi backend cũ chưa trả
+  // ── FX (ExchangeCurrency) — mỗi item là 1 dòng đổi tiền nguồn → đích ──
+  fxFromCurrency?: string; // Loại tiền khách đưa
+  fxFromAmount?: number; // Số tiền khách đưa (theo fxFromCurrency)
+  fxFromRateToLak?: number; // Tỷ giá tiền đưa → LAK
+  fxToCurrency?: string; // Loại tiền khách nhận
+  fxToRateToLak?: number; // Tỷ giá tiền nhận → LAK
+  fxToAmount?: number; // Số tiền khách nhận (theo fxToCurrency)
 }
 
 /** Thông tin khách hàng rút gọn trong transaction */

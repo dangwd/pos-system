@@ -11,12 +11,6 @@ import { useStockMovements } from '@/hooks/useReports'
 import { DocumentDialog, type DocRef } from './DocumentDialog'
 import type { StockPeriodItem, StockMovementLine } from '@/types/report'
 
-// Màu nhóm cột theo spec
-const GRP = {
-  open:   { background: '#E6F1FB', color: '#0C447C' },
-  change: { background: '#F1EFE8', color: '#444441' },
-  close:  { background: '#EAF3DE', color: '#27500A' },
-}
 const SEP = '1.5px solid var(--border)'
 const sepCell = () => ({ style: { borderLeft: SEP } })
 
@@ -115,13 +109,13 @@ export function StockPeriodTable({ items, fromDate, toDate, loading }: {
     // Đầu kỳ — 1 cột SL (không sub-text, không KL, không ngày)
     {
       title: t('grpOpen'), dataIndex: 'openQty', key: 'openQty', width: 110, align: 'right',
-      onHeaderCell: () => ({ style: { ...GRP.open, borderLeft: SEP } }),
+      onHeaderCell: () => ({ style: { borderLeft: SEP } }),
       onCell: sepCell, render: qty,
     },
     // Trong kỳ — Nhập / Xuất
     {
       title: t('grpChange'),
-      onHeaderCell: () => ({ style: { ...GRP.change, borderLeft: SEP } }),
+      onHeaderCell: () => ({ style: { borderLeft: SEP } }),
       children: [
         { title: t('colReceipt'), dataIndex: 'receiptQty', key: 'receiptQty', width: 95, align: 'right',
           onCell: sepCell, onHeaderCell: sepCell, render: recv },
@@ -131,7 +125,7 @@ export function StockPeriodTable({ items, fromDate, toDate, loading }: {
     // Cuối kỳ — 1 cột SL (đậm)
     {
       title: t('grpClose'), dataIndex: 'closeQty', key: 'closeQty', width: 110, align: 'right',
-      onHeaderCell: () => ({ style: { ...GRP.close, borderLeft: SEP } }),
+      onHeaderCell: () => ({ style: { borderLeft: SEP } }),
       onCell: sepCell,
       render: (n: number) => n > 0
         ? <span className="font-semibold">{formatNum(n)}</span>

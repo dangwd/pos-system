@@ -63,6 +63,29 @@ export class TransactionRepository {
     }
   }
 
+  /** GET /api/transactions/export — xuất Excel theo cùng bộ lọc (tối đa 5.000 dòng) */
+  async exportList(params: Omit<TransactionListParams, 'limit' | 'page' | 'pageSize'>): Promise<void> {
+    try {
+      const response = await api.get(`${this.base}/export`, { params, responseType: 'blob' })
+      const blob = new Blob([response.data], {
+        type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+      })
+      const url = URL.createObjectURL(blob)
+      const now = new Date()
+      const pad = (n: number) => String(n).padStart(2, '0')
+      const ts = `${now.getFullYear()}${pad(now.getMonth() + 1)}${pad(now.getDate())}-${pad(now.getHours())}${pad(now.getMinutes())}${pad(now.getSeconds())}`
+      const a = document.createElement('a')
+      a.href = url
+      a.download = `giao-dich-${ts}.xlsx`
+      document.body.appendChild(a)
+      a.click()
+      document.body.removeChild(a)
+      URL.revokeObjectURL(url)
+    } catch (err) {
+      throw handleAxiosError(err)
+    }
+  }
+
   /** Hủy giao dịch đã hoàn thành */
   async cancel(id: string, dto?: CancelTransactionDto): Promise<void> {
     try {
