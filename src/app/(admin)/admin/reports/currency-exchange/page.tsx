@@ -100,7 +100,7 @@ export default function CurrencyExchangeReportPage() {
           render: (v: number) => (
             v === 0
               ? <span className="text-muted-foreground">–</span>
-              : <span className="tabular-nums text-green-600">+{formatNum(v)}</span>
+              : <span className="tabular-nums">{formatNum(v)}</span>
           ),
         },
         {
@@ -112,7 +112,7 @@ export default function CurrencyExchangeReportPage() {
           render: (v: number) => (
             v === 0
               ? <span className="text-muted-foreground">–</span>
-              : <span className="tabular-nums text-destructive">−{formatNum(v)}</span>
+              : <span className="tabular-nums">{formatNum(v)}</span>
           ),
         },
       ],
@@ -134,7 +134,7 @@ export default function CurrencyExchangeReportPage() {
       title: t('colInvoice'),
       dataIndex: 'invoiceCode',
       key: 'invoiceCode',
-      render: (v: string) => <span className="font-mono text-xs text-primary">{v}</span>,
+      render: (v: string) => <span className="font-mono text-xs">{v}</span>,
     },
     {
       title: t('colTime'),
@@ -159,7 +159,7 @@ export default function CurrencyExchangeReportPage() {
       title: t('colGave'),
       key: 'gave',
       render: (_: unknown, row: CurrencyExchangeTx) => (
-        <span className="tabular-nums text-amber-600 font-medium">
+        <span className="tabular-nums font-medium">
           {formatNum(row.sourceAmount)} {row.sourceCurrency}
         </span>
       ),
@@ -174,7 +174,7 @@ export default function CurrencyExchangeReportPage() {
       title: t('colReceived'),
       key: 'received',
       render: (_: unknown, row: CurrencyExchangeTx) => (
-        <span className="tabular-nums text-green-600 font-medium">
+        <span className="tabular-nums font-medium">
           {formatNum(row.targetAmount)} {row.targetCurrency}
         </span>
       ),
@@ -200,7 +200,7 @@ export default function CurrencyExchangeReportPage() {
       title: t('colCashier'),
       dataIndex: 'cashierName',
       key: 'cashierName',
-      render: (v: string) => <span className="text-primary">{v}</span>,
+      render: (v: string) => <span>{v}</span>,
     },
   ]
 

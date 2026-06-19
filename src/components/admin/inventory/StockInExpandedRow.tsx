@@ -19,7 +19,7 @@ const DASH = <span style={{ color: '#d1d5db' }}>—</span>
 function SectionLabel({ children }: { children: React.ReactNode }) {
   return (
     <div style={SECTION_LABEL_STYLE}>
-      <span style={{ width: 3, height: 12, background: '#6366f1', borderRadius: 2, display: 'inline-block' }} />
+      <span style={{ width: 3, height: 12, background: '#6b7280', borderRadius: 2, display: 'inline-block' }} />
       {children}
     </div>
   )
@@ -49,7 +49,7 @@ export function StockInExpandedRow({ record }: Props) {
   ]
 
   return (
-    <div style={{ padding: '16px 16px 16px 48px', background: '#fafafa' }}>
+    <div style={{ padding: '16px 24px 20px', background: '#f8faff' }}>
       <SectionLabel>{t('sectionProducts')}</SectionLabel>
       <Table<InventoryAdjustmentLine>
         rowKey="id"

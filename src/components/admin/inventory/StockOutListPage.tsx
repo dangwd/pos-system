@@ -28,7 +28,7 @@ const FILTER_STYLE: React.CSSProperties = {
   borderBottom: '1px solid #f0f0f0', background: '#fafafa',
 }
 const CODE_STYLE: React.CSSProperties = {
-  color: '#ef4444', fontWeight: 600, fontFamily: 'monospace',
+  color: '#111827', fontWeight: 600, fontFamily: 'monospace',
   fontSize: 13, letterSpacing: '0.01em',
 }
 const SECTION_LABEL_STYLE: React.CSSProperties = {
@@ -39,7 +39,7 @@ const SECTION_LABEL_STYLE: React.CSSProperties = {
 function SectionLabel({ children }: { children: React.ReactNode }) {
   return (
     <div style={SECTION_LABEL_STYLE}>
-      <span style={{ width: 3, height: 12, background: '#ef4444', borderRadius: 2, display: 'inline-block' }} />
+      <span style={{ width: 3, height: 12, background: '#6b7280', borderRadius: 2, display: 'inline-block' }} />
       {children}
     </div>
   )
@@ -70,7 +70,7 @@ function ExpandedRow({ record, t }: { record: InventoryAdjustment; t: (k: string
   ]
 
   return (
-    <div style={{ padding: '16px 16px 16px 48px', background: '#fafafa' }}>
+    <div style={{ padding: '16px 24px 20px', background: '#f8faff' }}>
       <SectionLabel>{t('sectionProducts')}</SectionLabel>
       <Table<InventoryAdjustmentLine>
         rowKey="id"
@@ -135,7 +135,7 @@ export function StockOutListPage() {
     },
     {
       title: t('colTotalQty'), dataIndex: 'totalQuantity', width: 90, align: 'center' as const,
-      render: (v: number) => <b style={{ fontSize: 14, color: '#ef4444' }}>{v}</b>,
+      render: (v: number) => <b style={{ fontSize: 14, color: '#111827' }}>{v}</b>,
     },
     {
       title: t('colNote'), dataIndex: 'reason', ellipsis: true,
@@ -225,13 +225,13 @@ export function StockOutListPage() {
             expandRowByClick: true,
             showExpandColumn: false,
             onExpand: (expanded, record) =>
-              setExpandedKeys(expanded
-                ? [...expandedKeys, record.id]
-                : expandedKeys.filter(k => k !== record.id)
-              ),
+              setExpandedKeys(expanded ? [record.id] : []),
             expandedRowRender: record => <ExpandedRow record={record} t={k => t(k as Parameters<typeof t>[0])} />,
           }}
-          rowClassName={(_, i) => i % 2 !== 0 ? 'stock-out-row-alt' : ''}
+          rowClassName={(record, i) => [
+            i % 2 !== 0 ? 'stock-out-row-alt' : '',
+            expandedKeys.includes(record.id) ? 'stock-out-row-expanded' : '',
+          ].filter(Boolean).join(' ')}
           pagination={{
             total: paged?.total,
             current: page,
@@ -245,7 +245,10 @@ export function StockOutListPage() {
         />
       </Card>
 
-      <style>{`.stock-out-row-alt > td { background: #fafafa !important; }`}</style>
+      <style>{`
+        .stock-out-row-alt > td { background: #fafafa !important; }
+        .stock-out-row-expanded > td { background: #eff6ff !important; }
+      `}</style>
 
       <StockOutCreateModal
         open={createOpen}

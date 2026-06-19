@@ -102,16 +102,8 @@ export default function ProductsPage() {
           status:      t('columns.status'),
           active:      t('columns.active'),
           inactive:    t('columns.inactive'),
-          openMenu:    t('columns.openMenu'),
-          edit:        t('columns.edit'),
-          deactivate:  t('columns.deactivate'),
-          activate:    t('columns.activate'),
-          actions:     t('columns.actions'),
         },
         unitMap,
-        (product) => setEditProduct(product),
-        (product) => setPendingAction({ type: 'deactivate', product }),
-        (product) => setPendingAction({ type: 'activate',   product }),
       ),
     ],
     [t, unitMap, page],
@@ -170,12 +162,23 @@ export default function ProductsPage() {
           size="middle"
           scroll={{ x: 900, y: TABLE_BODY_HEIGHT }}
           rowClassName={(r, i) => `products-row-clickable${i % 2 !== 0 ? ' products-row-alt' : ''}${expandedKeys.includes(r.id) ? ' products-row-expanded' : ''}`}
+          onRow={(record) => ({
+            onClick: (e) => {
+              if ((e.target as HTMLElement).closest('button, a, input, select, [role="button"]')) return
+              setExpandedKeys(prev => prev.includes(record.id) ? [] : [record.id])
+            },
+          })}
           expandable={{
             expandedRowKeys: expandedKeys,
-            expandRowByClick: true,
             showExpandColumn: false,
-            onExpand: (expanded, record) => setExpandedKeys(expanded ? [record.id] : []),
-            expandedRowRender: (record) => <ProductExpandedRow product={record} />,
+            expandedRowRender: (record) => (
+              <ProductExpandedRow
+                product={record}
+                onEdit={setEditProduct}
+                onDeactivate={(p) => setPendingAction({ type: 'deactivate', product: p })}
+                onActivate={(p) => setPendingAction({ type: 'activate', product: p })}
+              />
+            ),
           }}
           pagination={{
             current:  page,

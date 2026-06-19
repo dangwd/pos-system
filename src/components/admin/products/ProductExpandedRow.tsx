@@ -2,7 +2,8 @@
 
 import { useMemo, useState } from 'react'
 import { useTranslations } from 'next-intl'
-import { Table, Select, DatePicker, Tabs } from 'antd'
+import { Table, Select, DatePicker, Tabs, Button } from 'antd'
+import { CheckCircleOutlined, EditOutlined, StopOutlined } from '@ant-design/icons'
 import dayjs from 'dayjs'
 import { Badge } from '@/components/ui/badge'
 import { createOrderColumns } from '@/components/admin/columns/order-columns'
@@ -22,7 +23,14 @@ function fmtKip(n: number) {
 
 // ─── Tab: Thuộc tính ────────────────────────────────────────────────────────
 
-function AttributesTab({ product }: { product: Product }) {
+interface AttributesTabProps {
+  product: Product
+  onEdit: (product: Product) => void
+  onDeactivate: (product: Product) => void
+  onActivate: (product: Product) => void
+}
+
+function AttributesTab({ product, onEdit, onDeactivate, onActivate }: AttributesTabProps) {
   const t = useTranslations('admin.products')
   const { data: weightUnits = [] } = useWeightUnits()
   const unitName = product.weightUnitId
@@ -47,14 +55,40 @@ function AttributesTab({ product }: { product: Product }) {
   ]
 
   return (
-    <div className="grid grid-cols-2 gap-x-8 gap-y-2 max-w-2xl">
-      {rows.map((r, i) => (
-        <div key={i} className="flex items-center justify-between border-b border-dashed py-1.5 text-sm">
-          <span className="text-muted-foreground">{r.label}</span>
-          <span className="font-medium text-right">{r.value}</span>
-        </div>
-      ))}
-    </div>
+    <>
+      <div className="max-w-2xl mb-4">
+        {rows.map((r, i) => (
+          <div key={i} className="flex items-center border-b border-dashed py-1.5 text-sm">
+            <span className="text-muted-foreground w-1/2">{r.label}</span>
+            <span className="font-medium w-1/2">{r.value}</span>
+          </div>
+        ))}
+      </div>
+
+      <div style={{
+        display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: 8,
+        paddingTop: 12, borderTop: '1px solid #e5e7eb',
+      }}>
+        <Button size="small" icon={<EditOutlined />} onClick={() => onEdit(product)}>
+          {t('columns.edit')}
+        </Button>
+        <div style={{ width: 1, height: 18, background: '#e5e7eb' }} />
+        {product.isActive ? (
+          <Button size="small" danger icon={<StopOutlined />} onClick={() => onDeactivate(product)}>
+            {t('columns.deactivate')}
+          </Button>
+        ) : (
+          <Button
+            size="small"
+            icon={<CheckCircleOutlined />}
+            style={{ color: '#16a34a', borderColor: '#16a34a' }}
+            onClick={() => onActivate(product)}
+          >
+            {t('columns.activate')}
+          </Button>
+        )}
+      </div>
+    </>
   )
 }
 
@@ -76,17 +110,18 @@ function InventoryTab({ product }: { product: Product }) {
   ]
 
   return (
-    <Table<InventoryItem>
-      rowKey="id"
-      columns={columns}
-      dataSource={items}
-      loading={isLoading}
-      size="small"
-      bordered
-      pagination={false}
-      scroll={{ y: 320 }}
-      locale={{ emptyText: t('detail.invEmpty') }}
-    />
+    <div className="max-w-2xl">
+      <Table<InventoryItem>
+        rowKey="id"
+        columns={columns}
+        dataSource={items}
+        loading={isLoading}
+        size="small"
+        bordered
+        pagination={false}
+        locale={{ emptyText: t('detail.invEmpty') }}
+      />
+    </div>
   )
 }
 
@@ -230,14 +265,25 @@ function TransactionsTab({ product }: { product: Product }) {
 
 // ─── Expanded row (3 tabs) ────────────────────────────────────────────────────
 
-export function ProductExpandedRow({ product }: { product: Product }) {
+interface ProductExpandedRowProps {
+  product: Product
+  onEdit: (product: Product) => void
+  onDeactivate: (product: Product) => void
+  onActivate: (product: Product) => void
+}
+
+export function ProductExpandedRow({ product, onEdit, onDeactivate, onActivate }: ProductExpandedRowProps) {
   const t = useTranslations('admin.products')
   return (
-    <div className="py-1">
+    <div style={{ padding: '16px 24px 20px', background: '#f8faff' }}>
       <Tabs
         size="small"
         items={[
-          { key: 'attrs', label: t('detail.tabAttributes'), children: <AttributesTab product={product} /> },
+          {
+            key: 'attrs',
+            label: t('detail.tabAttributes'),
+            children: <AttributesTab product={product} onEdit={onEdit} onDeactivate={onDeactivate} onActivate={onActivate} />,
+          },
           { key: 'stock', label: t('detail.tabInventory'),  children: <InventoryTab product={product} /> },
           { key: 'txns',  label: t('detail.tabTransactions'), children: <TransactionsTab product={product} /> },
         ]}

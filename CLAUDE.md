@@ -824,6 +824,68 @@ new Intl.NumberFormat('lo-LA').format(amount) + ' ₭'
 amount.toLocaleString('vi-VN') + '₫'
 ```
 
+### R-UI-12 · Expanded Row trong Admin Table
+
+Mọi admin table đều **phải có expanded row** — click vào row để xem chi tiết, không dùng modal hay drawer riêng cho thông tin chi tiết.
+
+**Nguyên tắc bắt buộc:**
+- Chỉ **1 row được mở tại 1 thời điểm** — không cho phép mở đồng thời nhiều row
+- Dùng `onRow.onClick` để xử lý expand, **KHÔNG dùng** `expandRowByClick: true` (antd có edge case với controlled state)
+- Bỏ `showExpandColumn: false` để ẩn nút expand mặc định
+- Bỏ `onExpand` callback — logic nằm trong `onRow.onClick`
+
+**Pattern chuẩn cho table page:**
+
+```tsx
+const [expandedKeys, setExpandedKeys] = useState<string[]>([])
+
+<Table<T>
+  rowKey="id"
+  onRow={(record) => ({
+    onClick: (e) => {
+      if ((e.target as HTMLElement).closest('button, a, input, select, [role="button"]')) return
+      setExpandedKeys(prev => prev.includes(record.id) ? [] : [record.id])
+    },
+  })}
+  expandable={{
+    expandedRowKeys: expandedKeys,
+    showExpandColumn: false,
+    expandedRowRender: (record) => <XxxExpandedRow record={record} />,
+  }}
+/>
+```
+
+**Cấu trúc `XxxExpandedRow`:**
+- Nền `background: '#f8faff'`, padding `'16px 24px 20px'`
+- Nếu có nhiều nhóm thông tin: dùng `<Tabs>` antd với `size="small"`
+- Tab thông tin (attributes): danh sách label/value dạng `flex`, `w-1/2` cho label và value — **KHÔNG dùng** `grid-cols-2` outer cho label-value rows
+- Action buttons (Sửa, Vô hiệu hóa, ...) nằm ở cuối expanded row, align right
+- Bảng con (tồn kho, lịch sử...): dùng antd `<Table>` `size="small"` `bordered`, bọc trong `max-w-2xl` nếu ít cột
+
+**Layout label/value chuẩn (KHÔNG để nằm 1 góc):**
+
+```tsx
+// ✅ Đúng — mỗi row chiếm full width, label trái 50%, value phải 50%
+<div className="max-w-2xl mb-4">
+  {rows.map((r, i) => (
+    <div key={i} className="flex items-center border-b border-dashed py-1.5 text-sm">
+      <span className="text-muted-foreground w-1/2">{r.label}</span>
+      <span className="font-medium w-1/2">{r.value}</span>
+    </div>
+  ))}
+</div>
+
+// ❌ Sai — grid-cols-2 outer chia mỗi item còn 50% container, value bị đẩy vào giữa
+<div className="grid grid-cols-2 gap-x-8">
+  {rows.map((r, i) => (
+    <div key={i} className="flex justify-between">
+      <span>{r.label}</span>
+      <span className="text-right">{r.value}</span>
+    </div>
+  ))}
+</div>
+```
+
 ### R-UI-11 · Không dùng asChild
 
 `asChild` prop không tồn tại trong antd wrappers.  

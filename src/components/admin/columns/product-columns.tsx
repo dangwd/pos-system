@@ -1,7 +1,6 @@
 'use client'
 
 import { Badge } from '@/components/ui/badge'
-import { CheckCircleOutlined, EditOutlined, StopOutlined } from '@ant-design/icons'
 import type { ColumnsType } from 'antd/es/table'
 import type { Product } from '@/types/product'
 
@@ -14,19 +13,11 @@ export interface ProductColumnLabels {
   status: string
   active: string
   inactive: string
-  openMenu: string
-  edit: string
-  deactivate: string
-  activate: string
-  actions: string
 }
 
 export function createProductColumns(
   labels: ProductColumnLabels,
   unitMap: Map<string, string>,
-  onEdit: (product: Product) => void,
-  onDeactivate: (product: Product) => void,
-  onActivate: (product: Product) => void,
 ): ColumnsType<Product> {
   return [
     {
@@ -80,43 +71,6 @@ export function createProductColumns(
         <Badge variant={v ? 'default' : 'secondary'}>
           {v ? labels.active : labels.inactive}
         </Badge>
-      ),
-    },
-    {
-      key: 'actions',
-      title: labels.actions,
-      width: 100,
-      align: 'center' as const,
-      render: (_: unknown, record: Product) => (
-        <div className="flex items-center justify-center gap-1">
-          <button
-            type="button"
-            onClick={(e) => { e.stopPropagation(); onEdit(record) }}
-            title={labels.edit}
-            className="inline-flex h-7 w-7 items-center justify-center rounded-md text-base text-muted-foreground transition-colors hover:bg-accent hover:text-foreground"
-          >
-            <EditOutlined />
-          </button>
-          {record.isActive ? (
-            <button
-              type="button"
-              onClick={(e) => { e.stopPropagation(); onDeactivate(record) }}
-              title={labels.deactivate}
-              className="inline-flex h-7 w-7 items-center justify-center rounded-md text-base text-destructive transition-colors hover:bg-destructive/10"
-            >
-              <StopOutlined />
-            </button>
-          ) : (
-            <button
-              type="button"
-              onClick={(e) => { e.stopPropagation(); onActivate(record) }}
-              title={labels.activate}
-              className="inline-flex h-7 w-7 items-center justify-center rounded-md text-base text-primary transition-colors hover:bg-primary/10"
-            >
-              <CheckCircleOutlined />
-            </button>
-          )}
-        </div>
       ),
     },
   ]

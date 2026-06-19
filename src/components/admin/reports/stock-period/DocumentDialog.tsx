@@ -52,11 +52,11 @@ function AdjustmentView({ id }: { id: string }) {
 
   return (
     <div className="space-y-3">
-      <div className="grid grid-cols-2 gap-x-6 gap-y-1.5">
+      <div className="max-w-2xl">
         {meta.map((m, i) => (
-          <div key={i} className="flex items-center justify-between border-b border-dashed py-1 text-sm">
-            <span className="text-muted-foreground">{m.label}</span>
-            <span className="font-medium text-right">{m.value}</span>
+          <div key={i} className="flex items-center border-b border-dashed py-1 text-sm">
+            <span className="text-muted-foreground w-1/2">{m.label}</span>
+            <span className="font-medium w-1/2">{m.value}</span>
           </div>
         ))}
       </div>

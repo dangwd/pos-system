@@ -246,8 +246,6 @@ function SummaryStrip({
 }) {
   const t = useTranslations("admin.cashLedger");
   const fmt = (n: number) => n.toLocaleString("lo-LA") + " " + symbol;
-  const netChange = totalIn - totalOut;
-
   return (
     <div
       style={{
@@ -266,18 +264,16 @@ function SummaryStrip({
       />
       <StatCard
         label={t("totalIn")}
-        value={"+" + fmt(totalIn)}
+        value={fmt(totalIn)}
         icon={<RiseOutlined />}
         iconColor="#22c55e"
-        valueColor="#166534"
         sub={t("summaryTotalInSub")}
       />
       <StatCard
         label={t("totalOut")}
-        value={"−" + fmt(totalOut)}
+        value={fmt(totalOut)}
         icon={<FallOutlined />}
         iconColor="#ef4444"
-        valueColor="#991b1b"
         sub={t("summaryTotalOutSub")}
       />
       <StatCard
@@ -287,11 +283,6 @@ function SummaryStrip({
         iconColor="#6366f1"
         highlight
         sub={t("summaryClosingSub")}
-        delta={
-          netChange !== 0
-            ? { value: netChange, text: symbol }
-            : undefined
-        }
       />
     </div>
   );
@@ -456,10 +447,7 @@ export default function CashLedgerPage() {
         dataIndex: "direction",
         width: 80,
         render: (v: string) => (
-          <Tag
-            color={v === "IN" ? "green" : "red"}
-            style={{ borderRadius: 10, fontSize: 11 }}
-          >
+          <Tag style={{ borderRadius: 10, fontSize: 11 }}>
             {v === "IN" ? t("filterIncome") : t("filterExpense")}
           </Tag>
         ),
@@ -482,12 +470,10 @@ export default function CashLedgerPage() {
           const csym = getCurrencySymbol(record.currency);
           return (
             <span style={{
-              color: record.direction === "IN" ? "#16a34a" : "#dc2626",
               fontWeight: 600,
               fontFamily: "monospace",
               fontSize: 13,
             }}>
-              {record.direction === "OUT" ? "−" : "+"}
               {val.toLocaleString("lo-LA")} {csym}
             </span>
           );

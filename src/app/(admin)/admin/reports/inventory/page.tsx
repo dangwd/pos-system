@@ -67,7 +67,7 @@ export default function StockPeriodReportPage() {
     search: search || undefined,
   }
   const { data, isLoading, isFetching } = useStockPeriodReport(params)
-  const { data: trend, isFetching: trendLoading } = useStockTrendReport(params)
+  // const { data: trend, isFetching: trendLoading } = useStockTrendReport(params)
 
   const branchName = branches.find(b => b.id === branchId)?.name
   const categoryName = categories.find(c => c.id === categoryId)?.name
@@ -91,7 +91,6 @@ export default function StockPeriodReportPage() {
   if (!hasPermission('REPORT_DASHBOARD')) return <ForbiddenPage />
 
   const s = data?.summary
-  const deltaClose = s ? s.closeQty - s.openQty : 0
 
   return (
     <div className="p-6 space-y-5">
@@ -172,7 +171,7 @@ export default function StockPeriodReportPage() {
             />
             <StatCard
               icon={<SwapOutlined />} iconColor="#444441"
-              label={t('cardChange')} value={`+${formatNum(s!.receiptQty)} / −${formatNum(s!.issueQty)}`}
+              label={t('cardChange')} value={`${formatNum(s!.receiptQty)} / ${formatNum(s!.issueQty)}`}
               sub={t('changeSub', { receipt: formatNum(s!.receiptQty), issue: formatNum(s!.issueQty) })}
             />
             <StatCard
@@ -180,7 +179,6 @@ export default function StockPeriodReportPage() {
               label={t('cardClose')} value={`${formatNum(s!.closeQty)} ${t('unitQty')}`}
               sub={`${formatGram(s!.closeWeight)}`}
               highlight
-              delta={{ value: deltaClose, text: t('deltaVsOpen') }}
             />
           </div>
 
@@ -190,8 +188,8 @@ export default function StockPeriodReportPage() {
             <span style={{ color: '#185FA5' }}>{fmtD(fromDate)} → {fmtD(toDate)}</span>
           </div>
 
-          {/* Biểu đồ biến động tồn kho theo thời gian */}
-          <StockTrendChart data={trend} loading={trendLoading} />
+          {/* Biểu đồ biến động tồn kho theo thời gian — tạm ẩn */}
+          {/* <StockTrendChart data={trend} loading={trendLoading} /> */}
 
           {/* Detail table */}
           <div className="rounded-lg border bg-card p-4 shadow-card">

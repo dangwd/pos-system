@@ -110,10 +110,7 @@ export function CashLedgerExpandedRow({ activityId }: Props) {
         <Field
           label={t("detail.entryType")}
           value={
-            <Tag
-              color={isIncome ? "green" : "red"}
-              style={{ borderRadius: 10, fontSize: 11 }}
-            >
+            <Tag style={{ borderRadius: 10, fontSize: 11 }}>
               {t(`entryType.${detail.entryType}` as Parameters<typeof t>[0])}
             </Tag>
           }
@@ -140,10 +137,7 @@ export function CashLedgerExpandedRow({ activityId }: Props) {
         <Field
           label={t("detail.value")}
           value={
-            <b
-              style={{ color: isIncome ? "#16a34a" : "#dc2626", fontSize: 14 }}
-            >
-              {isIncome ? "+" : "−"}
+            <b style={{ fontSize: 14 }}>
               {formatKip(detail.amountLak)}
             </b>
           }

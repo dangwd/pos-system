@@ -5,6 +5,7 @@ import type { ShiftDenominationEntry, ShiftTransactionItem } from '@/types/sales
 import { Drawer, Table, Tabs, Tag, Tooltip } from 'antd'
 import type { TableColumnsType } from 'antd'
 import { Spinner } from '@/components/ui/spinner'
+import { useTranslations } from 'next-intl'
 
 interface Props {
   shiftId: string | null
@@ -115,6 +116,7 @@ function SummaryRow({ label, value, highlight }: { label: string; value: React.R
 // ─── Tab: Tổng quan ──────────────────────────────────────────────────────────
 
 function SummaryTab({ shiftId }: { shiftId: string }) {
+  const t = useTranslations('admin.salesShifts.detail')
   const { data, isLoading } = useShiftDetail(shiftId)
 
   if (isLoading) return (
@@ -131,49 +133,49 @@ function SummaryTab({ shiftId }: { shiftId: string }) {
       {/* Thông tin ca */}
       <div style={{ marginBottom: 20 }}>
         <div style={{ fontSize: 12, fontWeight: 600, color: '#6b7280', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: 8 }}>
-          Thông tin ca
+          {t('sectionInfo')}
         </div>
-        <SummaryRow label="Mã ca" value={<b style={{ fontFamily: 'monospace', color: '#4f46e5' }}>{data.shiftCode}</b>} />
-        <SummaryRow label="Nhân viên" value={`${data.userFullName} (${data.userEmployeeCode})`} />
-        <SummaryRow label="Vai trò" value={data.userRoleName} />
-        <SummaryRow label="Quầy" value={data.counterName} />
-        <SummaryRow label="Chi nhánh" value={data.branchName} />
-        <SummaryRow label="Trạng thái" value={
+        <SummaryRow label={t('shiftCode')} value={<b style={{ fontFamily: 'monospace', color: '#4f46e5' }}>{data.shiftCode}</b>} />
+        <SummaryRow label={t('employee')} value={`${data.userFullName} (${data.userEmployeeCode})`} />
+        <SummaryRow label={t('role')} value={data.userRoleName} />
+        <SummaryRow label={t('counter')} value={data.counterName} />
+        <SummaryRow label={t('branch')} value={data.branchName} />
+        <SummaryRow label={t('status')} value={
           data.status === 'Open'
-            ? <Tag color="success">Đang mở</Tag>
-            : <Tag color="default">Đã đóng</Tag>
+            ? <Tag color="success">{t('statusOpen')}</Tag>
+            : <Tag color="default">{t('statusClosed')}</Tag>
         } />
-        <SummaryRow label="Mở lúc" value={formatDatetime(data.openedAt)} />
-        {data.closedAt && <SummaryRow label="Đóng lúc" value={formatDatetime(data.closedAt)} />}
-        {data.note && <SummaryRow label="Ghi chú" value={data.note} />}
+        <SummaryRow label={t('openedAt')} value={formatDatetime(data.openedAt)} />
+        {data.closedAt && <SummaryRow label={t('closedAt')} value={formatDatetime(data.closedAt)} />}
+        {data.note && <SummaryRow label={t('note')} value={data.note} />}
       </div>
 
       {/* Tiền mặt */}
       <div style={{ marginBottom: 20 }}>
         <div style={{ fontSize: 12, fontWeight: 600, color: '#6b7280', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: 8 }}>
-          Tiền mặt LAK
+          {t('sectionCash')}
         </div>
-        <SummaryRow label="Tiền mặt đầu ca" value={formatKip(data.openingCashLak)} />
-        <SummaryRow label="Ngân hàng đầu ca" value={formatKip(data.openingBankLak)} />
+        <SummaryRow label={t('openingCash')} value={formatKip(data.openingCashLak)} />
+        <SummaryRow label={t('openingBank')} value={formatKip(data.openingBankLak)} />
         <SummaryRow
-          label="Tiền mặt cuối ca"
-          value={data.closingCashLak != null ? formatKip(data.closingCashLak) : <span style={{ color: '#d1d5db' }}>Chưa chốt</span>}
+          label={t('closingCash')}
+          value={data.closingCashLak != null ? formatKip(data.closingCashLak) : <span style={{ color: '#d1d5db' }}>{t('notSettled')}</span>}
         />
         <SummaryRow
-          label="Ngân hàng cuối ca"
-          value={data.closingBankLak != null ? formatKip(data.closingBankLak) : <span style={{ color: '#d1d5db' }}>Chưa chốt</span>}
+          label={t('closingBank')}
+          value={data.closingBankLak != null ? formatKip(data.closingBankLak) : <span style={{ color: '#d1d5db' }}>{t('notSettled')}</span>}
         />
         {data.lakDenominations.length > 0 && (
           <DenomTable entries={data.lakDenominations} currency="₭" hasClosing={data.status === 'Closed'} />
         )}
-        <SummaryRow label="Tồn quỹ ước tính" value={<b>{formatKip(s.netCashMovement)}</b>} highlight />
+        <SummaryRow label={t('netCash')} value={<b>{formatKip(s.netCashMovement)}</b>} highlight />
       </div>
 
       {/* Ngoại tệ */}
       {data.currencyBalances.length > 0 && (
         <div style={{ marginBottom: 20 }}>
           <div style={{ fontSize: 12, fontWeight: 600, color: '#6b7280', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: 8 }}>
-            Ngoại tệ
+            {t('sectionFx')}
           </div>
           {data.currencyBalances.map(b => (
             <div key={b.currency}>
@@ -200,17 +202,17 @@ function SummaryTab({ shiftId }: { shiftId: string }) {
       {/* Tổng hợp hoạt động */}
       <div>
         <div style={{ fontSize: 12, fontWeight: 600, color: '#6b7280', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: 8 }}>
-          Tổng hợp hoạt động
+          {t('sectionActivity')}
         </div>
-        <SummaryRow label="Bán hàng (tiền mặt)" value={formatKip(s.banHangCash)} />
-        <SummaryRow label="Bán hàng (chuyển khoản)" value={formatKip(s.banHangBank)} />
-        <SummaryRow label="Bán hàng (tổng)" value={<b>{formatKip(s.banHangTotal)}</b>} highlight />
-        <SummaryRow label="Mua hàng (tiền mặt)" value={formatKip(s.muaHangCash)} />
-        <SummaryRow label="Mua hàng (chuyển khoản)" value={formatKip(s.muaHangBank)} />
-        <SummaryRow label="Mua hàng (tổng)" value={<b>{formatKip(s.muaHangTotal)}</b>} highlight />
-        <SummaryRow label="Đổi hàng (chênh lệch)" value={formatKip(s.doiHangTotal)} />
-        <SummaryRow label="Phiếu thu" value={formatKip(s.phieuThuTotal)} />
-        <SummaryRow label="Phiếu chi" value={formatKip(s.phieuChiTotal)} />
+        <SummaryRow label={t('sellCash')} value={formatKip(s.banHangCash)} />
+        <SummaryRow label={t('sellBank')} value={formatKip(s.banHangBank)} />
+        <SummaryRow label={t('sellTotal')} value={<b>{formatKip(s.banHangTotal)}</b>} highlight />
+        <SummaryRow label={t('buyCash')} value={formatKip(s.muaHangCash)} />
+        <SummaryRow label={t('buyBank')} value={formatKip(s.muaHangBank)} />
+        <SummaryRow label={t('buyTotal')} value={<b>{formatKip(s.muaHangTotal)}</b>} highlight />
+        <SummaryRow label={t('exchangeDiff')} value={formatKip(s.doiHangTotal)} />
+        <SummaryRow label={t('receiptTotal')} value={formatKip(s.phieuThuTotal)} />
+        <SummaryRow label={t('paymentTotal')} value={formatKip(s.phieuChiTotal)} />
       </div>
     </div>
   )
@@ -219,47 +221,48 @@ function SummaryTab({ shiftId }: { shiftId: string }) {
 // ─── Expanded row giao dịch ───────────────────────────────────────────────────
 
 function TxnExpandedRow({ record }: { record: ShiftTransactionItem }) {
+  const t = useTranslations('admin.salesShifts.detail')
   const isTrade = record.nghiepVu === 'Mua thêm' || record.nghiepVu === 'Đổi hàng' || record.nghiepVu === 'Đổi miễn phí' || record.nghiepVu === 'Đổi thành tiền'
   const isFx = record.nghiepVu === 'Thu đổi ngoại tệ'
 
   return (
     <div style={{ padding: '10px 24px 14px', background: '#f8faff', display: 'flex', gap: 40, flexWrap: 'wrap' }}>
       <div style={{ minWidth: 200 }}>
-        <ExpandField label="Chứng từ gốc" value={<span style={{ fontFamily: 'monospace', fontSize: 12 }}>{record.chungTuGoc}</span>} />
-        <ExpandField label="Đối tượng" value={record.doiTuong} />
-        <ExpandField label="Khách hàng" value={record.khachHang} />
-        <ExpandField label="Quầy" value={record.quay || null} />
-        {record.soPT_PC && <ExpandField label="Số PT/PC" value={record.soPT_PC} />}
+        <ExpandField label={t('expandDoc')} value={<span style={{ fontFamily: 'monospace', fontSize: 12 }}>{record.chungTuGoc}</span>} />
+        <ExpandField label={t('expandObject')} value={record.doiTuong} />
+        <ExpandField label={t('expandCustomer')} value={record.khachHang} />
+        <ExpandField label={t('expandCounter')} value={record.quay || null} />
+        {record.soPT_PC && <ExpandField label={t('expandVoucherNo')} value={record.soPT_PC} />}
       </div>
 
       <div style={{ minWidth: 200 }}>
         {/* Hình thức thanh toán chi tiết (COMBINED) */}
         {record.hinhThucTT === 'COMBINED' && (
           <>
-            <ExpandField label="Tiền mặt" value={record.cashAmount != null ? formatKip(record.cashAmount) : null} />
-            <ExpandField label="Chuyển khoản" value={record.bankAmount != null ? formatKip(record.bankAmount) : null} />
+            <ExpandField label={t('expandCash')} value={record.cashAmount != null ? formatKip(record.cashAmount) : null} />
+            <ExpandField label={t('expandBank')} value={record.bankAmount != null ? formatKip(record.bankAmount) : null} />
           </>
         )}
 
         {/* Thu đổi ngoại tệ */}
         {isFx && (
           <>
-            <ExpandField label="Tiền khách đưa" value={record.foreignAmount != null && record.sourceCurrency ? `${record.foreignAmount.toLocaleString('lo-LA')} ${record.sourceCurrency}` : null} />
-            <ExpandField label="Tiền trả khách" value={record.targetAmount != null && record.targetCurrency ? (record.targetCurrency === 'LAK' ? formatKip(record.targetAmount) : `${record.targetAmount.toLocaleString('lo-LA')} ${record.targetCurrency}`) : null} />
+            <ExpandField label={t('expandFxGiven')} value={record.foreignAmount != null && record.sourceCurrency ? `${record.foreignAmount.toLocaleString('lo-LA')} ${record.sourceCurrency}` : null} />
+            <ExpandField label={t('expandFxReturned')} value={record.targetAmount != null && record.targetCurrency ? (record.targetCurrency === 'LAK' ? formatKip(record.targetAmount) : `${record.targetAmount.toLocaleString('lo-LA')} ${record.targetCurrency}`) : null} />
           </>
         )}
 
         {/* TradeTxn */}
         {isTrade && (
           <>
-            <ExpandField label="Sản phẩm cũ" value={record.itemCuName} />
-            <ExpandField label="Sản phẩm mới" value={record.itemMoiName} />
+            <ExpandField label={t('expandOldItem')} value={record.itemCuName} />
+            <ExpandField label={t('expandNewItem')} value={record.itemMoiName} />
             {record.chenhLech != null && (
               <ExpandField
-                label="Chênh lệch"
+                label={t('expandDiff')}
                 value={
-                  <span style={{ color: record.chenhLech > 0 ? '#15803d' : record.chenhLech < 0 ? '#dc2626' : undefined, fontWeight: 600 }}>
-                    {record.chenhLech > 0 ? '+' : ''}{formatKip(record.chenhLech)}
+                  <span style={{ fontWeight: 600 }}>
+                    {formatKip(record.chenhLech)}
                   </span>
                 }
               />
@@ -285,19 +288,21 @@ function ExpandField({ label, value }: { label: string; value?: React.ReactNode 
 // ─── Tab: Giao dịch ──────────────────────────────────────────────────────────
 
 function TransactionsTab({ shiftId }: { shiftId: string }) {
+  const t = useTranslations('admin.salesShifts.detail')
+  const tPay = useTranslations('common.paymentMethod')
   const { data, isLoading } = useShiftTransactions(shiftId, { pageSize: 50 })
   const items = data?.data ?? []
 
   const columns: TableColumnsType<ShiftTransactionItem> = [
     {
-      title: 'Thời gian',
+      title: t('colTime'),
       dataIndex: 'thoiGian',
       key: 'thoiGian',
       width: 130,
       render: (v: string) => <span style={{ fontSize: 12, color: '#374151' }}>{formatDatetime(v)}</span>,
     },
     {
-      title: 'Nghiệp vụ',
+      title: t('colOperation'),
       dataIndex: 'nghiepVu',
       key: 'nghiepVu',
       width: 150,
@@ -306,7 +311,7 @@ function TransactionsTab({ shiftId }: { shiftId: string }) {
       ),
     },
     {
-      title: 'Chứng từ',
+      title: t('colDocument'),
       dataIndex: 'chungTuGoc',
       key: 'chungTuGoc',
       width: 170,
@@ -319,25 +324,25 @@ function TransactionsTab({ shiftId }: { shiftId: string }) {
       ),
     },
     {
-      title: 'Khách hàng',
+      title: t('colCustomer'),
       key: 'khach',
       render: (_: unknown, r: ShiftTransactionItem) => (
         <span style={{ fontSize: 12 }}>{r.khachHang ?? r.doiTuong ?? <span style={{ color: '#d1d5db' }}>—</span>}</span>
       ),
     },
     {
-      title: 'Hình thức TT',
+      title: t('colPaymentMethod'),
       dataIndex: 'hinhThucTT',
       key: 'hinhThucTT',
-      width: 100,
+      width: 120,
       align: 'center' as const,
       render: (v: string) =>
         v
-          ? <Tag color={HINH_THUC_COLOR[v] ?? 'default'} style={{ fontSize: 11 }}>{v}</Tag>
+          ? <Tag color={HINH_THUC_COLOR[v] ?? 'default'} style={{ fontSize: 11 }}>{tPay(v as 'CASH' | 'BANK' | 'COMBINED')}</Tag>
           : <span style={{ color: '#d1d5db' }}>—</span>,
     },
     {
-      title: 'Giá trị',
+      title: t('colValue'),
       dataIndex: 'giaTri',
       key: 'giaTri',
       width: 130,
@@ -345,14 +350,14 @@ function TransactionsTab({ shiftId }: { shiftId: string }) {
       render: (v: number) => <b style={{ fontVariantNumeric: 'tabular-nums', fontSize: 13 }}>{formatKip(v)}</b>,
     },
     {
-      title: 'Trạng thái',
+      title: t('colStatus'),
       dataIndex: 'trangThai',
       key: 'trangThai',
       width: 90,
       align: 'center' as const,
       render: (v: string) => (
         <Tag color={v === 'Completed' ? 'success' : 'error'} style={{ fontSize: 11 }}>
-          {v === 'Completed' ? 'Hoàn tất' : 'Đã hủy'}
+          {v === 'Completed' ? t('statusCompleted') : t('statusCancelled')}
         </Tag>
       ),
     },
@@ -373,7 +378,7 @@ function TransactionsTab({ shiftId }: { shiftId: string }) {
           expandedRowRender: (r) => <TxnExpandedRow record={r} />,
           rowExpandable: () => true,
         }}
-        locale={{ emptyText: 'Chưa có giao dịch trong ca này' }}
+        locale={{ emptyText: t('noTransactions') }}
       />
       <style>{`.ant-drawer .ant-table-thead > tr > th { white-space: nowrap; }`}</style>
     </>
@@ -383,6 +388,7 @@ function TransactionsTab({ shiftId }: { shiftId: string }) {
 // ─── Main Drawer ──────────────────────────────────────────────────────────────
 
 export function ShiftDetailDrawer({ shiftId, onClose }: Props) {
+  const t = useTranslations('admin.salesShifts.detail')
   return (
     <Drawer
       open={!!shiftId}
@@ -390,7 +396,7 @@ export function ShiftDetailDrawer({ shiftId, onClose }: Props) {
       size="large"
       title={
         <span style={{ fontWeight: 700, fontSize: 15 }}>
-          Chi tiết ca bán hàng
+          {t('sectionInfo')}
         </span>
       }
       destroyOnClose
@@ -403,12 +409,12 @@ export function ShiftDetailDrawer({ shiftId, onClose }: Props) {
           items={[
             {
               key: 'summary',
-              label: 'Tổng quan',
+              label: t('tabOverview'),
               children: <SummaryTab shiftId={shiftId} />,
             },
             {
               key: 'transactions',
-              label: 'Giao dịch trong ca',
+              label: t('tabTransactions'),
               children: <TransactionsTab shiftId={shiftId} />,
             },
           ]}

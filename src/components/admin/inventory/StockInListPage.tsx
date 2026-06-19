@@ -28,7 +28,7 @@ const FILTER_STYLE: React.CSSProperties = {
   borderBottom: '1px solid #f0f0f0', background: '#fafafa',
 }
 const CODE_STYLE: React.CSSProperties = {
-  color: '#4f46e5', fontWeight: 600, fontFamily: 'monospace',
+  color: '#111827', fontWeight: 600, fontFamily: 'monospace',
   fontSize: 13, letterSpacing: '0.01em',
 }
 
@@ -155,16 +155,16 @@ export function StockInListPage() {
           bordered
           size="middle"
           scroll={{ x: 1000 }}
-          rowClassName={(_, i) => i % 2 !== 0 ? 'stock-in-row-alt' : ''}
+          rowClassName={(record, i) => [
+            i % 2 !== 0 ? 'stock-in-row-alt' : '',
+            expandedKeys.includes(record.id) ? 'stock-in-row-expanded' : '',
+          ].filter(Boolean).join(' ')}
           expandable={{
             expandedRowKeys: expandedKeys,
             expandRowByClick: true,
             showExpandColumn: false,
             onExpand: (expanded, record) =>
-              setExpandedKeys(expanded
-                ? [...expandedKeys, record.id]
-                : expandedKeys.filter(k => k !== record.id),
-              ),
+              setExpandedKeys(expanded ? [record.id] : []),
             expandedRowRender: record => <StockInExpandedRow record={record} />,
           }}
           pagination={{
@@ -177,7 +177,10 @@ export function StockInListPage() {
         />
       </Card>
 
-      <style>{`.stock-in-row-alt > td { background: #fafafa !important; }`}</style>
+      <style>{`
+        .stock-in-row-alt > td { background: #fafafa !important; }
+        .stock-in-row-expanded > td { background: #eff6ff !important; }
+      `}</style>
 
       <StockInCreateModal
         open={createOpen}

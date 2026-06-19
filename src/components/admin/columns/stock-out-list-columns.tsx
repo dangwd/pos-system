@@ -29,7 +29,7 @@ export function createStockOutListColumns(
       accessorKey: 'adjustmentCode',
       header: labels.code,
       cell: ({ row }) => (
-        <span className="rounded bg-destructive/10 px-1.5 py-0.5 font-mono text-xs font-semibold text-destructive">
+        <span className="rounded bg-muted px-1.5 py-0.5 font-mono text-xs font-semibold text-foreground">
           {row.original.adjustmentCode}
         </span>
       ),
@@ -53,8 +53,8 @@ export function createStockOutListColumns(
       header: labels.quantity,
       cell: ({ row }) => (
         <div className="flex items-center gap-1">
-          <VerticalAlignTopOutlined className="h-3 w-3 text-destructive" />
-          <span className="tabular-nums font-semibold text-destructive">
+          <VerticalAlignTopOutlined className="h-3 w-3 text-foreground" />
+          <span className="tabular-nums font-semibold text-foreground">
             {row.original.totalQuantity}
           </span>
         </div>

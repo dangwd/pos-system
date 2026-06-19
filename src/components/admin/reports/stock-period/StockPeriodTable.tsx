@@ -22,10 +22,10 @@ const sepCell = () => ({ style: { borderLeft: SEP } })
 
 const qty = (n: number) => n > 0 ? formatNum(n) : <span className="text-muted-foreground">—</span>
 const recv = (n: number) => n > 0
-  ? <span style={{ color: '#3B6D11', fontWeight: 500 }}>+{formatNum(n)}</span>
+  ? <span style={{ fontWeight: 500 }}>{formatNum(n)}</span>
   : <span className="text-muted-foreground">—</span>
 const issue = (n: number) => n > 0
-  ? <span style={{ color: '#A32D2D', fontWeight: 500 }}>−{formatNum(n)}</span>
+  ? <span style={{ fontWeight: 500 }}>{formatNum(n)}</span>
   : <span className="text-muted-foreground">—</span>
 
 // ─── Chi tiết phát sinh nhập/xuất của 1 dòng (lazy fetch khi mở rộng) ─────────
@@ -44,14 +44,10 @@ function MovementDetail({ row, fromDate, toDate }: { row: StockPeriodItem; fromD
       render: (v: string) => dayjs(v).format('DD/MM/YYYY HH:mm') },
     { title: t('movType'), dataIndex: 'direction', key: 'direction', width: 90,
       render: (v: 'IN' | 'OUT') => v === 'IN'
-        ? <span style={{ color: '#3B6D11', fontWeight: 500 }}>{t('movIn')}</span>
-        : <span style={{ color: '#A32D2D', fontWeight: 500 }}>{t('movOut')}</span> },
+        ? <span style={{ fontWeight: 500 }}>{t('movIn')}</span>
+        : <span style={{ fontWeight: 500 }}>{t('movOut')}</span> },
     { title: t('movQty'), dataIndex: 'quantity', key: 'quantity', width: 90, align: 'right',
-      render: (v: number, r) => (
-        <span style={{ color: r.direction === 'IN' ? '#3B6D11' : '#A32D2D' }}>
-          {r.direction === 'IN' ? '+' : '−'}{formatNum(v)}
-        </span>
-      ) },
+      render: (v: number) => <span>{formatNum(v)}</span> },
     { title: t('movRef'), dataIndex: 'refCode', key: 'refCode', width: 150,
       render: (v: string, r) => (
         <button
@@ -184,10 +180,10 @@ export function StockPeriodTable({ items, fromDate, toDate, loading }: {
             </Table.Summary.Cell>
             <Table.Summary.Cell index={7} align="right">{formatNum(totals.openQty)}</Table.Summary.Cell>
             <Table.Summary.Cell index={8} align="right">
-              <span style={{ color: '#3B6D11' }}>+{formatNum(totals.receiptQty)}</span>
+              {formatNum(totals.receiptQty)}
             </Table.Summary.Cell>
             <Table.Summary.Cell index={9} align="right">
-              <span style={{ color: '#A32D2D' }}>−{formatNum(totals.issueQty)}</span>
+              {formatNum(totals.issueQty)}
             </Table.Summary.Cell>
             <Table.Summary.Cell index={10} align="right">{formatNum(totals.closeQty)}</Table.Summary.Cell>
           </Table.Summary.Row>
