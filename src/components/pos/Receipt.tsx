@@ -69,6 +69,49 @@ export function Receipt({ open, transaction, onClose }: ReceiptProps) {
   const fxHasDirect = isFx && transaction.foreignAmount != null;
   const fxParsed = isFx && !fxHasDirect ? parseFxNote(transaction.note) : null;
 
+  // Resolved exchange lines — Mode A từ backend, hoặc synthesize từ scalar fields
+  const rawFxLines = isFx ? (transaction.exchangeLines ?? []) : [];
+  const resolvedFxLines = rawFxLines.length > 0
+    ? rawFxLines
+    : isFx && fxHasDirect && transaction.currency
+      ? [{
+          fromCurrency: transaction.currency,
+          fromAmount: transaction.foreignAmount!,
+          fromRateToLak: transaction.exchangeRate ?? 0,
+          toCurrency: transaction.targetCurrency ?? "LAK",
+          toRateToLak: transaction.targetCurrency && transaction.targetCurrency !== "LAK"
+            ? (transaction.targetRateToLak ?? 1)
+            : 1,
+          toAmount: isFxToNonLak
+            ? (transaction.targetAmount ?? undefined)
+            : transaction.totalAmount,
+        }]
+      : isFx && fxParsed
+        ? [{
+            fromCurrency: fxParsed.fromCurr,
+            fromAmount: parseFloat(fxParsed.fromAmt.replace(/,/g, "")),
+            fromRateToLak: 0,
+            toCurrency: fxParsed.toCurr,
+            toRateToLak: 0,
+            toAmount: fxParsed.toCurr === "LAK"
+              ? transaction.totalAmount
+              : parseFloat(fxParsed.toAmt.replace(/,/g, "")),
+          }]
+        : [];
+
+  function fxComputeToAmount(line: { fromAmount: number; fromRateToLak: number; toRateToLak: number; toAmount?: number }) {
+    if (line.toAmount != null) return line.toAmount;
+    const lak = Math.round(line.fromAmount * line.fromRateToLak);
+    return line.toRateToLak > 0 ? Math.round((lak / line.toRateToLak) * 10000) / 10000 : 0;
+  }
+
+  const fxTotalsMap: Record<string, number> = {};
+  for (const line of resolvedFxLines) {
+    const toAmt = fxComputeToAmount(line);
+    if (toAmt > 0) fxTotalsMap[line.toCurrency] = (fxTotalsMap[line.toCurrency] ?? 0) + toAmt;
+  }
+  const fxTotalEntries = Object.entries(fxTotalsMap);
+
   // ExchangeGold / ExchangeFree / BuyMoreGold / ExchangeToMoney: chia 2 panel
   const isExchange = ["ExchangeGold", "ExchangeFree", "BuyMoreGold", "ExchangeToMoney"].includes(transaction.type);
   const exchangeInItems = isExchange ? transaction.items.filter((i) => i.itemRole === "ExchangeIn") : [];
@@ -161,70 +204,59 @@ export function Receipt({ open, transaction, onClose }: ReceiptProps) {
             <Separator />
 
             {isFx ? (
-              <div className="space-y-4">
-                {/* FX: hiển thị chiều đổi */}
-                <div className="rounded-lg border border-primary/20 bg-primary/5 px-4 py-5 text-center space-y-1">
-                  {fxHasDirect ? (
-                    <>
-                      <p className="text-2xl font-black tabular-nums tracking-tight">
-                        {transaction.foreignAmount!.toLocaleString("en", { maximumFractionDigits: 4 })}{" "}
-                        <span className="text-primary">{transaction.currency}</span>
-                      </p>
-                      <p className="text-muted-foreground text-sm">↓</p>
-                      <p className="text-2xl font-black tabular-nums tracking-tight">
-                        {isFxToNonLak && transaction.targetAmount != null
-                          ? `${transaction.targetAmount.toLocaleString("en", { maximumFractionDigits: 4 })} ${transaction.targetCurrency}`
-                          : transaction.totalAmount.toLocaleString("lo-LA") + " ₭"}
-                      </p>
-                    </>
-                  ) : fxParsed ? (
-                    <>
-                      <p className="text-2xl font-black tabular-nums tracking-tight">
-                        {fxParsed.fromAmt}{" "}
-                        <span className="text-primary">{fxParsed.fromCurr}</span>
-                      </p>
-                      <p className="text-muted-foreground text-sm">↓</p>
-                      <p className="text-2xl font-black tabular-nums tracking-tight">
-                        {fxParsed.toCurr === "LAK"
-                          ? transaction.totalAmount.toLocaleString("lo-LA") + " ₭"
-                          : fxParsed.toAmt + " " + fxParsed.toCurr}
-                      </p>
-                    </>
+              <div className="space-y-3">
+                {/* FX: hiển thị từng dòng đổi */}
+                <div className="rounded-lg border border-primary/20 bg-primary/5 px-4 py-4 space-y-0">
+                  {resolvedFxLines.length > 0 ? (
+                    resolvedFxLines.map((line, idx) => {
+                      const toAmt = fxComputeToAmount(line);
+                      const isFromLak = line.fromCurrency === "LAK";
+                      const rateDisplayCurr = isFromLak ? line.toCurrency : line.fromCurrency;
+                      const rateDisplayVal = isFromLak ? line.toRateToLak : line.fromRateToLak;
+                      // Cross-currency: show both rates
+                      const showBothRates = !isFromLak && line.toCurrency !== "LAK" && line.toRateToLak > 0;
+                      return (
+                        <div
+                          key={idx}
+                          className={`text-center space-y-0.5 ${idx > 0 ? "pt-3 mt-3 border-t border-primary/15" : ""}`}
+                        >
+                          <p className="text-2xl font-black tabular-nums tracking-tight">
+                            {line.fromAmount.toLocaleString("en", { maximumFractionDigits: 2 })}{" "}
+                            <span className="text-primary">{line.fromCurrency}</span>
+                          </p>
+                          <p className="text-muted-foreground text-sm">↓</p>
+                          <p className="text-2xl font-black tabular-nums tracking-tight">
+                            {line.toCurrency === "LAK"
+                              ? Math.round(toAmt).toLocaleString("lo-LA") + " ₭"
+                              : `${toAmt.toLocaleString("en", { maximumFractionDigits: 4 })} ${line.toCurrency}`}
+                          </p>
+                          {rateDisplayVal > 0 && (
+                            <p className="text-[11px] text-muted-foreground mt-1">
+                              1 <span className="font-semibold text-foreground">{rateDisplayCurr}</span>
+                              {" = "}
+                              <span className="font-semibold text-foreground tabular-nums">
+                                {rateDisplayVal.toLocaleString("lo-LA")}
+                              </span> ₭
+                              {showBothRates && (
+                                <>
+                                  {" · "}1 <span className="font-semibold text-foreground">{line.toCurrency}</span>
+                                  {" = "}
+                                  <span className="font-semibold text-foreground tabular-nums">
+                                    {line.toRateToLak.toLocaleString("lo-LA")}
+                                  </span> ₭
+                                </>
+                              )}
+                            </p>
+                          )}
+                        </div>
+                      );
+                    })
                   ) : (
-                    <p className="text-sm text-muted-foreground">
-                      {transaction.note}
-                    </p>
+                    <div className="text-center space-y-0.5">
+                      <p className="text-sm text-muted-foreground">{transaction.note ?? "—"}</p>
+                    </div>
                   )}
                 </div>
-
-                {/* Tỷ giá */}
-                {isFxToNonLak && transaction.targetRateToLak ? (
-                  <p className="text-xs text-center text-muted-foreground">
-                    1{" "}
-                    <span className="font-semibold text-foreground">
-                      {transaction.targetCurrency}
-                    </span>{" "}
-                    ={" "}
-                    <span className="font-semibold text-foreground tabular-nums">
-                      {transaction.targetRateToLak.toLocaleString("lo-LA")}
-                    </span>{" "}
-                    ₭
-                  </p>
-                ) : (
-                  transaction.exchangeRate && transaction.currency && (
-                    <p className="text-xs text-center text-muted-foreground">
-                      1{" "}
-                      <span className="font-semibold text-foreground">
-                        {transaction.currency}
-                      </span>{" "}
-                      ={" "}
-                      <span className="font-semibold text-foreground tabular-nums">
-                        {transaction.exchangeRate.toLocaleString("lo-LA")}
-                      </span>{" "}
-                      ₭
-                    </p>
-                  )
-                )}
               </div>
             ) : isExchange ? (
               <div className="space-y-3">
@@ -531,6 +563,21 @@ export function Receipt({ open, transaction, onClose }: ReceiptProps) {
                     </span>
                   </div>
                 </>
+              ) : resolvedFxLines.length > 0 && fxTotalEntries.length > 0 ? (
+                <div className="space-y-1.5 pt-1 border-t">
+                  {fxTotalEntries.map(([currency, amount]) => (
+                    <div key={currency} className="flex justify-between font-bold text-base">
+                      <span>
+                        {t("fxTotal", { currency })}
+                      </span>
+                      <span className="text-primary tabular-nums">
+                        {currency === "LAK"
+                          ? formatKip(Math.round(amount))
+                          : `${amount.toLocaleString("en", { maximumFractionDigits: 4 })} ${currency}`}
+                      </span>
+                    </div>
+                  ))}
+                </div>
               ) : (
                 <div className="flex justify-between font-bold text-base pt-1">
                   <span>

@@ -12,7 +12,7 @@
  */
 
 import type { CartItem } from "@/types/cart";
-import type { InvoiceTab, InvoiceTabStore } from "@/types/invoice-tab";
+import type { FxLine, InvoiceTab, InvoiceTabStore } from "@/types/invoice-tab";
 import type { TransactionType } from "@/types/transaction";
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
@@ -38,6 +38,8 @@ function makeNewTab(type: TransactionType = "SellGold"): InvoiceTab {
     linkedInvoiceItemKeys: [],
     cancelTransactionId: null,
     cancelInvoiceCode: null,
+    fxLines: [],
+    fxPaymentMethod: 'CASH',
     fxFromCurrency: 'USD',
     fxToCurrency: 'LAK',
     fxFromAmount: 0,
@@ -320,6 +322,28 @@ export const useInvoiceTabStore = create<InvoiceTabStore>()(
         });
       },
 
+      setFxLinesInActive(lines: FxLine[]) {
+        const { tabs } = get();
+        const activeId = resolveActiveId(tabs, get().activeTabId);
+        if (!activeId) return;
+        set({
+          tabs: tabs.map((t) =>
+            t.id !== activeId ? t : { ...t, fxLines: lines },
+          ),
+        });
+      },
+
+      setFxPaymentMethodInActive(method: 'CASH' | 'BANK') {
+        const { tabs } = get();
+        const activeId = resolveActiveId(tabs, get().activeTabId);
+        if (!activeId) return;
+        set({
+          tabs: tabs.map((t) =>
+            t.id !== activeId ? t : { ...t, fxPaymentMethod: method },
+          ),
+        });
+      },
+
       setFxDataInActive(fromCurrency, toCurrency, fromAmount, toAmount, lakAmount, fromRate, toRate) {
         const { tabs } = get();
         const activeId = resolveActiveId(tabs, get().activeTabId);
@@ -342,8 +366,8 @@ export const useInvoiceTabStore = create<InvoiceTabStore>()(
     }),
 
     {
-      // v3: bump version để clear localStorage cũ khi CartItem schema thay đổi (thêm itemRole)
-      name: "pos-invoice-tabs-v3",
+      // v4: thêm fxLines[] và fxPaymentMethod cho multi-line ExchangeCurrency
+      name: "pos-invoice-tabs-v4",
       partialize: (s) => ({ tabs: s.tabs }),
 
       onRehydrateStorage: () => (state) => {
@@ -354,6 +378,8 @@ export const useInvoiceTabStore = create<InvoiceTabStore>()(
           txnType: t.txnType ?? "SellGold",
           linkedInvoiceCode: t.linkedInvoiceCode ?? null,
           linkedInvoiceItemKeys: t.linkedInvoiceItemKeys ?? [],
+          fxLines: t.fxLines ?? [],
+          fxPaymentMethod: t.fxPaymentMethod ?? 'CASH',
           fxFromCurrency: t.fxFromCurrency ?? 'USD',
           fxToCurrency: t.fxToCurrency ?? 'LAK',
           fxFromAmount: t.fxFromAmount ?? 0,

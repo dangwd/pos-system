@@ -5,7 +5,7 @@ import { useTranslations } from 'next-intl'
 import { Table } from 'antd'
 import type { ColumnsType } from 'antd/es/table/interface'
 import { ExportOutlined } from '@ant-design/icons'
-import type { Transaction, TransactionItem } from '@/types/transaction'
+import type { Transaction, TransactionItem, ExchangeLineResponse } from '@/types/transaction'
 import { useCustomer } from '@/hooks/useCustomers'
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { Spinner } from '@/components/ui/spinner'
@@ -120,6 +120,7 @@ export function TransactionExpandedRow({ record }: Props) {
 
   const isBuyType = BUY_TYPES.has(record.type)
   const isExchangeType = EXCHANGE_TYPES.has(record.type)
+  const isFxType = record.type === 'ExchangeCurrency'
 
   const hasBuyFees = isBuyType && record.items.some(i => (i.phiHuHai ?? 0) > 0 || (i.haoHutGram ?? 0) > 0)
   const totalPhiKho = record.items.reduce((s, i) => s + (i.phiHuHai ?? 0), 0)
@@ -231,6 +232,52 @@ export function TransactionExpandedRow({ record }: Props) {
     },
   ]
 
+  const fxColumns: ColumnsType<ExchangeLineResponse> = [
+    {
+      title: '#', key: 'fxIdx', width: 40, align: 'center' as const,
+      render: (_: unknown, __: ExchangeLineResponse, i: number) => (
+        <span style={{ color: '#9ca3af', fontSize: 12 }}>{i + 1}</span>
+      ),
+    },
+    {
+      title: t('colFxPair'), key: 'fxPair', width: 160,
+      render: (_: unknown, row: ExchangeLineResponse) => (
+        <span style={{ fontWeight: 600, fontSize: 13 }}>
+          {row.fromCurrency} <span style={{ color: '#9ca3af' }}>→</span> {row.toCurrency}
+        </span>
+      ),
+    },
+    {
+      title: t('colFxFrom'), key: 'fxFrom', align: 'right' as const,
+      render: (_: unknown, row: ExchangeLineResponse) => (
+        <span style={{ fontVariantNumeric: 'tabular-nums' }}>
+          {row.fromAmount.toLocaleString('lo-LA')} {row.fromCurrency}
+        </span>
+      ),
+    },
+    {
+      title: t('colFxRate'), key: 'fxRate', align: 'right' as const, width: 200,
+      render: (_: unknown, row: ExchangeLineResponse) => (
+        <span style={{ fontVariantNumeric: 'tabular-nums', fontSize: 12, color: '#6b7280' }}>
+          1 {row.fromCurrency} = {row.fromRateToLak.toLocaleString('lo-LA')} ₭
+        </span>
+      ),
+    },
+    {
+      title: t('colLineTotal'), key: 'fxTo', align: 'right' as const, width: 160,
+      render: (_: unknown, row: ExchangeLineResponse) => {
+        const toAmt = row.toAmount != null
+          ? row.toAmount
+          : row.toRateToLak > 0
+            ? Math.round(row.fromAmount * row.fromRateToLak / row.toRateToLak * 10000) / 10000
+            : 0
+        return row.toCurrency === 'LAK'
+          ? <b style={{ color: '#111827' }}>{formatKip(Math.round(toAmt))}</b>
+          : <b style={{ color: '#111827' }}>{toAmt.toLocaleString('lo-LA', { maximumFractionDigits: 4 })} {row.toCurrency}</b>
+      },
+    },
+  ]
+
   return (
     <div style={{ padding: '16px 24px 20px', background: '#f8faff' }}>
       {/* Header: tiêu đề + type badge + status badge */}
@@ -297,28 +344,59 @@ export function TransactionExpandedRow({ record }: Props) {
         {/* Cột phải — phân biệt loại GD mua vàng vs bán vàng */}
         <div style={{ flex: 1, minWidth: 260 }}>
           {record.type === 'ExchangeCurrency' ? (
-            <>
-              {record.currency && record.exchangeRate && record.exchangeRate > 0 && (
-                <Field
-                  label={t('fieldCustomerGives')}
-                  value={<b>{Math.round(record.totalAmount / record.exchangeRate).toLocaleString('lo-LA')} {record.currency}</b>}
-                />
-              )}
-              {record.exchangeRate && record.exchangeRate > 0 && (
-                <Field
-                  label={t('fieldExchangeRate')}
-                  value={<span style={{ fontVariantNumeric: 'tabular-nums' }}>{record.exchangeRate.toLocaleString('lo-LA')}</span>}
-                />
-              )}
-              {record.targetCurrency && record.targetAmount != null ? (
-                <Field
-                  label={t('fieldCustomerReceives')}
-                  value={<b>{record.targetCurrency === 'LAK' ? formatKip(record.targetAmount) : `${record.targetAmount.toLocaleString('lo-LA')} ${record.targetCurrency}`}</b>}
-                />
-              ) : (
-                <Field label={t('fieldCustomerReceives')} value={<b>{formatKip(record.totalAmount)}</b>} />
-              )}
-            </>
+            record.exchangeLines?.length ? (
+              // Multi-line FX: mỗi leg là 1 Field row
+              <>
+                {record.exchangeLines.map((l, i) => {
+                  const toAmt = l.toAmount != null
+                    ? l.toAmount
+                    : l.toRateToLak > 0
+                      ? Math.round(l.fromAmount * l.fromRateToLak / l.toRateToLak * 10000) / 10000
+                      : 0
+                  const toFmt = l.toCurrency === 'LAK'
+                    ? formatKip(Math.round(toAmt))
+                    : `${toAmt.toLocaleString('lo-LA', { maximumFractionDigits: 4 })} ${l.toCurrency}`
+                  return (
+                    <Field key={i}
+                      label={`${l.fromCurrency} → ${l.toCurrency}`}
+                      value={
+                        <span>
+                          <span style={{ color: '#6b7280', fontWeight: 400 }}>
+                            {l.fromAmount.toLocaleString('lo-LA')} {l.fromCurrency}
+                          </span>
+                          {' → '}
+                          <b>{toFmt}</b>
+                        </span>
+                      }
+                    />
+                  )
+                })}
+              </>
+            ) : (
+              // Scalar fallback (legacy / single-pair)
+              <>
+                {record.currency && record.exchangeRate && record.exchangeRate > 0 && (
+                  <Field
+                    label={t('fieldCustomerGives')}
+                    value={<b>{Math.round(record.totalAmount / record.exchangeRate).toLocaleString('lo-LA')} {record.currency}</b>}
+                  />
+                )}
+                {record.exchangeRate && record.exchangeRate > 0 && (
+                  <Field
+                    label={t('fieldExchangeRate')}
+                    value={<span style={{ fontVariantNumeric: 'tabular-nums' }}>{record.exchangeRate.toLocaleString('lo-LA')}</span>}
+                  />
+                )}
+                {record.targetCurrency && record.targetAmount != null ? (
+                  <Field
+                    label={t('fieldCustomerReceives')}
+                    value={<b>{record.targetCurrency === 'LAK' ? formatKip(record.targetAmount) : `${record.targetAmount.toLocaleString('lo-LA')} ${record.targetCurrency}`}</b>}
+                  />
+                ) : (
+                  <Field label={t('fieldCustomerReceives')} value={<b>{formatKip(record.totalAmount)}</b>} />
+                )}
+              </>
+            )
           ) : (
             <Field label={t('fieldSubtotal')} value={formatKip(record.subtotalAmount)} />
           )}
@@ -350,8 +428,53 @@ export function TransactionExpandedRow({ record }: Props) {
         </div>
       </div>
 
-      {/* Bảng sản phẩm */}
-      {record.items.length > 0 && (
+      {/* Bảng giao dịch */}
+      {isFxType ? (
+        record.exchangeLines?.length ? (
+          <Table<ExchangeLineResponse>
+            rowKey={(_r, i) => String(i)}
+            dataSource={record.exchangeLines}
+            columns={fxColumns}
+            size="small"
+            bordered
+            pagination={false}
+            scroll={{ x: 700 }}
+            style={{ marginBottom: 12 }}
+          />
+        ) : record.items.length > 0 ? (
+          <Table<TransactionItem>
+            rowKey="id"
+            dataSource={record.items}
+            columns={[
+              {
+                title: '#', key: 'fxIdx', width: 40, align: 'center' as const,
+                render: (_: unknown, __: TransactionItem, i: number) => (
+                  <span style={{ color: '#9ca3af', fontSize: 12 }}>{i + 1}</span>
+                ),
+              },
+              {
+                title: t('colProductName'), dataIndex: 'productSnapshotName',
+                render: (v: string) => <span style={{ fontSize: 13 }}>{v}</span>,
+              },
+              {
+                title: t('colLineTotal'), dataIndex: 'lineTotal', align: 'right' as const, width: 160,
+                render: (v: number, row: TransactionItem) => {
+                  if (row.fxToCurrency && row.fxToAmount != null) {
+                    return row.fxToCurrency === 'LAK'
+                      ? <b style={{ color: '#111827' }}>{formatKip(Math.round(row.fxToAmount))}</b>
+                      : <b style={{ color: '#111827' }}>{row.fxToAmount.toLocaleString('lo-LA', { maximumFractionDigits: 4 })} {row.fxToCurrency}</b>
+                  }
+                  return <b style={{ color: '#111827' }}>{formatKip(v)}</b>
+                },
+              },
+            ]}
+            size="small"
+            bordered
+            pagination={false}
+            style={{ marginBottom: 12 }}
+          />
+        ) : null
+      ) : record.items.length > 0 ? (
         <Table<TransactionItem>
           rowKey="id"
           dataSource={record.items}
@@ -363,7 +486,7 @@ export function TransactionExpandedRow({ record }: Props) {
           rowClassName={r => r.itemRole === 'ExchangeIn' ? 'exchange-in-row' : ''}
           style={{ marginBottom: 12 }}
         />
-      )}
+      ) : null}
 
       <CustomerDetailDialog
         customerId={customerDialogId}

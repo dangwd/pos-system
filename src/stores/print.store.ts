@@ -13,7 +13,7 @@
 
 import { create } from 'zustand'
 import { amountInWords, type AmountLocale } from '@/lib/amount-in-words'
-import type { Transaction, TransactionType } from '@/types/transaction'
+import type { ExchangeLineResponse, Transaction, TransactionType } from '@/types/transaction'
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -86,6 +86,9 @@ export interface PrintInvoice {
   bankAmount: number | null
 
   // ── Ngoại tệ (ExchangeCurrency) ─────────────────────────────────────────────
+  // Mode A — multi-line (ưu tiên khi có)
+  exchangeLines: ExchangeLineResponse[] | null
+  // Mode B — scalar (fallback / backward compat)
   currency: string | null
   exchangeRate: number | null
   foreignAmount: number | null     // Số tiền nguồn khách đưa (snapshot từ DB)
@@ -207,6 +210,7 @@ function normalize(tx: Transaction, ctx?: PrintContext): PrintInvoice {
     cashAmount:    tx.cashAmount,
     bankAmount:    tx.bankAmount,
 
+    exchangeLines:   tx.exchangeLines ?? null,
     currency:        tx.currency,
     exchangeRate:    tx.exchangeRate,
     foreignAmount:   tx.foreignAmount,

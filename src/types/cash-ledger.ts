@@ -38,7 +38,8 @@ export interface ActivityItem {
   timeLabel: string      // "HH:mm:ss - dd/MM/yyyy"
   createdByName: string
   branchName: string
-  methodLabel: string    // "Tiền mặt" | "Chuyển khoản ngân hàng" | "Tiền mặt & Chuyển khoản"
+  method?: CashMethod    // enum từ backend — dùng để dịch qua i18n
+  methodLabel: string    // fallback khi backend chưa trả method
   direction: CashDirection
   currency: CashCurrency
   originalAmount?: number  // Số tiền gốc theo đồng tiền của phiếu

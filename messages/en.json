@@ -47,7 +47,8 @@
       "summary": {
         "subtotal": "Subtotal ({count} items)",
         "discount": "Discount",
-        "due": "← Amount due"
+        "due": "← Amount due",
+        "storeDue": "Store pays"
       },
       "opLabels": {
         "gold": "Sell Gold",
@@ -55,6 +56,30 @@
         "jewelry": "Jewelry",
         "watch": "Watch",
         "default": "Sell Item"
+      },
+      "exchangeGold": {
+        "sectionOldGold": "Old Gold In",
+        "sectionNewGoods": "New Items Out",
+        "searchPlaceholder": "Search old product to add manually...",
+        "emptyOldGold": "Search for old product above or link to original invoice",
+        "emptyNewGoods": "Search for new products via the search bar (F3)",
+        "totalOldGold": "(B) Total old gold deduction",
+        "totalNewGoods": "(A) Total new items",
+        "netCustomerPays": "Customer pays extra",
+        "netStorePays": "Store pays back",
+        "netBreakEven": "Break even",
+        "formulaCustomerPays": "A − B",
+        "formulaStorePays": "B − A",
+        "formulaBreakEven": "A = B",
+        "colPricePerUnit": "Price/Chi",
+        "colDamage": "Damage (₭)",
+        "colWear": "Wear (Chi)",
+        "colWearValue": "Wear value (₭)"
+      },
+      "buyGold": {
+        "colProduct": "Product in",
+        "colBuyPrice": "Buy price",
+        "colStorePays": "Store pays"
       }
     },
     "payment": {
@@ -81,7 +106,36 @@
         "currency": "₭ (Kip)",
         "checkout": "Checkout",
         "processing": "Processing...",
-        "createCustomer": "Create new customer"
+        "createCustomer": "Create new customer",
+        "lookupNotFoundAlert": "Invoice not found",
+        "lookupResultCancelled": "Cancelled",
+        "lookupResultCompleted": "Completed",
+        "lookupResultDate": "Date",
+        "lookupResultCustomer": "Customer",
+        "lookupResultPhone": "Phone",
+        "lookupResultTotal": "Total",
+        "fxCustomerDeposit": "Customer deposits",
+        "fxCrossRate": "Exchange rate",
+        "fxCustomerReceives": "Customer receives",
+        "fxNote": "The currency exchange transaction will be automatically recorded in the Cash Ledger.",
+        "exchangeTotalNew": "Total new items (A)",
+        "exchangeTotalOld": "Old gold deduction (B)",
+        "buyBuyPrice": "Buy price",
+        "buyDamageFee": "Damage fee",
+        "buyWearFee": "Wear fee",
+        "buyStorePays": "Store pays",
+        "exchangeCustomerPays": "Customer pays extra",
+        "exchangeStorePays": "Store pays back",
+        "exchangeBreakEven": "Break even",
+        "combinedTotal": "Total:",
+        "combinedMatch": "✓ Match",
+        "combinedOver": "Excess +{amount}",
+        "combinedShort": "Short -{amount}",
+        "cancelSuccess": "Invoice cancelled successfully",
+        "cancelling": "Cancelling...",
+        "cancelInvoice": "CANCEL INVOICE",
+        "fxCheckout": "ISSUE FX RECEIPT",
+        "fxPaymentMethodLabel": "Payment method"
       },
       "modal": {
         "title": "Confirm payment",
@@ -199,7 +253,10 @@
       "enterAmount": "Enter amount",
       "editButton": "Edit",
       "editRateTooltip": "Click to edit rate",
-      "loading": "Loading rates..."
+      "loading": "Loading rates...",
+      "addLine": "Add line",
+      "maxLines": "Max 3 lines",
+      "paymentMethod": "Payment method"
     },
     "exchangeLookup": {
       "originalInvoiceLabel": "Original invoice",
@@ -326,7 +383,12 @@
         "fieldCustomerGives": "Customer gives",
         "fieldExchangeRate": "Exchange rate",
         "fieldCustomerReceives": "Customer receives",
-        "weightUnit": "Chi"
+        "weightUnit": "Chi",
+        "colFxPair": "Pair",
+        "colFxFrom": "Amount given",
+        "colFxRate": "Rate",
+        "colFxTo": "Amount received",
+        "colFxLak": "Total"
       }
     },
     "layout": {

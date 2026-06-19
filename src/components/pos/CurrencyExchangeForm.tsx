@@ -4,10 +4,19 @@ import { useTranslations } from "next-intl";
 import { useActiveTab } from "@/hooks/useActiveTab";
 import { useExchangeRates, useUpdateExchangeRate } from "@/hooks/useConfig";
 import { cn } from "@/lib/utils";
+import { genId } from "@/lib/utils";
 import type { ExchangeRate } from "@/types/config";
+import type { FxLine } from "@/types/invoice-tab";
 import { Select } from "antd";
 import { InputNumber } from "@/components/ui/antd-number-input";
-import { ArrowRightOutlined, CheckOutlined, EditOutlined, CloseOutlined } from "@ant-design/icons";
+import {
+  PlusOutlined,
+  DeleteOutlined,
+  EditOutlined,
+  CheckOutlined,
+  CloseOutlined,
+  ArrowRightOutlined,
+} from "@ant-design/icons";
 import { useEffect, useState } from "react";
 
 const CURRENCY_LABELS: Record<string, string> = {
@@ -22,281 +31,386 @@ const CURRENCY_LABELS: Record<string, string> = {
   VND: "VND (đ)",
 };
 
+const CURRENCY_SYMBOL: Record<string, string> = {
+  LAK: "₭", USD: "$", THB: "฿", CNY: "¥",
+  EUR: "€", JPY: "¥", KRW: "₩", SGD: "$", VND: "đ",
+};
+
 function getRateLak(currency: string, rates: ExchangeRate[]): number {
   if (currency === "LAK") return 1;
-  return rates.find((r) => r.currencyCode === currency)?.effectiveRate ?? 1;
+  return rates.find((r) => r.currencyCode === currency)?.effectiveRate ?? 0;
 }
 
-export function CurrencyExchangeForm() {
-  const t = useTranslations("pos.currencyExchange");
-  const { tab, setFxData } = useActiveTab();
-  const { data: rates = [], isLoading } = useExchangeRates();
-  const { mutate: updateRate, isPending: isSavingRate } = useUpdateExchangeRate();
+function calcLine(line: FxLine) {
+  const lakEquivalent = Math.round(line.fromAmount * line.fromRateToLak);
+  const toAmount =
+    line.toRateToLak > 0
+      ? Math.round((lakEquivalent / line.toRateToLak) * 10000) / 10000
+      : 0;
+  return { lakEquivalent, toAmount };
+}
 
-  const [fromCurrency, setFromCurrency] = useState(tab?.fxFromCurrency ?? "USD");
-  const [toCurrency, setToCurrency] = useState(tab?.fxToCurrency ?? "LAK");
-  const [fromInput, setFromInput] = useState(
-    tab?.fxFromAmount ? String(tab.fxFromAmount) : "",
-  );
+function makeDefaultLine(rates: ExchangeRate[]): FxLine {
+  return {
+    id: genId(),
+    fromCurrency: "USD",
+    fromAmount: 0,
+    fromRateToLak: getRateLak("USD", rates),
+    toCurrency: "LAK",
+    toRateToLak: 1,
+  };
+}
+
+// ─── FxLineRow ────────────────────────────────────────────────────────────────
+
+interface FxLineRowProps {
+  line: FxLine;
+  currencies: string[];
+  rates: ExchangeRate[];
+  isSavingRate: boolean;
+  isOnly: boolean;
+  onChange: (patch: Partial<Omit<FxLine, "id">>) => void;
+  onRemove: () => void;
+  onSaveRateToApi: (currencyCode: string, rateToLak: number) => void;
+}
+
+function FxLineRow({
+  line, currencies, rates, isSavingRate, isOnly,
+  onChange, onRemove, onSaveRateToApi,
+}: FxLineRowProps) {
+  const t = useTranslations("pos.currencyExchange");
   const [editingRate, setEditingRate] = useState(false);
   const [rateInput, setRateInput] = useState("");
 
-  const currencies = ["LAK", ...rates.map((r) => r.currencyCode)];
-  const fromRateLak = getRateLak(fromCurrency, rates);
-  const toRateLak = getRateLak(toCurrency, rates);
-  const crossRate = toRateLak > 0 ? fromRateLak / toRateLak : 0;
+  const { toAmount } = calcLine(line);
+  const toSym = CURRENCY_SYMBOL[line.toCurrency] ?? line.toCurrency;
+  const toFormatted =
+    toAmount > 0
+      ? line.toCurrency === "LAK"
+        ? Math.round(toAmount).toLocaleString("lo-LA")
+        : toAmount.toLocaleString("en", { maximumFractionDigits: 4 })
+      : null;
 
-  const fromAmount = parseFloat(fromInput) || 0;
-  const toAmount = fromAmount * crossRate;
-  const lakAmount = Math.round(fromAmount * fromRateLak);
+  // Tỷ giá luôn hiển thị theo chiều "1 ngoại tệ = X ₭"
+  // Nếu from=LAK thì hiển thị toCurrency's rate
+  const isFromLak = line.fromCurrency === "LAK";
+  const rateDisplayCurrency = isFromLak ? line.toCurrency : line.fromCurrency;
+  const rateDisplayValue = isFromLak ? line.toRateToLak : line.fromRateToLak;
 
-  useEffect(() => {
-    setFxData(
-      fromCurrency,
-      toCurrency,
-      fromAmount,
-      toAmount,
-      lakAmount,
-      fromRateLak,
-      toRateLak,
-    );
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [fromCurrency, toCurrency, fromAmount]);
+  const rateLabel =
+    rateDisplayValue > 0
+      ? `1 ${rateDisplayCurrency} = ${rateDisplayValue.toLocaleString("en")} ₭`
+      : "—";
 
-  // Khi đổi cặp tiền, reset edit mode
-  useEffect(() => {
-    setEditingRate(false);
-  }, [fromCurrency, toCurrency]);
+  const currencyOpts = (exclude: string) =>
+    currencies.filter((c) => c !== exclude).map((c) => ({ value: c, label: CURRENCY_LABELS[c] ?? c }));
 
   const handleFromCurrencyChange = (curr: string) => {
-    setFromCurrency(curr);
-    if (curr === toCurrency) {
-      setToCurrency(curr === "LAK" ? (rates[0]?.currencyCode ?? "USD") : "LAK");
-    }
+    const toC =
+      curr === line.toCurrency
+        ? curr === "LAK" ? (currencies.find((c) => c !== "LAK") ?? "USD") : "LAK"
+        : line.toCurrency;
+    onChange({
+      fromCurrency: curr,
+      fromRateToLak: getRateLak(curr, rates),
+      toCurrency: toC,
+      toRateToLak: getRateLak(toC, rates),
+    });
+    setEditingRate(false);
   };
 
   const handleToCurrencyChange = (curr: string) => {
-    setToCurrency(curr);
-    if (curr === fromCurrency) {
-      setFromCurrency(
-        curr === "LAK" ? (rates[0]?.currencyCode ?? "USD") : "LAK",
-      );
-    }
+    const fromC =
+      curr === line.fromCurrency
+        ? curr === "LAK" ? (currencies.find((c) => c !== "LAK") ?? "USD") : "LAK"
+        : line.fromCurrency;
+    onChange({
+      toCurrency: curr,
+      toRateToLak: getRateLak(curr, rates),
+      fromCurrency: fromC,
+      fromRateToLak: getRateLak(fromC, rates),
+    });
+    setEditingRate(false);
   };
 
-  // Xác định tỷ giá nào đang hiển thị và cần lưu
-  // - to = LAK: hiển thị & sửa fromCurrency LAK rate
-  // - from = LAK: hiển thị & sửa toCurrency LAK rate
-  // - cả hai ngoại tệ: hiển thị cross-rate, lưu bằng cách tính ngược fromCurrency LAK rate
-  const rateIsFromToLak = toCurrency === "LAK";
-  const rateIsLakToTo = fromCurrency === "LAK";
-  const displayRate = rateIsFromToLak
-    ? fromRateLak
-    : rateIsLakToTo
-      ? toRateLak
-      : crossRate;
-  const rateDecimals = rateIsFromToLak || rateIsLakToTo ? 0 : 4;
-  const rateUnit = rateIsLakToTo ? toCurrency : toCurrency === "LAK" ? "₭" : toCurrency;
-  const rateBase = rateIsLakToTo ? fromCurrency : fromCurrency;
-
   const openEditRate = () => {
-    setRateInput(
-      displayRate > 0
-        ? displayRate.toLocaleString("en", { maximumFractionDigits: rateDecimals, useGrouping: false })
-        : "",
-    );
+    setRateInput(rateDisplayValue > 0 ? String(rateDisplayValue) : "");
     setEditingRate(true);
   };
 
   const saveRate = () => {
     const val = parseFloat(rateInput);
     if (!val || val <= 0) { setEditingRate(false); return; }
-
-    let currencyCode: string;
-    let rateToLak: number;
-
-    if (rateIsFromToLak) {
-      // to = LAK → sửa fromCurrency LAK rate
-      currencyCode = fromCurrency;
-      rateToLak = val;
-    } else if (rateIsLakToTo) {
-      // from = LAK → sửa toCurrency LAK rate
-      currencyCode = toCurrency;
-      rateToLak = val;
+    if (isFromLak) {
+      onChange({ toRateToLak: val });
+      onSaveRateToApi(line.toCurrency, val);
     } else {
-      // cross-rate → tính ngược fromCurrency LAK rate
-      currencyCode = fromCurrency;
-      rateToLak = val * toRateLak;
+      onChange({ fromRateToLak: val });
+      onSaveRateToApi(line.fromCurrency, val);
     }
-
-    updateRate(
-      { currencyCode, rateToLak, adjustment: 0 },
-      { onSuccess: () => setEditingRate(false) },
-    );
+    setEditingRate(false);
   };
 
-  const toDisplay =
-    toAmount > 0
-      ? toCurrency === "LAK"
-        ? Math.round(toAmount).toLocaleString("lo-LA")
-        : toAmount.toLocaleString("en", { maximumFractionDigits: 4 })
-      : null;
+  return (
+    <div className="grid grid-cols-[1fr_minmax(0,200px)_1fr_2.25rem] border-b border-border/60 last:border-0 hover:bg-muted/20 transition-colors">
 
-  const currencyOptions = (exclude: string) =>
-    currencies
-      .filter((c) => c !== exclude)
-      .map((c) => ({ value: c, label: CURRENCY_LABELS[c] ?? c }));
+      {/* FROM: currency select + amount */}
+      <div className="flex items-center gap-2 px-4 py-3">
+        <Select
+          value={line.fromCurrency}
+          onChange={handleFromCurrencyChange}
+          options={currencyOpts(line.toCurrency)}
+          size="small"
+          className="shrink-0"
+          style={{ width: 110 }}
+          popupMatchSelectWidth={false}
+        />
+        <InputNumber
+          precision={2}
+          min={0}
+          placeholder={t("enterAmount")}
+          value={line.fromAmount > 0 ? line.fromAmount : null}
+          onChange={(v) => onChange({ fromAmount: v ?? 0 })}
+          size="small"
+          style={{ flex: 1, minWidth: 0 }}
+        />
+      </div>
+
+      {/* RATE column — shaded */}
+      <div className="flex items-center px-3 py-2 border-x border-border/40 bg-muted/30">
+        {editingRate ? (
+          <div className="flex items-center gap-1 w-full min-w-0">
+            <span className="text-[10px] text-muted-foreground shrink-0 whitespace-nowrap">
+              1 {rateDisplayCurrency} =
+            </span>
+            <InputNumber
+              precision={0}
+              min={0}
+              value={rateInput ? Number(rateInput) : null}
+              onChange={(v) => setRateInput(String(v ?? ""))}
+              onKeyDown={(e: React.KeyboardEvent) => {
+                if (e.key === "Enter") saveRate();
+                if (e.key === "Escape") setEditingRate(false);
+              }}
+              size="small"
+              style={{ flex: 1, minWidth: 60 }}
+              autoFocus
+            />
+            <button onClick={saveRate} disabled={isSavingRate || !rateInput}
+              className="h-5 w-5 shrink-0 flex items-center justify-center rounded bg-primary text-primary-foreground disabled:opacity-40 transition-colors">
+              <CheckOutlined style={{ fontSize: 10 }} />
+            </button>
+            <button onClick={() => setEditingRate(false)}
+              className="h-5 w-5 shrink-0 flex items-center justify-center rounded border border-border text-muted-foreground hover:bg-accent transition-colors">
+              <CloseOutlined style={{ fontSize: 10 }} />
+            </button>
+          </div>
+        ) : (
+          <button
+            onClick={openEditRate}
+            title={t("editRateTooltip")}
+            className="w-full flex items-center justify-between gap-1.5 group min-w-0"
+          >
+            <span className="text-[11px] font-bold font-mono tabular-nums text-foreground group-hover:text-primary transition-colors truncate">
+              {rateLabel}
+            </span>
+            <EditOutlined
+              style={{ fontSize: 10 }}
+              className="shrink-0 text-muted-foreground/50 group-hover:text-primary transition-colors"
+            />
+          </button>
+        )}
+      </div>
+
+      {/* TO: currency + result amount */}
+      <div className="flex items-center gap-2 px-4 py-3">
+        <div className="flex items-center gap-1 shrink-0">
+          <ArrowRightOutlined style={{ fontSize: 10 }} className="text-muted-foreground/50" />
+          <Select
+            value={line.toCurrency}
+            onChange={handleToCurrencyChange}
+            options={currencyOpts(line.fromCurrency)}
+            size="small"
+            style={{ width: 105 }}
+            popupMatchSelectWidth={false}
+          />
+        </div>
+        <span
+          className={cn(
+            "flex-1 text-right text-base font-black tabular-nums tracking-tight",
+            toFormatted ? "text-foreground" : "text-muted-foreground/25",
+          )}
+        >
+          {toFormatted ? `${toFormatted} ${toSym}` : "—"}
+        </span>
+      </div>
+
+      {/* DELETE */}
+      <div className="flex items-center justify-center border-l border-border/40">
+        <button
+          onClick={onRemove}
+          disabled={isOnly}
+          className={cn(
+            "h-7 w-7 flex items-center justify-center rounded transition-colors",
+            isOnly
+              ? "text-muted-foreground/20 cursor-not-allowed"
+              : "text-muted-foreground hover:text-destructive hover:bg-destructive/10",
+          )}
+        >
+          <DeleteOutlined style={{ fontSize: 12 }} />
+        </button>
+      </div>
+    </div>
+  );
+}
+
+// ─── CurrencyExchangeForm ─────────────────────────────────────────────────────
+
+export function CurrencyExchangeForm() {
+  const t = useTranslations("pos.currencyExchange");
+  const { tab, setFxLines } = useActiveTab();
+  const { data: rates = [], isLoading } = useExchangeRates();
+  const { mutate: updateRate, isPending: isSavingRate } = useUpdateExchangeRate();
+
+  const currencies = ["LAK", ...rates.map((r) => r.currencyCode)];
+  const lines = tab?.fxLines ?? [];
+  const MAX_LINES = 3;
+
+  useEffect(() => {
+    if (!isLoading && rates.length > 0 && lines.length === 0) {
+      setFxLines([makeDefaultLine(rates)]);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [tab?.id, isLoading]);
+
+  const updateLine = (id: string, patch: Partial<Omit<FxLine, "id">>) =>
+    setFxLines(lines.map((l) => (l.id === id ? { ...l, ...patch } : l)));
+
+  const addLine = () => {
+    if (lines.length >= MAX_LINES) return;
+    setFxLines([...lines, makeDefaultLine(rates)]);
+  };
+
+  const removeLine = (id: string) => {
+    if (lines.length <= 1) return;
+    setFxLines(lines.filter((l) => l.id !== id));
+  };
+
+  const totalsPerCurrency = lines.reduce<Record<string, number>>((acc, l) => {
+    const { toAmount } = calcLine(l);
+    if (toAmount > 0) acc[l.toCurrency] = (acc[l.toCurrency] ?? 0) + toAmount;
+    return acc;
+  }, {});
+  const totalEntries = Object.entries(totalsPerCurrency);
+  const hasAnyTotal = totalEntries.length > 0;
 
   if (isLoading) {
     return (
-      <div className="flex items-center justify-center h-full text-muted-foreground text-xs">
+      <div className="flex items-center justify-center h-full text-muted-foreground text-xs py-10">
         {t("loading")}
       </div>
     );
   }
 
   return (
-    <div className="px-4 py-4 flex flex-col gap-4">
-      <div className="rounded-lg border bg-card p-4 flex flex-col gap-4">
-        {/* Column labels */}
-        <div className="grid grid-cols-[1fr_auto_1fr] gap-3">
-          <p className="text-[10px] uppercase tracking-wide font-semibold text-muted-foreground">
+    <div className="flex flex-col h-full">
+
+      {/* ── Column headers ── */}
+      <div className="grid grid-cols-[1fr_minmax(0,200px)_1fr_2.25rem] border-b border-border bg-muted/50 px-0 shrink-0">
+        <div className="px-4 py-2">
+          <p className="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">
             {t("customerGives")}
           </p>
-          <div className="w-10" />
-          <p className="text-[10px] uppercase tracking-wide font-semibold text-muted-foreground">
+        </div>
+        <div className="px-3 py-2 border-x border-border/40">
+          <p className="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">
+            {t("rateLabel")}
+          </p>
+        </div>
+        <div className="px-4 py-2">
+          <p className="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">
             {t("customerReceives")}
           </p>
         </div>
+        <div />
+      </div>
 
-        {/* Currency selects */}
-        <div className="grid grid-cols-[1fr_auto_1fr] gap-3 items-center">
-          <Select
-            value={fromCurrency}
-            onChange={handleFromCurrencyChange}
-            options={currencyOptions(toCurrency)}
-            className="w-full"
-            size="middle"
-            popupMatchSelectWidth={false}
+      {/* ── Exchange rows ── */}
+      <div className="flex-1">
+        {lines.map((line) => (
+          <FxLineRow
+            key={line.id}
+            line={line}
+            currencies={currencies}
+            rates={rates}
+            isSavingRate={isSavingRate}
+            isOnly={lines.length === 1}
+            onChange={(patch) => updateLine(line.id, patch)}
+            onRemove={() => removeLine(line.id)}
+            onSaveRateToApi={(currencyCode, rateToLak) =>
+              updateRate({ currencyCode, rateToLak, adjustment: 0 })
+            }
           />
-          <div className="w-10 flex items-center justify-center">
-            <div className="h-7 w-7 rounded-full bg-muted border border-border flex items-center justify-center">
-              <ArrowRightOutlined className="h-3.5 w-3.5 text-muted-foreground" />
-            </div>
-          </div>
-          <Select
-            value={toCurrency}
-            onChange={handleToCurrencyChange}
-            options={currencyOptions(fromCurrency)}
-            className="w-full"
-            size="middle"
-            popupMatchSelectWidth={false}
-          />
-        </div>
+        ))}
 
-        {/* Rate — editable inline */}
-        {crossRate > 0 && (
-          <div className="rounded-md border bg-muted/30 px-3 py-2.5">
-            <p className="text-[9px] uppercase tracking-wide text-muted-foreground mb-1.5">
-              {t("rateLabel")}
-            </p>
-            {editingRate ? (
-              <div className="flex items-center gap-2">
-                <span className="text-sm font-semibold text-muted-foreground shrink-0">
-                  1 {rateBase} =
-                </span>
-                <InputNumber
-                  precision={rateDecimals}
-                  min={0}
-                  value={rateInput ? Number(rateInput) : null}
-                  onChange={(v) => setRateInput(String(v ?? ''))}
-                  onKeyDown={(e: React.KeyboardEvent) => {
-                    if (e.key === "Enter") saveRate();
-                    if (e.key === "Escape") setEditingRate(false);
-                  }}
-                  size="small"
-                  style={{ width: '100%' }}
-                  autoFocus
-                />
-                <span className="text-sm font-semibold text-muted-foreground shrink-0">
-                  {rateUnit}
-                </span>
-                <button
-                  onClick={saveRate}
-                  disabled={isSavingRate || !rateInput}
-                  className="h-8 w-8 shrink-0 flex items-center justify-center rounded-md bg-primary text-primary-foreground hover:bg-primary/90 disabled:opacity-50 transition-colors"
-                >
-                  <CheckOutlined className="h-4 w-4" />
-                </button>
-                <button
-                  onClick={() => setEditingRate(false)}
-                  disabled={isSavingRate}
-                  className="h-8 w-8 shrink-0 flex items-center justify-center rounded-md border border-border text-muted-foreground hover:bg-accent transition-colors"
-                >
-                  <CloseOutlined className="h-4 w-4" />
-                </button>
-              </div>
-            ) : (
-              <button
-                onClick={openEditRate}
-                className="w-full flex items-center justify-between gap-2 group"
-                title={t("editRateTooltip")}
-              >
-                <span className="text-base font-bold font-mono tabular-nums text-foreground group-hover:text-primary transition-colors">
-                  1 {rateBase} ={" "}
-                  {displayRate.toLocaleString("en", { maximumFractionDigits: rateDecimals })}{" "}
-                  {rateUnit}
-                </span>
-                <span className="shrink-0 flex items-center gap-1 text-[10px] text-muted-foreground group-hover:text-primary transition-colors">
-                  <EditOutlined className="h-3.5 w-3.5" />
-                  {t("editButton")}
-                </span>
-              </button>
-            )}
+        {/* Add line / max notice */}
+        {lines.length < MAX_LINES ? (
+          <button
+            onClick={addLine}
+            className="w-full flex items-center justify-center gap-1.5 py-3 text-xs font-medium text-primary/70 hover:text-primary hover:bg-primary/5 transition-colors border-t border-dashed border-primary/20"
+          >
+            <PlusOutlined style={{ fontSize: 11 }} />
+            {t("addLine")}
+          </button>
+        ) : (
+          <div className="flex items-center justify-center py-2 border-t border-dashed border-border text-[10px] text-muted-foreground/40">
+            {t("maxLines")}
           </div>
         )}
+      </div>
 
-        {/* Amount input */}
-        <div className="flex items-center border rounded-md overflow-hidden bg-background">
-          <span className="px-3 py-2 text-xs font-bold font-mono text-muted-foreground bg-muted/50 border-r shrink-0">
-            {fromCurrency}
-          </span>
-          <InputNumber
-            precision={2}
-            min={0}
-            placeholder={t("enterAmount")}
-            value={fromInput ? Number(fromInput) : null}
-            onChange={(v) => setFromInput(String(v ?? ''))}
-            size="small"
-            style={{ width: '100%' }}
-            autoFocus
-          />
-        </div>
-
-        {/* Result box */}
-        <div
-          className={cn(
-            "rounded-lg border px-4 py-3 text-center",
-            toDisplay
-              ? "border-primary/20 bg-primary/5"
-              : "border-border bg-muted/30",
-          )}
-        >
-          <p className="text-[10px] text-muted-foreground uppercase tracking-widest font-medium mb-1">
+      {/* ── "Khách hàng thực nhận" summary ── */}
+      <div className="shrink-0 border-t-2 border-border">
+        {/* Header strip */}
+        <div className="px-5 py-2 bg-muted/40 border-b border-border/60">
+          <p className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground text-center">
             {t("totalReceived")}
           </p>
-          <p
-            className={cn(
-              "text-3xl font-black tabular-nums tracking-tight leading-none",
-              toDisplay ? "text-foreground" : "text-muted-foreground/40",
-            )}
-          >
-            {toDisplay ?? "—"}
-          </p>
-          <p className="text-xs text-muted-foreground mt-1">
-            {toCurrency === "LAK" ? "₭ (Kip)" : toCurrency}
-          </p>
         </div>
+
+        {hasAnyTotal ? (
+          <div>
+            {totalEntries.map(([currency, amount], idx) => {
+              const formatted =
+                currency === "LAK"
+                  ? Math.round(amount).toLocaleString("lo-LA")
+                  : amount.toLocaleString("en", { maximumFractionDigits: 4 });
+              const sym = CURRENCY_SYMBOL[currency] ?? currency;
+              const isLast = idx === totalEntries.length - 1;
+              return (
+                <div
+                  key={currency}
+                  className={cn(
+                    "flex items-center justify-between px-5 py-3",
+                    !isLast && "border-b border-border/40",
+                  )}
+                >
+                  <span className="text-sm font-medium text-muted-foreground">
+                    {CURRENCY_LABELS[currency] ?? currency}
+                  </span>
+                  <span className="text-2xl font-black tabular-nums tracking-tight text-foreground">
+                    {formatted}{" "}
+                    <span className="text-sm font-semibold text-muted-foreground">{sym}</span>
+                  </span>
+                </div>
+              );
+            })}
+          </div>
+        ) : (
+          <div className="flex items-center justify-center py-5">
+            <span className="text-3xl font-black tabular-nums text-muted-foreground/20">—</span>
+          </div>
+        )}
       </div>
     </div>
   );

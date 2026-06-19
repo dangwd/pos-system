@@ -185,7 +185,7 @@ function OrderLookup() {
           </div>
           {notFound && (
             <p className="mt-1.5 text-[10px] text-destructive flex items-center gap-1">
-              <ExclamationCircleOutlined className="h-3 w-3" /> Không tìm thấy hóa đơn
+              <ExclamationCircleOutlined className="h-3 w-3" /> {t("lookupNotFoundAlert")}
             </p>
           )}
         </>
@@ -209,7 +209,7 @@ function OrderLookup() {
               isCancelledStatus
                 ? "bg-destructive/10 text-destructive"
                 : "bg-green-100/80 dark:bg-green-950/40 text-green-700 dark:text-green-400")}>
-              {isCancelledStatus ? "Đã hủy" : "Hoàn tất"}
+              {isCancelledStatus ? t("lookupResultCancelled") : t("lookupResultCompleted")}
             </span>
             <button onClick={handleClear} className="shrink-0 p-0.5 rounded hover:bg-destructive/10 hover:text-destructive transition-colors">
               <CloseOutlined className="h-3 w-3" />
@@ -217,25 +217,25 @@ function OrderLookup() {
           </div>
           <div className="px-2.5 py-2 space-y-1">
             <div className="flex justify-between">
-              <span className="text-muted-foreground">Ngày GD</span>
+              <span className="text-muted-foreground">{t("lookupResultDate")}</span>
               <span className="tabular-nums">{new Date(result.transactedAt).toLocaleDateString("lo-LA")}</span>
             </div>
             {result.customer && (
               <>
                 <div className="flex gap-2 justify-between">
-                  <span className="text-muted-foreground shrink-0">Khách</span>
+                  <span className="text-muted-foreground shrink-0">{t("lookupResultCustomer")}</span>
                   <span className="font-medium truncate">{result.customer.name}</span>
                 </div>
                 {result.customer.phoneNumber && (
                   <div className="flex gap-2 justify-between">
-                    <span className="text-muted-foreground shrink-0">SĐT</span>
+                    <span className="text-muted-foreground shrink-0">{t("lookupResultPhone")}</span>
                     <span className="font-mono truncate">{result.customer.phoneNumber}</span>
                   </div>
                 )}
               </>
             )}
             <div className="flex justify-between">
-              <span className="text-muted-foreground">Tổng tiền</span>
+              <span className="text-muted-foreground">{t("lookupResultTotal")}</span>
               <span className="font-bold tabular-nums text-primary">{result.totalAmount.toLocaleString("lo-LA")} ₭</span>
             </div>
           </div>
@@ -372,76 +372,104 @@ function CustomerSection({ showError }: { showError: boolean }) {
 // ─── 5. FxBreakdown ──────────────────────────────────────────────────────────
 
 function FxBreakdown() {
+  const t = useTranslations("pos.payment.panel");
   const { tab } = useActiveTab();
-  const from = tab?.fxFromAmount ?? 0;
-  const fromCurr = tab?.fxFromCurrency ?? "USD";
-  const to = tab?.fxToAmount ?? 0;
-  const toCurr = tab?.fxToCurrency ?? "LAK";
-  const fromRate = tab?.fxFromRate ?? 0;
-  const toRate = tab?.fxToRate ?? 0;
+  const lines = tab?.fxLines ?? [];
 
-  const crossRate = toRate > 0 ? fromRate / toRate : 0;
-  const toFormatted =
-    to > 0
-      ? toCurr === "LAK"
-        ? Math.round(to).toLocaleString("lo-LA")
-        : to.toLocaleString("en", { maximumFractionDigits: 4 })
-      : null;
+  // Gom tổng theo toCurrency
+  const totalsPerCurrency = lines.reduce<Record<string, number>>((acc, l) => {
+    const lakEquiv = Math.round(l.fromAmount * l.fromRateToLak);
+    const toAmt = l.toRateToLak > 0 ? Math.round((lakEquiv / l.toRateToLak) * 10000) / 10000 : 0;
+    if (toAmt > 0) acc[l.toCurrency] = (acc[l.toCurrency] ?? 0) + toAmt;
+    return acc;
+  }, {});
+  const totalEntries = Object.entries(totalsPerCurrency);
+  const hasAnyTotal = totalEntries.length > 0;
 
   return (
     <div className="px-4 py-3 flex flex-col gap-3 shrink-0">
-      <div className="space-y-2">
-        <div className="flex justify-between items-center">
-          <span className="text-xs text-muted-foreground">Khách nộp quầy</span>
-          <span className="text-xs font-semibold tabular-nums">
-            {from > 0
-              ? from.toLocaleString("en", { maximumFractionDigits: 2 })
-              : "—"}{" "}
-            {fromCurr}
-          </span>
+      {/* Per-line summary */}
+      {lines.length > 0 && (
+        <div className="space-y-1.5">
+          {lines.map((l, idx) => {
+            const lakEquiv = Math.round(l.fromAmount * l.fromRateToLak);
+            const toAmt =
+              l.toRateToLak > 0
+                ? Math.round((lakEquiv / l.toRateToLak) * 10000) / 10000
+                : 0;
+            const toFmt =
+              toAmt > 0
+                ? l.toCurrency === "LAK"
+                  ? Math.round(toAmt).toLocaleString("lo-LA")
+                  : toAmt.toLocaleString("en", { maximumFractionDigits: 4 })
+                : "—";
+            return (
+              <div key={l.id} className="flex justify-between items-center">
+                <span className="text-xs text-muted-foreground">
+                  {idx + 1}.{" "}
+                  {l.fromAmount > 0
+                    ? l.fromAmount.toLocaleString("en", { maximumFractionDigits: 2 })
+                    : "—"}{" "}
+                  {l.fromCurrency}
+                  <span className="text-muted-foreground/50 mx-1">
+                    @ {l.fromRateToLak > 0 ? l.fromRateToLak.toLocaleString("en") : "—"}
+                  </span>
+                </span>
+                <span className="text-xs font-semibold tabular-nums">
+                  {toFmt} {l.toCurrency === "LAK" ? "₭" : l.toCurrency}
+                </span>
+              </div>
+            );
+          })}
         </div>
-        <div className="flex justify-between items-center">
-          <span className="text-xs text-muted-foreground">Tỷ suất quy đổi</span>
-          <span className="text-xs font-semibold tabular-nums text-primary">
-            {crossRate > 0
-              ? `1 ${fromCurr} = ${crossRate.toLocaleString("en", { maximumFractionDigits: 4 })} ${toCurr}`
-              : "—"}
-          </span>
-        </div>
-        <div className="flex justify-between items-center">
-          <span className="text-xs text-muted-foreground">Khách hàng thực nhận</span>
-          <span className="text-xs font-semibold tabular-nums">
-            {toFormatted ? `${toFormatted} ${toCurr === "LAK" ? "₭" : toCurr}` : "—"}
-          </span>
-        </div>
-      </div>
+      )}
 
       <div className="border-t border-border" />
 
-      <div
-        className={cn(
-          "rounded-lg border px-4 py-3 text-center",
-          toFormatted ? "border-primary/20 bg-primary/5" : "border-border bg-muted/30",
+      {/* Total — grouped by toCurrency */}
+      <div className={cn(
+        "rounded-lg border overflow-hidden",
+        hasAnyTotal ? "border-primary/20" : "border-border",
+      )}>
+        <div className={cn(
+          "px-4 py-2 border-b text-center",
+          hasAnyTotal ? "bg-primary/5 border-primary/20" : "bg-muted/30 border-border",
+        )}>
+          <p className="text-[10px] text-muted-foreground uppercase tracking-widest font-semibold">
+            {t("fxCustomerReceives")}
+          </p>
+        </div>
+        {hasAnyTotal ? (
+          <div className="divide-y divide-border/50">
+            {totalEntries.map(([currency, amount]) => {
+              const formatted =
+                currency === "LAK"
+                  ? Math.round(amount).toLocaleString("lo-LA")
+                  : amount.toLocaleString("en", { maximumFractionDigits: 4 });
+              return (
+                <div key={currency} className="flex items-center justify-between px-4 py-2.5">
+                  <span className="text-xs font-medium text-muted-foreground">
+                    {currency === "LAK" ? "LAK (₭ Kip)" : currency}
+                  </span>
+                  <span className="text-lg font-black tabular-nums tracking-tight text-foreground">
+                    {formatted}{" "}
+                    <span className="text-xs font-semibold">
+                      {currency === "LAK" ? "₭" : currency}
+                    </span>
+                  </span>
+                </div>
+              );
+            })}
+          </div>
+        ) : (
+          <div className="px-4 py-4 text-center">
+            <p className="text-2xl font-black tabular-nums text-muted-foreground/30">—</p>
+          </div>
         )}
-      >
-        <p className="text-[10px] text-muted-foreground uppercase tracking-widest font-medium mb-1">
-          Khách hàng thực nhận
-        </p>
-        <p
-          className={cn(
-            "text-3xl font-black tabular-nums tracking-tight leading-none",
-            toFormatted ? "text-foreground" : "text-muted-foreground/40",
-          )}
-        >
-          {toFormatted ?? "—"}
-        </p>
-        <p className="text-xs text-muted-foreground mt-1">
-          {toCurr === "LAK" ? "₭ (Kip)" : toCurr}
-        </p>
       </div>
 
       <p className="text-[10px] text-muted-foreground text-center leading-relaxed">
-        Bút toán hoán đổi ngoại tệ sẽ được ghi tự động vào Sổ Quỹ Kết.
+        {t("fxNote")}
       </p>
     </div>
   );
@@ -478,18 +506,18 @@ function PaymentBreakdown({
         {isExchange ? (
           <>
             <div className="flex justify-between items-center">
-              <span className="text-xs text-muted-foreground">Tổng hàng mới (A)</span>
+              <span className="text-xs text-muted-foreground">{t("exchangeTotalNew")}</span>
               <span className="text-xs font-medium tabular-nums">{fmt(totalA)}</span>
             </div>
             <div className="flex justify-between items-center">
-              <span className="text-xs text-muted-foreground">Vàng cũ cấn trừ (B)</span>
+              <span className="text-xs text-muted-foreground">{t("exchangeTotalOld")}</span>
               <span className="text-xs font-medium tabular-nums text-amber-700 dark:text-amber-400">-{fmt(totalB)}</span>
             </div>
           </>
         ) : isBuy ? (
           <>
             <div className="flex justify-between items-center">
-              <span className="text-xs text-muted-foreground">Giá mua vào</span>
+              <span className="text-xs text-muted-foreground">{t("buyBuyPrice")}</span>
               <span className="text-xs font-medium tabular-nums">{fmt(subtotal)}</span>
             </div>
             {(() => {
@@ -508,13 +536,13 @@ function PaymentBreakdown({
                 <>
                   {totalDamage > 0 && (
                     <div className="flex justify-between items-center">
-                      <span className="text-xs text-orange-600 dark:text-orange-400">Phí lỗi/hỏng</span>
+                      <span className="text-xs text-orange-600 dark:text-orange-400">{t("buyDamageFee")}</span>
                       <span className="text-xs font-medium tabular-nums text-orange-600 dark:text-orange-400">-{fmt(totalDamage)}</span>
                     </div>
                   )}
                   {totalWearLak > 0 && (
                     <div className="flex justify-between items-center">
-                      <span className="text-xs text-orange-600 dark:text-orange-400">Hao mòn</span>
+                      <span className="text-xs text-orange-600 dark:text-orange-400">{t("buyWearFee")}</span>
                       <span className="text-xs font-medium tabular-nums text-orange-600 dark:text-orange-400">-{fmt(totalWearLak)}</span>
                     </div>
                   )}
@@ -585,13 +613,13 @@ function PaymentBreakdown({
         const storePays = isBuy || (isExchange && netTotal < 0);
         const balanced = isExchange && netTotal === 0;
         const totalLabel = isBuy
-          ? "Tiệm phải chi"
+          ? t("buyStorePays")
           : isExchange
             ? netTotal > 0
-              ? "Khách phải trả thêm"
+              ? t("exchangeCustomerPays")
               : netTotal < 0
-                ? "Tiệm trả lại khách"
-                : "Hoà vốn"
+                ? t("exchangeStorePays")
+                : t("exchangeBreakEven")
             : t("totalDue");
         return (
           <div className={cn(
@@ -646,6 +674,7 @@ function PaymentMethodSection({
 }: PaymentMethodSectionProps) {
   const tMethods = useTranslations("pos.payment.methods");
   const tModal = useTranslations("pos.payment.modal");
+  const tPanel = useTranslations("pos.payment.panel");
   const isCombined = paymentMethod === "combined";
   const cashAmt = parseInt(cashInput.replace(/\D/g, ""), 10) || 0;
   const bankAmt = parseInt(bankInput.replace(/\D/g, ""), 10) || 0;
@@ -681,20 +710,22 @@ function PaymentMethodSection({
         <div className="rounded-lg border p-3 space-y-2.5 bg-muted/20">
           <div className="flex items-center justify-between text-xs">
             <span className="text-muted-foreground">
-              Tổng: <span className="font-semibold text-foreground tabular-nums">{fmt(total)}</span>
+              {tPanel("combinedTotal")} <span className="font-semibold text-foreground tabular-nums">{fmt(total)}</span>
             </span>
             {combinedSum > 0 && (
               combinedSum === total
-                ? <span className="text-green-600 font-semibold">✓ Khớp</span>
+                ? <span className="text-green-600 font-semibold">{tPanel("combinedMatch")}</span>
                 : <span className={cn("font-semibold", combinedSum > total ? "text-destructive" : "text-amber-600")}>
-                    {combinedSum > total ? `Dư +${fmt(combinedSum - total)}` : `Còn -${fmt(total - combinedSum)}`}
+                    {combinedSum > total
+                      ? tPanel("combinedOver", { amount: fmt(combinedSum - total) })
+                      : tPanel("combinedShort", { amount: fmt(total - combinedSum) })}
                   </span>
             )}
           </div>
           <div className="grid grid-cols-2 gap-2">
             <div className="space-y-1">
               <Label className="text-xs text-muted-foreground flex items-center gap-1">
-                <WalletOutlined className="h-3 w-3" /> Tiền mặt
+                <WalletOutlined className="h-3 w-3" /> {tMethods("cash")}
               </Label>
               <InputNumber
                 min={0} placeholder="0" value={cashInput ? Number(cashInput) : null}
@@ -705,7 +736,7 @@ function PaymentMethodSection({
             </div>
             <div className="space-y-1">
               <Label className="text-xs text-muted-foreground flex items-center gap-1">
-                <BankOutlined className="h-3 w-3" /> Chuyển khoản
+                <BankOutlined className="h-3 w-3" /> {tMethods("bank-transfer")}
               </Label>
               <InputNumber
                 min={0} placeholder="0" value={bankInput ? Number(bankInput) : null}
@@ -759,7 +790,10 @@ export function PaymentPanel({
   const isBuyGold = tab?.txnType === "BuyGold";
   const isExchangeType = isFx || isExchangeGold;
   const isCancelMode = !!tab?.cancelTransactionId;
-  const fxDisabled = isFx && (!tab?.fxFromAmount || tab.fxFromAmount <= 0);
+  const fxDisabled =
+    isFx &&
+    ((tab?.fxLines ?? []).length === 0 ||
+      (tab?.fxLines ?? []).every((l) => l.fromAmount <= 0));
 
   const isCombined = paymentMethod === "combined";
   const cashAmt = parseInt(cashInput.replace(/\D/g, ""), 10) || 0;
@@ -812,7 +846,7 @@ export function PaymentPanel({
       {
         onSuccess: () => {
           exitCancelMode();
-          toast.success("Hủy hóa đơn thành công");
+          toast.success(t("cancelSuccess"));
         },
       },
     );
@@ -908,7 +942,7 @@ export function PaymentPanel({
             onClick={handleCancelInvoice}
             style={{ fontWeight: 700 }}
           >
-            {isCancelling ? "Đang hủy..." : "HỦY HÓA ĐƠN"}
+            {isCancelling ? t("cancelling") : t("cancelInvoice")}
           </Button>
         ) : isFx ? (
           <Button
@@ -918,7 +952,7 @@ export function PaymentPanel({
             onClick={handleDirectCheckout}
             style={{ fontWeight: 700 }}
           >
-            {isCheckingOut ? t("processing") : "LẬP KHAI & PHÁT HÀNH PHIẾU FX"}
+            {isCheckingOut ? t("processing") : t("fxCheckout")}
           </Button>
         ) : (
           <Button

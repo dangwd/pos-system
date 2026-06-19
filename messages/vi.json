@@ -47,7 +47,8 @@
       "summary": {
         "subtotal": "Tổng hàng ({count} sản phẩm)",
         "discount": "Khẩu trừ",
-        "due": "← Khách phải trả"
+        "due": "← Khách phải trả",
+        "storeDue": "Tiệm phải chi"
       },
       "opLabels": {
         "gold": "Bán Vàng",
@@ -55,6 +56,30 @@
         "jewelry": "Trang Sức",
         "watch": "Đồng Hồ",
         "default": "Bán Hàng"
+      },
+      "exchangeGold": {
+        "sectionOldGold": "Vàng cũ đổi vào",
+        "sectionNewGoods": "Hàng bán ra mới",
+        "searchPlaceholder": "Tìm sản phẩm cũ để thêm thủ công...",
+        "emptyOldGold": "Tìm sản phẩm cũ ở ô trên hoặc liên kết HĐ gốc",
+        "emptyNewGoods": "Tìm sản phẩm mới từ thanh tìm kiếm (F3)",
+        "totalOldGold": "(B) Tổng cấn trừ vàng cũ",
+        "totalNewGoods": "(A) Tổng hàng bán ra mới",
+        "netCustomerPays": "Khách trả thêm",
+        "netStorePays": "Tiệm trả lại khách",
+        "netBreakEven": "Hoà vốn",
+        "formulaCustomerPays": "A − B",
+        "formulaStorePays": "B − A",
+        "formulaBreakEven": "A = B",
+        "colPricePerUnit": "Giá/chỉ",
+        "colDamage": "Lỗi/Hỏng (₭)",
+        "colWear": "Hao mòn (Chỉ)",
+        "colWearValue": "Giá trị HM (₭)"
+      },
+      "buyGold": {
+        "colProduct": "Sản phẩm mua vào",
+        "colBuyPrice": "Giá mua",
+        "colStorePays": "Tiệm chi"
       }
     },
     "payment": {
@@ -81,7 +106,36 @@
         "currency": "₭ (Kip)",
         "checkout": "Thanh toán",
         "processing": "Đang xử lý...",
-        "createCustomer": "Tạo khách hàng mới"
+        "createCustomer": "Tạo khách hàng mới",
+        "lookupNotFoundAlert": "Không tìm thấy hóa đơn",
+        "lookupResultCancelled": "Đã hủy",
+        "lookupResultCompleted": "Hoàn tất",
+        "lookupResultDate": "Ngày GD",
+        "lookupResultCustomer": "Khách",
+        "lookupResultPhone": "SĐT",
+        "lookupResultTotal": "Tổng tiền",
+        "fxCustomerDeposit": "Khách nộp quầy",
+        "fxCrossRate": "Tỷ suất quy đổi",
+        "fxCustomerReceives": "Khách hàng thực nhận",
+        "fxNote": "Bút toán hoán đổi ngoại tệ sẽ được ghi tự động vào Sổ Quỹ Kết.",
+        "exchangeTotalNew": "Tổng hàng mới (A)",
+        "exchangeTotalOld": "Vàng cũ cấn trừ (B)",
+        "buyBuyPrice": "Giá mua vào",
+        "buyDamageFee": "Phí lỗi/hỏng",
+        "buyWearFee": "Hao mòn",
+        "buyStorePays": "Tiệm phải chi",
+        "exchangeCustomerPays": "Khách phải trả thêm",
+        "exchangeStorePays": "Tiệm trả lại khách",
+        "exchangeBreakEven": "Hoà vốn",
+        "combinedTotal": "Tổng:",
+        "combinedMatch": "✓ Khớp",
+        "combinedOver": "Dư +{amount}",
+        "combinedShort": "Còn -{amount}",
+        "cancelSuccess": "Hủy hóa đơn thành công",
+        "cancelling": "Đang hủy...",
+        "cancelInvoice": "HỦY HÓA ĐƠN",
+        "fxCheckout": "LẬP KHAI & PHÁT HÀNH PHIẾU FX",
+        "fxPaymentMethodLabel": "Phương thức"
       },
       "modal": {
         "title": "Xác nhận thanh toán",
@@ -199,7 +253,10 @@
       "enterAmount": "Nhập số tiền",
       "editButton": "Sửa",
       "editRateTooltip": "Nhấn để sửa tỷ giá",
-      "loading": "Đang tải tỷ giá..."
+      "loading": "Đang tải tỷ giá...",
+      "addLine": "Thêm dòng",
+      "maxLines": "Tối đa 3 dòng",
+      "paymentMethod": "Phương thức thanh toán"
     },
     "exchangeLookup": {
       "originalInvoiceLabel": "Hóa đơn gốc",
@@ -326,7 +383,12 @@
         "fieldCustomerGives": "Tiền khách đưa",
         "fieldExchangeRate": "Tỷ giá quy đổi",
         "fieldCustomerReceives": "Tiền trả khách",
-        "weightUnit": "Chỉ"
+        "weightUnit": "Chỉ",
+        "colFxPair": "Cặp tiền",
+        "colFxFrom": "Tiền đưa vào",
+        "colFxRate": "Tỷ giá",
+        "colFxTo": "Tiền nhận được",
+        "colFxLak": "Thành tiền"
       }
     },
     "layout": {

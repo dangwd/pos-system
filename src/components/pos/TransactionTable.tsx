@@ -339,7 +339,7 @@ function SellTable({
             {t("columns.qty")}
           </th>
           <th className="px-3 py-2 text-left text-[10px] font-semibold text-muted-foreground uppercase tracking-wide whitespace-nowrap">
-            Đơn vị
+            {t("columns.unit")}
           </th>
           <th className="px-3 py-2 text-left text-[10px] font-semibold text-muted-foreground uppercase tracking-wide whitespace-nowrap">
             {t("columns.unitPrice")}
@@ -659,6 +659,7 @@ function BuyGoldTable({
   priceConfig: PriceConfig | undefined;
   weightUnits: WeightUnit[];
 }) {
+  const t = useTranslations("pos.transactionTable");
   return (
     <table className="w-full border-collapse text-sm">
       <thead className="sticky top-0 z-10">
@@ -667,28 +668,28 @@ function BuyGoldTable({
             #
           </th>
           <th className="px-3 py-2 text-left text-[10px] font-semibold text-muted-foreground uppercase tracking-wide">
-            Sản phẩm mua vào
+            {t("buyGold.colProduct")}
           </th>
           <th className="px-3 py-2 text-left text-[10px] font-semibold text-muted-foreground uppercase tracking-wide whitespace-nowrap">
-            Số lượng
+            {t("columns.qty")}
           </th>
           <th className="px-3 py-2 text-left text-[10px] font-semibold text-muted-foreground uppercase tracking-wide whitespace-nowrap">
-            Đơn vị
+            {t("columns.unit")}
           </th>
           <th className="px-2 py-2 text-left text-[10px] font-semibold text-muted-foreground uppercase tracking-wide whitespace-nowrap">
-            Giá mua
+            {t("buyGold.colBuyPrice")}
           </th>
           <th className="px-2 py-2 text-left text-[10px] font-semibold text-orange-600 uppercase tracking-wide whitespace-nowrap">
-            Lỗi/Hỏng (₭)
+            {t("exchangeGold.colDamage")}
           </th>
           <th className="px-2 py-2 text-left text-[10px] font-semibold text-orange-600 uppercase tracking-wide whitespace-nowrap">
-            Hao mòn (Chỉ)
+            {t("exchangeGold.colWear")}
           </th>
           <th className="px-2 py-2 text-right text-[10px] font-semibold text-orange-600 uppercase tracking-wide whitespace-nowrap">
-            Giá trị HM (₭)
+            {t("exchangeGold.colWearValue")}
           </th>
           <th className="px-3 py-2 text-right text-[10px] font-semibold text-blue-600 dark:text-blue-400 uppercase tracking-wide whitespace-nowrap">
-            Tiệm chi
+            {t("buyGold.colStorePays")}
           </th>
           <th className="w-7" />
         </tr>
@@ -714,6 +715,7 @@ function BuyGoldTable({
 // ─── ExchangeInSearch — ô tìm nhanh để thêm vàng cũ vào panel A ─────────────
 
 function ExchangeInSearch({ onAdd }: { onAdd: (p: ProductWithStock) => void }) {
+  const t = useTranslations("pos.transactionTable");
   const [query, setQuery] = useState("");
   const [debounced, setDebounced] = useState("");
   const [open, setOpen] = useState(false);
@@ -741,7 +743,7 @@ function ExchangeInSearch({ onAdd }: { onAdd: (p: ProductWithStock) => void }) {
         <SearchOutlined className="absolute left-2 top-1/2 -translate-y-1/2 h-3 w-3 text-muted-foreground pointer-events-none" />
         <input
           type="text"
-          placeholder="Tìm sản phẩm cũ để thêm thủ công..."
+          placeholder={t("exchangeGold.searchPlaceholder")}
           value={query}
           onChange={(e) => {
             setQuery(e.target.value);
@@ -968,13 +970,14 @@ function ExchangeGoldTable({
   const normalItems = items.filter((i) => i.itemRole === "Normal");
   const onUpdateExchangeIn = (id: string, patch: Partial<CartItem>) => onUpdate(id, patch, 'ExchangeIn');
   const onUpdateNormal     = (id: string, patch: Partial<CartItem>) => onUpdate(id, patch, 'Normal');
+  const t = useTranslations("pos.transactionTable");
 
   return (
     <div className="flex flex-col min-h-0">
       {/* PANEL A: Vàng cũ đổi vào */}
       <SectionHeader
         icon={VerticalAlignBottomOutlined}
-        label="Vàng cũ đổi vào"
+        label={t("exchangeGold.sectionOldGold")}
         className="text-amber-700 dark:text-amber-400 bg-amber-50/60 dark:bg-amber-950/20"
       />
 
@@ -983,7 +986,7 @@ function ExchangeGoldTable({
       {exchangeItems.length === 0 ? (
         <div className="flex items-center justify-center py-5 text-muted-foreground">
           <p className="text-xs opacity-60">
-            Tìm sản phẩm cũ ở ô trên hoặc liên kết HĐ gốc
+            {t("exchangeGold.emptyOldGold")}
           </p>
         </div>
       ) : (
@@ -994,28 +997,28 @@ function ExchangeGoldTable({
                 #
               </th>
               <th className="px-3 py-1.5 text-[9px] font-semibold text-muted-foreground uppercase text-left">
-                Sản phẩm
+                {t("columns.item")}
               </th>
               <th className="px-3 py-1.5 text-[9px] font-semibold text-muted-foreground uppercase text-left whitespace-nowrap">
-                SL
+                {t("columns.qty")}
               </th>
               <th className="px-2 py-1.5 text-[9px] font-semibold text-muted-foreground uppercase text-left whitespace-nowrap">
-                Đơn vị
+                {t("columns.unit")}
               </th>
               <th className="px-3 py-1.5 text-[9px] font-semibold text-muted-foreground uppercase text-left whitespace-nowrap">
-                Giá/chỉ
+                {t("exchangeGold.colPricePerUnit")}
               </th>
               <th className="px-2 py-1.5 text-[9px] font-semibold text-orange-600 uppercase text-left whitespace-nowrap">
-                Lỗi/Hỏng (₭)
+                {t("exchangeGold.colDamage")}
               </th>
               <th className="px-2 py-1.5 text-[9px] font-semibold text-orange-600 uppercase text-left whitespace-nowrap">
-                Hao mòn (Chỉ)
+                {t("exchangeGold.colWear")}
               </th>
               <th className="px-2 py-1.5 text-[9px] font-semibold text-orange-600 uppercase text-right whitespace-nowrap">
-                Giá trị HM (₭)
+                {t("exchangeGold.colWearValue")}
               </th>
               <th className="px-3 py-1.5 text-[9px] font-semibold text-muted-foreground uppercase text-right whitespace-nowrap">
-                Thành tiền
+                {t("columns.total")}
               </th>
               <th className="w-7" />
             </tr>
@@ -1038,7 +1041,7 @@ function ExchangeGoldTable({
       )}
 
       <SectionFooter
-        label="(B) Tổng cấn trừ vàng cũ"
+        label={t("exchangeGold.totalOldGold")}
         amount={totalB}
         className="text-amber-700 dark:text-amber-400 bg-amber-50/50 dark:bg-amber-950/20 font-bold"
       />
@@ -1046,14 +1049,14 @@ function ExchangeGoldTable({
       {/* PANEL B: Hàng mới bán ra */}
       <SectionHeader
         icon={VerticalAlignTopOutlined}
-        label="Hàng bán ra mới"
+        label={t("exchangeGold.sectionNewGoods")}
         className="text-primary bg-primary/5 border-t-2 border-t-border"
       />
 
       {normalItems.length === 0 ? (
         <div className="flex items-center justify-center py-5 text-muted-foreground">
           <p className="text-xs opacity-60">
-            Tìm sản phẩm mới từ thanh tìm kiếm (F3)
+            {t("exchangeGold.emptyNewGoods")}
           </p>
         </div>
       ) : (
@@ -1068,7 +1071,7 @@ function ExchangeGoldTable({
       )}
 
       <SectionFooter
-        label="(A) Tổng hàng bán ra mới"
+        label={t("exchangeGold.totalNewGoods")}
         amount={totalA}
         className="font-bold"
       />
@@ -1095,13 +1098,17 @@ function ExchangeGoldTable({
           <div>
             <p className="text-[9px] font-semibold uppercase tracking-widest opacity-70">
               {netTotal > 0
-                ? "Khách trả thêm"
+                ? t("exchangeGold.netCustomerPays")
                 : netTotal < 0
-                  ? "Tiệm trả lại khách"
-                  : "Hoà vốn"}
+                  ? t("exchangeGold.netStorePays")
+                  : t("exchangeGold.netBreakEven")}
             </p>
             <p className="text-[8px] opacity-50 mt-0.5">
-              {netTotal > 0 ? "A − B" : netTotal < 0 ? "B − A" : "A = B"}
+              {netTotal > 0
+                ? t("exchangeGold.formulaCustomerPays")
+                : netTotal < 0
+                  ? t("exchangeGold.formulaStorePays")
+                  : t("exchangeGold.formulaBreakEven")}
             </p>
           </div>
         </div>
@@ -1128,12 +1135,13 @@ function SummaryBar({
   discount: number;
   itemCount: number;
 }) {
+  const t = useTranslations("pos.transactionTable");
   const isBuy = txnType === "BuyGold";
   return (
     <div className="flex items-stretch border-t bg-card shrink-0">
       <div className="flex-1 px-3 py-2.5 border-r">
         <p className="text-[9px] text-muted-foreground uppercase tracking-wide">
-          {itemCount} mục hàng
+          {t("summary.subtotal", { count: itemCount })}
         </p>
         <p className="font-semibold text-xs mt-0.5 tabular-nums">
           {fmt(subtotal)}
@@ -1143,7 +1151,7 @@ function SummaryBar({
       {discount > 0 && (
         <div className="flex-1 px-3 py-2.5 border-r">
           <p className="text-[9px] text-muted-foreground uppercase tracking-wide">
-            Giảm giá
+            {t("summary.discount")}
           </p>
           <p className="font-semibold text-xs mt-0.5 tabular-nums text-destructive">
             -{fmt(discount)}
@@ -1165,7 +1173,7 @@ function SummaryBar({
               : "text-muted-foreground",
           )}
         >
-          {isBuy ? "💵 Tiệm phải chi" : "★ Khách phải trả"}
+          {isBuy ? t("summary.storeDue") : t("summary.due")}
         </p>
         <p
           className={cn(
@@ -1194,6 +1202,7 @@ export function TransactionTable() {
     deleteItem,
     updateCartItem,
   } = useActiveTab();
+  const t = useTranslations("pos.transactionTable");
   const { priceConfig } = useActivePriceConfig();
   const { data: weightUnits = [] } = useWeightUnits();
   const { user } = useAuthStore();
@@ -1244,9 +1253,9 @@ export function TransactionTable() {
               </div>
             </div>
             <p className="text-sm font-semibold text-foreground/60">
-              Giỏ hàng trống
+              {t("empty.title")}
             </p>
-            <p className="text-xs opacity-60">Tìm sản phẩm ở thanh trên (F3)</p>
+            <p className="text-xs opacity-60">{t("empty.hint")}</p>
           </div>
         ) : isBuy ? (
           <BuyGoldTable

@@ -56,9 +56,12 @@ export function useCheckout(strategy: PaymentStrategy) {
         throw new Error("Giỏ hàng trống");
       }
 
-      if (isFx && (!tab.fxFromAmount || tab.fxFromAmount <= 0)) {
+      const fxLines = tab.fxLines ?? [];
+      if (isFx && (fxLines.length === 0 || fxLines.every((l) => l.fromAmount <= 0))) {
         throw new Error("Vui lòng nhập số tiền cần đổi");
       }
+      // Snapshot active lines TRƯỚC khi API call — cart bị clearCart() sau onSuccess
+      const activeFxLines = fxLines.filter((l) => l.fromAmount > 0);
 
       await strategy.prepare(total);
 
@@ -67,7 +70,13 @@ export function useCheckout(strategy: PaymentStrategy) {
         : (params.paymentMethod ?? strategy.paymentMethod);
 
       const fxNote = isFx
-        ? `FX: ${tab.fxFromAmount.toLocaleString("en", { maximumFractionDigits: 4 })} ${tab.fxFromCurrency} → ${tab.fxToAmount.toLocaleString("en", { maximumFractionDigits: 4 })} ${tab.fxToCurrency}`
+        ? (tab.fxLines ?? [])
+            .filter((l) => l.fromAmount > 0)
+            .map(
+              (l) =>
+                `${l.fromAmount.toLocaleString("en", { maximumFractionDigits: 2 })} ${l.fromCurrency} → ${l.toCurrency}`,
+            )
+            .join(", ") || undefined
         : params.note;
 
       // Tính cashAmount / bankAmount theo paymentMethod
@@ -97,13 +106,18 @@ export function useCheckout(strategy: PaymentStrategy) {
         cashAmount,
         bankAmount,
         note: fxNote,
-        // FX fields — chỉ gửi khi ExchangeCurrency
-        currency: isFx ? tab.fxFromCurrency : undefined,
-        exchangeRate: isFx ? tab.fxFromRate : undefined,
-        foreignAmount: isFx ? tab.fxFromAmount : undefined,
-        targetCurrency: isFx ? tab.fxToCurrency : undefined,
-        targetRateToLak:
-          isFx && tab.fxToCurrency !== "LAK" ? tab.fxToRate : null,
+        // Chế độ A — Multi-line FX (ưu tiên nếu có exchangeLines)
+        exchangeLines: isFx
+          ? (tab.fxLines ?? [])
+              .filter((l) => l.fromAmount > 0)
+              .map((l) => ({
+                fromCurrency: l.fromCurrency,
+                fromAmount: l.fromAmount,
+                fromRateToLak: l.fromRateToLak,
+                toCurrency: l.toCurrency,
+                toRateToLak: l.toRateToLak,
+              }))
+          : undefined,
         referenceInvoiceCode:
           params.referenceInvoiceCode ?? tab.linkedInvoiceCode ?? undefined,
         // FX: không có items vật lý — luôn gửi []
@@ -141,7 +155,29 @@ export function useCheckout(strategy: PaymentStrategy) {
       });
 
       // Fetch full transaction để hiển thị receipt
-      return transactionRepository.getById(transactionId);
+      const tx = await transactionRepository.getById(transactionId);
+
+      // Backend không trả exchangeLines trong response → merge từ snapshot local
+      // (activeFxLines được capture TRƯỚC khi clearCart() chạy ở onSuccess)
+      if (isFx && activeFxLines.length > 0) {
+        return {
+          ...tx,
+          exchangeLines: activeFxLines.map((l) => {
+            const lakEq = Math.round(l.fromAmount * l.fromRateToLak);
+            return {
+              fromCurrency: l.fromCurrency,
+              fromAmount: l.fromAmount,
+              fromRateToLak: l.fromRateToLak,
+              toCurrency: l.toCurrency,
+              toRateToLak: l.toRateToLak,
+              toAmount: l.toRateToLak > 0
+                ? Math.round((lakEq / l.toRateToLak) * 10000) / 10000
+                : 0,
+            };
+          }),
+        };
+      }
+      return tx;
     },
 
     onSuccess: () => {

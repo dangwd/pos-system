@@ -143,59 +143,76 @@ function InvoiceTemplate({ inv }: { inv: PrintInvoice }) {
       )}
 
       {/* ── FX section ────────────────────────────────────── */}
-      {isFx && (
-        <div className="border border-gray-400 rounded p-3 mb-3 text-center space-y-1">
-          <div className="flex justify-center items-center gap-6">
-            {/* Tiền nguồn */}
-            <div>
-              <p className="text-[10px] text-gray-500">
-                Ngoại tệ / ເງິນຕ່າງປະເທດ
-              </p>
-              <p className="font-black text-base tabular-nums">
-                {(inv.foreignAmount ?? 0).toLocaleString("en", { maximumFractionDigits: 4 })}{" "}
-                {inv.currency}
-              </p>
-            </div>
-            <p className="text-xl font-bold">→</p>
-            {/* Tiền đích */}
-            <div>
-              {inv.targetCurrency && inv.targetCurrency !== "LAK" ? (
-                <>
-                  <p className="text-[10px] text-gray-500">
-                    {inv.targetCurrency} / ເງິນ{inv.targetCurrency}
-                  </p>
-                  <p className="font-black text-base tabular-nums">
-                    {(inv.targetAmount ?? 0).toLocaleString("en", { maximumFractionDigits: 4 })}{" "}
-                    {inv.targetCurrency}
-                  </p>
-                </>
-              ) : (
-                <>
-                  <p className="text-[10px] text-gray-500">Tiền LAK / ເງິນກີບ</p>
-                  <p className="font-black text-base tabular-nums">
-                    {kip(inv.totalAmount)}
-                  </p>
-                </>
-              )}
-            </div>
-          </div>
-          {/* Tỷ giá — hiển thị tỷ giá nguồn và/hoặc tỷ giá đích */}
-          <div className="text-[10px] text-gray-500 space-y-px">
-            {inv.exchangeRate && inv.currency && inv.currency !== "LAK" && (
-              <p>
-                Tỷ giá: 1 {inv.currency} ={" "}
-                {inv.exchangeRate.toLocaleString("lo-LA")} ₭
-              </p>
+      {isFx && (() => {
+        type FxLine = { fromCurrency: string; fromAmount: number; fromRateToLak: number; toCurrency: string; toRateToLak: number; toAmount?: number };
+
+        function computeToAmt(line: FxLine): number {
+          if (line.toAmount != null) return line.toAmount;
+          const lak = Math.round(line.fromAmount * line.fromRateToLak);
+          return line.toRateToLak > 0 ? Math.round((lak / line.toRateToLak) * 10000) / 10000 : 0;
+        }
+
+        // Mode A từ backend; nếu rỗng thì synthesize từ scalar fields
+        const rawLines: FxLine[] = inv.exchangeLines ?? [];
+        const isFxToNonLak = !!inv.targetCurrency && inv.targetCurrency !== "LAK";
+        const lines: FxLine[] = rawLines.length > 0
+          ? rawLines
+          : inv.foreignAmount != null && inv.currency
+            ? [{
+                fromCurrency: inv.currency,
+                fromAmount: inv.foreignAmount,
+                fromRateToLak: inv.exchangeRate ?? 0,
+                toCurrency: inv.targetCurrency ?? "LAK",
+                toRateToLak: isFxToNonLak ? (inv.targetRateToLak ?? 1) : 1,
+                toAmount: isFxToNonLak ? (inv.targetAmount ?? undefined) : inv.totalAmount,
+              }]
+            : [];
+
+        return (
+          <div className="border border-gray-400 rounded p-3 mb-3 space-y-2">
+            {lines.map((line, idx) => {
+              const toAmt = computeToAmt(line);
+              const isFromLak = line.fromCurrency === "LAK";
+              const rateDisplayCurr = isFromLak ? line.toCurrency : line.fromCurrency;
+              const rateDisplayVal = isFromLak ? line.toRateToLak : line.fromRateToLak;
+              const showBothRates = !isFromLak && line.toCurrency !== "LAK" && line.toRateToLak > 0;
+              return (
+                <div key={idx} className={`text-center ${idx > 0 ? "pt-2 border-t border-gray-200" : ""}`}>
+                  <div className="flex justify-center items-center gap-4">
+                    <div>
+                      <p className="text-[10px] text-gray-500">Ngoại tệ / ເງິນຕ່າງປະເທດ</p>
+                      <p className="font-black text-base tabular-nums">
+                        {line.fromAmount.toLocaleString("en", { maximumFractionDigits: 2 })} {line.fromCurrency}
+                      </p>
+                    </div>
+                    <p className="text-lg font-bold">→</p>
+                    <div>
+                      <p className="text-[10px] text-gray-500">
+                        {line.toCurrency === "LAK" ? "Tiền LAK / ເງິນກີບ" : `${line.toCurrency} / ເງິນ${line.toCurrency}`}
+                      </p>
+                      <p className="font-black text-base tabular-nums">
+                        {line.toCurrency === "LAK"
+                          ? kip(Math.round(toAmt))
+                          : `${toAmt.toLocaleString("en", { maximumFractionDigits: 4 })} ${line.toCurrency}`}
+                      </p>
+                    </div>
+                  </div>
+                  {rateDisplayVal > 0 && (
+                    <p className="text-[10px] text-gray-500 mt-1">
+                      Tỷ giá: 1 {rateDisplayCurr} = {rateDisplayVal.toLocaleString("lo-LA")} ₭
+                      {showBothRates && ` · 1 ${line.toCurrency} = ${line.toRateToLak.toLocaleString("lo-LA")} ₭`}
+                    </p>
+                  )}
+                </div>
+              );
+            })}
+            {lines.length === 0 && (
+              <p className="text-[11px] text-gray-400 text-center">{inv.note ?? "—"}</p>
             )}
-            {inv.targetRateToLak && inv.targetCurrency && inv.targetCurrency !== "LAK" && (
-              <p>
-                Tỷ giá: 1 {inv.targetCurrency} ={" "}
-                {inv.targetRateToLak.toLocaleString("lo-LA")} ₭
-              </p>
-            )}
           </div>
-        </div>
-      )}
+        );
+
+      })()}
 
       {/* ── Items table ───────────────────────────────────── */}
       {!isFx && inv.items.length > 0 && (
@@ -323,6 +340,39 @@ function InvoiceTemplate({ inv }: { inv: PrintInvoice }) {
               })()}
               <div className="flex justify-between font-black text-[13px] border-t-2 border-black pt-1">
                 <span>TIỆM CHI RA / ຮ້ານຈ່າຍ:</span>
+                <span className="tabular-nums">{kip(inv.totalAmount)}</span>
+              </div>
+            </>
+          ) : isFx ? (
+            <>
+              {/* FX: hiển thị số tiền khách nhận theo từng ngoại tệ */}
+              {(() => {
+                const fxL = inv.exchangeLines ?? [];
+                const totals: Record<string, number> = {};
+                if (fxL.length > 0) {
+                  for (const l of fxL) {
+                    const toAmt = l.toAmount != null ? l.toAmount
+                      : l.toRateToLak > 0
+                        ? Math.round((Math.round(l.fromAmount * l.fromRateToLak) / l.toRateToLak) * 10000) / 10000
+                        : 0;
+                    if (toAmt > 0) totals[l.toCurrency] = (totals[l.toCurrency] ?? 0) + toAmt;
+                  }
+                } else if (inv.targetCurrency && inv.targetCurrency !== "LAK" && inv.targetAmount) {
+                  totals[inv.targetCurrency] = inv.targetAmount;
+                }
+                return Object.entries(totals).map(([cur, amt]) => (
+                  <div key={cur} className="flex justify-between">
+                    <span>Khách nhận ({cur}) / ລູກຄ້າຮັບ:</span>
+                    <span className="tabular-nums font-semibold">
+                      {cur === "LAK"
+                        ? kip(Math.round(amt))
+                        : `${amt.toLocaleString("en", { maximumFractionDigits: 4 })} ${cur}`}
+                    </span>
+                  </div>
+                ));
+              })()}
+              <div className="flex justify-between font-black text-[13px] border-t-2 border-black pt-1">
+                <span>TỔNG / ລວມ:</span>
                 <span className="tabular-nums">{kip(inv.totalAmount)}</span>
               </div>
             </>
