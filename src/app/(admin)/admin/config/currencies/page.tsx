@@ -240,9 +240,11 @@ export default function CurrenciesPage() {
               : t('noData')}
           </p>
         </div>
-        <AntBtn type="primary" icon={<PlusOutlined />} onClick={openCreate}>
-          {t('addButton')}
-        </AntBtn>
+        {false && (
+          <AntBtn type="primary" icon={<PlusOutlined />} onClick={openCreate}>
+            {t('addButton')}
+          </AntBtn>
+        )}
       </div>
 
       {/* ── Table panel ── */}
@@ -369,16 +371,18 @@ export default function CurrenciesPage() {
                         >
                           <EditOutlined size={13} />
                         </button>
-                        <button
-                          type="button"
-                          title={t('delete')}
-                          onClick={() => setDialog({ mode: 'delete', currency: c })}
-                          style={DEL_BTN_STYLE}
-                          onMouseEnter={e => Object.assign(e.currentTarget.style, DEL_BTN_HOVER)}
-                          onMouseLeave={e => Object.assign(e.currentTarget.style, DEL_BTN_STYLE)}
-                        >
-                          <DeleteOutlined size={13} />
-                        </button>
+                        {false && (
+                          <button
+                            type="button"
+                            title={t('delete')}
+                            onClick={() => setDialog({ mode: 'delete', currency: c })}
+                            style={DEL_BTN_STYLE}
+                            onMouseEnter={e => Object.assign(e.currentTarget.style, DEL_BTN_HOVER)}
+                            onMouseLeave={e => Object.assign(e.currentTarget.style, DEL_BTN_STYLE)}
+                          >
+                            <DeleteOutlined size={13} />
+                          </button>
+                        )}
                       </div>
                     </td>
                   </tr>
