@@ -218,7 +218,7 @@ function InvoiceTemplate({ inv }: { inv: PrintInvoice }) {
                 Đơn giá ₭
               </th>
               <th className="border border-gray-400 px-2 py-1 text-right w-20">
-                {isBuyGold ? "Phí lỗi ₭" : "T. công ₭"}
+                {isBuyGold ? "Lỗi/hỏng ₭" : "T. công ₭"}
               </th>
               <th className="border border-gray-400 px-2 py-1 text-right w-16">
                 {isBuyGold ? "Hao mòn ₭" : "Đá ₭"}

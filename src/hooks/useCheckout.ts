@@ -120,17 +120,9 @@ export function useCheckout(strategy: PaymentStrategy) {
                 ? totalGram - item.perItemWearChi * 3.75
                 : totalGram;
 
-              // Backend tính lineTotal = qty × unitPriceLak − phiHuHai.
-              // ExchangeIn: frontend gửi giá đã điều chỉnh theo effectiveWeightGram (backend không tự điều chỉnh).
-              // BuyGold: backend TỰ tính effective price qua weightGramOverride —
-              //   storedUnitPriceLak = (sentUnitPriceLak / gramPerUnit) × weightGramOverride
-              //   → chỉ gửi giá gốc; KHÔNG điều chỉnh ở frontend để tránh double-deduction.
-              const unitPriceLak =
-                isExchangeIn && hasLaoSut
-                  ? Math.round(
-                      (effectiveWeightGram / item.qty) * item.unitPriceLakPerGram,
-                    )
-                  : Math.round(item.unitPriceLakPerGram * item.weightGram);
+              // Backend tự tính storedUnitPriceLak = (sentUnitPriceLak / gramPerUnit) × weightGramOverride
+              // cho CẢ BuyGold lẫn ExchangeIn → luôn gửi giá gốc/đơn vị, KHÔNG pre-adjust ở frontend.
+              const unitPriceLak = Math.round(item.unitPriceLakPerGram * item.weightGram);
 
               return {
                 productId: item.productId,

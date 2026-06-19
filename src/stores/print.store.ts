@@ -143,7 +143,7 @@ function normalize(tx: Transaction, ctx?: PrintContext): PrintInvoice {
 
     const resolvedDamageFee = phiKho > 0
       ? phiKho
-      : (item.damageFee ?? 0)
+      : (item.phiHuHai ?? 0)
 
     return {
       stt: idx + 1,

@@ -183,3 +183,11 @@
   opacity: 0.4 !important;
   transition: opacity 0.2s;
 }
+
+/* ── Table trong Card — xóa border-radius của table để không xung đột với Card ── */
+.ant-card .ant-table-container {
+  border-start-start-radius: 0 !important;
+  border-start-end-radius: 0 !important;
+  border-end-start-radius: 0 !important;
+  border-end-end-radius: 0 !important;
+}

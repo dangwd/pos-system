@@ -57,7 +57,11 @@ export function useExchangeInvoiceLookup() {
         ?? priceConfig.items[0]
       const perUnitGram = item.quantity > 0 ? item.weightGram / item.quantity : (priceItem?.gramPerUnit ?? 3.75)
       const gramPerUnit = priceItem?.gramPerUnit ?? perUnitGram
-      const unitPriceLakPerGram = priceItem ? priceItem.sellPrice / gramPerUnit : 0
+      // Ưu tiên giá BÁN RA hiện tại từ bảng giá; fallback về giá gốc hóa đơn khi bảng giá chưa cấu hình
+      // Guard cả trường hợp priceItem tồn tại nhưng sellPrice = 0 (bảng giá chưa nhập giá)
+      const unitPriceLakPerGram = (priceItem && priceItem.sellPrice > 0)
+        ? priceItem.sellPrice / gramPerUnit
+        : perUnitGram > 0 ? item.unitPriceLak / perUnitGram : 0
 
       return {
         // ExchangeIn: backend nhận Product entity ID từ phiếu gốc

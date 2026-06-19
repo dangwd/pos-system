@@ -103,8 +103,10 @@ const BADGE_BASE: React.CSSProperties = {
   padding: '2px 8px', borderRadius: 4,
 }
 
-// Loại GD có thành phần "mua vàng cũ" — hiển thị phí lỗi hỏng & hao mòn thay vì gia công/đá
+// Loại GD có thành phần "mua vàng cũ" — hiển thị phí lỗi hỏng & hao mòn
 const BUY_TYPES = new Set(['BuyGold', 'BuyMoreGold', 'ExchangeGold', 'ExchangeFree', 'ExchangeToMoney'])
+// Loại đổi hàng — có cả ExchangeIn (mua) và Normal (bán) nên cần cả hai bộ cột
+const EXCHANGE_TYPES = new Set(['ExchangeGold', 'ExchangeFree', 'BuyMoreGold', 'ExchangeToMoney'])
 
 export function TransactionExpandedRow({ record }: Props) {
   const t = useTranslations('admin.orders.expanded')
@@ -117,32 +119,34 @@ export function TransactionExpandedRow({ record }: Props) {
   const statusBadgeStyle = STATUS_BADGE_STYLE[record.status] ?? { background: '#f3f4f6', color: '#374151' }
 
   const isBuyType = BUY_TYPES.has(record.type)
+  const isExchangeType = EXCHANGE_TYPES.has(record.type)
 
-  const hasBuyFees = isBuyType && record.items.some(i => (i.damageFee ?? 0) > 0 || (i.haoHutGram ?? 0) > 0)
-  const totalPhiKho = record.items.reduce((s, i) => s + (i.damageFee ?? 0), 0)
+  const hasBuyFees = isBuyType && record.items.some(i => (i.phiHuHai ?? 0) > 0 || (i.haoHutGram ?? 0) > 0)
+  const totalPhiKho = record.items.reduce((s, i) => s + (i.phiHuHai ?? 0), 0)
   const totalHaoHutValue = record.items.reduce((s, i) => {
     const haoHutGram = i.haoHutGram ?? 0
     if (haoHutGram <= 0) return s
     const pricePerUnit = i.tableUnitPriceLak || i.unitPriceLak
-    const gramPerUnit = i.weightGram > 0 ? i.weightGram : 3.75
+    // gramPerUnit = full grams per unit (trước hao mòn) = (effectiveGram + haoHutGram) / qty
+    const gramPerUnit = i.quantity > 0 ? (i.weightGram + haoHutGram) / i.quantity : 3.75
     return s + Math.round(haoHutGram * pricePerUnit / gramPerUnit)
   }, 0)
 
   const productColumns: ColumnsType<TransactionItem> = [
     {
-      title: '', dataIndex: 'itemRole', width: 28,
+      title: '', dataIndex: 'itemRole', width: 28, fixed: 'left',
       render: (v: string) => v === 'ExchangeIn'
         ? <span title={t('labelExchangeIn')} style={{ ...BADGE_BASE, background: '#dbeafe', color: '#1d4ed8', fontSize: 10 }}>↩</span>
         : null,
     },
     {
-      title: '#', key: 'index', width: 40, align: 'center' as const,
+      title: '#', key: 'index', width: 40, align: 'center' as const, fixed: 'left',
       render: (_: unknown, __: TransactionItem, index: number) => (
         <span style={{ color: '#9ca3af', fontSize: 12 }}>{index + 1}</span>
       ),
     },
     {
-      title: t('colProductCode'), dataIndex: 'productId', width: 140,
+      title: t('colProductCode'), dataIndex: 'productId', width: 140, fixed: 'left',
       render: (v?: string) => (
         <span style={{ fontFamily: 'monospace', fontSize: 12, color: '#4f46e5' }}>
           {v ? v.slice(0, 10).toUpperCase() : '—'}
@@ -150,7 +154,7 @@ export function TransactionExpandedRow({ record }: Props) {
       ),
     },
     {
-      title: t('colProductName'), dataIndex: 'productSnapshotName',
+      title: t('colProductName'), dataIndex: 'productSnapshotName', width: 200, fixed: 'left',
       render: (v: string, row: TransactionItem) => (
         <span style={{ fontSize: 13, color: row.itemRole === 'ExchangeIn' ? '#1d4ed8' : undefined }}>{v}</span>
       ),
@@ -167,17 +171,21 @@ export function TransactionExpandedRow({ record }: Props) {
       title: t('colUnitPrice'), dataIndex: 'unitPriceLak', width: 130, align: 'right' as const,
       render: (v: number) => formatKip(v),
     },
-    // Loại mua/đổi → cột lỗi hỏng + hao mòn (như màn POS BuyGold)
+    // Cột mua vàng cũ: lỗi hỏng + hao mòn (BuyGold & ExchangeIn rows)
     ...(isBuyType ? [
       {
-        title: t('colDamageFee'), dataIndex: 'damageFee', key: 'phiKho',
+        title: t('colDamageFee'), dataIndex: 'phiHuHai', key: 'phiKho',
         width: 120, align: 'right' as const,
-        render: (v: number | undefined) => (v ?? 0) > 0 ? formatKip(v!) : <span style={{ color: '#d1d5db' }}>—</span>,
+        render: (v: number | undefined, row: TransactionItem) => {
+          if (isExchangeType && row.itemRole !== 'ExchangeIn') return <span style={{ color: '#d1d5db' }}>—</span>
+          return (v ?? 0) > 0 ? formatKip(v!) : <span style={{ color: '#d1d5db' }}>—</span>
+        },
       },
       {
         title: t('colWearChi'), key: 'haoHutChi',
         width: 100, align: 'right' as const,
         render: (_: unknown, row: TransactionItem) => {
+          if (isExchangeType && row.itemRole !== 'ExchangeIn') return <span style={{ color: '#d1d5db' }}>—</span>
           const haoHutChi = (row.haoHutGram ?? 0) / 3.75
           return haoHutChi > 0
             ? <span>{haoHutChi.toLocaleString('lo-LA')} Chỉ</span>
@@ -188,26 +196,33 @@ export function TransactionExpandedRow({ record }: Props) {
         title: t('colWearValue'), key: 'haoHutValue',
         width: 130, align: 'right' as const,
         render: (_: unknown, row: TransactionItem) => {
+          if (isExchangeType && row.itemRole !== 'ExchangeIn') return <span style={{ color: '#d1d5db' }}>—</span>
           const haoHutGram = row.haoHutGram ?? 0
           if (haoHutGram <= 0) return <span style={{ color: '#d1d5db' }}>—</span>
           const pricePerUnit = row.tableUnitPriceLak || row.unitPriceLak
-          const gramPerUnit = row.weightGram > 0 ? row.weightGram : 3.75
+          const gramPerUnit = row.quantity > 0 ? (row.weightGram + haoHutGram) / row.quantity : 3.75
           const val = Math.round(haoHutGram * pricePerUnit / gramPerUnit)
           return formatKip(val)
         },
       },
     ] as ColumnsType<TransactionItem> : []),
-    // Loại bán → cột tiền công + tiền đá
-    ...(!isBuyType ? [
+    // Cột bán hàng mới: tiền công + tiền đá (SellGold/SellSilver và Normal rows trong Exchange)
+    ...(!isBuyType || isExchangeType ? [
       {
         title: t('colLaborFee'), dataIndex: 'laborFee', key: 'laborFee',
         width: 110, align: 'right' as const,
-        render: (v: number) => v > 0 ? formatKip(v) : <span style={{ color: '#d1d5db' }}>—</span>,
+        render: (v: number, row: TransactionItem) => {
+          if (isExchangeType && row.itemRole === 'ExchangeIn') return <span style={{ color: '#d1d5db' }}>—</span>
+          return v > 0 ? formatKip(v) : <span style={{ color: '#d1d5db' }}>—</span>
+        },
       },
       {
         title: t('colStoneFee'), dataIndex: 'stoneFee', key: 'stoneFee',
         width: 110, align: 'right' as const,
-        render: (v: number) => v > 0 ? formatKip(v) : <span style={{ color: '#d1d5db' }}>—</span>,
+        render: (v: number, row: TransactionItem) => {
+          if (isExchangeType && row.itemRole === 'ExchangeIn') return <span style={{ color: '#d1d5db' }}>—</span>
+          return v > 0 ? formatKip(v) : <span style={{ color: '#d1d5db' }}>—</span>
+        },
       },
     ] as ColumnsType<TransactionItem> : []),
     {
@@ -344,6 +359,7 @@ export function TransactionExpandedRow({ record }: Props) {
           size="small"
           bordered
           pagination={false}
+          scroll={{ x: 1400 }}
           rowClassName={r => r.itemRole === 'ExchangeIn' ? 'exchange-in-row' : ''}
           style={{ marginBottom: 12 }}
         />

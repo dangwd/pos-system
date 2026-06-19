@@ -86,7 +86,7 @@ export function Receipt({ open, transaction, onClose }: ReceiptProps) {
     <>
       <Dialog open={open} onOpenChange={handleClose}>
         <DialogContent
-          className={isExchange ? "sm:max-w-5xl min-w-5xl" : "sm:max-w-3xl min-w-3xl"}
+          className={isExchange ? "sm:max-w-6xl min-w-6xl" : "sm:max-w-3xl min-w-3xl"}
           title={
             isCancelled ? (
               <span className="flex items-center gap-2 text-destructive">
@@ -241,26 +241,49 @@ export function Receipt({ open, transaction, onClose }: ReceiptProps) {
                           <TableHead>{t("columnProduct")}</TableHead>
                           <TableHead className="text-center">{t("columnQty")}</TableHead>
                           <TableHead className="text-center">Đơn vị</TableHead>
-                          <TableHead className="text-right">Giá đơn vị</TableHead>
-                          <TableHead className="text-right text-amber-600">Giá trị</TableHead>
+                          <TableHead className="text-right">Giá/ĐV</TableHead>
+                          <TableHead className="text-right text-orange-600">Lỗi/hỏng</TableHead>
+                          <TableHead className="text-right text-orange-600">Hao mòn</TableHead>
+                          <TableHead className="text-right text-orange-600">Giá trị HM</TableHead>
+                          <TableHead className="text-right text-amber-600">Thành tiền</TableHead>
                         </TableRow>
                       </TableHeader>
                       <TableBody>
-                        {exchangeInItems.map((item) => (
-                          <TableRow key={item.id}>
-                            <TableCell className="text-sm">{item.productSnapshotName}</TableCell>
-                            <TableCell className="text-center text-sm">{item.quantity}</TableCell>
-                            <TableCell className="text-center text-sm text-muted-foreground">
-                              {item.weightUnitName || "—"}
-                            </TableCell>
-                            <TableCell className="text-right text-sm">
-                              {formatKip(item.unitPriceLak)}
-                            </TableCell>
-                            <TableCell className="text-right text-sm font-semibold text-amber-700 dark:text-amber-400">
-                              {formatKip(item.lineTotal)}
-                            </TableCell>
-                          </TableRow>
-                        ))}
+                        {exchangeInItems.map((item) => {
+                          const pricePerGram = item.weightGram > 0 ? item.unitPriceLak / item.weightGram : 0;
+                          const haoHutGram = item.haoHutGram ?? 0;
+                          const phiHuHai = item.phiHuHai ?? 0;
+                          // Giá gốc/đơn vị = giá hiệu lực × (effectiveGram + haoMòn) / effectiveGram
+                          const grossPricePerUnit = item.weightGram > 0
+                            ? Math.round(item.unitPriceLak * (item.weightGram + haoHutGram) / item.weightGram)
+                            : item.unitPriceLak;
+                          const haoHutChi = haoHutGram / 3.75;
+                          const haoMonValue = Math.round(haoHutGram * pricePerGram);
+                          return (
+                            <TableRow key={item.id}>
+                              <TableCell className="text-sm">{item.productSnapshotName}</TableCell>
+                              <TableCell className="text-center text-sm">{item.quantity}</TableCell>
+                              <TableCell className="text-center text-sm text-muted-foreground">
+                                {item.weightUnitName || "—"}
+                              </TableCell>
+                              <TableCell className="text-right text-sm">
+                                {formatKip(grossPricePerUnit)}
+                              </TableCell>
+                              <TableCell className="text-right text-sm text-orange-600">
+                                {phiHuHai > 0 ? formatKip(phiHuHai) : "—"}
+                              </TableCell>
+                              <TableCell className="text-right text-sm text-orange-600">
+                                {haoHutChi > 0 ? `${haoHutChi.toLocaleString("lo-LA")} Chỉ` : "—"}
+                              </TableCell>
+                              <TableCell className="text-right text-sm text-orange-600">
+                                {haoMonValue > 0 ? formatKip(haoMonValue) : "—"}
+                              </TableCell>
+                              <TableCell className="text-right text-sm font-semibold text-amber-700 dark:text-amber-400">
+                                {formatKip(item.lineTotal)}
+                              </TableCell>
+                            </TableRow>
+                          );
+                        })}
                       </TableBody>
                     </Table>
                     <div className="flex justify-between text-xs font-semibold text-amber-700 dark:text-amber-400 px-1 pt-1.5 border-t border-amber-200 dark:border-amber-900">
@@ -370,7 +393,7 @@ export function Receipt({ open, transaction, onClose }: ReceiptProps) {
                       </TableCell>
                       {isBuy && (
                         <TableCell className="text-right text-sm">
-                          {(item.damageFee ?? 0) > 0 ? formatKip(item.damageFee!) : "—"}
+                          {(item.phiHuHai ?? 0) > 0 ? formatKip(item.phiHuHai!) : "—"}
                         </TableCell>
                       )}
                       {isBuy && (
@@ -445,9 +468,9 @@ export function Receipt({ open, transaction, onClose }: ReceiptProps) {
                         return s + Math.round(i.haoHutGram * (i.unitPriceLak / i.weightGram));
                       }, 0);
 
-                      // Phí lỗi/hỏng: dùng damageFee nếu có, fallback: unitPriceLak × qty − lineTotal.
+                      // Phí lỗi/hỏng: dùng phiHuHai nếu có, fallback: unitPriceLak × qty − lineTotal.
                       const totalDamage = transaction.items.reduce((s, i) => {
-                        if (i.damageFee !== undefined) return s + i.damageFee;
+                        if (i.phiHuHai !== undefined) return s + i.phiHuHai;
                         return s + Math.max(0, i.quantity * i.unitPriceLak - i.lineTotal);
                       }, 0);
 

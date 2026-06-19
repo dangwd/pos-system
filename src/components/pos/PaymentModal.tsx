@@ -124,7 +124,7 @@ function ItemRow({ item, index, hideFees }: { item: CartItem; index: number; hid
           )}
           {item.isDamaged && item.perItemDamage > 0 && (
             <span className="text-[10px] text-orange-500">
-              Tiền công: {item.perItemDamage.toLocaleString("lo-LA")}₭
+              Lỗi/hỏng: {item.perItemDamage.toLocaleString("lo-LA")}₭
             </span>
           )}
           {item.perItemWearChi > 0 && (
