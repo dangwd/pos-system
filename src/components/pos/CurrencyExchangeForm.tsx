@@ -281,7 +281,7 @@ export function CurrencyExchangeForm() {
       setFxLines([makeDefaultLine(rates)]);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [tab?.id, isLoading]);
+  }, [tab?.id, isLoading, lines.length]);
 
   const updateLine = (id: string, patch: Partial<Omit<FxLine, "id">>) =>
     setFxLines(lines.map((l) => (l.id === id ? { ...l, ...patch } : l)));

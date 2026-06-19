@@ -210,6 +210,7 @@ export const useInvoiceTabStore = create<InvoiceTabStore>()(
               cancelInvoiceCode: null,
               customerId: null,
               customerName: null,
+              fxLines: [],
             },
           ),
         });

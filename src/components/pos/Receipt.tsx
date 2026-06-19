@@ -204,60 +204,71 @@ export function Receipt({ open, transaction, onClose }: ReceiptProps) {
             <Separator />
 
             {isFx ? (
-              <div className="space-y-3">
-                {/* FX: hiển thị từng dòng đổi */}
-                <div className="rounded-lg border border-primary/20 bg-primary/5 px-4 py-4 space-y-0">
-                  {resolvedFxLines.length > 0 ? (
-                    resolvedFxLines.map((line, idx) => {
+              resolvedFxLines.length > 0 ? (
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead className="w-8 text-center">#</TableHead>
+                      <TableHead>{t("fxColFrom")}</TableHead>
+                      <TableHead className="text-center">{t("fxColRate")}</TableHead>
+                      <TableHead className="text-right">{t("fxColTo")}</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {resolvedFxLines.map((line, idx) => {
                       const toAmt = fxComputeToAmount(line);
                       const isFromLak = line.fromCurrency === "LAK";
                       const rateDisplayCurr = isFromLak ? line.toCurrency : line.fromCurrency;
                       const rateDisplayVal = isFromLak ? line.toRateToLak : line.fromRateToLak;
-                      // Cross-currency: show both rates
                       const showBothRates = !isFromLak && line.toCurrency !== "LAK" && line.toRateToLak > 0;
                       return (
-                        <div
-                          key={idx}
-                          className={`text-center space-y-0.5 ${idx > 0 ? "pt-3 mt-3 border-t border-primary/15" : ""}`}
-                        >
-                          <p className="text-2xl font-black tabular-nums tracking-tight">
-                            {line.fromAmount.toLocaleString("en", { maximumFractionDigits: 2 })}{" "}
-                            <span className="text-primary">{line.fromCurrency}</span>
-                          </p>
-                          <p className="text-muted-foreground text-sm">↓</p>
-                          <p className="text-2xl font-black tabular-nums tracking-tight">
-                            {line.toCurrency === "LAK"
-                              ? Math.round(toAmt).toLocaleString("lo-LA") + " ₭"
-                              : `${toAmt.toLocaleString("en", { maximumFractionDigits: 4 })} ${line.toCurrency}`}
-                          </p>
-                          {rateDisplayVal > 0 && (
-                            <p className="text-[11px] text-muted-foreground mt-1">
-                              1 <span className="font-semibold text-foreground">{rateDisplayCurr}</span>
-                              {" = "}
-                              <span className="font-semibold text-foreground tabular-nums">
-                                {rateDisplayVal.toLocaleString("lo-LA")}
-                              </span> ₭
-                              {showBothRates && (
-                                <>
-                                  {" · "}1 <span className="font-semibold text-foreground">{line.toCurrency}</span>
-                                  {" = "}
-                                  <span className="font-semibold text-foreground tabular-nums">
-                                    {line.toRateToLak.toLocaleString("lo-LA")}
-                                  </span> ₭
-                                </>
-                              )}
-                            </p>
-                          )}
-                        </div>
+                        <TableRow key={idx}>
+                          <TableCell className="text-center text-xs text-muted-foreground">{idx + 1}</TableCell>
+                          <TableCell>
+                            <span className="font-semibold tabular-nums">
+                              {line.fromAmount.toLocaleString("en", { maximumFractionDigits: 2 })}
+                            </span>{" "}
+                            <span className="font-bold text-primary">{line.fromCurrency}</span>
+                          </TableCell>
+                          <TableCell className="text-center">
+                            {rateDisplayVal > 0 ? (
+                              <span className="text-xs text-muted-foreground">
+                                {"1 "}
+                                <span className="font-semibold text-foreground">{rateDisplayCurr}</span>
+                                {" = "}
+                                <span className="font-semibold text-foreground tabular-nums">
+                                  {rateDisplayVal.toLocaleString("lo-LA")}
+                                </span>
+                                {" ₭"}
+                                {showBothRates && (
+                                  <>
+                                    {" · 1 "}
+                                    <span className="font-semibold text-foreground">{line.toCurrency}</span>
+                                    {" = "}
+                                    <span className="font-semibold text-foreground tabular-nums">
+                                      {line.toRateToLak.toLocaleString("lo-LA")}
+                                    </span>
+                                    {" ₭"}
+                                  </>
+                                )}
+                              </span>
+                            ) : "—"}
+                          </TableCell>
+                          <TableCell className="text-right">
+                            <span className="font-black tabular-nums text-base">
+                              {line.toCurrency === "LAK"
+                                ? Math.round(toAmt).toLocaleString("lo-LA") + " ₭"
+                                : `${toAmt.toLocaleString("en", { maximumFractionDigits: 4 })} ${line.toCurrency}`}
+                            </span>
+                          </TableCell>
+                        </TableRow>
                       );
-                    })
-                  ) : (
-                    <div className="text-center space-y-0.5">
-                      <p className="text-sm text-muted-foreground">{transaction.note ?? "—"}</p>
-                    </div>
-                  )}
-                </div>
-              </div>
+                    })}
+                  </TableBody>
+                </Table>
+              ) : (
+                <p className="text-sm text-muted-foreground text-center">{transaction.note ?? "—"}</p>
+              )
             ) : isExchange ? (
               <div className="space-y-3">
                 {/* PANEL B — Vàng cũ thu vào */}
@@ -454,7 +465,9 @@ export function Receipt({ open, transaction, onClose }: ReceiptProps) {
               </Table>
             )}
 
-            <Separator />
+            {(!isFx || resolvedFxLines.length === 0 || fxTotalEntries.length < resolvedFxLines.length) && (
+              <Separator />
+            )}
 
             <div className="space-y-1 text-sm">
               {isExchange ? (
@@ -563,7 +576,7 @@ export function Receipt({ open, transaction, onClose }: ReceiptProps) {
                     </span>
                   </div>
                 </>
-              ) : resolvedFxLines.length > 0 && fxTotalEntries.length > 0 ? (
+              ) : resolvedFxLines.length > 0 && fxTotalEntries.length > 0 && fxTotalEntries.length < resolvedFxLines.length ? (
                 <div className="space-y-1.5 pt-1 border-t">
                   {fxTotalEntries.map(([currency, amount]) => (
                     <div key={currency} className="flex justify-between font-bold text-base">
@@ -578,6 +591,8 @@ export function Receipt({ open, transaction, onClose }: ReceiptProps) {
                     </div>
                   ))}
                 </div>
+              ) : resolvedFxLines.length > 0 ? (
+                null
               ) : (
                 <div className="flex justify-between font-bold text-base pt-1">
                   <span>

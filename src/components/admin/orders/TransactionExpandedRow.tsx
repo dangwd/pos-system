@@ -453,7 +453,7 @@ export function TransactionExpandedRow({ record }: Props) {
                 ),
               },
               {
-                title: t('colProductName'), dataIndex: 'productSnapshotName',
+                title: t('colFxCurrency'), dataIndex: 'productSnapshotName',
                 render: (v: string) => <span style={{ fontSize: 13 }}>{v}</span>,
               },
               {

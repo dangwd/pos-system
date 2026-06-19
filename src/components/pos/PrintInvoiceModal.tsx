@@ -169,47 +169,62 @@ function InvoiceTemplate({ inv }: { inv: PrintInvoice }) {
             : [];
 
         return (
-          <div className="border border-gray-400 rounded p-3 mb-3 space-y-2">
-            {lines.map((line, idx) => {
-              const toAmt = computeToAmt(line);
-              const isFromLak = line.fromCurrency === "LAK";
-              const rateDisplayCurr = isFromLak ? line.toCurrency : line.fromCurrency;
-              const rateDisplayVal = isFromLak ? line.toRateToLak : line.fromRateToLak;
-              const showBothRates = !isFromLak && line.toCurrency !== "LAK" && line.toRateToLak > 0;
-              return (
-                <div key={idx} className={`text-center ${idx > 0 ? "pt-2 border-t border-gray-200" : ""}`}>
-                  <div className="flex justify-center items-center gap-4">
-                    <div>
-                      <p className="text-[10px] text-gray-500">Ngoại tệ / ເງິນຕ່າງປະເທດ</p>
-                      <p className="font-black text-base tabular-nums">
+          <table className="w-full text-[11px] border-collapse mb-3">
+            <thead>
+              <tr className="bg-gray-100">
+                <th className="border border-gray-400 px-1 py-1 text-center w-6">#</th>
+                <th className="border border-gray-400 px-2 py-1 text-center">
+                  Ngoại tệ nhận / ເງິນຕ່າງປະເທດ
+                </th>
+                <th className="border border-gray-400 px-1 py-1 text-center w-6">→</th>
+                <th className="border border-gray-400 px-2 py-1 text-center">
+                  Tiền nhận ra / ເງິນຮັບ
+                </th>
+                <th className="border border-gray-400 px-2 py-1 text-center">
+                  Tỷ giá / ອັດຕາແລກປ່ຽນ
+                </th>
+              </tr>
+            </thead>
+            <tbody>
+              {lines.length === 0 ? (
+                <tr>
+                  <td colSpan={5} className="border border-gray-400 px-2 py-2 text-center text-gray-400">
+                    {inv.note ?? "—"}
+                  </td>
+                </tr>
+              ) : (
+                lines.map((line, idx) => {
+                  const toAmt = computeToAmt(line);
+                  const isFromLak = line.fromCurrency === "LAK";
+                  const rateDisplayCurr = isFromLak ? line.toCurrency : line.fromCurrency;
+                  const rateDisplayVal = isFromLak ? line.toRateToLak : line.fromRateToLak;
+                  const showBothRates = !isFromLak && line.toCurrency !== "LAK" && line.toRateToLak > 0;
+                  return (
+                    <tr key={idx}>
+                      <td className="border border-gray-400 px-1 py-1.5 text-center">{idx + 1}</td>
+                      <td className="border border-gray-400 px-2 py-1.5 text-center font-semibold tabular-nums">
                         {line.fromAmount.toLocaleString("en", { maximumFractionDigits: 2 })} {line.fromCurrency}
-                      </p>
-                    </div>
-                    <p className="text-lg font-bold">→</p>
-                    <div>
-                      <p className="text-[10px] text-gray-500">
-                        {line.toCurrency === "LAK" ? "Tiền LAK / ເງິນກີບ" : `${line.toCurrency} / ເງິນ${line.toCurrency}`}
-                      </p>
-                      <p className="font-black text-base tabular-nums">
+                      </td>
+                      <td className="border border-gray-400 px-1 py-1.5 text-center font-bold">→</td>
+                      <td className="border border-gray-400 px-2 py-1.5 text-center font-semibold tabular-nums">
                         {line.toCurrency === "LAK"
                           ? kip(Math.round(toAmt))
                           : `${toAmt.toLocaleString("en", { maximumFractionDigits: 4 })} ${line.toCurrency}`}
-                      </p>
-                    </div>
-                  </div>
-                  {rateDisplayVal > 0 && (
-                    <p className="text-[10px] text-gray-500 mt-1">
-                      Tỷ giá: 1 {rateDisplayCurr} = {rateDisplayVal.toLocaleString("lo-LA")} ₭
-                      {showBothRates && ` · 1 ${line.toCurrency} = ${line.toRateToLak.toLocaleString("lo-LA")} ₭`}
-                    </p>
-                  )}
-                </div>
-              );
-            })}
-            {lines.length === 0 && (
-              <p className="text-[11px] text-gray-400 text-center">{inv.note ?? "—"}</p>
-            )}
-          </div>
+                      </td>
+                      <td className="border border-gray-400 px-2 py-1.5 text-center text-[10px] text-gray-600">
+                        {rateDisplayVal > 0 ? (
+                          <>
+                            1 {rateDisplayCurr} = {rateDisplayVal.toLocaleString("lo-LA")} ₭
+                            {showBothRates && <><br />1 {line.toCurrency} = {line.toRateToLak.toLocaleString("lo-LA")} ₭</>}
+                          </>
+                        ) : "—"}
+                      </td>
+                    </tr>
+                  );
+                })
+              )}
+            </tbody>
+          </table>
         );
 
       })()}

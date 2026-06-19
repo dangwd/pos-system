@@ -66,12 +66,11 @@ export function useCheckout(strategy: PaymentStrategy) {
       await strategy.prepare(total);
 
       const paymentMethod = isFx
-        ? "CASH"
+        ? (tab.fxPaymentMethod ?? "CASH")
         : (params.paymentMethod ?? strategy.paymentMethod);
 
       const fxNote = isFx
-        ? (tab.fxLines ?? [])
-            .filter((l) => l.fromAmount > 0)
+        ? activeFxLines
             .map(
               (l) =>
                 `${l.fromAmount.toLocaleString("en", { maximumFractionDigits: 2 })} ${l.fromCurrency} → ${l.toCurrency}`,
@@ -82,7 +81,7 @@ export function useCheckout(strategy: PaymentStrategy) {
       // Tính cashAmount / bankAmount theo paymentMethod
       // CASH → cashAmount = total; BANK → bankAmount = total; COMBINED → dùng split từ params
       const cashAmount = isFx
-        ? null
+        ? paymentMethod === "CASH" ? total : null
         : paymentMethod === "CASH"
           ? total
           : paymentMethod === "COMBINED"
@@ -90,7 +89,7 @@ export function useCheckout(strategy: PaymentStrategy) {
             : null;
 
       const bankAmount = isFx
-        ? null
+        ? paymentMethod === "BANK" ? total : null
         : paymentMethod === "BANK"
           ? total
           : paymentMethod === "COMBINED"
@@ -108,15 +107,13 @@ export function useCheckout(strategy: PaymentStrategy) {
         note: fxNote,
         // Chế độ A — Multi-line FX (ưu tiên nếu có exchangeLines)
         exchangeLines: isFx
-          ? (tab.fxLines ?? [])
-              .filter((l) => l.fromAmount > 0)
-              .map((l) => ({
-                fromCurrency: l.fromCurrency,
-                fromAmount: l.fromAmount,
-                fromRateToLak: l.fromRateToLak,
-                toCurrency: l.toCurrency,
-                toRateToLak: l.toRateToLak,
-              }))
+          ? activeFxLines.map((l) => ({
+              fromCurrency: l.fromCurrency,
+              fromAmount: l.fromAmount,
+              fromRateToLak: l.fromRateToLak,
+              toCurrency: l.toCurrency,
+              toRateToLak: l.toRateToLak,
+            }))
           : undefined,
         referenceInvoiceCode:
           params.referenceInvoiceCode ?? tab.linkedInvoiceCode ?? undefined,
