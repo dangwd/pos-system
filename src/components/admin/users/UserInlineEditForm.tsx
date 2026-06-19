@@ -166,7 +166,7 @@ export function UserInlineEditForm({ user, onCancel, onSaved }: Props) {
               <Select className="w-full" value={field.value || undefined}
                 onChange={v => field.onChange(v ?? '')}
                 options={roles.map(r => ({ value: r.id, label: r.name }))}
-                notFoundContent="Không tìm thấy" popupMatchSelectWidth={false} />
+                notFoundContent={t("notFound")} popupMatchSelectWidth={false} />
             )} />
           </FormRow>
 
@@ -177,7 +177,7 @@ export function UserInlineEditForm({ user, onCancel, onSaved }: Props) {
                 onChange={v => { field.onChange(v ?? ''); form.setValue('counterId', null) }}
                 options={branches.map(b => ({ value: b.id, label: b.name }))}
                 showSearch optionFilterProp="label"
-                notFoundContent="Không tìm thấy" popupMatchSelectWidth={false} />
+                notFoundContent={t("notFound")} popupMatchSelectWidth={false} />
             )} />
           </FormRow>
 
@@ -187,7 +187,7 @@ export function UserInlineEditForm({ user, onCancel, onSaved }: Props) {
                 placeholder={t('counterPlaceholder')}
                 onChange={v => field.onChange(v ?? null)} allowClear
                 options={counters.filter(c => c.isActive).map(c => ({ value: c.id, label: c.counterName }))}
-                notFoundContent="Không tìm thấy" popupMatchSelectWidth={false} />
+                notFoundContent={t("notFound")} popupMatchSelectWidth={false} />
             )} />
           </FormRow>
         </div>

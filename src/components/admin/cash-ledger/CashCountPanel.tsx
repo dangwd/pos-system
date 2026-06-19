@@ -1,5 +1,6 @@
 "use client";
 
+import { useTranslations } from "next-intl";
 import { cashLedgerRepository } from "@/lib/repositories/cash-ledger.repository";
 import { useCurrencies } from "@/hooks/useConfig";
 import { useAuthStore } from "@/stores/auth.store";
@@ -63,13 +64,13 @@ interface Props {
 }
 
 export function CashCountPanel({ branchId, date }: Props) {
+  const t = useTranslations("admin.cashCountPanel");
   const { user } = useAuthStore();
   const toast = useToast();
   const queryClient = useQueryClient();
 
   const { data: allCurrencies = [], isLoading: currenciesLoading } = useCurrencies();
 
-  // Build default items from API denominations (all active currencies with denominations)
   const defaultItems = useMemo<(CashCountItem & { symbol: string })[]>(() => {
     return allCurrencies
       .filter((c) => c.isActive && c.denominations.length > 0)
@@ -94,12 +95,10 @@ export function CashCountPanel({ branchId, date }: Props) {
   const [items, setItems] = useState<(CashCountItem & { symbol: string })[]>([]);
   const [countedByName, setCountedByName] = useState(user?.fullName ?? "");
 
-  // Initialise items once defaultItems are ready
   useEffect(() => {
     if (defaultItems.length > 0) {
       setItems((prev) => {
         if (prev.length === 0) return defaultItems;
-        // Merge existing quantities into new defaults
         return defaultItems.map((def) => {
           const found = prev.find((i) => i.currency === def.currency && i.denomination === def.denomination);
           return found ? { ...def, quantity: found.quantity } : def;
@@ -115,7 +114,6 @@ export function CashCountPanel({ branchId, date }: Props) {
     staleTime: 30_000,
   });
 
-  // Load saved sheet into items
   useEffect(() => {
     if (!sheet?.items?.length) return;
     setItems((prev) =>
@@ -146,10 +144,10 @@ export function CashCountPanel({ branchId, date }: Props) {
         items: items.map(({ currency, denomination, quantity }) => ({ currency, denomination, quantity })),
       }),
     onSuccess: () => {
-      toast.success("Đã lưu bảng kê đếm tiền");
+      toast.success(t("saveSuccess"));
       queryClient.invalidateQueries({ queryKey: ["cash-count", branchId, date] });
     },
-    onError: () => toast.error("Lưu bảng kê thất bại"),
+    onError: () => toast.error(t("saveError")),
   });
 
   const lakItems = items.filter((i) => i.currency === "LAK");
@@ -157,7 +155,6 @@ export function CashCountPanel({ branchId, date }: Props) {
   const diff = actualAmountLak - expectedAmountLak;
   const isFinalized = sheet?.isFinalized ?? false;
 
-  // Group by currency for rendering
   const currencyGroups = useMemo(() => {
     const groups: { code: string; symbol: string; label: string; items: (CashCountItem & { symbol: string })[] }[] = [];
     for (const c of allCurrencies.filter((c) => c.isActive && c.denominations.length > 0)) {
@@ -184,7 +181,7 @@ export function CashCountPanel({ branchId, date }: Props) {
       {/* Header */}
       <div style={{ padding: "12px 16px", borderBottom: "1px solid #f0f0f0", fontWeight: 700, fontSize: 14, color: "#111827", display: "flex", alignItems: "center", gap: 8, flexShrink: 0 }}>
         <ReadOutlined style={{ fontSize: 16, color: "#f59e0b" }} />
-        Kiểm kê quỹ cuối khóa sổ
+        {t("title")}
       </div>
 
       {/* Scrollable body */}
@@ -195,14 +192,14 @@ export function CashCountPanel({ branchId, date }: Props) {
           </div>
         ) : currencyGroups.length === 0 ? (
           <div style={{ textAlign: "center", padding: "32px 0", color: "#9ca3af", fontSize: 12 }}>
-            Chưa có mệnh giá nào được cấu hình.<br />
-            Vào <strong>Cấu hình → Ngoại tệ</strong> để thêm mệnh giá.
+            {t("noDenominations")}<br />
+            {t("configHint")}
           </div>
         ) : (
           <>
             {currencyGroups.map((g) => (
               <div key={g.code}>
-                {sectionLabel(`Mệnh giá ${g.label}`)}
+                {sectionLabel(t("denominationLabel", { label: g.label }))}
                 {pairRows(g.items).map(([l, r]) => (
                   <DenomRow
                     key={`${l.denomination}`}
@@ -221,23 +218,25 @@ export function CashCountPanel({ branchId, date }: Props) {
         {!currenciesLoading && lakItems.length > 0 && (
           <div style={{ marginTop: 14, padding: "10px 12px", background: "#f9fafb", borderRadius: 8, border: "1px solid #e5e7eb" }}>
             <div style={{ fontSize: 10, fontWeight: 700, color: "#9ca3af", letterSpacing: 0.8, marginBottom: 8 }}>
-              TIỀN TRÌNH ĐỐI CHIẾU SỐ THỰC TẾ:
+              {t("reconcileTitle")}
             </div>
             <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 4 }}>
-              <span style={{ fontSize: 12, color: "#6b7280" }}>Dự kiến quỹ sắc:</span>
+              <span style={{ fontSize: 12, color: "#6b7280" }}>{t("expectedLabel")}</span>
               <span style={{ fontSize: 12, fontWeight: 600, color: expectedAmountLak < 0 ? "#DC2626" : "#111827" }}>
                 {formatLak(expectedAmountLak)}
               </span>
             </div>
             <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 8 }}>
-              <span style={{ fontSize: 12, color: "#6b7280" }}>Kiểm cơ cấu thực tế:</span>
+              <span style={{ fontSize: 12, color: "#6b7280" }}>{t("actualLabel")}</span>
               <span style={{ fontSize: 12, fontWeight: 600, color: "#111827" }}>{formatLak(actualAmountLak)}</span>
             </div>
             <div style={{ display: "flex", alignItems: "center", gap: 6, padding: "6px 8px", borderRadius: 6, background: diff === 0 ? "#f0fdf4" : "#fffbeb", border: `1px solid ${diff === 0 ? "#bbf7d0" : "#fde68a"}` }}>
               {diff !== 0 && <WarningOutlined style={{ fontSize: 14, color: "#f59e0b", flexShrink: 0 }} />}
-              <span style={{ fontSize: 12, color: "#374151" }}>Trạng thái:</span>
+              <span style={{ fontSize: 12, color: "#374151" }}>{t("statusLabel")}</span>
               <span style={{ fontSize: 12, fontWeight: 700, color: diff === 0 ? "#16a34a" : "#d97706", marginLeft: "auto" }}>
-                {diff === 0 ? "Cân bằng" : `${diff > 0 ? "Lệch thừa" : "Lệch thiếu"} (${diff > 0 ? "+" : ""}${diff.toLocaleString("lo-LA")} Kip)`}
+                {diff === 0
+                  ? t("balanced")
+                  : `${diff > 0 ? t("overage") : t("shortage")} (${t("diffText", { sign: diff > 0 ? "+" : "", diff: Math.abs(diff).toLocaleString("lo-LA") })})`}
               </span>
             </div>
           </div>
@@ -245,13 +244,13 @@ export function CashCountPanel({ branchId, date }: Props) {
 
         {/* Counted by */}
         <div style={{ marginTop: 12 }}>
-          <div style={{ fontSize: 12, color: "#374151", marginBottom: 4 }}>Người thực hiện kiểm đếm:</div>
-          <AntInput size="small" value={countedByName} disabled={isFinalized} onChange={(e) => setCountedByName(e.target.value)} placeholder="Nhập tên người kiểm đếm" />
+          <div style={{ fontSize: 12, color: "#374151", marginBottom: 4 }}>{t("countedByLabel")}</div>
+          <AntInput size="small" value={countedByName} disabled={isFinalized} onChange={(e) => setCountedByName(e.target.value)} placeholder={t("countedByPlaceholder")} />
         </div>
 
         {isFinalized && sheet?.handoverCode && (
           <div style={{ marginTop: 10, padding: "8px 10px", background: "#f0fdf4", border: "1px solid #bbf7d0", borderRadius: 6, fontSize: 12, color: "#16a34a" }}>
-            ✓ Đã chốt bàn giao: <strong>{sheet.handoverCode}</strong>
+            {t("alreadyHandedOver", { code: sheet.handoverCode })}
           </div>
         )}
       </div>
@@ -264,7 +263,7 @@ export function CashCountPanel({ branchId, date }: Props) {
           style={{ width: "100%", padding: "10px 0", background: isFinalized ? "#d1d5db" : isPending ? "#fbbf24" : "#f59e0b", color: "#fff", border: "none", borderRadius: 8, fontWeight: 700, fontSize: 14, cursor: isFinalized || isPending ? "not-allowed" : "pointer", display: "flex", alignItems: "center", justifyContent: "center", gap: 8, transition: "background 0.15s" }}
         >
           <ReadOutlined style={{ fontSize: 16 }} />
-          {isPending ? "Đang lưu..." : isFinalized ? "Đã chốt bàn giao" : "Ghi phiếu bàn giao quỹ"}
+          {isPending ? t("saving") : isFinalized ? t("finalizedButton") : t("finalizeButton")}
         </button>
       </div>
     </div>

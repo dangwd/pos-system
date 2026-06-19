@@ -244,6 +244,7 @@ function SummaryStrip({
   closingBalance: number;
   symbol: string;
 }) {
+  const t = useTranslations("admin.cashLedger");
   const fmt = (n: number) => n.toLocaleString("lo-LA") + " " + symbol;
   const netChange = totalIn - totalOut;
 
@@ -257,35 +258,35 @@ function SummaryStrip({
       }}
     >
       <StatCard
-        label="Đầu kỳ"
+        label={t("summaryOpening")}
         value={fmt(openingBalance)}
         icon={<WalletOutlined />}
         iconColor="#3b82f6"
-        sub="Số dư mở đầu kỳ"
+        sub={t("summaryOpeningSub")}
       />
       <StatCard
-        label="Tổng thu"
+        label={t("totalIn")}
         value={"+" + fmt(totalIn)}
         icon={<RiseOutlined />}
         iconColor="#22c55e"
         valueColor="#166534"
-        sub="Tổng thu trong kỳ"
+        sub={t("summaryTotalInSub")}
       />
       <StatCard
-        label="Tổng chi"
+        label={t("totalOut")}
         value={"−" + fmt(totalOut)}
         icon={<FallOutlined />}
         iconColor="#ef4444"
         valueColor="#991b1b"
-        sub="Tổng chi trong kỳ"
+        sub={t("summaryTotalOutSub")}
       />
       <StatCard
-        label="Cuối kỳ"
+        label={t("summaryClosing")}
         value={fmt(closingBalance)}
         icon={<CalculatorOutlined />}
         iconColor="#6366f1"
         highlight
-        sub="Tồn quỹ dự kiến"
+        sub={t("summaryClosingSub")}
         delta={
           netChange !== 0
             ? { value: netChange, text: symbol }
@@ -636,7 +637,7 @@ export default function CashLedgerPage() {
               />
               <AntSelect
                 allowClear
-                placeholder="Chi nhánh"
+                placeholder={t("filterBranch")}
                 value={filterBranchId}
                 onChange={(v) => {
                   setFilterBranchId(v);

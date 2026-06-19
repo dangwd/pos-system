@@ -102,7 +102,7 @@ function ProductFormBody({
           options={categoryOptions.map(c => ({ value: c.id, label: c.name }))}
           showSearch
           filterOption={(input, opt) => (opt?.label as string ?? '').toLowerCase().includes(input.toLowerCase())}
-          notFoundContent="Không tìm thấy"
+          notFoundContent={t("notFound")}
           className="w-full"
           popupMatchSelectWidth={false}
         />
@@ -131,7 +131,7 @@ function ProductFormBody({
               showSearch
               allowClear
               filterOption={(input, opt) => (opt?.label as string ?? '').toLowerCase().includes(input.toLowerCase())}
-              notFoundContent="Không tìm thấy"
+              notFoundContent={t("notFound")}
               className="w-full"
               popupMatchSelectWidth={false}
             />
@@ -159,7 +159,7 @@ function ProductFormBody({
               showSearch
               allowClear
               filterOption={(input, opt) => (opt?.label as string ?? '').toLowerCase().includes(input.toLowerCase())}
-              notFoundContent="Không tìm thấy"
+              notFoundContent={t("notFound")}
               className="w-full"
               popupMatchSelectWidth={false}
             />

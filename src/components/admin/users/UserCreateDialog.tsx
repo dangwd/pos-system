@@ -148,7 +148,7 @@ export function UserCreateDialog({ open, onClose }: Props) {
             <Label htmlFor="fullName" className="text-sm font-medium">
               {t('fullName')} <span className="text-destructive ml-0.5">*</span>
             </Label>
-            <Input id="fullName" className="h-9" placeholder="Nguyễn Văn A" status={errors.fullName ? 'error' : undefined} {...form.register('fullName')} />
+            <Input id="fullName" className="h-9" placeholder={t("fullNamePlaceholder")} status={errors.fullName ? 'error' : undefined} {...form.register('fullName')} />
             <FieldError errors={[errors.fullName]} />
           </div>
 
@@ -190,7 +190,7 @@ export function UserCreateDialog({ open, onClose }: Props) {
                   showSearch={{ filterOption: (input, opt) =>
                     (opt?.label as string ?? '').toLowerCase().includes(input.toLowerCase())
                   }}
-                  notFoundContent="Không tìm thấy"
+                  notFoundContent={t("notFound")}
                   className="w-full"
                   popupMatchSelectWidth={false}
                 />
@@ -213,7 +213,7 @@ export function UserCreateDialog({ open, onClose }: Props) {
                   onChange={v => field.onChange(v ?? '')}
                   placeholder={t('rolePlaceholder')}
                   options={roles.map(r => ({ value: r.id, label: r.name }))}
-                  notFoundContent="Không tìm thấy"
+                  notFoundContent={t("notFound")}
                   className="w-full"
                   popupMatchSelectWidth={false}
                 />
@@ -238,7 +238,7 @@ export function UserCreateDialog({ open, onClose }: Props) {
                   options={counters.filter(c => c.isActive).map(c => ({ value: c.id, label: c.counterName }))}
                   disabled={!branchId}
                   allowClear
-                  notFoundContent="Không tìm thấy"
+                  notFoundContent={t("notFound")}
                   className="w-full"
                   popupMatchSelectWidth={false}
                 />

@@ -1,6 +1,7 @@
 'use client'
 
 import { useMemo, useState } from 'react'
+import { useTranslations } from 'next-intl'
 import { Card, Table, Input, Select, DatePicker, Tag } from 'antd'
 import { CalendarOutlined } from '@ant-design/icons'
 import dayjs from 'dayjs'
@@ -28,6 +29,7 @@ const FILTER_STYLE: React.CSSProperties = {
 }
 
 export default function SalesShiftsPage() {
+  const t = useTranslations('admin.salesShifts')
   const [keyword,    setKeyword]    = useState('')
   const [status,     setStatus]     = useState<'Open' | 'Closed' | undefined>(undefined)
   const [from,       setFrom]       = useState<string | undefined>(undefined)
@@ -51,21 +53,21 @@ export default function SalesShiftsPage() {
   const columns = useMemo(
     () => createSalesShiftColumns(
       {
-        colShiftCode:   'Mã ca',
-        colEmployee:    'Nhân viên',
-        colCounter:     'Quầy / Chi nhánh',
-        colStatus:      'Trạng thái',
-        colOpeningCash: 'Tiền đầu ca',
-        colOpenedAt:    'Mở lúc',
-        colClosedAt:    'Đóng lúc',
-        colActions:     'Thao tác',
-        statusOpen:     'Đang mở',
-        statusClosed:   'Đã đóng',
-        actionView:     'Xem chi tiết',
+        colShiftCode:   t('colShiftCode'),
+        colEmployee:    t('colEmployee'),
+        colCounter:     t('colCounter'),
+        colStatus:      t('colStatus'),
+        colOpeningCash: t('colOpeningCash'),
+        colOpenedAt:    t('colOpenedAt'),
+        colClosedAt:    t('colClosedAt'),
+        colActions:     t('colActions'),
+        statusOpen:     t('statusOpen'),
+        statusClosed:   t('statusClosed'),
+        actionView:     t('actionView'),
       },
       (record: SalesShiftListItem) => setDetailId(record.id),
     ),
-    [],
+    [t],
   )
 
   const handleSearch = (value: string) => { setKeyword(value); setPage(1) }
@@ -76,13 +78,13 @@ export default function SalesShiftsPage() {
 
   return (
     <div style={PAGE_STYLE}>
-      {/* ── Tiêu đề ── */}
+      {/* ── Title ── */}
       <div style={{ marginBottom: 18 }}>
         <h2 style={{ margin: 0, fontSize: 22, fontWeight: 700, color: '#111827' }}>
-          Ca Bán Hàng
+          {t('title')}
         </h2>
         <p style={{ margin: '2px 0 0', fontSize: 13, color: '#6b7280' }}>
-          Quản lý ca làm việc của nhân viên tại quầy
+          {t('subtitle')}
         </p>
       </div>
 
@@ -91,7 +93,7 @@ export default function SalesShiftsPage() {
         {/* Filters */}
         <div style={FILTER_STYLE}>
           <Input.Search
-            placeholder="Tìm mã ca, tên nhân viên..."
+            placeholder={t('searchPlaceholder')}
             allowClear
             style={{ width: 240 }}
             onSearch={handleSearch}
@@ -102,19 +104,19 @@ export default function SalesShiftsPage() {
             style={{ width: 130 }}
             onChange={handleStatusChange}
             options={[
-              { value: 'all',    label: 'Tất cả' },
-              { value: 'Open',   label: <Tag color="success">Đang mở</Tag> },
-              { value: 'Closed', label: <Tag color="default">Đã đóng</Tag> },
+              { value: 'all',    label: t('filterAll') },
+              { value: 'Open',   label: <Tag color="success">{t('statusOpen')}</Tag> },
+              { value: 'Closed', label: <Tag color="default">{t('statusClosed')}</Tag> },
             ]}
           />
           <DatePicker
-            placeholder="Từ ngày"
+            placeholder={t('filterFromDate')}
             style={{ width: 140 }}
             suffixIcon={<CalendarOutlined />}
             onChange={d => { setFrom(d ? dayjs(d).toISOString() : undefined); setPage(1) }}
           />
           <DatePicker
-            placeholder="Đến ngày"
+            placeholder={t('filterToDate')}
             style={{ width: 140 }}
             suffixIcon={<CalendarOutlined />}
             onChange={d => { setTo(d ? dayjs(d).endOf('day').toISOString() : undefined); setPage(1) }}
@@ -137,7 +139,7 @@ export default function SalesShiftsPage() {
             total,
             onChange: p => setPage(p),
             showSizeChanger: false,
-            showTotal: (t, [f, l]) => `${f}–${l} / ${t} ca`,
+            showTotal: (tot, [f, l]) => t('showTotal', { from: f, to: l, total: tot }),
             style: { padding: '12px 16px', borderTop: '1px solid #f0f0f0' },
           }}
         />

@@ -12,6 +12,8 @@
       "holdingStatus": "ຮັກສາໄວ້",
       "payingStatus": "ກຳລັງຊຳລະ",
       "adminButton": "ຜູ້ດູແລ",
+      "outOfStock": "ໝົດສຸດ",
+      "stockCount": "ຄ້າ: {qty}",
       "closeDialog": {
         "title": "ປິດໃບບິນ?",
         "body": "{label} ມີ {qty} ສິນຄ້າ. ການປິດຈະຍົກເລີກທັງໝົດ.",
@@ -115,7 +117,30 @@
       "printButton": "ພິມໃບບິນ",
       "closeButton": "ປິດ & ສ້າງໃໝ່",
       "cancelInvoiceButton": "ຍົກເລີກໃບບິນ",
-      "cancelledBadge": "ຍົກເລີກແລ້ວ"
+      "cancelledBadge": "ຍົກເລີກແລ້ວ",
+      "columnUnit": "ໜ່ວຍ",
+      "columnUnitPrice": "ລາຄາ/ໜ່ວຍ",
+      "columnBuyPrice": "ລາຄາຊື້",
+      "columnShopPays": "ຮ້ານຈ່າຍ",
+      "columnDamageFee": "ເສຍຫາຍ",
+      "columnWear": "ສຶກຫໍ",
+      "columnWearValue": "ມູນຄ່າ ສຶກ",
+      "panelExchangeIn": "ທອງເກົ່າ (B)",
+      "panelExchangeInTotal": "ລວມຫັກ (B)",
+      "panelNew": "ສິນຄ້າໃໝ່ (A)",
+      "panelNewTotal": "ລວມຂາຍ (A)",
+      "weightUnit": "ຊີ",
+      "summaryExchangeA": "(A) ສິນຄ້າໃໝ່",
+      "summaryExchangeB": "(B) ທອງເກົ່າຫັກ",
+      "customerPaysExtra": "ລູກຄ້າຈ່າຍເພີ່ມ",
+      "shopReturns": "ຮ້ານຄືນ",
+      "breakEven": "ດຸນ",
+      "buyGrossLabel": "ລາຄາຊື້",
+      "buyWearLabel": "ສຶກຫໍ (−)",
+      "buyDamageLabel": "ຄ່າເສຍຫາຍ (−)",
+      "shopPaysTotalLabel": "ຮ້ານຈ່າຍ",
+      "fxTotalLak": "ລວມແລກ (LAK)",
+      "fxTotal": "ລວມແລກ ({currency})"
     },
     "cancelInvoice": {
       "title": "ຍົກເລີກໃບບິນ",
@@ -165,6 +190,23 @@
         "abbr": "ແງ",
         "desc": "ແລກ THB · USD → ກີບ"
       }
+    },
+    "currencyExchange": {
+      "customerGives": "ເງິນລູກຄ້າໃຫ້",
+      "customerReceives": "ເງິນຄືນລູກຄ້າ",
+      "rateLabel": "ອັດຕາ",
+      "totalReceived": "ລູກຄ້າໄດ້ຮັບ",
+      "enterAmount": "ໃສ່ຈຳນວນ",
+      "editButton": "ແກ້",
+      "editRateTooltip": "ກົດເພື່ອແກ້ໄຂ",
+      "loading": "ກຳລັງໂຫລດ..."
+    },
+    "exchangeLookup": {
+      "originalInvoiceLabel": "ໃບບິນຕົ້ນ",
+      "clearLink": "ລຶບ",
+      "searchPlaceholder": "ໃສ່ລະຫັດໃບບິນທອງ...",
+      "notFound": "ບໍ່ພົບ \"{query}\"",
+      "linkRequired": "ກະລຸນາເຊື່ອມຕໍ່ໃບບິນ"
     }
   },
   "product": {
@@ -280,7 +322,11 @@
         "btnExport": "ສົ່ງອອກ",
         "btnPrintGoldCert": "ພິມໃບຮັບປະກັນ",
         "btnRePrintInvoice": "ພິມໃໝ່",
-        "btnPrintBarcode": "ພິມ Barcode"
+        "btnPrintBarcode": "ພິມ Barcode",
+        "fieldCustomerGives": "ເງິນລູກຄ້າໃຫ້",
+        "fieldExchangeRate": "ອັດຕາແລກປ່ຽນ",
+        "fieldCustomerReceives": "ເງິນຄືນລູກຄ້າ",
+        "weightUnit": "ຈີ"
       }
     },
     "layout": {
@@ -334,6 +380,7 @@
       "noResults": "ບໍ່ພົບຜົນ"
     },
     "products": {
+      "notFound": "ບໍ່ພົບ",
       "title": "ສິນຄ້າ",
       "subtitle": "{count} ສິນຄ້າໃນລະບົບ",
       "searchPlaceholder": "ຄົ້ນຫາຕາມຊື່ / ລະຫັດ...",
@@ -958,6 +1005,26 @@
         "DoiThanhTien": "ແລກເປັນເງິນ"
       }
     },
+    "salesShifts": {
+      "title": "ກະຂາຍ",
+      "subtitle": "ຈັດການກະການເຮັດວຽກຂອງພະນັກງານທີ່ຕູ້",
+      "searchPlaceholder": "ຄົ້ນຫາລະຫັດກະ, ຊື່ພະນັກງານ...",
+      "filterAll": "ທັງໝົດ",
+      "statusOpen": "ກຳລັງເປີດ",
+      "statusClosed": "ປິດແລ້ວ",
+      "filterFromDate": "ຈາກວັນທີ",
+      "filterToDate": "ຫາວັນທີ",
+      "showTotal": "{from}–{to} / {total} ກະ",
+      "colShiftCode": "ລະຫັດກະ",
+      "colEmployee": "ພະນັກງານ",
+      "colCounter": "ຕູ້ / ສາຂາ",
+      "colStatus": "ສະຖານະ",
+      "colOpeningCash": "ເງິນຕົ້ນກະ",
+      "colOpenedAt": "ເປີດເວລາ",
+      "colClosedAt": "ປິດເວລາ",
+      "colActions": "ການກະທຳ",
+      "actionView": "ເບິ່ງລາຍລະອຽດ"
+    },
     "cashLedger": {
       "title": "ສໍ ເງິນ",
       "subtitle": "ກະແສເງິນວັນທີ {date}",
@@ -1040,7 +1107,36 @@
         "Manual": "ປ້ອນດ້ວຍຕົນ",
         "Handover": "ສົ່ງ-ຮັບ ກະ",
         "Cancellation": "ຍົກເລີກການເຮັດທຸລະກໍາ"
-      }
+      },
+      "summaryOpening": "ຕົ້ນງວດ",
+      "summaryOpeningSub": "ຍອດຄົງເຫຼືອຕົ້ນງວດ",
+      "summaryTotalInSub": "ລວມຮັບໃນງວດ",
+      "summaryTotalOutSub": "ລວມຈ່າຍໃນງວດ",
+      "summaryClosing": "ທ້າຍງວດ",
+      "summaryClosingSub": "ຍອດຄາດການ",
+      "filterBranch": "ສາຂາ"
+    },
+    "cashCountPanel": {
+      "title": "ກວດສອບເງິນທ້າຍງວດ",
+      "noDenominations": "ຍັງບໍ່ມີໜ່ວຍເງິນຖືກຕັ້ງຄ່າ.",
+      "configHint": "ໄປທີ່ ການຕັ້ງຄ່າ → ສະກຸນເງິນ ເພື່ອເພີ່ມໜ່ວຍເງິນ.",
+      "denominationLabel": "ໜ່ວຍເງິນ {label}",
+      "reconcileTitle": "ກວດສອບຍອດຈິງ:",
+      "expectedLabel": "ຄາດການ:",
+      "actualLabel": "ກວດຈິງ:",
+      "statusLabel": "ສະຖານະ:",
+      "balanced": "ສົມດຸນ",
+      "overage": "ເກີນ",
+      "shortage": "ຂາດ",
+      "diffText": "{sign}{diff} ກີບ",
+      "countedByLabel": "ຜູ້ກວດນັບ:",
+      "countedByPlaceholder": "ໃສ່ຊື່ຜູ້ກວດນັບ",
+      "alreadyHandedOver": "✓ ສົ່ງມອບສຳເລັດ: {code}",
+      "saving": "ກຳລັງບັນທຶກ...",
+      "finalizeButton": "ສ້າງໃບສົ່ງມອບ",
+      "finalizedButton": "ສົ່ງມອບສຳເລັດ",
+      "saveSuccess": "ບັນທຶກໃບນັບເງິນສຳເລັດ",
+      "saveError": "ບັນທຶກໃບນັບເງິນລົ້ມເຫຼວ"
     },
     "reports": {
       "title": "ລາຍງານ",
@@ -1521,7 +1617,9 @@
         "submit": "ສ້າງ",
         "success": "ສ້າງຜູ້ໃຊ້ສຳເລັດ",
         "counter": "ເຄົ້າເຕີ",
-        "counterPlaceholder": "ເລືອກເຄົ້າເຕີ (ທາງເລືອກ)..."
+        "counterPlaceholder": "ເລືອກເຄົ້າເຕີ (ທາງເລືອກ)...",
+        "fullNamePlaceholder": "ສົມໃຈ ສີສຸດ",
+        "notFound": "ບໍ່ພົບ"
       },
       "editInfoDialog": {
         "title": "ແກ້ໄຂຂໍ້ມູນ — {name}",
@@ -1534,7 +1632,8 @@
         "dateOfBirth": "ວັນເດືອນປີເກີດ",
         "counterPlaceholder": "ເລືອກເຄົ້າເຕີ...",
         "cancel": "ຍົກເລີກ",
-        "submit": "ບັນທຶກ"
+        "submit": "ບັນທຶກ",
+        "notFound": "ບໍ່ພົບ"
       },
       "editRoleDialog": {
         "title": "ປ່ຽນຕຳແໜ່ງ — {name}",
@@ -1673,6 +1772,7 @@
     }
   },
   "common": {
+    "notFound": "ບໍ່ພົບ",
     "table": {
       "noData": "ບໍ່ມີຂໍ້ມູນ",
       "results": "{count} ຜົນ",

@@ -1,7 +1,7 @@
 # API Auth — Xác Thực & Lịch Sử Đăng Nhập
 
-> Base URL: `https://<host>/api/auth`  
-> Content-Type: `application/json`  
+> Base URL: `https://<host>/api/auth`
+> Content-Type: `application/json`
 > Các endpoint có **Yêu cầu auth** gửi `Authorization: Bearer <accessToken>` trong header.
 
 ---
@@ -19,6 +19,7 @@ Module Auth quản lý phiên đăng nhập và ghi lại toàn bộ lịch sử
 | `LoginFailedInactive` | Tài khoản bị vô hiệu hóa |
 | `Logout` | Đăng xuất (thu hồi refresh token) |
 | `TokenRefreshed` | Làm mới access token |
+| `ForceLogout` | Admin kích tài khoản ra khỏi phiên (thu hồi toàn bộ refresh token) |
 
 Mỗi log ghi kèm **IP address** và **User-Agent** của client.
 
@@ -33,8 +34,10 @@ Mỗi log ghi kèm **IP address** và **User-Agent** của client.
 | `POST` | `/api/auth/logout` | Đăng nhập | Đăng xuất, thu hồi refresh token |
 | `GET` | `/api/auth/me` | Đăng nhập | Thông tin người dùng hiện tại |
 | `GET` | `/api/auth/audit-logs` | `AuditLogView` | Lịch sử đăng nhập (phân trang) |
+| `POST` | `/api/users/{id}/force-logout` | `UserManage` | Kích tài khoản ra khỏi phiên |
 
 > **Policy `AuditLogView`:** chỉ cấp cho SystemAdmin.
+> **Policy `UserManage`:** cấp cho SystemAdmin.
 
 ---
 
@@ -233,6 +236,40 @@ GET /api/auth/audit-logs?eventType=2&from=2026-06-01T00:00:00Z&page=1&pageSize=2
 
 ---
 
+## `POST /api/users/{id}/force-logout`
+
+Kích một tài khoản ra khỏi tất cả phiên đăng nhập hiện tại bằng cách **thu hồi toàn bộ refresh token** còn hiệu lực của tài khoản đó.
+
+**Yêu cầu policy:** `UserManage` — SystemAdmin.
+
+**Path param:** `id` (Guid) — UUID của tài khoản cần kích.
+
+**Request body:** Không cần.
+
+**Response `204 No Content`** — kích thành công.
+
+> **Lưu ý quan trọng về access token:** Thao tác này **chỉ thu hồi refresh token**. Access token hiện tại của người dùng vẫn còn hiệu lực cho đến khi hết hạn (tối đa `Jwt:ExpiryMinutes`, mặc định 480 phút). Người dùng sẽ bị ngắt phiên hoàn toàn khi access token hết hạn và không thể refresh.
+>
+> Để ngăn người dùng đăng nhập lại ngay sau khi bị kích, dùng thêm `PATCH /api/users/{id}/deactivate` để khóa tài khoản.
+
+**Sự kiện ghi vào `login_audit_logs`:**
+
+| Field | Giá trị |
+|---|---|
+| `eventType` | `ForceLogout` (6) |
+| `userId` | UUID của tài khoản bị kích |
+| `actorUserId` | UUID của admin thực hiện thao tác |
+| `attemptedUsername` | Username của tài khoản bị kích |
+| `ipAddress` | IP của admin |
+
+**Lỗi có thể xảy ra:**
+
+| Mã lỗi | HTTP | Nguyên nhân |
+|---|---|---|
+| `USER_NOT_FOUND` | 404 | Không tìm thấy tài khoản với ID đã cho |
+
+---
+
 ## Bảng LoginEventType
 
 | Giá trị int | Tên chuỗi | Mô tả |
@@ -242,6 +279,7 @@ GET /api/auth/audit-logs?eventType=2&from=2026-06-01T00:00:00Z&page=1&pageSize=2
 | `3` | `LoginFailedInactive` | Tài khoản bị vô hiệu hóa (`isActive = false`) |
 | `4` | `Logout` | Đăng xuất (refresh token bị thu hồi) |
 | `5` | `TokenRefreshed` | Làm mới access token |
+| `6` | `ForceLogout` | Admin kích tài khoản — toàn bộ refresh token bị thu hồi |
 
 > Query param `eventType` nhận giá trị **số nguyên** (ví dụ: `?eventType=2`).
 
@@ -267,6 +305,7 @@ GET /api/auth/audit-logs?eventType=2&from=2026-06-01T00:00:00Z&page=1&pageSize=2
 | `user_agent` | varchar(500) | User-Agent của client |
 | `occurred_at` | timestamptz | Thời điểm sự kiện (UTC) |
 | `refresh_token_hint` | varchar(20) | 16 ký tự đầu của refresh token — dùng truy vết session |
+| `actor_user_id` | uuid\|null | UUID của admin thực hiện `ForceLogout` — `null` với các event khác |
 
 **Index:** `user_id`, `occurred_at`, `(user_id, occurred_at)`, `attempted_username`.
 
@@ -321,6 +360,15 @@ GET /api/auth/audit-logs?eventType=2&from=2026-06-01T00:00:00Z&page=1&pageSize=2
 7. Admin xem lịch sử         → GET /api/auth/audit-logs
    của một nhân viên           ?userId=<guid>&from=2026-06-01T00:00:00Z&to=2026-06-30T23:59:59Z
                                → 200: { items: [...], total: 25, page: 1, pageSize: 50 }
+
+8. Admin kích tài khoản      → POST /api/users/<guid>/force-logout
+   ra khỏi phiên               → 204 No Content
+                               → log: ForceLogout (userId: <target>, actorUserId: <admin>)
+                               Người dùng vẫn dùng được đến khi access token hết hạn;
+                               sau đó không thể refresh và bị đăng xuất hoàn toàn.
+
+9. Kích + khóa tài khoản    → POST /api/users/<guid>/force-logout  → 204
+   để ngăn đăng nhập lại     → PATCH /api/users/<guid>/deactivate  → 204
 ```
 
 ---

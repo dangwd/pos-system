@@ -12,6 +12,8 @@
       "holdingStatus": "On Hold",
       "payingStatus": "Paying",
       "adminButton": "Admin",
+      "outOfStock": "Out of stock",
+      "stockCount": "Stock: {qty}",
       "closeDialog": {
         "title": "Close invoice?",
         "body": "{label} has {qty} items. Closing will discard the cart.",
@@ -115,7 +117,30 @@
       "printButton": "Print receipt",
       "closeButton": "Close & New",
       "cancelInvoiceButton": "Cancel invoice",
-      "cancelledBadge": "Cancelled"
+      "cancelledBadge": "Cancelled",
+      "columnUnit": "Unit",
+      "columnUnitPrice": "Unit price",
+      "columnBuyPrice": "Buy price",
+      "columnShopPays": "Shop pays",
+      "columnDamageFee": "Damage",
+      "columnWear": "Wear",
+      "columnWearValue": "Wear value",
+      "panelExchangeIn": "Old gold received (B)",
+      "panelExchangeInTotal": "Total offset (B)",
+      "panelNew": "New items (A)",
+      "panelNewTotal": "Total sold (A)",
+      "weightUnit": "Chi",
+      "summaryExchangeA": "(A) New items",
+      "summaryExchangeB": "(B) Old gold offset",
+      "customerPaysExtra": "Customer pays",
+      "shopReturns": "Shop refunds",
+      "breakEven": "Break even",
+      "buyGrossLabel": "Buy price",
+      "buyWearLabel": "Wear (−)",
+      "buyDamageLabel": "Damage fee (−)",
+      "shopPaysTotalLabel": "SHOP PAYS OUT",
+      "fxTotalLak": "TOTAL CONVERTED (LAK)",
+      "fxTotal": "TOTAL CONVERTED ({currency})"
     },
     "cancelInvoice": {
       "title": "Cancel invoice",
@@ -165,6 +190,23 @@
         "abbr": "FX",
         "desc": "Exchange THB · USD → Kip"
       }
+    },
+    "currencyExchange": {
+      "customerGives": "Customer gives",
+      "customerReceives": "Customer receives",
+      "rateLabel": "Rate",
+      "totalReceived": "Customer total received",
+      "enterAmount": "Enter amount",
+      "editButton": "Edit",
+      "editRateTooltip": "Click to edit rate",
+      "loading": "Loading rates..."
+    },
+    "exchangeLookup": {
+      "originalInvoiceLabel": "Original invoice",
+      "clearLink": "Remove link",
+      "searchPlaceholder": "Enter old gold invoice code...",
+      "notFound": "Not found \"{query}\"",
+      "linkRequired": "Please link the original gold invoice"
     }
   },
   "product": {
@@ -280,7 +322,11 @@
         "btnExport": "Export",
         "btnPrintGoldCert": "Print gold cert",
         "btnRePrintInvoice": "Reprint invoice",
-        "btnPrintBarcode": "Print barcode"
+        "btnPrintBarcode": "Print barcode",
+        "fieldCustomerGives": "Customer gives",
+        "fieldExchangeRate": "Exchange rate",
+        "fieldCustomerReceives": "Customer receives",
+        "weightUnit": "Chi"
       }
     },
     "layout": {
@@ -334,6 +380,7 @@
       "noResults": "No results"
     },
     "products": {
+      "notFound": "Not found",
       "title": "Products",
       "subtitle": "{count} products in the system",
       "searchPlaceholder": "Search by name / code...",
@@ -960,6 +1007,26 @@
         "DoiThanhTien": "Cash Out"
       }
     },
+    "salesShifts": {
+      "title": "Sales Shifts",
+      "subtitle": "Manage staff work shifts at counters",
+      "searchPlaceholder": "Search shift code, staff name...",
+      "filterAll": "All",
+      "statusOpen": "Open",
+      "statusClosed": "Closed",
+      "filterFromDate": "From date",
+      "filterToDate": "To date",
+      "showTotal": "{from}–{to} / {total} shifts",
+      "colShiftCode": "Shift code",
+      "colEmployee": "Staff",
+      "colCounter": "Counter / Branch",
+      "colStatus": "Status",
+      "colOpeningCash": "Opening cash",
+      "colOpenedAt": "Opened at",
+      "colClosedAt": "Closed at",
+      "colActions": "Actions",
+      "actionView": "View details"
+    },
     "cashLedger": {
       "title": "Cash Ledger",
       "subtitle": "Cash flow for {date}",
@@ -1042,7 +1109,36 @@
         "Manual": "Manual entry",
         "Handover": "Shift handover",
         "Cancellation": "Cancellation"
-      }
+      },
+      "summaryOpening": "Opening",
+      "summaryOpeningSub": "Opening balance",
+      "summaryTotalInSub": "Total income this period",
+      "summaryTotalOutSub": "Total expenses this period",
+      "summaryClosing": "Closing",
+      "summaryClosingSub": "Expected balance",
+      "filterBranch": "Branch"
+    },
+    "cashCountPanel": {
+      "title": "End-of-period cash count",
+      "noDenominations": "No denominations configured.",
+      "configHint": "Go to Configuration → Currencies to add denominations.",
+      "denominationLabel": "Denomination {label}",
+      "reconcileTitle": "RECONCILE ACTUAL COUNT:",
+      "expectedLabel": "Expected:",
+      "actualLabel": "Actual:",
+      "statusLabel": "Status:",
+      "balanced": "Balanced",
+      "overage": "Overage",
+      "shortage": "Shortage",
+      "diffText": "{sign}{diff} Kip",
+      "countedByLabel": "Counted by:",
+      "countedByPlaceholder": "Enter counter name",
+      "alreadyHandedOver": "✓ Handed over: {code}",
+      "saving": "Saving...",
+      "finalizeButton": "Finalize handover",
+      "finalizedButton": "Handover finalized",
+      "saveSuccess": "Cash count sheet saved",
+      "saveError": "Failed to save cash count sheet"
     },
     "reports": {
       "title": "Reports",
@@ -1523,7 +1619,9 @@
         "submit": "Create",
         "success": "User created successfully",
         "counter": "Counter",
-        "counterPlaceholder": "Select counter (optional)..."
+        "counterPlaceholder": "Select counter (optional)...",
+        "fullNamePlaceholder": "John Doe",
+        "notFound": "Not found"
       },
       "editInfoDialog": {
         "title": "Edit info — {name}",
@@ -1536,7 +1634,8 @@
         "dateOfBirth": "Date of birth",
         "counterPlaceholder": "Select counter...",
         "cancel": "Cancel",
-        "submit": "Save"
+        "submit": "Save",
+        "notFound": "Not found"
       },
       "editRoleDialog": {
         "title": "Change role — {name}",
@@ -1675,6 +1774,7 @@
     }
   },
   "common": {
+    "notFound": "Not found",
     "table": {
       "noData": "No data",
       "results": "{count} results",

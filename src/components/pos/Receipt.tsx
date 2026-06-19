@@ -233,19 +233,19 @@ export function Receipt({ open, transaction, onClose }: ReceiptProps) {
                   <div>
                     <div className="flex items-center gap-1.5 px-2 py-1 rounded bg-amber-50 dark:bg-amber-950/30 text-amber-700 dark:text-amber-400 text-[10px] font-bold uppercase tracking-widest mb-1">
                       <VerticalAlignBottomOutlined className="h-3 w-3 shrink-0" />
-                      Vàng cũ thu vào (B)
+                      {t("panelExchangeIn")}
                     </div>
                     <Table>
                       <TableHeader>
                         <TableRow>
                           <TableHead>{t("columnProduct")}</TableHead>
                           <TableHead className="text-center">{t("columnQty")}</TableHead>
-                          <TableHead className="text-center">Đơn vị</TableHead>
-                          <TableHead className="text-right">Giá/ĐV</TableHead>
-                          <TableHead className="text-right text-orange-600">Lỗi/hỏng</TableHead>
-                          <TableHead className="text-right text-orange-600">Hao mòn</TableHead>
-                          <TableHead className="text-right text-orange-600">Giá trị HM</TableHead>
-                          <TableHead className="text-right text-amber-600">Thành tiền</TableHead>
+                          <TableHead className="text-center">{t("columnUnit")}</TableHead>
+                          <TableHead className="text-right">{t("columnUnitPrice")}</TableHead>
+                          <TableHead className="text-right text-orange-600">{t("columnDamageFee")}</TableHead>
+                          <TableHead className="text-right text-orange-600">{t("columnWear")}</TableHead>
+                          <TableHead className="text-right text-orange-600">{t("columnWearValue")}</TableHead>
+                          <TableHead className="text-right text-amber-600">{t("columnTotal")}</TableHead>
                         </TableRow>
                       </TableHeader>
                       <TableBody>
@@ -273,7 +273,7 @@ export function Receipt({ open, transaction, onClose }: ReceiptProps) {
                                 {phiHuHai > 0 ? formatKip(phiHuHai) : "—"}
                               </TableCell>
                               <TableCell className="text-right text-sm text-orange-600">
-                                {haoHutChi > 0 ? `${haoHutChi.toLocaleString("lo-LA")} Chỉ` : "—"}
+                                {haoHutChi > 0 ? `${haoHutChi.toLocaleString("lo-LA")} ${t("weightUnit")}` : "—"}
                               </TableCell>
                               <TableCell className="text-right text-sm text-orange-600">
                                 {haoMonValue > 0 ? formatKip(haoMonValue) : "—"}
@@ -287,7 +287,7 @@ export function Receipt({ open, transaction, onClose }: ReceiptProps) {
                       </TableBody>
                     </Table>
                     <div className="flex justify-between text-xs font-semibold text-amber-700 dark:text-amber-400 px-1 pt-1.5 border-t border-amber-200 dark:border-amber-900">
-                      <span>Tổng cấn trừ (B)</span>
+                      <span>{t("panelExchangeInTotal")}</span>
                       <span>{formatKip(totalB)}</span>
                     </div>
                   </div>
@@ -298,15 +298,15 @@ export function Receipt({ open, transaction, onClose }: ReceiptProps) {
                   <div>
                     <div className="flex items-center gap-1.5 px-2 py-1 rounded bg-primary/5 text-primary text-[10px] font-bold uppercase tracking-widest mb-1">
                       <VerticalAlignTopOutlined className="h-3 w-3 shrink-0" />
-                      Hàng bán ra mới (A)
+                      {t("panelNew")}
                     </div>
                     <Table>
                       <TableHeader>
                         <TableRow>
                           <TableHead>{t("columnProduct")}</TableHead>
                           <TableHead className="text-center">{t("columnQty")}</TableHead>
-                          <TableHead className="text-center">Đơn vị</TableHead>
-                          <TableHead className="text-right">Giá đơn vị</TableHead>
+                          <TableHead className="text-center">{t("columnUnit")}</TableHead>
+                          <TableHead className="text-right">{t("columnUnitPrice")}</TableHead>
                           <TableHead className="text-right">{t("columnLaborFee")}</TableHead>
                           <TableHead className="text-right">{t("columnStoneFee")}</TableHead>
                           <TableHead className="text-right">{t("columnTotal")}</TableHead>
@@ -337,7 +337,7 @@ export function Receipt({ open, transaction, onClose }: ReceiptProps) {
                       </TableBody>
                     </Table>
                     <div className="flex justify-between text-xs font-semibold px-1 pt-1.5 border-t">
-                      <span>Tổng bán ra (A)</span>
+                      <span>{t("panelNewTotal")}</span>
                       <span>{formatKip(totalA)}</span>
                     </div>
                   </div>
@@ -351,15 +351,15 @@ export function Receipt({ open, transaction, onClose }: ReceiptProps) {
                     <TableHead className="text-center">
                       {t("columnQty")}
                     </TableHead>
-                    <TableHead className="text-center">Đơn vị</TableHead>
+                    <TableHead className="text-center">{t("columnUnit")}</TableHead>
                     <TableHead className="text-right">
-                      {isBuy ? "Giá mua" : "Giá đơn vị"}
+                      {isBuy ? t("columnBuyPrice") : t("columnUnitPrice")}
                     </TableHead>
                     {isBuy && (
-                      <TableHead className="text-right">Lỗi/hỏng</TableHead>
+                      <TableHead className="text-right">{t("columnDamageFee")}</TableHead>
                     )}
                     {isBuy && (
-                      <TableHead className="text-right">Hao mòn</TableHead>
+                      <TableHead className="text-right">{t("columnWear")}</TableHead>
                     )}
                     {!isBuy && (
                       <TableHead className="text-right">
@@ -372,7 +372,7 @@ export function Receipt({ open, transaction, onClose }: ReceiptProps) {
                       </TableHead>
                     )}
                     <TableHead className="text-right">
-                      {isBuy ? "Tiệm chi" : t("columnTotal")}
+                      {isBuy ? t("columnShopPays") : t("columnTotal")}
                     </TableHead>
                   </TableRow>
                 </TableHeader>
@@ -399,7 +399,7 @@ export function Receipt({ open, transaction, onClose }: ReceiptProps) {
                       {isBuy && (
                         <TableCell className="text-right text-sm">
                           {(item.haoHutGram ?? 0) > 0
-                            ? `${((item.haoHutGram ?? 0) / 3.75).toLocaleString("lo-LA")} Chỉ`
+                            ? `${((item.haoHutGram ?? 0) / 3.75).toLocaleString("lo-LA")} ${t("weightUnit")}`
                             : "—"}
                         </TableCell>
                       )}
@@ -428,20 +428,20 @@ export function Receipt({ open, transaction, onClose }: ReceiptProps) {
               {isExchange ? (
                 <>
                   <div className="flex justify-between text-muted-foreground">
-                    <span>(A) Hàng bán ra mới</span>
+                    <span>{t("summaryExchangeA")}</span>
                     <span>{formatKip(totalA)}</span>
                   </div>
                   <div className="flex justify-between text-amber-600 dark:text-amber-400">
-                    <span>(B) Vàng cũ cấn trừ</span>
+                    <span>{t("summaryExchangeB")}</span>
                     <span>−{formatKip(totalB)}</span>
                   </div>
                   <div className="flex justify-between font-bold text-base pt-1 border-t">
                     <span>
                       {transaction.totalAmount > 0
-                        ? "Khách trả thêm"
+                        ? t("customerPaysExtra")
                         : transaction.totalAmount < 0
-                          ? "Tiệm trả lại khách"
-                          : "Hoà vốn"}
+                          ? t("shopReturns")
+                          : t("breakEven")}
                     </span>
                     <span
                       className={
@@ -486,18 +486,18 @@ export function Receipt({ open, transaction, onClose }: ReceiptProps) {
                       return (
                         <>
                           <div className="flex justify-between text-muted-foreground">
-                            <span>Giá mua vào</span>
+                            <span>{t("buyGrossLabel")}</span>
                             <span>{formatKip(buyGross)}</span>
                           </div>
                           {totalWear > 0 && (
                             <div className="flex justify-between text-orange-600 dark:text-orange-400">
-                              <span>Hao mòn (−)</span>
+                              <span>{t("buyWearLabel")}</span>
                               <span>{formatKip(totalWear)}</span>
                             </div>
                           )}
                           {totalDamage > 0 && (
                             <div className="flex justify-between text-orange-600 dark:text-orange-400">
-                              <span>Phí lỗi/hỏng (−)</span>
+                              <span>{t("buyDamageLabel")}</span>
                               <span>{formatKip(totalDamage)}</span>
                             </div>
                           )}
@@ -525,7 +525,7 @@ export function Receipt({ open, transaction, onClose }: ReceiptProps) {
                     </>
                   )}
                   <div className="flex justify-between font-bold text-base pt-1">
-                    <span>{isBuy ? "TIỆM CHI RA" : t("totalLabel")}</span>
+                    <span>{isBuy ? t("shopPaysTotalLabel") : t("totalLabel")}</span>
                     <span className={isBuy ? "text-blue-600 dark:text-blue-400" : "text-primary"}>
                       {formatKip(transaction.totalAmount)}
                     </span>
@@ -535,8 +535,8 @@ export function Receipt({ open, transaction, onClose }: ReceiptProps) {
                 <div className="flex justify-between font-bold text-base pt-1">
                   <span>
                     {isFxToNonLak
-                      ? `TỔNG QUY ĐỔI (${transaction.targetCurrency})`
-                      : "TỔNG QUY ĐỔI (LAK)"}
+                      ? t("fxTotal", { currency: transaction.targetCurrency ?? "" })
+                      : t("fxTotalLak")}
                   </span>
                   <span className="text-primary">
                     {isFxToNonLak

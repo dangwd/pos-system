@@ -1,5 +1,6 @@
 "use client";
 
+import { useTranslations } from "next-intl";
 import { useActiveTab } from "@/hooks/useActiveTab";
 import { useExchangeRates, useUpdateExchangeRate } from "@/hooks/useConfig";
 import { cn } from "@/lib/utils";
@@ -10,15 +11,15 @@ import { ArrowRightOutlined, CheckOutlined, EditOutlined, CloseOutlined } from "
 import { useEffect, useState } from "react";
 
 const CURRENCY_LABELS: Record<string, string> = {
-  LAK: "LAK (Kip) Lốc kíp Lào",
-  USD: "USD ($) Đô la Mỹ",
-  THB: "THB (฿) Bạt Thái Lan",
-  CNY: "CNY (¥) Nhân dân tệ",
-  EUR: "EUR (€) Euro",
-  JPY: "JPY (¥) Yên Nhật",
-  KRW: "KRW (₩) Won Hàn Quốc",
-  SGD: "SGD ($) Đô la Singapore",
-  VND: "VND (đ) Đồng Việt Nam",
+  LAK: "LAK (₭ Kip)",
+  USD: "USD ($)",
+  THB: "THB (฿)",
+  CNY: "CNY (¥)",
+  EUR: "EUR (€)",
+  JPY: "JPY (¥)",
+  KRW: "KRW (₩)",
+  SGD: "SGD ($)",
+  VND: "VND (đ)",
 };
 
 function getRateLak(currency: string, rates: ExchangeRate[]): number {
@@ -27,6 +28,7 @@ function getRateLak(currency: string, rates: ExchangeRate[]): number {
 }
 
 export function CurrencyExchangeForm() {
+  const t = useTranslations("pos.currencyExchange");
   const { tab, setFxData } = useActiveTab();
   const { data: rates = [], isLoading } = useExchangeRates();
   const { mutate: updateRate, isPending: isSavingRate } = useUpdateExchangeRate();
@@ -148,7 +150,7 @@ export function CurrencyExchangeForm() {
   if (isLoading) {
     return (
       <div className="flex items-center justify-center h-full text-muted-foreground text-xs">
-        Đang tải tỷ giá...
+        {t("loading")}
       </div>
     );
   }
@@ -159,11 +161,11 @@ export function CurrencyExchangeForm() {
         {/* Column labels */}
         <div className="grid grid-cols-[1fr_auto_1fr] gap-3">
           <p className="text-[10px] uppercase tracking-wide font-semibold text-muted-foreground">
-            Tiền khách đưa
+            {t("customerGives")}
           </p>
           <div className="w-10" />
           <p className="text-[10px] uppercase tracking-wide font-semibold text-muted-foreground">
-            Tiền trả khách
+            {t("customerReceives")}
           </p>
         </div>
 
@@ -196,7 +198,7 @@ export function CurrencyExchangeForm() {
         {crossRate > 0 && (
           <div className="rounded-md border bg-muted/30 px-3 py-2.5">
             <p className="text-[9px] uppercase tracking-wide text-muted-foreground mb-1.5">
-              Tỷ giá
+              {t("rateLabel")}
             </p>
             {editingRate ? (
               <div className="flex items-center gap-2">
@@ -238,7 +240,7 @@ export function CurrencyExchangeForm() {
               <button
                 onClick={openEditRate}
                 className="w-full flex items-center justify-between gap-2 group"
-                title="Nhấn để sửa tỷ giá"
+                title={t("editRateTooltip")}
               >
                 <span className="text-base font-bold font-mono tabular-nums text-foreground group-hover:text-primary transition-colors">
                   1 {rateBase} ={" "}
@@ -247,7 +249,7 @@ export function CurrencyExchangeForm() {
                 </span>
                 <span className="shrink-0 flex items-center gap-1 text-[10px] text-muted-foreground group-hover:text-primary transition-colors">
                   <EditOutlined className="h-3.5 w-3.5" />
-                  Sửa
+                  {t("editButton")}
                 </span>
               </button>
             )}
@@ -262,7 +264,7 @@ export function CurrencyExchangeForm() {
           <InputNumber
             precision={2}
             min={0}
-            placeholder="Nhập số tiền"
+            placeholder={t("enterAmount")}
             value={fromInput ? Number(fromInput) : null}
             onChange={(v) => setFromInput(String(v ?? ''))}
             size="small"
@@ -281,7 +283,7 @@ export function CurrencyExchangeForm() {
           )}
         >
           <p className="text-[10px] text-muted-foreground uppercase tracking-widest font-medium mb-1">
-            Khách hàng thực nhận
+            {t("totalReceived")}
           </p>
           <p
             className={cn(

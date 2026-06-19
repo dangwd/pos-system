@@ -162,7 +162,7 @@ export function ProductCreateDialog({ open, onClose }: Props) {
               filterOption={(input, opt) =>
                 ((opt?.label as string) ?? '').toLowerCase().includes(input.toLowerCase())
               }
-              notFoundContent="Không tìm thấy"
+              notFoundContent={t("notFound")}
               className="w-full"
               popupMatchSelectWidth={false}
             />
@@ -202,7 +202,7 @@ export function ProductCreateDialog({ open, onClose }: Props) {
                 options={purityOptions.map((p) => ({ value: p.id, label: `${p.ma} (${p.hamLuong}%)` }))}
                 allowClear
                 disabled={!form.productCategoryId}
-                notFoundContent="Không tìm thấy"
+                notFoundContent={t("notFound")}
                 className="w-full"
                 popupMatchSelectWidth={false}
               />
@@ -218,7 +218,7 @@ export function ProductCreateDialog({ open, onClose }: Props) {
                 placeholder={t('form.weightUnitPlaceholder')}
                 options={weightUnits.map((u) => ({ value: u.id, label: u.tenDonVi }))}
                 allowClear
-                notFoundContent="Không tìm thấy"
+                notFoundContent={t("notFound")}
                 className="w-full"
                 popupMatchSelectWidth={false}
               />

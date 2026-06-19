@@ -12,6 +12,8 @@
       "holdingStatus": "Tạm giữ",
       "payingStatus": "Đang TT",
       "adminButton": "Quản trị",
+      "outOfStock": "Hết hàng",
+      "stockCount": "Tồn: {qty}",
       "closeDialog": {
         "title": "Đóng hóa đơn?",
         "body": "{label} đang có {qty} sản phẩm. Đóng sẽ hủy toàn bộ.",
@@ -115,7 +117,30 @@
       "printButton": "In hóa đơn",
       "closeButton": "Đóng & Tạo mới",
       "cancelInvoiceButton": "Hủy hóa đơn",
-      "cancelledBadge": "Đã hủy"
+      "cancelledBadge": "Đã hủy",
+      "columnUnit": "Đơn vị",
+      "columnUnitPrice": "Giá đơn vị",
+      "columnBuyPrice": "Giá mua",
+      "columnShopPays": "Tiệm chi",
+      "columnDamageFee": "Lỗi/hỏng",
+      "columnWear": "Hao mòn",
+      "columnWearValue": "Giá trị HM",
+      "panelExchangeIn": "Vàng cũ thu vào (B)",
+      "panelExchangeInTotal": "Tổng cấn trừ (B)",
+      "panelNew": "Hàng bán ra mới (A)",
+      "panelNewTotal": "Tổng bán ra (A)",
+      "weightUnit": "Chỉ",
+      "summaryExchangeA": "(A) Hàng bán ra mới",
+      "summaryExchangeB": "(B) Vàng cũ cấn trừ",
+      "customerPaysExtra": "Khách trả thêm",
+      "shopReturns": "Tiệm trả lại khách",
+      "breakEven": "Hoà vốn",
+      "buyGrossLabel": "Giá mua vào",
+      "buyWearLabel": "Hao mòn (−)",
+      "buyDamageLabel": "Phí lỗi/hỏng (−)",
+      "shopPaysTotalLabel": "TIỆM CHI RA",
+      "fxTotalLak": "TỔNG QUY ĐỔI (LAK)",
+      "fxTotal": "TỔNG QUY ĐỔI ({currency})"
     },
     "cancelInvoice": {
       "title": "Hủy hóa đơn",
@@ -165,6 +190,23 @@
         "abbr": "NT",
         "desc": "Thu đổi THB · USD → Kip"
       }
+    },
+    "currencyExchange": {
+      "customerGives": "Tiền khách đưa",
+      "customerReceives": "Tiền trả khách",
+      "rateLabel": "Tỷ giá",
+      "totalReceived": "Khách hàng thực nhận",
+      "enterAmount": "Nhập số tiền",
+      "editButton": "Sửa",
+      "editRateTooltip": "Nhấn để sửa tỷ giá",
+      "loading": "Đang tải tỷ giá..."
+    },
+    "exchangeLookup": {
+      "originalInvoiceLabel": "Hóa đơn gốc",
+      "clearLink": "Xóa liên kết",
+      "searchPlaceholder": "Nhập mã HĐ bán vàng cũ...",
+      "notFound": "Không tìm thấy \"{query}\"",
+      "linkRequired": "Vui lòng liên kết hóa đơn vàng gốc"
     }
   },
   "product": {
@@ -280,7 +322,11 @@
         "btnExport": "Xuất file",
         "btnPrintGoldCert": "In giấy đảm bảo vàng",
         "btnRePrintInvoice": "In lại HDDT",
-        "btnPrintBarcode": "In Barcode"
+        "btnPrintBarcode": "In Barcode",
+        "fieldCustomerGives": "Tiền khách đưa",
+        "fieldExchangeRate": "Tỷ giá quy đổi",
+        "fieldCustomerReceives": "Tiền trả khách",
+        "weightUnit": "Chỉ"
       }
     },
     "layout": {
@@ -334,6 +380,7 @@
       "noResults": "Không tìm thấy"
     },
     "products": {
+      "notFound": "Không tìm thấy",
       "title": "Sản phẩm",
       "subtitle": "{count} sản phẩm trong hệ thống",
       "searchPlaceholder": "Tìm theo tên / mã...",
@@ -958,6 +1005,26 @@
         "DoiThanhTien": "Đổi thành tiền"
       }
     },
+    "salesShifts": {
+      "title": "Ca Bán Hàng",
+      "subtitle": "Quản lý ca làm việc của nhân viên tại quầy",
+      "searchPlaceholder": "Tìm mã ca, tên nhân viên...",
+      "filterAll": "Tất cả",
+      "statusOpen": "Đang mở",
+      "statusClosed": "Đã đóng",
+      "filterFromDate": "Từ ngày",
+      "filterToDate": "Đến ngày",
+      "showTotal": "{from}–{to} / {total} ca",
+      "colShiftCode": "Mã ca",
+      "colEmployee": "Nhân viên",
+      "colCounter": "Quầy / Chi nhánh",
+      "colStatus": "Trạng thái",
+      "colOpeningCash": "Tiền đầu ca",
+      "colOpenedAt": "Mở lúc",
+      "colClosedAt": "Đóng lúc",
+      "colActions": "Thao tác",
+      "actionView": "Xem chi tiết"
+    },
     "cashLedger": {
       "title": "Sổ quỹ",
       "subtitle": "Dòng tiền ngày {date}",
@@ -1040,7 +1107,36 @@
         "Manual": "Nhập thủ công",
         "Handover": "Bàn giao ca",
         "Cancellation": "Huỷ giao dịch"
-      }
+      },
+      "summaryOpening": "Đầu kỳ",
+      "summaryOpeningSub": "Số dư mở đầu kỳ",
+      "summaryTotalInSub": "Tổng thu trong kỳ",
+      "summaryTotalOutSub": "Tổng chi trong kỳ",
+      "summaryClosing": "Cuối kỳ",
+      "summaryClosingSub": "Tồn quỹ dự kiến",
+      "filterBranch": "Chi nhánh"
+    },
+    "cashCountPanel": {
+      "title": "Kiểm kê quỹ cuối khóa sổ",
+      "noDenominations": "Chưa có mệnh giá nào được cấu hình.",
+      "configHint": "Vào Cấu hình → Ngoại tệ để thêm mệnh giá.",
+      "denominationLabel": "Mệnh giá {label}",
+      "reconcileTitle": "ĐỐI CHIẾU SỐ THỰC TẾ:",
+      "expectedLabel": "Dự kiến quỹ:",
+      "actualLabel": "Kiểm thực tế:",
+      "statusLabel": "Trạng thái:",
+      "balanced": "Cân bằng",
+      "overage": "Lệch thừa",
+      "shortage": "Lệch thiếu",
+      "diffText": "{sign}{diff} Kip",
+      "countedByLabel": "Người kiểm đếm:",
+      "countedByPlaceholder": "Nhập tên người kiểm đếm",
+      "alreadyHandedOver": "✓ Đã chốt bàn giao: {code}",
+      "saving": "Đang lưu...",
+      "finalizeButton": "Ghi phiếu bàn giao quỹ",
+      "finalizedButton": "Đã chốt bàn giao",
+      "saveSuccess": "Đã lưu bảng kê đếm tiền",
+      "saveError": "Lưu bảng kê thất bại"
     },
     "reports": {
       "title": "Báo cáo",
@@ -1521,7 +1617,9 @@
         "submit": "Tạo",
         "success": "Tạo người dùng thành công",
         "counter": "Quầy",
-        "counterPlaceholder": "Chọn quầy (tùy chọn)..."
+        "counterPlaceholder": "Chọn quầy (tùy chọn)...",
+        "fullNamePlaceholder": "Nguyễn Văn A",
+        "notFound": "Không tìm thấy"
       },
       "editInfoDialog": {
         "title": "Sửa thông tin — {name}",
@@ -1534,7 +1632,8 @@
         "dateOfBirth": "Ngày sinh",
         "counterPlaceholder": "Chọn quầy...",
         "cancel": "Hủy",
-        "submit": "Lưu"
+        "submit": "Lưu",
+        "notFound": "Không tìm thấy"
       },
       "editRoleDialog": {
         "title": "Đổi vai trò — {name}",
@@ -1673,6 +1772,7 @@
     }
   },
   "common": {
+    "notFound": "Không tìm thấy",
     "table": {
       "noData": "Không có dữ liệu",
       "results": "{count} kết quả",

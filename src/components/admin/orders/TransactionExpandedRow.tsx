@@ -188,7 +188,7 @@ export function TransactionExpandedRow({ record }: Props) {
           if (isExchangeType && row.itemRole !== 'ExchangeIn') return <span style={{ color: '#d1d5db' }}>—</span>
           const haoHutChi = (row.haoHutGram ?? 0) / 3.75
           return haoHutChi > 0
-            ? <span>{haoHutChi.toLocaleString('lo-LA')} Chỉ</span>
+            ? <span>{haoHutChi.toLocaleString('lo-LA')} {t('weightUnit')}</span>
             : <span style={{ color: '#d1d5db' }}>—</span>
         },
       },
@@ -300,23 +300,23 @@ export function TransactionExpandedRow({ record }: Props) {
             <>
               {record.currency && record.exchangeRate && record.exchangeRate > 0 && (
                 <Field
-                  label="Tiền khách đưa"
+                  label={t('fieldCustomerGives')}
                   value={<b>{Math.round(record.totalAmount / record.exchangeRate).toLocaleString('lo-LA')} {record.currency}</b>}
                 />
               )}
               {record.exchangeRate && record.exchangeRate > 0 && (
                 <Field
-                  label="Tỷ giá quy đổi"
+                  label={t('fieldExchangeRate')}
                   value={<span style={{ fontVariantNumeric: 'tabular-nums' }}>{record.exchangeRate.toLocaleString('lo-LA')}</span>}
                 />
               )}
               {record.targetCurrency && record.targetAmount != null ? (
                 <Field
-                  label="Tiền trả khách"
+                  label={t('fieldCustomerReceives')}
                   value={<b>{record.targetCurrency === 'LAK' ? formatKip(record.targetAmount) : `${record.targetAmount.toLocaleString('lo-LA')} ${record.targetCurrency}`}</b>}
                 />
               ) : (
-                <Field label="Tiền trả khách" value={<b>{formatKip(record.totalAmount)}</b>} />
+                <Field label={t('fieldCustomerReceives')} value={<b>{formatKip(record.totalAmount)}</b>} />
               )}
             </>
           ) : (

@@ -206,8 +206,8 @@ function ProductSearch({ onSelect }: ProductSearchProps) {
                     )}
                   >
                     {p.stockQuantity === 0
-                      ? "Hết hàng"
-                      : `Tồn: ${p.stockQuantity}`}
+                      ? t("outOfStock")
+                      : t("stockCount", { qty: p.stockQuantity })}
                   </span>
                 </button>
               );
