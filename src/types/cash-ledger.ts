@@ -45,7 +45,6 @@ export interface ActivityItem {
   originalAmount?: number  // Số tiền gốc theo đồng tiền của phiếu
   amountLak?: number       // Số tiền quy đổi sang LAK
   // Các field bổ sung có sẵn trong list response (chỉ POS entries mới có ref/customer)
-  method?: CashMethod
   cashAmountLak?: number
   bankAmountLak?: number
   description?: string
