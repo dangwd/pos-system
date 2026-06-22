@@ -128,11 +128,10 @@ export function TransactionExpandedRow({ record }: Props) {
   const totalPhiKho = record.items.reduce((s, i) => s + (i.phiHuHai ?? 0), 0)
   const totalHaoHutValue = record.items.reduce((s, i) => {
     const haoHutGram = i.haoHutGram ?? 0
-    if (haoHutGram <= 0) return s
-    const pricePerUnit = i.tableUnitPriceLak || i.unitPriceLak
-    // gramPerUnit = full grams per unit (trước hao mòn) = (effectiveGram + haoHutGram) / qty
-    const gramPerUnit = i.quantity > 0 ? (i.weightGram + haoHutGram) / i.quantity : 3.75
-    return s + Math.round(haoHutGram * pricePerUnit / gramPerUnit)
+    if (haoHutGram <= 0 || i.weightGram <= 0 || i.quantity <= 0) return s
+    // weightGram = tổng gram cả dòng, unitPriceLak = giá/1 đơn vị → giá/gram = unitPriceLak × SL / tổng gram
+    const pricePerGram = (i.unitPriceLak * i.quantity) / i.weightGram
+    return s + Math.round(haoHutGram * pricePerGram)
   }, 0)
 
   const productColumns: ColumnsType<TransactionItem> = [
@@ -203,10 +202,10 @@ export function TransactionExpandedRow({ record }: Props) {
         render: (_: unknown, row: TransactionItem) => {
           if (isExchangeType && row.itemRole !== 'ExchangeIn') return <span style={{ color: '#d1d5db' }}>—</span>
           const haoHutGram = row.haoHutGram ?? 0
-          if (haoHutGram <= 0) return <span style={{ color: '#d1d5db' }}>—</span>
-          const pricePerUnit = row.tableUnitPriceLak || row.unitPriceLak
-          const gramPerUnit = row.quantity > 0 ? (row.weightGram + haoHutGram) / row.quantity : 3.75
-          const val = Math.round(haoHutGram * pricePerUnit / gramPerUnit)
+          if (haoHutGram <= 0 || row.weightGram <= 0 || row.quantity <= 0) return <span style={{ color: '#d1d5db' }}>—</span>
+          // weightGram = tổng gram cả dòng, unitPriceLak = giá/1 đơn vị → giá/gram = unitPriceLak × SL / tổng gram
+          const pricePerGram = (row.unitPriceLak * row.quantity) / row.weightGram
+          const val = Math.round(haoHutGram * pricePerGram)
           return formatKip(val)
         },
       },

@@ -132,10 +132,12 @@ function normalize(tx: Transaction, ctx?: PrintContext): PrintInvoice {
     const pricePerUnit = isBuyNormal
       ? item.unitPriceLak
       : (item.tableUnitPriceLak || item.unitPriceLak)
-    // gramPerUnit = weightGram (có thể là effectiveGram sau hao mòn nếu backend dùng override)
-    // pricePerGram = pricePerUnit / gramPerUnit (= giá gốc/gram khi BuyGold có hao mòn)
-    const gramPerUnit = item.weightGram > 0 ? item.weightGram : 3.75
-    const pricePerGram = pricePerUnit / gramPerUnit
+    // weightGram = TỔNG gram cả dòng; pricePerUnit = giá/1 đơn vị (mỗi SP).
+    // → giá/gram = pricePerUnit × quantity / tổng gram (nhân SL để khớp khi qty > 1)
+    const lineGram = item.weightGram > 0 ? item.weightGram : 3.75
+    const pricePerGram = item.quantity > 0
+      ? (pricePerUnit * item.quantity) / lineGram
+      : pricePerUnit / lineGram
 
     // Ưu tiên: encoding trong tên → backend field → 0
     const resolvedHaoHutChi = haoHutChi > 0

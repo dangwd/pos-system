@@ -512,8 +512,11 @@ export function Receipt({ open, transaction, onClose }: ReceiptProps) {
                       // pricePerGram = unitPriceLak / weightGram (vì backend đã điều chỉnh
                       // unitPriceLak = effectiveGram × pricePerGram, weightGram = effectiveGram).
                       const totalWear = transaction.items.reduce((s, i) => {
-                        if (!i.haoHutGram || i.haoHutGram <= 0 || !i.weightGram) return s;
-                        return s + Math.round(i.haoHutGram * (i.unitPriceLak / i.weightGram));
+                        if (!i.haoHutGram || i.haoHutGram <= 0 || !i.weightGram || !i.quantity) return s;
+                        // weightGram = tổng gram cả dòng, unitPriceLak = giá/1 đơn vị (mỗi SP)
+                        // → giá/gram = unitPriceLak × SL / tổng gram
+                        const pricePerGram = (i.unitPriceLak * i.quantity) / i.weightGram;
+                        return s + Math.round(i.haoHutGram * pricePerGram);
                       }, 0);
 
                       // Phí lỗi/hỏng: dùng phiHuHai nếu có, fallback: unitPriceLak × qty − lineTotal.
@@ -525,8 +528,9 @@ export function Receipt({ open, transaction, onClose }: ReceiptProps) {
                       // Giá mua gốc = effective + hao mòn (phục hồi giá ban đầu nếu biết haoHutGram).
                       const buyGross = transaction.items.reduce((s, i) => {
                         const effectiveValue = i.quantity * i.unitPriceLak;
-                        if (i.haoHutGram && i.haoHutGram > 0 && i.weightGram > 0) {
-                          return s + effectiveValue + Math.round(i.haoHutGram * (i.unitPriceLak / i.weightGram));
+                        if (i.haoHutGram && i.haoHutGram > 0 && i.weightGram > 0 && i.quantity > 0) {
+                          const pricePerGram = (i.unitPriceLak * i.quantity) / i.weightGram;
+                          return s + effectiveValue + Math.round(i.haoHutGram * pricePerGram);
                         }
                         return s + effectiveValue;
                       }, 0);
