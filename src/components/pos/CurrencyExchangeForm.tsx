@@ -274,8 +274,6 @@ export function CurrencyExchangeForm() {
 
   const currencies = ["LAK", ...rates.map((r) => r.currencyCode)];
   const lines = tab?.fxLines ?? [];
-  const MAX_LINES = 3;
-
   useEffect(() => {
     if (!isLoading && rates.length > 0 && lines.length === 0) {
       setFxLines([makeDefaultLine(rates)]);
@@ -287,7 +285,6 @@ export function CurrencyExchangeForm() {
     setFxLines(lines.map((l) => (l.id === id ? { ...l, ...patch } : l)));
 
   const addLine = () => {
-    if (lines.length >= MAX_LINES) return;
     setFxLines([...lines, makeDefaultLine(rates)]);
   };
 
@@ -353,20 +350,14 @@ export function CurrencyExchangeForm() {
           />
         ))}
 
-        {/* Add line / max notice */}
-        {lines.length < MAX_LINES ? (
-          <button
-            onClick={addLine}
-            className="w-full flex items-center justify-center gap-1.5 py-3 text-xs font-medium text-primary/70 hover:text-primary hover:bg-primary/5 transition-colors border-t border-dashed border-primary/20"
-          >
-            <PlusOutlined style={{ fontSize: 11 }} />
-            {t("addLine")}
-          </button>
-        ) : (
-          <div className="flex items-center justify-center py-2 border-t border-dashed border-border text-[10px] text-muted-foreground/40">
-            {t("maxLines")}
-          </div>
-        )}
+        {/* Add line */}
+        <button
+          onClick={addLine}
+          className="w-full flex items-center justify-center gap-1.5 py-3 text-xs font-medium text-primary/70 hover:text-primary hover:bg-primary/5 transition-colors border-t border-dashed border-primary/20"
+        >
+          <PlusOutlined style={{ fontSize: 11 }} />
+          {t("addLine")}
+        </button>
       </div>
 
       {/* ── "Khách hàng thực nhận" summary ── */}
