@@ -283,7 +283,7 @@ export function calcNetTotal(
 ): number {
   const a = calcTotalA(items);
   const b = calcTotalB(items);
-  if (txnType === "BuyGold") return -(a - discountAmount);
+  if (txnType === "BuyGold" || txnType === "BuySilver") return -(a - discountAmount);
   return a - b - discountAmount;
 }
 
@@ -298,7 +298,7 @@ export function calcTotal(
   discountAmount: number,
   txnType?: TransactionType,
 ): number {
-  if (txnType === "BuyGold" || txnType === "ExchangeGold") {
+  if (txnType === "BuyGold" || txnType === "BuySilver" || txnType === "ExchangeGold") {
     return Math.abs(calcNetTotal(items, txnType, discountAmount));
   }
   // SellGold / SellSilver / ExchangeCurrency

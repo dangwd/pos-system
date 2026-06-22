@@ -79,7 +79,8 @@
       "buyGold": {
         "colProduct": "Sản phẩm mua vào",
         "colBuyPrice": "Giá mua",
-        "colStorePays": "Tiệm chi"
+        "colStorePays": "Tiệm chi",
+        "colWearGram": "Hao mòn (Gram)"
       }
     },
     "payment": {
@@ -184,6 +185,7 @@
       "panelNew": "Hàng bán ra mới (A)",
       "panelNewTotal": "Tổng bán ra (A)",
       "weightUnit": "Chỉ",
+      "weightUnitGram": "Gram",
       "summaryExchangeA": "(A) Hàng bán ra mới",
       "summaryExchangeB": "(B) Vàng cũ cấn trừ",
       "customerPaysExtra": "Khách trả thêm",
@@ -234,6 +236,12 @@
         "short": "Thu Mua",
         "abbr": "MV",
         "desc": "Mua vàng từ khách, chi Kip"
+      },
+      "BuySilver": {
+        "label": "Lập đơn Thu Mua Bạc",
+        "short": "Thu Mua",
+        "abbr": "MB",
+        "desc": "Mua bạc từ khách, chi Kip"
       },
       "ExchangeGold": {
         "label": "Lập đơn Thu Đổi Vàng Cũ",
@@ -328,6 +336,7 @@
         "SellGold": "Bán Vàng",
         "SellSilver": "Bán Bạc",
         "BuyGold": "Mua Vàng",
+        "BuySilver": "Mua Bạc",
         "BuyMoreGold": "Mua Thêm",
         "ExchangeGold": "Đổi Hàng",
         "ExchangeFree": "Đổi Miễn Phí",
@@ -387,6 +396,7 @@
         "fieldExchangeRate": "Tỷ giá quy đổi",
         "fieldCustomerReceives": "Tiền trả khách",
         "weightUnit": "Chỉ",
+        "weightUnitGram": "Gram",
         "colFxCurrency": "Ngoại tệ",
         "colFxPair": "Cặp tiền",
         "colFxFrom": "Tiền đưa vào",
@@ -432,6 +442,7 @@
         "orderSellGold": "Bán Vàng",
         "orderSellSilver": "Bán Bạc",
         "orderBuyGold": "Mua Vàng",
+        "orderBuySilver": "Mua Bạc",
         "orderBuyMoreGold": "Mua Thêm",
         "orderExchangeGold": "Đổi Hàng",
         "orderExchangeFree": "Đổi Miễn Phí",
@@ -1217,6 +1228,7 @@
         "SellGold": "Bán vàng",
         "SellSilver": "Bán bạc",
         "BuyGold": "Mua vào",
+        "BuySilver": "Mua bạc",
         "ExchangeGold": "Đổi vàng",
         "ExchangeCurrency": "Đổi ngoại tệ",
         "BuyMoreGold": "Mua thêm",
@@ -1525,6 +1537,55 @@
           "rate": "Tỷ giá gốc",
           "adjustment": "Điều chỉnh",
           "updatedAt": "Cập nhật"
+        },
+        "setupButton": "Thiết lập tỷ giá",
+        "save": "Lưu",
+        "savePairs": "Lưu {count} cặp",
+        "computed": "Tính từ LAK",
+        "saved": "Đã lưu",
+        "board": {
+          "title": "Tỷ giá hiện tại",
+          "subtitle": "Tỷ giá quy đổi theo tiền gốc",
+          "empty": "Chưa có tỷ giá cho tiền gốc này.",
+          "updateButton": "Cập nhật tỷ giá"
+        },
+        "calculator": {
+          "origin": "Gốc",
+          "adjustment": "Điều chỉnh",
+          "inputAmount": "Nhập số tiền",
+          "result": "Kết quả",
+          "kipLak": "₭ (Kip Lào)"
+        },
+        "setup": {
+          "title": "Thiết lập tỷ giá",
+          "hint": "Lưu tỷ giá thực tế giữa hai ngoại tệ (không bắt buộc qua LAK). Cặp chưa lưu được tính tự động từ LAK.",
+          "baseCurrency": "Tiền gốc",
+          "twoWay": "Tự cập nhật chiều ngược lại (1/giá)",
+          "noPairs": "Không có cặp tỷ giá nào cho tiền gốc này.",
+          "divergeTooltip": "Lệch {pct}% so với cross-rate qua LAK ({rate})",
+          "twoWayNote": "Sẽ lưu {count} cặp thuận + {count} cặp nghịch (chiều ngược lại)."
+        },
+        "filter": {
+          "allCurrencies": "Tất cả tiền tệ",
+          "fromDate": "Từ ngày",
+          "toDate": "Đến ngày",
+          "clear": "Xóa lọc"
+        },
+        "history": {
+          "title": "Lịch sử thay đổi",
+          "subtitle": "Mở rộng từng phiên để xem chi tiết",
+          "empty": "Chưa có lịch sử thay đổi",
+          "colTime": "Thời gian",
+          "colUpdatedCurrencies": "Loại ngoại tệ đã cập nhật",
+          "colUpdatedPairs": "Cặp tỷ giá đã cập nhật",
+          "colCount": "Số loại",
+          "colCurrency": "Tiền tệ",
+          "colBaseRate": "Giá gốc (₭)",
+          "colAdjustment": "Điều chỉnh",
+          "colEffective": "Hiệu lực (₭)",
+          "colFrom": "Từ",
+          "colTo": "Sang",
+          "colRate": "Tỷ giá"
         }
       },
       "stonePrices": {

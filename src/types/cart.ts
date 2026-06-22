@@ -35,8 +35,11 @@ export interface CartItem {
   itemRole: "Normal" | "ExchangeIn";
   /** PHÍ KHÒ (₭) — chi phí đúc lại khi vàng bị hỏng; áp dụng ExchangeIn & BuyGold */
   perItemDamage: number;
-  /** HAO HỤT (chỉ) — hao hụt trọng lượng do mài mòn; áp dụng ExchangeIn & BuyGold */
+  /** HAO HỤT (theo đơn vị hao mòn) — áp dụng ExchangeIn & BuyGold/BuySilver.
+   *  Vàng nhập theo Chỉ, bạc nhập theo Gram — xem `wearUnitGram`. */
   perItemWearChi: number;
+  /** Số gram cho 1 đơn vị hao mòn: vàng = 3.75 (Chỉ), bạc = 1 (Gram) */
+  wearUnitGram: number;
   /** true = kích hoạt ô nhập Tiền công*/
   isDamaged: boolean;
   /** true = item từ HĐ cũ liên kết, không cho chỉnh sửa SL/giá */
@@ -57,9 +60,9 @@ export function lineTotal(item: CartItem): number {
       ? item.weightGramOverride
       : item.qty * item.weightGram;
 
-  // 1 chỉ = 3.75 gram; HAO HỤT tính bằng chỉ → đổi sang ₭
+  // HAO HỤT: vàng nhập theo Chỉ (1 chỉ = 3.75g), bạc theo Gram (=1g) → đổi sang ₭
   const laoSutLak = Math.round(
-    item.perItemWearChi * 3.75 * item.unitPriceLakPerGram,
+    item.perItemWearChi * (item.wearUnitGram || 3.75) * item.unitPriceLakPerGram,
   );
 
   if (item.itemRole === "ExchangeIn") {

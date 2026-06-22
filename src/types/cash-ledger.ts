@@ -9,6 +9,7 @@ export type CashEntryType =
   | 'SellGold'
   | 'SellSilver'
   | 'BuyGold'
+  | 'BuySilver'
   | 'ExchangeGold'
   | 'ExchangeCurrency'
   | 'BuyMoreGold'

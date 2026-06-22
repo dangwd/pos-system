@@ -79,7 +79,8 @@
       "buyGold": {
         "colProduct": "ສິນຄ້ານຳເຂົ້າ",
         "colBuyPrice": "ລາຄາຊື້",
-        "colStorePays": "ຮ້ານຈ່າຍ"
+        "colStorePays": "ຮ້ານຈ່າຍ",
+        "colWearGram": "ການສຶກຫຼໍ (ກຣາມ)"
       }
     },
     "payment": {
@@ -184,6 +185,7 @@
       "panelNew": "ສິນຄ້າໃໝ່ (A)",
       "panelNewTotal": "ລວມຂາຍ (A)",
       "weightUnit": "ຊີ",
+      "weightUnitGram": "ກຣາມ",
       "summaryExchangeA": "(A) ສິນຄ້າໃໝ່",
       "summaryExchangeB": "(B) ທອງເກົ່າຫັກ",
       "customerPaysExtra": "ລູກຄ້າຈ່າຍເພີ່ມ",
@@ -234,6 +236,12 @@
         "short": "ຊື້ທອງ",
         "abbr": "ຊທ",
         "desc": "ຊື້ທອງຈາກລູກຄ້າ, ຈ່າຍກີບ"
+      },
+      "BuySilver": {
+        "label": "ຊື້ເງິນ",
+        "short": "ຊື້ເງິນ",
+        "abbr": "ຊງ",
+        "desc": "ຊື້ເງິນຈາກລູກຄ້າ, ຈ່າຍກີບ"
       },
       "ExchangeGold": {
         "label": "ແລກປ່ຽນທອງເກົ່າ",
@@ -328,6 +336,7 @@
         "SellGold": "ຂາຍທອງ",
         "SellSilver": "ຂາຍເງິນ",
         "BuyGold": "ຊື້ທອງ",
+        "BuySilver": "ຊື້ເງິນ",
         "BuyMoreGold": "ຊື້ເພີ່ມ",
         "ExchangeGold": "ແລກທອງ",
         "ExchangeFree": "ແລກຟຣີ",
@@ -387,6 +396,7 @@
         "fieldExchangeRate": "ອັດຕາແລກປ່ຽນ",
         "fieldCustomerReceives": "ເງິນຄືນລູກຄ້າ",
         "weightUnit": "ຈີ",
+        "weightUnitGram": "ກຣາມ",
         "colFxCurrency": "ເງິນຕາຕ່າງປະເທດ",
         "colFxPair": "ຄູ່ເງິນ",
         "colFxFrom": "ເງິນທີ່ໃຫ້",
@@ -432,6 +442,7 @@
         "orderSellGold": "ຂາຍທອງ",
         "orderSellSilver": "ຂາຍເງິນ",
         "orderBuyGold": "ຊື້ທອງ",
+        "orderBuySilver": "ຊື້ເງິນ",
         "orderBuyMoreGold": "ຊື້ເພີ່ມ",
         "orderExchangeGold": "ປ່ຽນສິນຄ້າ",
         "orderExchangeFree": "ປ່ຽນຟຣີ",
@@ -1217,6 +1228,7 @@
         "SellGold": "ຂາຍທອງ",
         "SellSilver": "ຂາຍເງິນ",
         "BuyGold": "ຊື້ທອງ",
+        "BuySilver": "ຊື້ເງິນ",
         "ExchangeGold": "ແລກທອງ",
         "ExchangeCurrency": "ແລກເງິນ",
         "BuyMoreGold": "ຊື້ເພີ່ມ",
@@ -1525,6 +1537,55 @@
           "rate": "ອັດຕາຕົ້ນ",
           "adjustment": "ການປັບ",
           "updatedAt": "ອັບເດດ"
+        },
+        "setupButton": "ຕັ້ງຄ່າອັດຕາ",
+        "save": "ບັນທຶກ",
+        "savePairs": "ບັນທຶກ {count} ຄູ່",
+        "computed": "ຄຳນວນຈາກ LAK",
+        "saved": "ບັນທຶກແລ້ວ",
+        "board": {
+          "title": "ອັດຕາປັດຈຸບັນ",
+          "subtitle": "ອັດຕາແລກປ່ຽນຕາມສະກຸນເງິນຕົ້ນ",
+          "empty": "ຍັງບໍ່ມີອັດຕາສຳລັບສະກຸນເງິນຕົ້ນນີ້.",
+          "updateButton": "ອັບເດດອັດຕາ"
+        },
+        "calculator": {
+          "origin": "ຕົ້ນ",
+          "adjustment": "ການປັບ",
+          "inputAmount": "ໃສ່ຈຳນວນ",
+          "result": "ຜົນລັບ",
+          "kipLak": "₭ (ກີບລາວ)"
+        },
+        "setup": {
+          "title": "ຕັ້ງຄ່າອັດຕາ",
+          "hint": "ບັນທຶກອັດຕາຕົວຈິງລະຫວ່າງສອງສະກຸນເງິນ (ບໍ່ຈຳເປັນຜ່ານ LAK). ຄູ່ທີ່ຍັງບໍ່ບັນທຶກຈະຄຳນວນອັດຕະໂນມັດຈາກ LAK.",
+          "baseCurrency": "ສະກຸນເງິນຕົ້ນ",
+          "twoWay": "ອັບເດດທິດກົງກັນຂ້າມອັດຕະໂນມັດ (1/ອັດຕາ)",
+          "noPairs": "ບໍ່ມີຄູ່ອັດຕາສຳລັບສະກຸນເງິນຕົ້ນນີ້.",
+          "divergeTooltip": "ຕ່າງ {pct}% ທຽບກັບ cross-rate ຜ່ານ LAK ({rate})",
+          "twoWayNote": "ຈະບັນທຶກ {count} ຄູ່ໄປ + {count} ຄູ່ກັບ (ທິດກົງກັນຂ້າມ)."
+        },
+        "filter": {
+          "allCurrencies": "ທຸກສະກຸນເງິນ",
+          "fromDate": "ຈາກວັນທີ",
+          "toDate": "ຫາວັນທີ",
+          "clear": "ລ້າງຕົວກອງ"
+        },
+        "history": {
+          "title": "ປະຫວັດການປ່ຽນແປງ",
+          "subtitle": "ຂະຫຍາຍແຕ່ລະຮອບເພື່ອເບິ່ງລາຍລະອຽດ",
+          "empty": "ຍັງບໍ່ມີປະຫວັດການປ່ຽນແປງ",
+          "colTime": "ເວລາ",
+          "colUpdatedCurrencies": "ສະກຸນເງິນທີ່ອັບເດດ",
+          "colUpdatedPairs": "ຄູ່ອັດຕາທີ່ອັບເດດ",
+          "colCount": "ຈຳນວນ",
+          "colCurrency": "ສະກຸນເງິນ",
+          "colBaseRate": "ອັດຕາຕົ້ນ (₭)",
+          "colAdjustment": "ການປັບ",
+          "colEffective": "ມີຜົນ (₭)",
+          "colFrom": "ຈາກ",
+          "colTo": "ເປັນ",
+          "colRate": "ອັດຕາ"
         }
       },
       "stonePrices": {

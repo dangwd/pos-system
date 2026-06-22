@@ -62,7 +62,8 @@ export function Receipt({ open, transaction, onClose }: ReceiptProps) {
     : (transaction.paymentMethod ?? "—");
 
   const isCompleted = !isCancelled && transaction.status === "Completed";
-  const isBuy = transaction.type === "BuyGold";
+  const isBuy = transaction.type === "BuyGold" || transaction.type === "BuySilver";
+  const isSilverBuy = transaction.type === "BuySilver";
   const isFx = transaction.type === "ExchangeCurrency";
   const isFxToNonLak = isFx && !!transaction.targetCurrency && transaction.targetCurrency !== "LAK";
   // Dùng foreignAmount từ DB (v2026-06-16+). Fallback sang note parsing cho GD cũ.
@@ -442,7 +443,9 @@ export function Receipt({ open, transaction, onClose }: ReceiptProps) {
                       {isBuy && (
                         <TableCell className="text-right text-sm">
                           {(item.haoHutGram ?? 0) > 0
-                            ? `${((item.haoHutGram ?? 0) / 3.75).toLocaleString("lo-LA")} ${t("weightUnit")}`
+                            ? isSilverBuy
+                              ? `${(item.haoHutGram ?? 0).toLocaleString("lo-LA")} ${t("weightUnitGram")}`
+                              : `${((item.haoHutGram ?? 0) / 3.75).toLocaleString("lo-LA")} ${t("weightUnit")}`
                             : "—"}
                         </TableCell>
                       )}

@@ -39,6 +39,7 @@ export const INVOICE_TITLE: Record<TransactionType, { vi: string; lo: string; en
   SellGold:         { vi: 'HÓA ĐƠN BÁN VÀNG',        lo: 'ໃບບິນຂາຍຄຳ',           en: 'GOLD SALES INVOICE' },
   SellSilver:       { vi: 'HÓA ĐƠN BÁN BẠC',         lo: 'ໃບບິນຂາຍເງິນ',          en: 'SILVER SALES INVOICE' },
   BuyGold:          { vi: 'PHIẾU MUA VÀNG',           lo: 'ໃບຮັບຊື້ຄຳ',            en: 'GOLD PURCHASE RECEIPT' },
+  BuySilver:        { vi: 'PHIẾU MUA BẠC',            lo: 'ໃບຮັບຊື້ເງິນ',          en: 'SILVER PURCHASE RECEIPT' },
   BuyMoreGold:      { vi: 'PHIẾU MUA THÊM VÀNG',      lo: 'ໃບຮັບຊື້ຄຳເພີ່ມ',       en: 'ADDITIONAL GOLD PURCHASE' },
   ExchangeGold:     { vi: 'PHIẾU THU ĐỔI VÀNG',       lo: 'ໃບແລກປ່ຽນຄຳ',           en: 'GOLD EXCHANGE RECEIPT' },
   ExchangeFree:     { vi: 'PHIẾU ĐỔI VÀNG MIỄN PHÍ',  lo: 'ໃບແລກປ່ຽນຄຳຟຣີ',        en: 'FREE GOLD EXCHANGE' },
@@ -121,7 +122,7 @@ function parseItemFees(name: string): { cleanName: string; phiKho: number; haoHu
 }
 
 function normalize(tx: Transaction, ctx?: PrintContext): PrintInvoice {
-  const isBuyGold = tx.type === 'BuyGold'
+  const isBuyGold = tx.type === 'BuyGold' || tx.type === 'BuySilver'
   const items: PrintItem[] = tx.items.map((item, idx) => {
     const { cleanName, phiKho, haoHutChi } = parseItemFees(item.productSnapshotName)
     // BuyGold Normal: dùng unitPriceLak (giá mua thực tế nhập tay).

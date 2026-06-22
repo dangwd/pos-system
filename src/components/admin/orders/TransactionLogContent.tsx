@@ -55,6 +55,7 @@ export function TransactionLogContent({ fixedType }: Props) {
     SellGold:         t("transactionTypes.SellGold"),
     SellSilver:       t("transactionTypes.SellSilver"),
     BuyGold:          t("transactionTypes.BuyGold"),
+    BuySilver:        t("transactionTypes.BuySilver"),
     BuyMoreGold:      t("transactionTypes.BuyMoreGold"),
     ExchangeGold:     t("transactionTypes.ExchangeGold"),
     ExchangeFree:     t("transactionTypes.ExchangeFree"),

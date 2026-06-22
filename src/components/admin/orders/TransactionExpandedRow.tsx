@@ -16,6 +16,7 @@ const TYPE_BADGE_STYLE: Record<string, React.CSSProperties> = {
   SellGold:        { background: '#dcfce7', color: '#15803d' },
   SellSilver:      { background: '#ccfbf1', color: '#0f766e' },
   BuyGold:         { background: '#dbeafe', color: '#1d4ed8' },
+  BuySilver:       { background: '#f1f5f9', color: '#334155' },
   BuyMoreGold:     { background: '#dbeafe', color: '#1d4ed8' },
   ExchangeGold:    { background: '#fef3c7', color: '#b45309' },
   ExchangeFree:    { background: '#fef3c7', color: '#b45309' },
@@ -104,7 +105,7 @@ const BADGE_BASE: React.CSSProperties = {
 }
 
 // Loại GD có thành phần "mua vàng cũ" — hiển thị phí lỗi hỏng & hao mòn
-const BUY_TYPES = new Set(['BuyGold', 'BuyMoreGold', 'ExchangeGold', 'ExchangeFree', 'ExchangeToMoney'])
+const BUY_TYPES = new Set(['BuyGold', 'BuySilver', 'BuyMoreGold', 'ExchangeGold', 'ExchangeFree', 'ExchangeToMoney'])
 // Loại đổi hàng — có cả ExchangeIn (mua) và Normal (bán) nên cần cả hai bộ cột
 const EXCHANGE_TYPES = new Set(['ExchangeGold', 'ExchangeFree', 'BuyMoreGold', 'ExchangeToMoney'])
 
@@ -121,6 +122,7 @@ export function TransactionExpandedRow({ record }: Props) {
   const isBuyType = BUY_TYPES.has(record.type)
   const isExchangeType = EXCHANGE_TYPES.has(record.type)
   const isFxType = record.type === 'ExchangeCurrency'
+  const isSilverBuy = record.type === 'BuySilver'
 
   const hasBuyFees = isBuyType && record.items.some(i => (i.phiHuHai ?? 0) > 0 || (i.haoHutGram ?? 0) > 0)
   const totalPhiKho = record.items.reduce((s, i) => s + (i.phiHuHai ?? 0), 0)
@@ -187,10 +189,12 @@ export function TransactionExpandedRow({ record }: Props) {
         width: 100, align: 'right' as const,
         render: (_: unknown, row: TransactionItem) => {
           if (isExchangeType && row.itemRole !== 'ExchangeIn') return <span style={{ color: '#d1d5db' }}>—</span>
-          const haoHutChi = (row.haoHutGram ?? 0) / 3.75
-          return haoHutChi > 0
-            ? <span>{haoHutChi.toLocaleString('lo-LA')} {t('weightUnit')}</span>
-            : <span style={{ color: '#d1d5db' }}>—</span>
+          const haoHutGram = row.haoHutGram ?? 0
+          if (haoHutGram <= 0) return <span style={{ color: '#d1d5db' }}>—</span>
+          // Bạc hiển thị hao mòn theo Gram, vàng theo Chỉ (÷3.75)
+          return isSilverBuy
+            ? <span>{haoHutGram.toLocaleString('lo-LA')} {t('weightUnitGram')}</span>
+            : <span>{(haoHutGram / 3.75).toLocaleString('lo-LA')} {t('weightUnit')}</span>
         },
       },
       {

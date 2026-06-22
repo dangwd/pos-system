@@ -489,7 +489,7 @@ function PaymentBreakdown({
   const txnType = tab?.txnType ?? "SellGold";
   const discount = tab?.discountAmount ?? 0;
   const isExchange = txnType === "ExchangeGold" || txnType === "ExchangeFree" || txnType === "ExchangeToMoney";
-  const isBuy = txnType === "BuyGold";
+  const isBuy = txnType === "BuyGold" || txnType === "BuySilver";
   const totalLaborFee = (tab?.items ?? []).reduce((s, i) => s + (i.laborFee ?? 0), 0);
   const totalStoneFee = (tab?.items ?? []).reduce((s, i) => s + (i.stoneFee ?? 0), 0);
   const [discountInput, setDiscountInput] = useState("");
@@ -529,7 +529,7 @@ function PaymentBreakdown({
                 .filter((i) => i.itemRole === "Normal")
                 .reduce(
                   (s, i) =>
-                    s + Math.round(i.perItemWearChi * 3.75 * i.unitPriceLakPerGram),
+                    s + Math.round(i.perItemWearChi * (i.wearUnitGram || 3.75) * i.unitPriceLakPerGram),
                   0,
                 );
               return (
@@ -787,7 +787,7 @@ export function PaymentPanel({
   const isExchangeGold = tab?.txnType === "ExchangeGold"
     || tab?.txnType === "ExchangeFree"
     || tab?.txnType === "ExchangeToMoney";
-  const isBuyGold = tab?.txnType === "BuyGold";
+  const isBuyGold = tab?.txnType === "BuyGold" || tab?.txnType === "BuySilver";
   const isExchangeType = isFx || isExchangeGold;
   const isCancelMode = !!tab?.cancelTransactionId;
   const fxDisabled =

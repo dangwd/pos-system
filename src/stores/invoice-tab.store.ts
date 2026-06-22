@@ -397,6 +397,7 @@ export const useInvoiceTabStore = create<InvoiceTabStore>()(
               itemRole: i.itemRole ?? 'Normal',
               perItemDamage: i.perItemDamage ?? 0,
               perItemWearChi: i.perItemWearChi ?? 0,
+              wearUnitGram: i.wearUnitGram ?? 3.75,
               isDamaged: i.isDamaged ?? false,
               isReadOnly: i.isReadOnly ?? false,
             })),

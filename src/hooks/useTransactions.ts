@@ -46,6 +46,7 @@ function txItemToCartItem(item: TransactionItem): CartItem {
     itemRole: 'ExchangeIn',
     perItemDamage: 0,
     perItemWearChi: 0,
+    wearUnitGram: 3.75,
     isDamaged: false,
     isReadOnly: true,
   }

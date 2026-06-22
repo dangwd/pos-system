@@ -79,7 +79,8 @@
       "buyGold": {
         "colProduct": "Product in",
         "colBuyPrice": "Buy price",
-        "colStorePays": "Store pays"
+        "colStorePays": "Store pays",
+        "colWearGram": "Wear (Gram)"
       }
     },
     "payment": {
@@ -184,6 +185,7 @@
       "panelNew": "New items (A)",
       "panelNewTotal": "Total sold (A)",
       "weightUnit": "Chi",
+      "weightUnitGram": "Gram",
       "summaryExchangeA": "(A) New items",
       "summaryExchangeB": "(B) Old gold offset",
       "customerPaysExtra": "Customer pays",
@@ -234,6 +236,12 @@
         "short": "Buy Gold",
         "abbr": "BG",
         "desc": "Purchase gold from customer, pay Kip"
+      },
+      "BuySilver": {
+        "label": "Buy Silver",
+        "short": "Buy Silver",
+        "abbr": "BS",
+        "desc": "Purchase silver from customer, pay Kip"
       },
       "ExchangeGold": {
         "label": "Exchange Old Gold",
@@ -328,6 +336,7 @@
         "SellGold": "Sell Gold",
         "SellSilver": "Sell Silver",
         "BuyGold": "Buy Gold",
+        "BuySilver": "Buy Silver",
         "BuyMoreGold": "Trade Up",
         "ExchangeGold": "Exchange Gold",
         "ExchangeFree": "Exchange Free",
@@ -387,6 +396,7 @@
         "fieldExchangeRate": "Exchange rate",
         "fieldCustomerReceives": "Customer receives",
         "weightUnit": "Chi",
+        "weightUnitGram": "Gram",
         "colFxCurrency": "Currency",
         "colFxPair": "Pair",
         "colFxFrom": "Amount given",
@@ -432,6 +442,7 @@
         "orderSellGold": "Sell Gold",
         "orderSellSilver": "Sell Silver",
         "orderBuyGold": "Buy Gold",
+        "orderBuySilver": "Buy Silver",
         "orderBuyMoreGold": "Buy More",
         "orderExchangeGold": "Exchange",
         "orderExchangeFree": "Free Exchange",
@@ -1219,6 +1230,7 @@
         "SellGold": "Sell gold",
         "SellSilver": "Sell silver",
         "BuyGold": "Buy gold",
+        "BuySilver": "Buy silver",
         "ExchangeGold": "Exchange gold",
         "ExchangeCurrency": "Currency exchange",
         "BuyMoreGold": "Trade up",
@@ -1527,6 +1539,55 @@
           "rate": "Base rate",
           "adjustment": "Adjustment",
           "updatedAt": "Updated"
+        },
+        "setupButton": "Configure rates",
+        "save": "Save",
+        "savePairs": "Save {count} pairs",
+        "computed": "From LAK",
+        "saved": "Saved",
+        "board": {
+          "title": "Current rates",
+          "subtitle": "Conversion rates by base currency",
+          "empty": "No rates for this base currency yet.",
+          "updateButton": "Update rates"
+        },
+        "calculator": {
+          "origin": "Base",
+          "adjustment": "Adjustment",
+          "inputAmount": "Enter amount",
+          "result": "Result",
+          "kipLak": "₭ (Lao Kip)"
+        },
+        "setup": {
+          "title": "Configure rates",
+          "hint": "Save the actual rate between two currencies (not necessarily via LAK). Unsaved pairs are computed automatically from LAK.",
+          "baseCurrency": "Base currency",
+          "twoWay": "Auto-update reverse direction (1/rate)",
+          "noPairs": "No rate pairs for this base currency.",
+          "divergeTooltip": "Off by {pct}% vs cross-rate via LAK ({rate})",
+          "twoWayNote": "Will save {count} forward + {count} reverse pairs (opposite direction)."
+        },
+        "filter": {
+          "allCurrencies": "All currencies",
+          "fromDate": "From date",
+          "toDate": "To date",
+          "clear": "Clear filter"
+        },
+        "history": {
+          "title": "Change history",
+          "subtitle": "Expand each session to see details",
+          "empty": "No change history yet",
+          "colTime": "Time",
+          "colUpdatedCurrencies": "Updated currencies",
+          "colUpdatedPairs": "Updated rate pairs",
+          "colCount": "Count",
+          "colCurrency": "Currency",
+          "colBaseRate": "Base rate (₭)",
+          "colAdjustment": "Adjustment",
+          "colEffective": "Effective (₭)",
+          "colFrom": "From",
+          "colTo": "To",
+          "colRate": "Rate"
         }
       },
       "stonePrices": {
