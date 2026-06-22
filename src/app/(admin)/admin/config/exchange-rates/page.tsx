@@ -5,7 +5,7 @@ import { ForbiddenPage } from '@/components/shared/ForbiddenPage'
 import { useState, useMemo } from 'react'
 import { useTranslations } from 'next-intl'
 import { EditOutlined, SyncOutlined, SearchOutlined, SwapOutlined, CheckOutlined, CloseOutlined, FormOutlined, HistoryOutlined } from '@ant-design/icons'
-import { Table } from 'antd'
+import { Table, Select as AntSelect } from 'antd'
 import type { TableColumnsType } from 'antd'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -13,11 +13,11 @@ import { InputNumber } from '@/components/ui/antd-number-input'
 import { Spinner } from '@/components/ui/spinner'
 import { Dialog, DialogContent, DialogFooter } from '@/components/ui/dialog'
 import { Field, FieldLabel } from '@/components/ui/field'
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { TablePageSkeleton } from '@/components/shared/PageSkeleton'
 import { useExchangeRates, useUpdateExchangeRate, useCurrencies, useBulkUpdateExchangeRates, useExchangeRateHistory } from '@/hooks/useConfig'
 import { cn } from '@/lib/utils'
 import type { ExchangeRate, Currency } from '@/types/config'
+import { FlagIcon } from '@/components/shared/FlagIcon'
 
 const CURRENCY_META: Record<string, { flag: string; name: string }> = {
   LAK: { flag: '₭', name: 'Kip Lào' },
@@ -47,9 +47,11 @@ function RatePreviewPanel({ rates, currencies: currenciesData }: { rates: Exchan
   const { mutate: updateRate, isPending: isSavingRate } = useUpdateExchangeRate()
 
   const activeCurrencies = currenciesData.filter(c => c.isActive).sort((a, b) => a.sortOrder - b.sortOrder)
-  const currencyCodes = activeCurrencies.length > 0
-    ? activeCurrencies.map(c => c.code)
-    : ['LAK', ...rates.map(r => r.currencyCode)]
+  const currencyCodes = [...new Set(
+    activeCurrencies.length > 0
+      ? activeCurrencies.map(c => c.code)
+      : ['LAK', ...rates.map(r => r.currencyCode)],
+  )]
 
   const currencyInfoMap = Object.fromEntries(activeCurrencies.map(c => [c.code, c]))
 
@@ -154,58 +156,60 @@ function RatePreviewPanel({ rates, currencies: currenciesData }: { rates: Exchan
   const lastUpdated = detailRate?.effectiveFrom
 
   return (
-    <div className="rounded-xl border bg-card p-6 flex flex-col gap-5 shadow-card">
+    <div className="rounded-xl border bg-card p-5 flex flex-col gap-5 shadow-card">
       <h2 className="text-base font-semibold">{t('previewTitle')}</h2>
 
       {/* From / To selectors */}
-      <div className="grid grid-cols-[1fr_auto_1fr] gap-2 items-end">
+      <div className="grid grid-cols-[1fr_36px_1fr] gap-2 items-end">
         <div>
           <p className="text-xs text-muted-foreground mb-1.5">Từ</p>
-          <Select value={fromCurrency} onValueChange={handleFromChange}>
-            <SelectTrigger className="h-9">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              {currencyCodes.map(code => {
-                const flag = currencyInfoMap[code]?.flag ?? CURRENCY_META[code]?.flag ?? currencyInfoMap[code]?.symbol ?? '💱'
-                const name = currencyInfoMap[code]?.name ?? CURRENCY_META[code]?.name ?? code
-                return (
-                  <SelectItem key={code} value={code}>
-                    <span className="mr-1">{flag}</span> {code} — {name}
-                  </SelectItem>
-                )
-              })}
-            </SelectContent>
-          </Select>
+          <AntSelect
+            value={fromCurrency}
+            onChange={handleFromChange}
+            style={{ width: '100%' }}
+            popupMatchSelectWidth={false}
+            labelRender={(opt) => {
+              const code = String(opt.value ?? '')
+              const flag = currencyInfoMap[code]?.flag ?? CURRENCY_META[code]?.flag ?? currencyInfoMap[code]?.symbol ?? '💱'
+              return <span style={{ display: 'flex', alignItems: 'center', gap: 6 }}><FlagIcon flag={flag} /><strong>{code}</strong></span>
+            }}
+            options={currencyCodes.map(code => {
+              const flag = currencyInfoMap[code]?.flag ?? CURRENCY_META[code]?.flag ?? currencyInfoMap[code]?.symbol ?? '💱'
+              const name = currencyInfoMap[code]?.name ?? CURRENCY_META[code]?.name ?? code
+              return { value: code, label: `${flag} ${code} — ${name}` }
+            })}
+          />
         </div>
 
-        <button
-          type="button"
-          onClick={swap}
-          title="Đổi chiều quy đổi"
-          className="h-9 w-9 flex items-center justify-center rounded-md border border-border text-muted-foreground hover:bg-muted hover:text-foreground transition-colors"
-        >
-          <SwapOutlined className="h-4 w-4" />
-        </button>
+        <div className="flex items-end justify-center pb-0.5">
+          <button
+            type="button"
+            onClick={swap}
+            title="Đổi chiều quy đổi"
+            className="h-8 w-8 flex items-center justify-center rounded-md border border-border text-muted-foreground hover:bg-muted hover:text-foreground transition-colors"
+          >
+            <SwapOutlined style={{ fontSize: 13 }} />
+          </button>
+        </div>
 
         <div>
           <p className="text-xs text-muted-foreground mb-1.5">Sang</p>
-          <Select value={toCurrency} onValueChange={handleToChange}>
-            <SelectTrigger className="h-9">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              {currencyCodes.map(code => {
-                const flag = currencyInfoMap[code]?.flag ?? CURRENCY_META[code]?.flag ?? currencyInfoMap[code]?.symbol ?? '💱'
-                const name = currencyInfoMap[code]?.name ?? CURRENCY_META[code]?.name ?? code
-                return (
-                  <SelectItem key={code} value={code}>
-                    <span className="mr-1">{flag}</span> {code} — {name}
-                  </SelectItem>
-                )
-              })}
-            </SelectContent>
-          </Select>
+          <AntSelect
+            value={toCurrency}
+            onChange={handleToChange}
+            style={{ width: '100%' }}
+            popupMatchSelectWidth={false}
+            labelRender={(opt) => {
+              const code = String(opt.value ?? '')
+              const flag = currencyInfoMap[code]?.flag ?? CURRENCY_META[code]?.flag ?? currencyInfoMap[code]?.symbol ?? '💱'
+              return <span style={{ display: 'flex', alignItems: 'center', gap: 6 }}><FlagIcon flag={flag} /><strong>{code}</strong></span>
+            }}
+            options={currencyCodes.map(code => {
+              const flag = currencyInfoMap[code]?.flag ?? CURRENCY_META[code]?.flag ?? currencyInfoMap[code]?.symbol ?? '💱'
+              const name = currencyInfoMap[code]?.name ?? CURRENCY_META[code]?.name ?? code
+              return { value: code, label: `${flag} ${code} — ${name}` }
+            })}
+          />
         </div>
       </div>
 
@@ -281,7 +285,7 @@ function RatePreviewPanel({ rates, currencies: currenciesData }: { rates: Exchan
       {/* Amount input */}
       <div>
         <p className="text-xs text-muted-foreground mb-1.5">
-          {t('inputAmount')} ({fromMeta.flag} {fromCurrency})
+          {t('inputAmount')} (<FlagIcon flag={fromMeta.flag} /> {fromCurrency})
         </p>
         <div className="relative">
           <InputNumber
@@ -292,7 +296,7 @@ function RatePreviewPanel({ rates, currencies: currenciesData }: { rates: Exchan
             style={{ width: '100%' }}
           />
           <span className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-sm font-semibold text-muted-foreground">
-            {fromMeta.flag}
+            <FlagIcon flag={fromMeta.flag} />
           </span>
         </div>
       </div>
@@ -312,7 +316,7 @@ function RatePreviewPanel({ rates, currencies: currenciesData }: { rates: Exchan
           {result > 0 ? resultDisplay : '—'}
         </p>
         <p className="text-xs text-muted-foreground mt-1">
-          {toCurrency === 'LAK' ? '₭ (Kip Lào)' : `${toMeta.flag} ${toCurrency}`}
+          {toCurrency === 'LAK' ? '₭ (Kip Lào)' : <><FlagIcon flag={toMeta.flag} /> {toCurrency}</>}
         </p>
       </div>
 
@@ -337,7 +341,7 @@ function CurrencyCard({ rate, currencyName, currencyFlag, onEdit }: { rate: Exch
   return (
     <div className="flex items-center justify-between rounded-xl border bg-card px-4 py-3 hover:border-primary/40 hover:bg-muted/20 transition-colors">
       <div className="flex items-center gap-3">
-        <span className="text-2xl">{displayFlag}</span>
+        <FlagIcon flag={displayFlag} className="text-2xl" />
         <div>
           <div className="font-bold text-sm">{rate.currencyCode}</div>
           <div className="text-xs text-muted-foreground">{displayName}</div>
@@ -372,32 +376,39 @@ function BulkEditDialog({ open, onClose }: { open: boolean; onClose: () => void 
   const { data: currencies = [] } = useCurrencies()
   const { mutate: bulkUpdate, isPending } = useBulkUpdateExchangeRates()
 
-  // form initialized at mount — key prop in parent forces remount when dialog opens
-  const [form, setForm] = useState<BulkForm>(() =>
-    Object.fromEntries(rates.map(r => [r.currencyCode, {
-      rateToLak: String(r.rateToLak),
-      adjustment: String(r.adjustment),
-    }]))
+  const activeCurrencies = useMemo(
+    () => currencies.filter(c => c.isActive && c.code !== 'LAK').sort((a, b) => a.sortOrder - b.sortOrder),
+    [currencies],
   )
 
-  const flagMap = useMemo(
-    () => Object.fromEntries(currencies.filter(c => c.flag).map(c => [c.code, c.flag!])),
-    [currencies],
+  const rateMap = useMemo(
+    () => Object.fromEntries(rates.map(r => [r.currencyCode, r])),
+    [rates],
   )
-  const nameMap = useMemo(
-    () => Object.fromEntries(currencies.map(c => [c.code, c.name])),
-    [currencies],
-  )
+
+  // form initialized at mount — key prop in parent forces remount when dialog opens
+  // Source of truth: active currencies from /api/currencies (not just those with existing rates)
+  const [form, setForm] = useState<BulkForm>(() => {
+    const rateByCode = Object.fromEntries(rates.map(r => [r.currencyCode, r]))
+    const list = currencies.filter(c => c.isActive && c.code !== 'LAK').sort((a, b) => a.sortOrder - b.sortOrder)
+    return Object.fromEntries(list.map(c => {
+      const existing = rateByCode[c.code]
+      return [c.code, {
+        rateToLak: existing ? String(existing.rateToLak) : '0',
+        adjustment: existing ? String(existing.adjustment) : '0',
+      }]
+    }))
+  })
 
   function setField(code: string, field: 'rateToLak' | 'adjustment', val: string) {
     setForm(f => ({ ...f, [code]: { ...f[code], [field]: val } }))
   }
 
   function handleSubmit() {
-    const items = rates.map(r => ({
-      currencyCode: r.currencyCode,
-      rateToLak: Number(form[r.currencyCode]?.rateToLak ?? r.rateToLak),
-      adjustment: Number(form[r.currencyCode]?.adjustment ?? r.adjustment),
+    const items = activeCurrencies.map(c => ({
+      currencyCode: c.code,
+      rateToLak: Number(form[c.code]?.rateToLak ?? rateMap[c.code]?.rateToLak ?? 0),
+      adjustment: Number(form[c.code]?.adjustment ?? rateMap[c.code]?.adjustment ?? 0),
     }))
     bulkUpdate({ items }, { onSuccess: onClose })
   }
@@ -410,7 +421,7 @@ function BulkEditDialog({ open, onClose }: { open: boolean; onClose: () => void 
         footer={
           <DialogFooter>
             <Button variant="outline" onClick={onClose} disabled={isPending}>Hủy</Button>
-            <Button onClick={handleSubmit} disabled={isPending || rates.length === 0}>
+            <Button onClick={handleSubmit} disabled={isPending || activeCurrencies.length === 0}>
               {isPending && <Spinner className="mr-2" />}
               Lưu tất cả
             </Button>
@@ -418,20 +429,20 @@ function BulkEditDialog({ open, onClose }: { open: boolean; onClose: () => void 
         }
       >
         <div className="space-y-2 py-1 max-h-[60vh] overflow-y-auto pr-1">
-          {rates.map(rate => {
-            const flag = flagMap[rate.currencyCode] ?? CURRENCY_META[rate.currencyCode]?.flag ?? '💱'
-            const name = nameMap[rate.currencyCode] ?? CURRENCY_META[rate.currencyCode]?.name ?? rate.currencyCode
-            const rateVal   = Number(form[rate.currencyCode]?.rateToLak) || 0
-            const adjVal    = Number(form[rate.currencyCode]?.adjustment) || 0
+          {activeCurrencies.map(currency => {
+            const flag = currency.flag ?? CURRENCY_META[currency.code]?.flag ?? '💱'
+            const name = currency.name ?? CURRENCY_META[currency.code]?.name ?? currency.code
+            const rateVal   = Number(form[currency.code]?.rateToLak) || 0
+            const adjVal    = Number(form[currency.code]?.adjustment) || 0
             const effective = rateVal + adjVal
             return (
               <div
-                key={rate.currencyCode}
+                key={currency.code}
                 className="grid grid-cols-[2rem_auto_1fr_1fr_5.5rem] items-center gap-3 rounded-lg border px-3 py-2.5"
               >
-                <span className="text-xl leading-none">{flag}</span>
+                <FlagIcon flag={flag} className="text-xl leading-none" />
                 <div className="min-w-18">
-                  <div className="text-sm font-bold">{rate.currencyCode}</div>
+                  <div className="text-sm font-bold">{currency.code}</div>
                   <div className="text-[11px] text-muted-foreground max-w-20 truncate">{name}</div>
                 </div>
                 <div>
@@ -439,8 +450,8 @@ function BulkEditDialog({ open, onClose }: { open: boolean; onClose: () => void 
                   <InputNumber
                     min={0}
                     precision={2}
-                    value={form[rate.currencyCode]?.rateToLak ? Number(form[rate.currencyCode].rateToLak) : null}
-                    onChange={v => setField(rate.currencyCode, 'rateToLak', String(v ?? ''))}
+                    value={form[currency.code]?.rateToLak ? Number(form[currency.code].rateToLak) : null}
+                    onChange={v => setField(currency.code, 'rateToLak', String(v ?? ''))}
                     style={{ width: '100%' }}
                     size="small"
                   />
@@ -449,8 +460,8 @@ function BulkEditDialog({ open, onClose }: { open: boolean; onClose: () => void 
                   <p className="text-[11px] text-muted-foreground mb-0.5">Điều chỉnh</p>
                   <InputNumber
                     precision={2}
-                    value={form[rate.currencyCode]?.adjustment !== undefined ? Number(form[rate.currencyCode].adjustment) : null}
-                    onChange={v => setField(rate.currencyCode, 'adjustment', String(v ?? 0))}
+                    value={form[currency.code]?.adjustment !== undefined ? Number(form[currency.code].adjustment) : null}
+                    onChange={v => setField(currency.code, 'adjustment', String(v ?? 0))}
                     style={{ width: '100%' }}
                     size="small"
                   />
@@ -485,7 +496,7 @@ const historyColumns: TableColumnsType<{ id: string; currencyCode: string; rateT
     dataIndex: 'currencyCode',
     key: 'currencyCode',
     render: (code: string) => (
-      <span className="font-medium">{CURRENCY_META[code]?.flag ?? '💱'} {code}</span>
+      <span className="font-medium inline-flex items-center gap-1"><FlagIcon flag={CURRENCY_META[code]?.flag ?? '💱'} /> {code}</span>
     ),
     width: 100,
   },
@@ -574,10 +585,11 @@ export default function ExchangeRatesPage() {
   , [currencies])
 
   const filtered = useMemo(() => {
-    if (!search.trim()) return rates
+    const nonLak = rates.filter(r => r.currencyCode !== 'LAK')
+    if (!search.trim()) return nonLak
     const q = search.trim().toUpperCase()
     const qLower = search.toLowerCase()
-    return rates.filter(r =>
+    return nonLak.filter(r =>
       r.currencyCode.includes(q) ||
       (currencyNameMap[r.currencyCode]?.toLowerCase().includes(qLower)) ||
       (CURRENCY_META[r.currencyCode]?.name.toLowerCase().includes(qLower))
@@ -673,7 +685,7 @@ export default function ExchangeRatesPage() {
       <Dialog open={!!editing} onOpenChange={(o) => !o && setEditing(null)}>
         <DialogContent
           className="sm:max-w-md"
-          title={`${t('dialogTitle')} — ${editing ? (CURRENCY_META[editing.currencyCode]?.flag ?? '💱') : ''} ${editing?.currencyCode}`}
+          title={<>{t('dialogTitle')} — {editing && <FlagIcon flag={CURRENCY_META[editing.currencyCode]?.flag ?? '💱'} />} {editing?.currencyCode}</>}
           footer={
             <DialogFooter>
               <Button variant="outline" onClick={() => setEditing(null)} disabled={isPending}>{t('cancel')}</Button>

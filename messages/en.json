@@ -1457,6 +1457,7 @@
       "prices": {
         "title": "Price Tables",
         "subtitle": "Manage gold/silver price tables by purity",
+        "searchPlaceholder": "Search price tables...",
         "createButton": "Create price table",
         "scopeAll": "All branches",
         "scopeBranch": "By branch",
@@ -1565,6 +1566,7 @@
       },
       "goldPurities": {
         "title": "Gold / Silver Purities",
+        "subtitle": "{count} purity levels configured",
         "addButton": "Add purity",
         "editDialogTitle": "Edit purity",
         "edit": "Edit",

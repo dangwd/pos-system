@@ -1455,6 +1455,7 @@
       "prices": {
         "title": "Bảng giá",
         "subtitle": "Quản lý bảng giá vàng/bạc theo hàm lượng",
+        "searchPlaceholder": "Tìm bảng giá...",
         "createButton": "Tạo bảng giá",
         "scopeAll": "Toàn hệ thống",
         "scopeBranch": "Theo chi nhánh",
@@ -1563,6 +1564,7 @@
       },
       "goldPurities": {
         "title": "Hàm lượng vàng / bạc",
+        "subtitle": "{count} hàm lượng đã cấu hình",
         "addButton": "Thêm hàm lượng",
         "editDialogTitle": "Sửa hàm lượng",
         "edit": "Sửa",

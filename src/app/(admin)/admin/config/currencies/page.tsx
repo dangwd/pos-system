@@ -26,6 +26,7 @@ import {
 import type { Currency } from '@/types/config'
 import { Button as AntBtn, Popover as AntPopover, Tag, Space } from 'antd'
 import { InputNumber } from '@/components/ui/antd-number-input'
+import { FlagIcon } from '@/components/shared/FlagIcon'
 
 // ─── Shared panel styles (matches branches / users pages) ─────────────────────
 
@@ -309,7 +310,7 @@ export default function CurrenciesPage() {
                       </span>
                     </td>
                     <td style={TD_STYLE}>
-                      <span style={{ fontSize: 22, lineHeight: 1 }}>{c.flag ?? '—'}</span>
+                      <FlagIcon flag={c.flag} style={{ fontSize: 22, lineHeight: 1 }} />
                     </td>
                     <td style={TD_STYLE}>
                       <span style={{ fontSize: 20, fontWeight: 700, lineHeight: 1 }}>{c.symbol}</span>
@@ -461,7 +462,7 @@ export default function CurrenciesPage() {
                           form.flag === emoji && 'bg-primary/10 ring-1 ring-inset ring-primary/30',
                         )}
                       >
-                        <span className="text-xl leading-none">{emoji}</span>
+                        <FlagIcon flag={emoji} className="text-xl leading-none" />
                         <span className="text-[9px] text-muted-foreground leading-none font-medium truncate w-full text-center px-0.5">{name}</span>
                       </button>
                     ))}
@@ -477,7 +478,7 @@ export default function CurrenciesPage() {
                 >
                   {form.flag ? (
                     <>
-                      <span className="text-xl leading-none">{form.flag}</span>
+                      <FlagIcon flag={form.flag} className="text-xl leading-none" />
                       <span className="text-sm text-muted-foreground flex-1 truncate">
                         {FLAGS.find(f => f.emoji === form.flag)?.name ?? ''}
                       </span>

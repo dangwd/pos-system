@@ -1,52 +1,50 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
-import { useLogout } from "@/hooks/useAuth";
 import { LocaleSwitcher } from "@/components/shared/LocaleSwitcher";
+import { PageTransition } from "@/components/shared/PageTransition";
+import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { Button } from "@/components/ui/button";
+import { useLogout } from "@/hooks/useAuth";
 import { cn } from "@/lib/utils";
 import { useAuthStore } from "@/stores/auth.store";
 import {
-  ArrowLeftOutlined,
   AppstoreOutlined,
-  AuditOutlined,
-  BarChartOutlined,
+  ArrowLeftOutlined,
   BankOutlined,
+  BarChartOutlined,
   ColumnWidthOutlined,
-  CrownOutlined,
+  DashboardOutlined,
   DownOutlined,
   ExportOutlined,
-  ImportOutlined,
-  OrderedListOutlined,
-  MoneyCollectOutlined,
   GoldOutlined,
-  DashboardOutlined,
+  ImportOutlined,
   LogoutOutlined,
   MenuFoldOutlined,
   MenuUnfoldOutlined,
-  SwapOutlined,
-  SearchOutlined,
+  MoneyCollectOutlined,
+  OrderedListOutlined,
   SafetyCertificateOutlined,
+  SearchOutlined,
+  SwapOutlined,
   // ScheduleOutlined,
   TagOutlined,
-  UserSwitchOutlined,
   TeamOutlined,
+  UserSwitchOutlined,
   WalletOutlined,
 } from "@ant-design/icons";
 import { AnimatePresence, motion } from "motion/react";
 import { useTranslations } from "next-intl";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { PageTransition } from "@/components/shared/PageTransition";
+import { useEffect, useMemo, useState } from "react";
 
 function getInitials(name: string | undefined | null) {
-  if (!name) return '?'
+  if (!name) return "?";
   return name
     .split(" ")
     .map((w) => w[0])
@@ -56,7 +54,15 @@ function getInitials(name: string | undefined | null) {
 }
 
 type NavChild = { href: string; label: string };
-type NavItem = { href: string; label: string; icon: React.ComponentType<{ className?: string; style?: React.CSSProperties }>; children?: NavChild[] };
+type NavItem = {
+  href: string;
+  label: string;
+  icon: React.ComponentType<{
+    className?: string;
+    style?: React.CSSProperties;
+  }>;
+  children?: NavChild[];
+};
 type NavGroup = { label: string | null; items: NavItem[] };
 
 export default function AdminLayout({
@@ -73,24 +79,42 @@ export default function AdminLayout({
 
   const [collapsed, setCollapsed] = useState(false);
   const [search, setSearch] = useState("");
-  const [openGroups, setOpenGroups] = useState<Set<number>>(() => new Set([0, 1, 2, 3, 4, 5]));
-  const [expandedItems, setExpandedItems] = useState<Set<string>>(() => new Set());
-
+  const [openGroups, setOpenGroups] = useState<Set<number>>(
+    () => new Set([0, 1, 2, 3, 4, 5]),
+  );
+  const [expandedItems, setExpandedItems] = useState<Set<string>>(
+    () => new Set(),
+  );
 
   const NAV_GROUPS = useMemo<NavGroup[]>(
     () => [
       {
         label: null as string | null,
         items: [
-          { href: "/admin/dashboard", label: t("nav.dashboard"), icon: DashboardOutlined },
           {
-            href: "/admin/orders", label: t("nav.transactionLog"), icon: OrderedListOutlined,
+            href: "/admin/dashboard",
+            label: t("nav.dashboard"),
+            icon: DashboardOutlined,
+          },
+          {
+            href: "/admin/orders",
+            label: t("nav.transactionLog"),
+            icon: OrderedListOutlined,
             children: [
-              { href: "/admin/orders/SellGold",        label: t("nav.orderSellGold") },
-              { href: "/admin/orders/SellSilver",      label: t("nav.orderSellSilver") },
-              { href: "/admin/orders/BuyGold",         label: t("nav.orderBuyGold") },
-              { href: "/admin/orders/ExchangeGold",    label: t("nav.orderExchangeGold") },
-              { href: "/admin/orders/ExchangeCurrency", label: t("nav.orderExchangeCurrency") },
+              { href: "/admin/orders/SellGold", label: t("nav.orderSellGold") },
+              {
+                href: "/admin/orders/SellSilver",
+                label: t("nav.orderSellSilver"),
+              },
+              { href: "/admin/orders/BuyGold", label: t("nav.orderBuyGold") },
+              {
+                href: "/admin/orders/ExchangeGold",
+                label: t("nav.orderExchangeGold"),
+              },
+              {
+                href: "/admin/orders/ExchangeCurrency",
+                label: t("nav.orderExchangeCurrency"),
+              },
             ],
           },
         ],
@@ -98,37 +122,77 @@ export default function AdminLayout({
       {
         label: t("nav.groupSystem"),
         items: [
-          { href: "/admin/users", label: t("nav.users"), icon: UserSwitchOutlined },
-          { href: "/admin/roles", label: t("nav.roles"), icon: SafetyCertificateOutlined },
-          { href: "/admin/branches", label: t("nav.branches"), icon: BankOutlined },
+          {
+            href: "/admin/users",
+            label: t("nav.users"),
+            icon: UserSwitchOutlined,
+          },
+          {
+            href: "/admin/roles",
+            label: t("nav.roles"),
+            icon: SafetyCertificateOutlined,
+          },
+          {
+            href: "/admin/branches",
+            label: t("nav.branches"),
+            icon: BankOutlined,
+          },
           // { href: "/admin/audit-logs", label: t("nav.auditLogs"), icon: AuditOutlined },
         ],
       },
       {
         label: t("nav.groupCatalog"),
         items: [
-          { href: "/admin/products", label: t("nav.products"), icon: AppstoreOutlined },
-          { href: "/admin/customers", label: t("nav.customers"), icon: TeamOutlined },
+          {
+            href: "/admin/products",
+            label: t("nav.products"),
+            icon: AppstoreOutlined,
+          },
+          {
+            href: "/admin/customers",
+            label: t("nav.customers"),
+            icon: TeamOutlined,
+          },
         ],
       },
       {
         label: t("nav.groupWarehouse"),
         items: [
-          { href: "/admin/inventory/stock-in", label: t("nav.stockIn"), icon: ImportOutlined },
-          { href: "/admin/inventory/stock-out", label: t("nav.stockOut"), icon: ExportOutlined },
+          {
+            href: "/admin/inventory/stock-in",
+            label: t("nav.stockIn"),
+            icon: ImportOutlined,
+          },
+          {
+            href: "/admin/inventory/stock-out",
+            label: t("nav.stockOut"),
+            icon: ExportOutlined,
+          },
         ],
       },
       {
         label: t("nav.groupFinance"),
         items: [
           // { href: "/admin/sales-shifts", label: t("nav.salesShifts"), icon: ScheduleOutlined },
-          { href: "/admin/cash-ledger", label: t("nav.cashLedger"), icon: WalletOutlined },
           {
-            href: "/admin/reports", label: t("nav.reports"), icon: BarChartOutlined,
+            href: "/admin/cash-ledger",
+            label: t("nav.cashLedger"),
+            icon: WalletOutlined,
+          },
+          {
+            href: "/admin/reports",
+            label: t("nav.reports"),
+            icon: BarChartOutlined,
             children: [
-              { href: "/admin/reports/inventory", label: t("nav.reportInventory") },
+              {
+                href: "/admin/reports/inventory",
+                label: t("nav.reportInventory"),
+              },
               { href: "/admin/reports/revenue", label: t("nav.reportRevenue") },
-              { href: "/admin/reports/currency-exchange", label: t("nav.reportCurrencyExchange") },
+              {
+                href: "/admin/reports/currency-exchange",
+                label: t("nav.reportCurrencyExchange"),
+              },
             ],
           },
         ],
@@ -136,12 +200,36 @@ export default function AdminLayout({
       {
         label: t("nav.groupConfig"),
         items: [
-          // { href: "/admin/config/prices", label: t("nav.prices"), icon: TagOutlined },
-          // { href: "/admin/config/exchange-rates", label: t("nav.exchangeRates"), icon: SwapOutlined },
-          // { href: "/admin/config/stone-prices", label: t("nav.stonePrices"), icon: CrownOutlined },
-          { href: "/admin/config/weight-units", label: t("nav.weightUnits"), icon: ColumnWidthOutlined },
-          { href: "/admin/config/gold-purities", label: t("nav.goldPurities"), icon: GoldOutlined },
-          { href: "/admin/config/currencies", label: t("nav.currencies"), icon: MoneyCollectOutlined },
+          {
+            href: "/admin/config/prices",
+            label: t("nav.prices"),
+            icon: TagOutlined,
+          },
+          {
+            href: "/admin/config/exchange-rates",
+            label: t("nav.exchangeRates"),
+            icon: SwapOutlined,
+          },
+          // {
+          //   href: "/admin/config/stone-prices",
+          //   label: t("nav.stonePrices"),
+          //   icon: CrownOutlined,
+          // },
+          {
+            href: "/admin/config/weight-units",
+            label: t("nav.weightUnits"),
+            icon: ColumnWidthOutlined,
+          },
+          {
+            href: "/admin/config/gold-purities",
+            label: t("nav.goldPurities"),
+            icon: GoldOutlined,
+          },
+          {
+            href: "/admin/config/currencies",
+            label: t("nav.currencies"),
+            icon: MoneyCollectOutlined,
+          },
         ],
       },
     ],
@@ -173,9 +261,7 @@ export default function AdminLayout({
     const q = search.toLowerCase();
     return NAV_GROUPS.map((group) => ({
       ...group,
-      items: group.items.filter((item) =>
-        item.label.toLowerCase().includes(q),
-      ),
+      items: group.items.filter((item) => item.label.toLowerCase().includes(q)),
     })).filter((group) => group.items.length > 0);
   }, [search, NAV_GROUPS]);
 
@@ -186,7 +272,6 @@ export default function AdminLayout({
 
   return (
     <div className="flex h-screen overflow-hidden">
-
       {/* ── Sidebar ──────────────────────────────────────────────────────── */}
       <aside
         className={cn(
@@ -225,9 +310,11 @@ export default function AdminLayout({
             title={collapsed ? t("expand") : t("collapse")}
             className="h-7 w-7 flex items-center justify-center rounded-md text-sidebar-foreground/50 hover:text-sidebar-accent-foreground hover:bg-sidebar-accent transition-colors shrink-0"
           >
-            {collapsed
-              ? <MenuUnfoldOutlined style={{ fontSize: '14px' }} />
-              : <MenuFoldOutlined style={{ fontSize: '14px' }} />}
+            {collapsed ? (
+              <MenuUnfoldOutlined style={{ fontSize: "14px" }} />
+            ) : (
+              <MenuFoldOutlined style={{ fontSize: "14px" }} />
+            )}
           </button>
         </div>
 
@@ -235,7 +322,10 @@ export default function AdminLayout({
         {!collapsed && (
           <div className="px-3 py-2.5 border-b border-sidebar-border">
             <div className="relative">
-              <SearchOutlined style={{ fontSize: '13px' }} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-sidebar-foreground/50 pointer-events-none" />
+              <SearchOutlined
+                style={{ fontSize: "13px" }}
+                className="absolute left-2.5 top-1/2 -translate-y-1/2 text-sidebar-foreground/50 pointer-events-none"
+              />
               <input
                 type="text"
                 placeholder={t("searchPlaceholder")}
@@ -256,7 +346,11 @@ export default function AdminLayout({
               if (!hasLabel) return;
               setOpenGroups((prev) => {
                 const next = new Set(prev);
-                if (next.has(gi)) { next.delete(gi) } else { next.add(gi) }
+                if (next.has(gi)) {
+                  next.delete(gi);
+                } else {
+                  next.add(gi);
+                }
                 return next;
               });
             };
@@ -270,7 +364,7 @@ export default function AdminLayout({
                   >
                     <span>{group.label}</span>
                     <DownOutlined
-                      style={{ fontSize: '11px' }}
+                      style={{ fontSize: "11px" }}
                       className={cn(
                         "transition-transform duration-200",
                         isOpen && "rotate-180",
@@ -290,117 +384,150 @@ export default function AdminLayout({
                       className="overflow-hidden"
                     >
                       <div className="space-y-0.5 pt-0.5">
-                        {group.items.map(({ href, label, icon: Icon, children }) => {
-                          // ── Mục cha có submenu: chỉ toggle đóng/mở, KHÔNG điều hướng ──
-                          if (children && children.length) {
-                            const childActive = children.some(
-                              (c) => pathname === c.href || pathname.startsWith(c.href + "/"),
-                            );
-                            const open = expandedItems.has(href);
-                            return (
-                              <div key={href}>
-                                <button
-                                  type="button"
-                                  onClick={() =>
-                                    setExpandedItems((prev) => {
-                                      const next = new Set(prev);
-                                      if (next.has(href)) next.delete(href);
-                                      else next.add(href);
-                                      return next;
-                                    })
-                                  }
-                                  title={collapsed ? label : undefined}
-                                  className={cn(
-                                    "w-full flex items-center gap-2.5 px-2.5 py-2 rounded-md text-sm font-medium transition-colors",
-                                    collapsed && "justify-center px-2",
-                                    childActive
-                                      ? "text-sidebar-accent-foreground"
-                                      : "text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground",
-                                  )}
-                                >
-                                  <Icon style={{ fontSize: '14px' }} className="shrink-0" />
-                                  {!collapsed && <span className="flex-1 text-left">{label}</span>}
-                                  {!collapsed && (
-                                    <DownOutlined
-                                      style={{ fontSize: '11px' }}
-                                      className={cn(
-                                        "shrink-0 transition-transform duration-200",
-                                        open && "rotate-180",
-                                      )}
+                        {group.items.map(
+                          ({ href, label, icon: Icon, children }) => {
+                            // ── Mục cha có submenu: chỉ toggle đóng/mở, KHÔNG điều hướng ──
+                            if (children && children.length) {
+                              const childActive = children.some(
+                                (c) =>
+                                  pathname === c.href ||
+                                  pathname.startsWith(c.href + "/"),
+                              );
+                              const open = expandedItems.has(href);
+                              return (
+                                <div key={href}>
+                                  <button
+                                    type="button"
+                                    onClick={() =>
+                                      setExpandedItems((prev) => {
+                                        const next = new Set(prev);
+                                        if (next.has(href)) next.delete(href);
+                                        else next.add(href);
+                                        return next;
+                                      })
+                                    }
+                                    title={collapsed ? label : undefined}
+                                    className={cn(
+                                      "w-full flex items-center gap-2.5 px-2.5 py-2 rounded-md text-sm font-medium transition-colors",
+                                      collapsed && "justify-center px-2",
+                                      childActive
+                                        ? "text-sidebar-accent-foreground"
+                                        : "text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground",
+                                    )}
+                                  >
+                                    <Icon
+                                      style={{ fontSize: "14px" }}
+                                      className="shrink-0"
                                     />
-                                  )}
-                                </button>
+                                    {!collapsed && (
+                                      <span className="flex-1 text-left">
+                                        {label}
+                                      </span>
+                                    )}
+                                    {!collapsed && (
+                                      <DownOutlined
+                                        style={{ fontSize: "11px" }}
+                                        className={cn(
+                                          "shrink-0 transition-transform duration-200",
+                                          open && "rotate-180",
+                                        )}
+                                      />
+                                    )}
+                                  </button>
 
-                                <AnimatePresence initial={false}>
-                                  {open && !collapsed && (
-                                    <motion.div
-                                      key="subitems"
-                                      initial={{ height: 0, opacity: 0 }}
-                                      animate={{ height: "auto", opacity: 1 }}
-                                      exit={{ height: 0, opacity: 0 }}
-                                      transition={{ duration: 0.2, ease: "easeInOut" }}
-                                      className="overflow-hidden"
-                                    >
-                                      <div className="mt-0.5 ml-[1.35rem] pl-3 border-l border-sidebar-border space-y-0.5">
-                                        {children.map((c) => {
-                                          const cActive = pathname === c.href || pathname.startsWith(c.href + "/");
-                                          return (
-                                            <Link
-                                              key={c.href}
-                                              href={c.href}
-                                              className={cn(
-                                                "relative flex items-center px-2.5 py-1.5 rounded-md text-[13px] font-medium transition-colors",
-                                                cActive
-                                                  ? "text-sidebar-primary-foreground"
-                                                  : "text-sidebar-foreground/80 hover:bg-sidebar-accent hover:text-sidebar-accent-foreground",
-                                              )}
-                                            >
-                                              {cActive && (
-                                                <motion.div
-                                                  layoutId="nav-highlight"
-                                                  className="absolute inset-0 rounded-md bg-sidebar-primary pointer-events-none"
-                                                  transition={{ type: "spring", stiffness: 380, damping: 32 }}
-                                                />
-                                              )}
-                                              <span className="relative">{c.label}</span>
-                                            </Link>
-                                          );
-                                        })}
-                                      </div>
-                                    </motion.div>
-                                  )}
-                                </AnimatePresence>
-                              </div>
-                            );
-                          }
+                                  <AnimatePresence initial={false}>
+                                    {open && !collapsed && (
+                                      <motion.div
+                                        key="subitems"
+                                        initial={{ height: 0, opacity: 0 }}
+                                        animate={{ height: "auto", opacity: 1 }}
+                                        exit={{ height: 0, opacity: 0 }}
+                                        transition={{
+                                          duration: 0.2,
+                                          ease: "easeInOut",
+                                        }}
+                                        className="overflow-hidden"
+                                      >
+                                        <div className="mt-0.5 ml-[1.35rem] pl-3 border-l border-sidebar-border space-y-0.5">
+                                          {children.map((c) => {
+                                            const cActive =
+                                              pathname === c.href ||
+                                              pathname.startsWith(c.href + "/");
+                                            return (
+                                              <Link
+                                                key={c.href}
+                                                href={c.href}
+                                                className={cn(
+                                                  "relative flex items-center px-2.5 py-1.5 rounded-md text-[13px] font-medium transition-colors",
+                                                  cActive
+                                                    ? "text-sidebar-primary-foreground"
+                                                    : "text-sidebar-foreground/80 hover:bg-sidebar-accent hover:text-sidebar-accent-foreground",
+                                                )}
+                                              >
+                                                {cActive && (
+                                                  <motion.div
+                                                    layoutId="nav-highlight"
+                                                    className="absolute inset-0 rounded-md bg-sidebar-primary pointer-events-none"
+                                                    transition={{
+                                                      type: "spring",
+                                                      stiffness: 380,
+                                                      damping: 32,
+                                                    }}
+                                                  />
+                                                )}
+                                                <span className="relative">
+                                                  {c.label}
+                                                </span>
+                                              </Link>
+                                            );
+                                          })}
+                                        </div>
+                                      </motion.div>
+                                    )}
+                                  </AnimatePresence>
+                                </div>
+                              );
+                            }
 
-                          // ── Mục thường: link điều hướng ──
-                          const isActive = pathname === href || pathname.startsWith(href + "/");
-                          return (
-                            <Link
-                              key={href}
-                              href={href}
-                              title={collapsed ? label : undefined}
-                              className={cn(
-                                "relative flex items-center gap-2.5 px-2.5 py-2 rounded-md text-sm font-medium transition-colors",
-                                collapsed && "justify-center px-2",
-                                isActive
-                                  ? "text-sidebar-primary-foreground"
-                                  : "text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground",
-                              )}
-                            >
-                              {isActive && (
-                                <motion.div
-                                  layoutId="nav-highlight"
-                                  className="absolute inset-0 rounded-md bg-sidebar-primary pointer-events-none"
-                                  transition={{ type: "spring", stiffness: 380, damping: 32 }}
+                            // ── Mục thường: link điều hướng ──
+                            const isActive =
+                              pathname === href ||
+                              pathname.startsWith(href + "/");
+                            return (
+                              <Link
+                                key={href}
+                                href={href}
+                                title={collapsed ? label : undefined}
+                                className={cn(
+                                  "relative flex items-center gap-2.5 px-2.5 py-2 rounded-md text-sm font-medium transition-colors",
+                                  collapsed && "justify-center px-2",
+                                  isActive
+                                    ? "text-sidebar-primary-foreground"
+                                    : "text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground",
+                                )}
+                              >
+                                {isActive && (
+                                  <motion.div
+                                    layoutId="nav-highlight"
+                                    className="absolute inset-0 rounded-md bg-sidebar-primary pointer-events-none"
+                                    transition={{
+                                      type: "spring",
+                                      stiffness: 380,
+                                      damping: 32,
+                                    }}
+                                  />
+                                )}
+                                <Icon
+                                  style={{ fontSize: "14px" }}
+                                  className="relative shrink-0"
                                 />
-                              )}
-                              <Icon style={{ fontSize: '14px' }} className="relative shrink-0" />
-                              {!collapsed && <span className="relative">{label}</span>}
-                            </Link>
-                          );
-                        })}
+                                {!collapsed && (
+                                  <span className="relative">{label}</span>
+                                )}
+                              </Link>
+                            );
+                          },
+                        )}
                       </div>
                     </motion.div>
                   )}
@@ -419,7 +546,6 @@ export default function AdminLayout({
 
       {/* ── Right column: topbar + content ───────────────────────────────── */}
       <div className="flex flex-col flex-1 overflow-hidden">
-
         {/* Topbar */}
         <header className="h-14 flex items-center justify-between px-6 border-b bg-card shrink-0">
           <div />
@@ -430,7 +556,7 @@ export default function AdminLayout({
               onClick={() => router.push("/pos")}
               className="gap-1.5 text-xs h-8"
             >
-              <ArrowLeftOutlined style={{ fontSize: '13px' }} />
+              <ArrowLeftOutlined style={{ fontSize: "13px" }} />
               {t("nav.backToPOS")}
             </Button>
             <LocaleSwitcher />
@@ -448,11 +574,16 @@ export default function AdminLayout({
                       {user.role}
                     </span>
                   </div>
-                  <DownOutlined style={{ fontSize: '11px' }} className="text-muted-foreground ml-0.5" />
+                  <DownOutlined
+                    style={{ fontSize: "11px" }}
+                    className="text-muted-foreground ml-0.5"
+                  />
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end" className="min-w-52">
                   <div className="px-3 py-2.5 border-b">
-                    <p className="text-sm font-semibold truncate">{user.fullName}</p>
+                    <p className="text-sm font-semibold truncate">
+                      {user.fullName}
+                    </p>
                     <p className="text-xs text-muted-foreground">{user.role}</p>
                   </div>
                   <DropdownMenuItem
@@ -460,7 +591,7 @@ export default function AdminLayout({
                     disabled={isLoggingOut}
                     className="text-destructive focus:text-destructive cursor-pointer gap-2 mb-1"
                   >
-                    <LogoutOutlined style={{ fontSize: '13px' }} />
+                    <LogoutOutlined style={{ fontSize: "13px" }} />
                     {tAuth("logout")}
                   </DropdownMenuItem>
                 </DropdownMenuContent>
