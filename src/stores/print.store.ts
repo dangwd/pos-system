@@ -13,6 +13,7 @@
 
 import { create } from 'zustand'
 import { amountInWords, type AmountLocale } from '@/lib/amount-in-words'
+import { calcWearValue } from '@/lib/pricing'
 import type { ExchangeLineResponse, Transaction, TransactionType } from '@/types/transaction'
 
 // ─── Types ────────────────────────────────────────────────────────────────────
@@ -135,17 +136,20 @@ function normalize(tx: Transaction, ctx?: PrintContext): PrintInvoice {
     // weightGram = TỔNG gram cả dòng; pricePerUnit = giá/1 đơn vị (mỗi SP).
     // → giá/gram = pricePerUnit × quantity / tổng gram (nhân SL để khớp khi qty > 1)
     const lineGram = item.weightGram > 0 ? item.weightGram : 3.75
-    const pricePerGram = item.quantity > 0
-      ? (pricePerUnit * item.quantity) / lineGram
-      : pricePerUnit / lineGram
 
     // Ưu tiên: encoding trong tên → backend field → 0
     const resolvedHaoHutChi = haoHutChi > 0
       ? haoHutChi
       : (item.haoHutGram && item.haoHutGram > 0 ? item.haoHutGram / 3.75 : 0)
-    const wearValue = resolvedHaoHutChi > 0
-      ? Math.round(resolvedHaoHutChi * 3.75 * pricePerGram)
-      : 0
+    // weightGram backend trả về đã trừ hao mòn → khôi phục trọng lượng gốc
+    // (lineGram + wearGram) trong calcWearValue trước khi suy giá/gram.
+    const wearGram = resolvedHaoHutChi * 3.75
+    const wearValue = calcWearValue({
+      unitPriceLak: pricePerUnit,
+      quantity: item.quantity,
+      weightGram: lineGram,
+      wearGram,
+    })
 
     const resolvedDamageFee = phiKho > 0
       ? phiKho
@@ -173,11 +177,12 @@ function normalize(tx: Transaction, ctx?: PrintContext): PrintInvoice {
   const isExchange = EXCHANGE_TYPES.includes(tx.type)
   const printAmount = isExchange ? Math.abs(tx.totalAmount) : tx.totalAmount
 
-  // BuyGold: subtotalAmount của backend là giá mua effective (đã trừ hao mòn).
-  // Phục hồi giá mua gốc = effective + wearValue để PrintInvoiceModal tính math đúng.
+  // BuyGold: giá mua gốc (gross) = SL × giá/đơn vị (unitPriceLak là giá theo
+  // trọng lượng GỐC nên đã là gross, KHÔNG cộng thêm wearValue — cộng vào sẽ
+  // tính trùng phần hao mòn). PrintInvoiceModal trừ hao mòn & phí lỗi từ gross này.
   const normalItems = items.filter(i => i.itemRole === 'Normal')
   const buyGoldOriginalGross = isBuyGold
-    ? normalItems.reduce((s, i) => s + i.quantity * i.unitPriceLak + i.wearValue, 0)
+    ? normalItems.reduce((s, i) => s + i.quantity * i.unitPriceLak, 0)
     : 0
 
   return {

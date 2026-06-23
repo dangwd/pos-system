@@ -14,6 +14,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { type PaymentMethodKey } from "@/lib/strategies/payment.strategy";
+import { calcWearValue } from "@/lib/pricing";
 import { usePrintStore } from "@/stores/print.store";
 import { useAuthStore } from "@/stores/auth.store";
 import type { Transaction } from "@/types/transaction";
@@ -512,11 +513,14 @@ export function Receipt({ open, transaction, onClose }: ReceiptProps) {
                       // pricePerGram = unitPriceLak / weightGram (vì backend đã điều chỉnh
                       // unitPriceLak = effectiveGram × pricePerGram, weightGram = effectiveGram).
                       const totalWear = transaction.items.reduce((s, i) => {
-                        if (!i.haoHutGram || i.haoHutGram <= 0 || !i.weightGram || !i.quantity) return s;
-                        // weightGram = tổng gram cả dòng, unitPriceLak = giá/1 đơn vị (mỗi SP)
-                        // → giá/gram = unitPriceLak × SL / tổng gram
-                        const pricePerGram = (i.unitPriceLak * i.quantity) / i.weightGram;
-                        return s + Math.round(i.haoHutGram * pricePerGram);
+                        // weightGram backend trả về đã trừ hao mòn → calcWearValue
+                        // khôi phục trọng lượng gốc trước khi suy giá/gram.
+                        return s + calcWearValue({
+                          unitPriceLak: i.unitPriceLak,
+                          quantity: i.quantity,
+                          weightGram: i.weightGram,
+                          wearGram: i.haoHutGram ?? 0,
+                        });
                       }, 0);
 
                       // Phí lỗi/hỏng: dùng phiHuHai nếu có, fallback: unitPriceLak × qty − lineTotal.
@@ -525,15 +529,12 @@ export function Receipt({ open, transaction, onClose }: ReceiptProps) {
                         return s + Math.max(0, i.quantity * i.unitPriceLak - i.lineTotal);
                       }, 0);
 
-                      // Giá mua gốc = effective + hao mòn (phục hồi giá ban đầu nếu biết haoHutGram).
-                      const buyGross = transaction.items.reduce((s, i) => {
-                        const effectiveValue = i.quantity * i.unitPriceLak;
-                        if (i.haoHutGram && i.haoHutGram > 0 && i.weightGram > 0 && i.quantity > 0) {
-                          const pricePerGram = (i.unitPriceLak * i.quantity) / i.weightGram;
-                          return s + effectiveValue + Math.round(i.haoHutGram * pricePerGram);
-                        }
-                        return s + effectiveValue;
-                      }, 0);
+                      // Giá mua gốc (gross) = SL × giá/đơn vị. unitPriceLak là giá theo
+                      // trọng lượng GỐC nên đã là gross — KHÔNG cộng thêm hao mòn (trùng).
+                      const buyGross = transaction.items.reduce(
+                        (s, i) => s + i.quantity * i.unitPriceLak,
+                        0,
+                      );
 
                       return (
                         <>

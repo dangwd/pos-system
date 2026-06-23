@@ -7,6 +7,7 @@ import type { ColumnsType } from 'antd/es/table/interface'
 import { ExportOutlined } from '@ant-design/icons'
 import type { Transaction, TransactionItem, ExchangeLineResponse } from '@/types/transaction'
 import { useCustomer } from '@/hooks/useCustomers'
+import { calcWearValue } from '@/lib/pricing'
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { Spinner } from '@/components/ui/spinner'
 
@@ -203,9 +204,14 @@ export function TransactionExpandedRow({ record }: Props) {
           if (isExchangeType && row.itemRole !== 'ExchangeIn') return <span style={{ color: '#d1d5db' }}>—</span>
           const haoHutGram = row.haoHutGram ?? 0
           if (haoHutGram <= 0 || row.weightGram <= 0 || row.quantity <= 0) return <span style={{ color: '#d1d5db' }}>—</span>
-          // weightGram = tổng gram cả dòng, unitPriceLak = giá/1 đơn vị → giá/gram = unitPriceLak × SL / tổng gram
-          const pricePerGram = (row.unitPriceLak * row.quantity) / row.weightGram
-          const val = Math.round(haoHutGram * pricePerGram)
+          // weightGram backend trả về đã trừ hao mòn → calcWearValue khôi phục
+          // trọng lượng gốc trước khi suy giá/gram (tránh thổi phồng giá trị hao mòn).
+          const val = calcWearValue({
+            unitPriceLak: row.unitPriceLak,
+            quantity: row.quantity,
+            weightGram: row.weightGram,
+            wearGram: haoHutGram,
+          })
           return formatKip(val)
         },
       },

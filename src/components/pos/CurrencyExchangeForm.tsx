@@ -107,18 +107,31 @@ function FxLineRow({
     return undefined;
   };
 
+  // Cặp TRỰC TIẾP from→to đã cấu hình ở Rate Graph (vd CNY→USD = 400). Đây là
+  // NGUỒN SỰ THẬT — "thiết lập sao thì hiển thị/đổi y vậy", KHÔNG quy đổi qua LAK.
+  // (Chỉ áp dụng cho cặp ngoại tệ ↔ ngoại tệ; cặp có LAK ở một đầu vốn đã là tỷ giá LAK.)
+  const directPairRate =
+    line.fromCurrency !== "LAK" && line.toCurrency !== "LAK"
+      ? fromPairs?.find((p) => p.to === line.toCurrency)?.rate
+      : undefined;
+  const hasDirectPair = !!directPairRate && directPairRate > 0;
+
   const cfgFromRate =
     line.fromCurrency === "LAK"
       ? 1
       : (fromPairs?.find((p) => p.to === "LAK")?.rate ??
          deriveToLak(toPairs, line.fromCurrency) ??
          0);
+  // to→LAK dùng cho pivot gửi backend. Khi có cặp trực tiếp, ÉP to→LAK = (from→LAK)/pairRate
+  // ⇒ pivot tái tạo ĐÚNG tỷ giá trực tiếp (hiển thị + toAmount + dữ liệu backend đồng nhất).
   const cfgToRate =
     line.toCurrency === "LAK"
       ? 1
-      : (toPairs?.find((p) => p.to === "LAK")?.rate ??
-         deriveToLak(fromPairs, line.toCurrency) ??
-         0);
+      : directPairRate && directPairRate > 0 && cfgFromRate > 0
+        ? cfgFromRate / directPairRate
+        : (toPairs?.find((p) => p.to === "LAK")?.rate ??
+           deriveToLak(fromPairs, line.toCurrency) ??
+           0);
 
   // Tự điền tỷ giá cấu hình khi dòng chưa có tỷ giá (=0). Khi user đã sửa
   // (giá ≠ 0) thì không ghi đè.
@@ -128,13 +141,19 @@ function FxLineRow({
   // Guard dùng `!val` (falsy) thay vì `=== 0`: dòng cũ persist từ localStorage có
   // thể rehydrate ra `undefined`/`NaN` (JSON bỏ field undefined) — khi đó `=== 0`
   // sai → effect không bao giờ tự điền → tỷ giá kẹt "—". `!val` tự chữa mọi case.
+  // Khi có cặp trực tiếp (cross), cấu hình Rate Graph là nguồn sự thật ⇒ ép đồng bộ
+  // cả 2 tỷ giá kể cả khi dòng đã có giá trị cũ (sai/persist) — không chỉ điền khi trống.
+  const drifted = (cur: number, cfg: number) =>
+    Math.abs((cur || 0) - cfg) > Math.abs(cfg) * 1e-6 + 1e-9;
   useEffect(() => {
     const patch: Partial<Omit<FxLine, "id">> = {};
-    if (cfgFromRate > 0 && !line.fromRateToLak) patch.fromRateToLak = cfgFromRate;
-    if (cfgToRate > 0 && !line.toRateToLak) patch.toRateToLak = cfgToRate;
+    if (cfgFromRate > 0 && (!line.fromRateToLak || (hasDirectPair && drifted(line.fromRateToLak, cfgFromRate))))
+      patch.fromRateToLak = cfgFromRate;
+    if (cfgToRate > 0 && (!line.toRateToLak || (hasDirectPair && drifted(line.toRateToLak, cfgToRate))))
+      patch.toRateToLak = cfgToRate;
     if (Object.keys(patch).length > 0) onChange(patch);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [cfgFromRate, cfgToRate, line.fromRateToLak, line.toRateToLak]);
+  }, [cfgFromRate, cfgToRate, hasDirectPair, line.fromRateToLak, line.toRateToLak]);
 
   const { toAmount } = calcLine(line);
   const toSym = CURRENCY_SYMBOL[line.toCurrency] ?? line.toCurrency;
@@ -163,20 +182,23 @@ function FxLineRow({
       ? line.toCurrency
       : line.fromCurrency;
   const rateUnitSuffix = isCross ? toSym : "₭";
+  // Cross: ưu tiên hiện ĐÚNG số cấu hình ở Rate Graph (directPairRate, vd 400),
+  // fallback về tỷ giá suy ngược từ dòng nếu cặp chưa tải xong.
   const rateUnitValue = isCross
-    ? directRate
+    ? (directPairRate && directPairRate > 0 ? directPairRate : directRate)
     : isFromLak
       ? line.toRateToLak
       : line.fromRateToLak;
   // Cross-rate có phần thập phân (33.94); chiều qua LAK là số nguyên Kip
   const rateMaxFractionDigits = isCross ? 4 : 0;
 
-  const rateLabel =
+  // Tách phần "1 CNY =" (mờ, nhỏ) và phần giá trị "2.8 ฿" (đậm, rõ) để dễ đọc.
+  const rateValueText =
     rateUnitValue > 0
-      ? `1 ${rateUnitCurrency} = ${rateUnitValue.toLocaleString("en", {
+      ? rateUnitValue.toLocaleString("en", {
           maximumFractionDigits: rateMaxFractionDigits,
-        })} ${rateUnitSuffix}`
-      : "—";
+        })
+      : null;
 
   const currencyOpts = (exclude: string) =>
     currencies.filter((c) => c !== exclude).map((c) => ({ value: c, label: CURRENCY_LABELS[c] ?? c }));
@@ -222,12 +244,9 @@ function FxLineRow({
     const val = parseFloat(rateInput);
     if (!val || val <= 0) { setEditingRate(false); return; }
     if (isCross) {
-      // val = "1 from = val to" → lưu cặp trực tiếp from→to vào Rate Graph,
-      // và cập nhật to→LAK để giữ nguyên from→LAK: to→LAK = (from→LAK)/val
-      if (line.fromRateToLak > 0)
-        onChange({
-          toRateToLak: Math.round((line.fromRateToLak / val) * 10000) / 10000,
-        });
+      // val = "1 from = val to" → lưu thẳng cặp trực tiếp from→to vào Rate Graph.
+      // KHÔNG set toRateToLak cục bộ: Rate Graph là nguồn sự thật, sau khi lưu sẽ
+      // refetch và effect tự đồng bộ to→LAK = (from→LAK)/val (tránh nhấp nháy revert).
       onSaveRateToApi(line.fromCurrency, line.toCurrency, val);
     } else if (isFromLak) {
       // Lưu cặp "to → LAK"
@@ -304,9 +323,21 @@ function FxLineRow({
             title={t("editRateTooltip")}
             className="w-full flex items-center justify-between gap-1.5 group min-w-0"
           >
-            <span className="text-[11px] font-bold font-mono tabular-nums text-foreground group-hover:text-primary transition-colors truncate">
-              {rateLabel}
-            </span>
+            {rateValueText ? (
+              <span className="flex items-baseline gap-1 min-w-0 truncate">
+                <span className="text-[10px] font-medium text-muted-foreground shrink-0">
+                  1 {rateUnitCurrency} =
+                </span>
+                <span className="text-sm font-bold tabular-nums text-foreground group-hover:text-primary transition-colors">
+                  {rateValueText}
+                </span>
+                <span className="text-[11px] font-semibold text-muted-foreground shrink-0">
+                  {rateUnitSuffix}
+                </span>
+              </span>
+            ) : (
+              <span className="text-sm font-bold text-muted-foreground/40">—</span>
+            )}
             <EditOutlined
               style={{ fontSize: 10 }}
               className="shrink-0 text-muted-foreground/50 group-hover:text-primary transition-colors"
