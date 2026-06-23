@@ -6,7 +6,7 @@ import { Table, Spin } from 'antd'
 import type { TableColumnsType } from 'antd'
 import dayjs from 'dayjs'
 import { Badge } from '@/components/ui/badge'
-import { formatNum, formatGram } from '@/components/admin/reports/report-ui'
+import { formatNum } from '@/components/admin/reports/report-ui'
 import { useStockMovements } from '@/hooks/useReports'
 import { DocumentDialog, type DocRef } from './DocumentDialog'
 import type { StockPeriodItem, StockMovementLine } from '@/types/report'
@@ -14,18 +14,15 @@ import type { StockPeriodItem, StockMovementLine } from '@/types/report'
 const SEP = '1.5px solid var(--border)'
 const sepCell = () => ({ style: { borderLeft: SEP } })
 
-const qty = (n: number) => n > 0 ? formatNum(n) : <span className="text-muted-foreground">—</span>
+const dash = <span className="text-muted-foreground">—</span>
 
-// SL (đậm) + KL (g) sub-text — dùng cho cột Nhập / Xuất
-const qtyWithGram = (n: number, gram: number) =>
-  n > 0 || gram > 0
-    ? (
-      <div className="leading-tight">
-        <span style={{ fontWeight: 500 }}>{formatNum(n)}</span>
-        {gram > 0 && <div className="text-[10px] text-muted-foreground">{formatGram(gram)}</div>}
-      </div>
-    )
-    : <span className="text-muted-foreground">—</span>
+// Cột SL
+const qty = (n: number) => n > 0 ? formatNum(n) : dash
+const qtyEm = (n: number) => n > 0 ? <span style={{ fontWeight: 500 }}>{formatNum(n)}</span> : dash
+const qtyStrong = (n: number) => n > 0 ? <span className="font-semibold">{formatNum(n)}</span> : dash
+// Cột KL (g) — chỉ hiển thị số (đơn vị "g" đã ở header), muted để SL nổi hơn
+const fmtW = (g: number) => g.toLocaleString('lo-LA', { maximumFractionDigits: 2 })
+const gram = (g: number) => g > 0 ? <span className="text-muted-foreground">{fmtW(g)}</span> : dash
 
 // ─── Chi tiết phát sinh nhập/xuất của 1 dòng (lazy fetch khi mở rộng) ─────────
 
@@ -111,45 +108,69 @@ export function StockPeriodTable({ items, fromDate, toDate, loading }: {
             : <span className="text-muted-foreground">—</span> },
       ],
     },
-    // Đầu kỳ — 1 cột SL (không sub-text, không KL, không ngày)
+    // Đầu kỳ — SL | KL (g)
     {
-      title: t('grpOpen'), dataIndex: 'openQty', key: 'openQty', width: 110, align: 'right',
+      title: t('grpOpen'),
       onHeaderCell: () => ({ style: { borderLeft: SEP } }),
-      onCell: sepCell, render: qty,
+      children: [
+        { title: t('colQty'), dataIndex: 'openQty', key: 'openQty', width: 85, align: 'right',
+          onCell: sepCell, onHeaderCell: sepCell, render: qty },
+        { title: t('colWeight'), dataIndex: 'openWeight', key: 'openWeight', width: 95, align: 'right',
+          render: gram },
+      ],
     },
-    // Trong kỳ — Nhập / Xuất
+    // Trong kỳ — Nhập (SL | KL) / Xuất (SL | KL)
     {
       title: t('grpChange'),
       onHeaderCell: () => ({ style: { borderLeft: SEP } }),
       children: [
-        { title: t('colReceipt'), dataIndex: 'receiptQty', key: 'receiptQty', width: 110, align: 'right',
-          onCell: sepCell, onHeaderCell: sepCell,
-          render: (_: number, r) => qtyWithGram(r.receiptQty, r.receiptWeight) },
-        { title: t('colIssue'), dataIndex: 'issueQty', key: 'issueQty', width: 110, align: 'right',
-          render: (_: number, r) => qtyWithGram(r.issueQty, r.issueWeight) },
+        {
+          title: t('colReceipt'),
+          onHeaderCell: () => ({ style: { borderLeft: SEP } }),
+          children: [
+            { title: t('colQty'), dataIndex: 'receiptQty', key: 'receiptQty', width: 85, align: 'right',
+              onCell: sepCell, onHeaderCell: sepCell, render: qtyEm },
+            { title: t('colWeight'), dataIndex: 'receiptWeight', key: 'receiptWeight', width: 95, align: 'right',
+              render: gram },
+          ],
+        },
+        {
+          title: t('colIssue'),
+          onHeaderCell: () => ({ style: { borderLeft: SEP } }),
+          children: [
+            { title: t('colQty'), dataIndex: 'issueQty', key: 'issueQty', width: 85, align: 'right',
+              onCell: sepCell, onHeaderCell: sepCell, render: qtyEm },
+            { title: t('colWeight'), dataIndex: 'issueWeight', key: 'issueWeight', width: 95, align: 'right',
+              render: gram },
+          ],
+        },
       ],
     },
-    // Cuối kỳ — 1 cột SL (đậm)
+    // Cuối kỳ — SL | KL (g)
     {
-      title: t('grpClose'), dataIndex: 'closeQty', key: 'closeQty', width: 110, align: 'right',
+      title: t('grpClose'),
       onHeaderCell: () => ({ style: { borderLeft: SEP } }),
-      onCell: sepCell,
-      render: (n: number) => n > 0
-        ? <span className="font-semibold">{formatNum(n)}</span>
-        : <span className="text-muted-foreground">—</span>,
+      children: [
+        { title: t('colQty'), dataIndex: 'closeQty', key: 'closeQty', width: 85, align: 'right',
+          onCell: sepCell, onHeaderCell: sepCell, render: qtyStrong },
+        { title: t('colWeight'), dataIndex: 'closeWeight', key: 'closeWeight', width: 95, align: 'right',
+          render: gram },
+      ],
     },
   ]
 
   const totals = items.reduce(
     (a, it) => ({
       openQty: a.openQty + it.openQty,
+      openWeight: a.openWeight + it.openWeight,
       receiptQty: a.receiptQty + it.receiptQty,
       receiptWeight: a.receiptWeight + it.receiptWeight,
       issueQty: a.issueQty + it.issueQty,
       issueWeight: a.issueWeight + it.issueWeight,
       closeQty: a.closeQty + it.closeQty,
+      closeWeight: a.closeWeight + it.closeWeight,
     }),
-    { openQty: 0, receiptQty: 0, receiptWeight: 0, issueQty: 0, issueWeight: 0, closeQty: 0 },
+    { openQty: 0, openWeight: 0, receiptQty: 0, receiptWeight: 0, issueQty: 0, issueWeight: 0, closeQty: 0, closeWeight: 0 },
   )
 
   return (
@@ -164,7 +185,7 @@ export function StockPeriodTable({ items, fromDate, toDate, loading }: {
       size="small"
       bordered
       sticky
-      scroll={{ x: 1230, y: 460 }}
+      scroll={{ x: 1510, y: 460 }}
       pagination={false}
       locale={{ emptyText: t('empty') }}
       rowClassName="cursor-pointer"
@@ -181,14 +202,14 @@ export function StockPeriodTable({ items, fromDate, toDate, loading }: {
             <Table.Summary.Cell index={0} colSpan={7}>
               {t('totalRow', { count: items.length })}
             </Table.Summary.Cell>
-            <Table.Summary.Cell index={7} align="right">{formatNum(totals.openQty)}</Table.Summary.Cell>
-            <Table.Summary.Cell index={8} align="right">
-              {qtyWithGram(totals.receiptQty, totals.receiptWeight)}
-            </Table.Summary.Cell>
-            <Table.Summary.Cell index={9} align="right">
-              {qtyWithGram(totals.issueQty, totals.issueWeight)}
-            </Table.Summary.Cell>
-            <Table.Summary.Cell index={10} align="right">{formatNum(totals.closeQty)}</Table.Summary.Cell>
+            <Table.Summary.Cell index={1} align="right">{formatNum(totals.openQty)}</Table.Summary.Cell>
+            <Table.Summary.Cell index={2} align="right">{gram(totals.openWeight)}</Table.Summary.Cell>
+            <Table.Summary.Cell index={3} align="right">{formatNum(totals.receiptQty)}</Table.Summary.Cell>
+            <Table.Summary.Cell index={4} align="right">{gram(totals.receiptWeight)}</Table.Summary.Cell>
+            <Table.Summary.Cell index={5} align="right">{formatNum(totals.issueQty)}</Table.Summary.Cell>
+            <Table.Summary.Cell index={6} align="right">{gram(totals.issueWeight)}</Table.Summary.Cell>
+            <Table.Summary.Cell index={7} align="right">{formatNum(totals.closeQty)}</Table.Summary.Cell>
+            <Table.Summary.Cell index={8} align="right">{gram(totals.closeWeight)}</Table.Summary.Cell>
           </Table.Summary.Row>
         </Table.Summary>
       )}
