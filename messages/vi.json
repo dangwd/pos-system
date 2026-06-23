@@ -195,9 +195,9 @@
       "buyWearLabel": "Hao mòn (−)",
       "buyDamageLabel": "Phí lỗi/hỏng (−)",
       "shopPaysTotalLabel": "TIỆM CHI RA",
-      "fxColFrom": "Tiền đưa vào",
+      "fxColFrom": "Tiền khách đưa",
       "fxColRate": "Tỷ giá",
-      "fxColTo": "Nhận về",
+      "fxColTo": "Tiền trả khách",
       "fxTotalLak": "TỔNG QUY ĐỔI (LAK)",
       "fxTotal": "TỔNG QUY ĐỔI ({currency})"
     },

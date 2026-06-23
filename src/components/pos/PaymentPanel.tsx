@@ -411,9 +411,6 @@ function FxBreakdown() {
                     ? l.fromAmount.toLocaleString("en", { maximumFractionDigits: 2 })
                     : "—"}{" "}
                   {l.fromCurrency}
-                  <span className="text-muted-foreground/50 mx-1">
-                    @ {l.fromRateToLak > 0 ? l.fromRateToLak.toLocaleString("en") : "—"}
-                  </span>
                 </span>
                 <span className="text-xs font-semibold tabular-nums">
                   {toFmt} {l.toCurrency === "LAK" ? "₭" : l.toCurrency}

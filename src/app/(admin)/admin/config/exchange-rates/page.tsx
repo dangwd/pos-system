@@ -367,11 +367,14 @@ function PairConfigDialog({
   onClose,
   rates,
   currencies,
+  initialBase,
 }: {
   open: boolean;
   onClose: () => void;
   rates: ExchangeRate[];
   currencies: Currency[];
+  /** Tiền tệ gốc mở sẵn (vd khi bấm "Cập nhật tỷ giá" từ card đang xem USD) */
+  initialBase?: string;
 }) {
   const t = useTranslations("admin.config.exchangeRates");
   const { mutate: bulkUpdate, isPending } = useBulkUpdateExchangeRatePairs();
@@ -393,7 +396,9 @@ function PairConfigDialog({
     });
   }, [currencies, rates]);
 
-  const [base, setBase] = useState(rates[0]?.currencyCode ?? "USD");
+  const [base, setBase] = useState(
+    initialBase ?? rates[0]?.currencyCode ?? "USD",
+  );
   const [twoWay, setTwoWay] = useState(true);
   const pairsQuery = useExchangeRatePairs(base, open);
   const pairs = pairsQuery.data;
@@ -983,7 +988,7 @@ function CurrentRatesBoard({
 }: {
   rates: ExchangeRate[];
   currencies: Currency[];
-  onEdit: () => void;
+  onEdit: (base: string) => void;
 }) {
   const t = useTranslations("admin.config.exchangeRates");
   const baseOptions = useMemo(() => {
@@ -1107,7 +1112,7 @@ function CurrentRatesBoard({
           </div>
         )}
 
-        <Button variant="outline" className="w-full" onClick={onEdit}>
+        <Button variant="outline" className="w-full" onClick={() => onEdit(base)}>
           <SwapOutlined className="mr-1.5 h-4 w-4" /> {t("board.updateButton")}
         </Button>
       </div>
@@ -1122,6 +1127,9 @@ export default function ExchangeRatesPage() {
   const { hasPermission } = usePermission();
   const [calcOpen, setCalcOpen] = useState(false);
   const [pairOpen, setPairOpen] = useState(false);
+  // Tiền tệ gốc để mở sẵn trong dialog: đặt khi mở từ card "Cập nhật tỷ giá".
+  // undefined khi mở từ nút "Thiết lập tỷ giá" chung → dialog tự dùng mặc định.
+  const [setupBase, setSetupBase] = useState<string | undefined>(undefined);
 
   const { data: rates = [], isLoading } = useExchangeRates();
   const { data: currencies = [] } = useCurrencies();
@@ -1156,7 +1164,13 @@ export default function ExchangeRatesPage() {
           >
             <CalculatorOutlined className="mr-1.5 h-4 w-4" /> {t("previewTitle")}
           </Button> */}
-          <Button onClick={() => setPairOpen(true)} disabled={noData}>
+          <Button
+            onClick={() => {
+              setSetupBase(undefined);
+              setPairOpen(true);
+            }}
+            disabled={noData}
+          >
             <SwapOutlined className="mr-1.5 h-4 w-4" /> {t("setupButton")}
           </Button>
         </div>
@@ -1167,7 +1181,10 @@ export default function ExchangeRatesPage() {
           <CurrentRatesBoard
             rates={rates}
             currencies={currencies}
-            onEdit={() => setPairOpen(true)}
+            onEdit={(b) => {
+              setSetupBase(b);
+              setPairOpen(true);
+            }}
           />
         </div>
 
@@ -1203,11 +1220,12 @@ export default function ExchangeRatesPage() {
       </Dialog> */}
 
       <PairConfigDialog
-        key={`pair-${String(pairOpen)}`}
+        key={`pair-${String(pairOpen)}-${setupBase ?? ""}`}
         open={pairOpen}
         onClose={() => setPairOpen(false)}
         rates={rates}
         currencies={currencies}
+        initialBase={setupBase}
       />
     </div>
   );

@@ -376,9 +376,12 @@ function InvoiceTemplate({ inv }: { inv: PrintInvoice }) {
                   totals[inv.targetCurrency] = inv.targetAmount;
                 }
                 return Object.entries(totals).map(([cur, amt]) => (
-                  <div key={cur} className="flex justify-between">
+                  <div
+                    key={cur}
+                    className="flex justify-between font-black text-[13px] border-t-2 border-black pt-1"
+                  >
                     <span>Khách nhận ({cur}) / ລູກຄ້າຮັບ:</span>
-                    <span className="tabular-nums font-semibold">
+                    <span className="tabular-nums">
                       {cur === "LAK"
                         ? kip(Math.round(amt))
                         : `${amt.toLocaleString("en", { maximumFractionDigits: 4 })} ${cur}`}
@@ -386,10 +389,6 @@ function InvoiceTemplate({ inv }: { inv: PrintInvoice }) {
                   </div>
                 ));
               })()}
-              <div className="flex justify-between font-black text-[13px] border-t-2 border-black pt-1">
-                <span>TỔNG / ລວມ:</span>
-                <span className="tabular-nums">{kip(inv.totalAmount)}</span>
-              </div>
             </>
           ) : (
             <>
