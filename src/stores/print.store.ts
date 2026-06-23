@@ -151,13 +151,12 @@ function normalize(tx: Transaction, ctx?: PrintContext): PrintInvoice {
   const isBuyGold = tx.type === 'BuyGold' || tx.type === 'BuySilver'
   const items: PrintItem[] = tx.items.map((item, idx) => {
     const { cleanName, phiKho, haoHutChi } = parseItemFees(item.productSnapshotName)
-    // BuyGold Normal: dùng unitPriceLak (giá mua thực tế nhập tay).
-    // tableUnitPriceLak là giá bảng tham chiếu — đúng cho SellGold/ExchangeIn,
-    // nhưng sai cho BuyGold vì giá mua thường khác giá bảng.
-    const isBuyNormal = isBuyGold && item.itemRole !== 'ExchangeIn'
-    const pricePerUnit = isBuyNormal
-      ? item.unitPriceLak
-      : (item.tableUnitPriceLak || item.unitPriceLak)
+    // Luôn dùng unitPriceLak (giá/đơn vị thực tế áp dụng cho GD) để khớp với màn
+    // "Thanh toán thành công" (Receipt.tsx) và bảo toàn quan hệ:
+    //   unitPriceLak ± phí (công/đá hoặc hao mòn/lỗi hỏng) = lineTotal.
+    // tableUnitPriceLak chỉ là giá bảng tham chiếu — có thể khác giá thực tế
+    // (vd: giá thu vàng cũ < giá bán bảng) nên hiển thị sẽ lệch & không khớp Thành tiền.
+    const pricePerUnit = item.unitPriceLak
     // weightGram = TỔNG gram cả dòng; pricePerUnit = giá/1 đơn vị (mỗi SP).
     // → giá/gram = pricePerUnit × quantity / tổng gram (nhân SL để khớp khi qty > 1)
     const lineGram = item.weightGram > 0 ? item.weightGram : 3.75

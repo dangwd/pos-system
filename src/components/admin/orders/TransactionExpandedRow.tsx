@@ -442,8 +442,22 @@ export function TransactionExpandedRow({ record }: Props) {
                 ),
               },
               {
-                title: t('colFxCurrency'), dataIndex: 'productSnapshotName',
-                render: (v: string) => <span style={{ fontSize: 13 }}>{v}</span>,
+                title: t('colFxCurrency'), key: 'fxCurrency',
+                render: (_: unknown, row: TransactionItem) => {
+                  // Ưu tiên render từ field FX có cấu trúc → số được format đúng chuẩn.
+                  // Fallback productSnapshotName cho item cũ chưa có field fx.
+                  if (row.fxFromCurrency && row.fxToCurrency) {
+                    return (
+                      <span style={{ fontSize: 13 }}>
+                        <span style={{ fontVariantNumeric: 'tabular-nums' }}>
+                          {(row.fxFromAmount ?? 0).toLocaleString('lo-LA', { maximumFractionDigits: 4 })}
+                        </span>{' '}
+                        {row.fxFromCurrency} <span style={{ color: '#9ca3af' }}>→</span> {row.fxToCurrency}
+                      </span>
+                    )
+                  }
+                  return <span style={{ fontSize: 13 }}>{row.productSnapshotName}</span>
+                },
               },
               {
                 title: t('colFxRate'), key: 'fxRate', align: 'right' as const, width: 200,

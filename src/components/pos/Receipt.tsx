@@ -295,15 +295,18 @@ export function Receipt({ open, transaction, onClose }: ReceiptProps) {
                       </TableHeader>
                       <TableBody>
                         {exchangeInItems.map((item) => {
-                          const pricePerGram = item.weightGram > 0 ? item.unitPriceLak / item.weightGram : 0;
                           const haoHutGram = item.haoHutGram ?? 0;
                           const phiHuHai = item.phiHuHai ?? 0;
-                          // Giá gốc/đơn vị = giá hiệu lực × (effectiveGram + haoMòn) / effectiveGram
-                          const grossPricePerUnit = item.weightGram > 0
-                            ? Math.round(item.unitPriceLak * (item.weightGram + haoHutGram) / item.weightGram)
-                            : item.unitPriceLak;
                           const haoHutChi = haoHutGram / 3.75;
-                          const haoMonValue = Math.round(haoHutGram * pricePerGram);
+                          // weightGram backend trả về đã trừ hao mòn → calcWearValue khôi phục
+                          // trọng lượng gốc trước khi suy giá/gram (tránh thổi phồng giá trị
+                          // hao mòn, khớp với màn lập đơn & admin order detail).
+                          const haoMonValue = calcWearValue({
+                            unitPriceLak: item.unitPriceLak,
+                            quantity: item.quantity,
+                            weightGram: item.weightGram,
+                            wearGram: haoHutGram,
+                          });
                           return (
                             <TableRow key={item.id}>
                               <TableCell className="text-sm">{item.productSnapshotName}</TableCell>
@@ -312,7 +315,7 @@ export function Receipt({ open, transaction, onClose }: ReceiptProps) {
                                 {item.weightUnitName || "—"}
                               </TableCell>
                               <TableCell className="text-right text-sm">
-                                {formatKip(grossPricePerUnit)}
+                                {formatKip(item.unitPriceLak)}
                               </TableCell>
                               <TableCell className="text-right text-sm text-orange-600">
                                 {phiHuHai > 0 ? formatKip(phiHuHai) : "—"}
