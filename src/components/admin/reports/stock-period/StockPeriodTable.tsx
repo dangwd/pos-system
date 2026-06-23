@@ -20,9 +20,11 @@ const dash = <span className="text-muted-foreground">—</span>
 const qty = (n: number) => n > 0 ? formatNum(n) : dash
 const qtyEm = (n: number) => n > 0 ? <span style={{ fontWeight: 500 }}>{formatNum(n)}</span> : dash
 const qtyStrong = (n: number) => n > 0 ? <span className="font-semibold">{formatNum(n)}</span> : dash
-// Cột KL (g) — chỉ hiển thị số (đơn vị "g" đã ở header), muted để SL nổi hơn
+// Cột KL (g) — chỉ hiển thị số (đơn vị "g" đã ở header); độ đậm khớp cột SL cùng nhóm
 const fmtW = (g: number) => g.toLocaleString('lo-LA', { maximumFractionDigits: 2 })
-const gram = (g: number) => g > 0 ? <span className="text-muted-foreground">{fmtW(g)}</span> : dash
+const gram = (g: number) => g > 0 ? fmtW(g) : dash
+const gramEm = (g: number) => g > 0 ? <span style={{ fontWeight: 500 }}>{fmtW(g)}</span> : dash
+const gramStrong = (g: number) => g > 0 ? <span className="font-semibold">{fmtW(g)}</span> : dash
 
 // ─── Chi tiết phát sinh nhập/xuất của 1 dòng (lazy fetch khi mở rộng) ─────────
 
@@ -131,7 +133,7 @@ export function StockPeriodTable({ items, fromDate, toDate, loading }: {
             { title: t('colQty'), dataIndex: 'receiptQty', key: 'receiptQty', width: 85, align: 'right',
               onCell: sepCell, onHeaderCell: sepCell, render: qtyEm },
             { title: t('colWeight'), dataIndex: 'receiptWeight', key: 'receiptWeight', width: 95, align: 'right',
-              render: gram },
+              render: gramEm },
           ],
         },
         {
@@ -141,7 +143,7 @@ export function StockPeriodTable({ items, fromDate, toDate, loading }: {
             { title: t('colQty'), dataIndex: 'issueQty', key: 'issueQty', width: 85, align: 'right',
               onCell: sepCell, onHeaderCell: sepCell, render: qtyEm },
             { title: t('colWeight'), dataIndex: 'issueWeight', key: 'issueWeight', width: 95, align: 'right',
-              render: gram },
+              render: gramEm },
           ],
         },
       ],
@@ -154,7 +156,7 @@ export function StockPeriodTable({ items, fromDate, toDate, loading }: {
         { title: t('colQty'), dataIndex: 'closeQty', key: 'closeQty', width: 85, align: 'right',
           onCell: sepCell, onHeaderCell: sepCell, render: qtyStrong },
         { title: t('colWeight'), dataIndex: 'closeWeight', key: 'closeWeight', width: 95, align: 'right',
-          render: gram },
+          render: gramStrong },
       ],
     },
   ]
