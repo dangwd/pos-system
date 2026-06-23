@@ -240,6 +240,35 @@ export function calcCurrencyExchange(
   return Math.round(foreignAmount * (rate + adjustment));
 }
 
+// ─── Hao mòn quy LAK trên hóa đơn mua vào (BuyGold / BuySilver / ExchangeIn) ──
+//
+// Backend lưu `weightGram` của item là trọng lượng SAU khi đã trừ hao mòn
+// (effective), trong khi `unitPriceLak` vẫn là giá/đơn vị theo trọng lượng GỐC.
+// Vì vậy khi suy ra giá/gram phải khôi phục trọng lượng gốc = weightGram + wearGram,
+// nếu chia thẳng cho weightGram (đã giảm) thì giá/gram bị thổi phồng → giá trị
+// hao mòn trên hóa đơn lệch với màn hình lập đơn.
+
+export interface WearValueParams {
+  unitPriceLak: number; // Giá/đơn vị (LAK) theo trọng lượng GỐC
+  quantity: number; // Số lượng dòng hàng
+  weightGram: number; // Trọng lượng dòng SAU hao mòn (effective) backend trả về
+  wearGram: number; // Phần hao mòn quy ra gram (haoHutGram)
+}
+
+/** Giá vàng/gram GỐC của một dòng hàng mua vào (đã khôi phục trọng lượng gốc). */
+export function buyPricePerGram(p: WearValueParams): number {
+  const originalGram = p.weightGram + p.wearGram;
+  if (originalGram <= 0) return 0;
+  const lineGross = p.quantity > 0 ? p.unitPriceLak * p.quantity : p.unitPriceLak;
+  return lineGross / originalGram;
+}
+
+/** Giá trị hao mòn quy LAK của một dòng hàng mua vào. */
+export function calcWearValue(p: WearValueParams): number {
+  if (p.wearGram <= 0 || p.weightGram <= 0 || p.quantity <= 0) return 0;
+  return Math.round(p.wearGram * buyPricePerGram(p));
+}
+
 // ─── Cart totals ───────────────────────────────────────────────────────────────
 
 /**
@@ -283,7 +312,7 @@ export function calcNetTotal(
 ): number {
   const a = calcTotalA(items);
   const b = calcTotalB(items);
-  if (txnType === "BuyGold") return -(a - discountAmount);
+  if (txnType === "BuyGold" || txnType === "BuySilver") return -(a - discountAmount);
   return a - b - discountAmount;
 }
 
@@ -298,7 +327,7 @@ export function calcTotal(
   discountAmount: number,
   txnType?: TransactionType,
 ): number {
-  if (txnType === "BuyGold" || txnType === "ExchangeGold") {
+  if (txnType === "BuyGold" || txnType === "BuySilver" || txnType === "ExchangeGold") {
     return Math.abs(calcNetTotal(items, txnType, discountAmount));
   }
   // SellGold / SellSilver / ExchangeCurrency

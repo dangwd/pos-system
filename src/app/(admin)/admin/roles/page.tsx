@@ -113,6 +113,14 @@ function PermissionsDialog({
           <span className="text-xs text-muted-foreground">
             {selected.size} / {allPermissions.length} quyền được chọn
           </span>
+          {selected.size < allPermissions.length && (
+            <button
+              onClick={() => setSelected(new Set(allPermissions.map((p) => p.id)))}
+              className="text-xs text-muted-foreground hover:text-primary underline underline-offset-2 transition-colors"
+            >
+              Chọn tất cả
+            </button>
+          )}
           {selected.size > 0 && (
             <button
               onClick={() => setSelected(new Set())}

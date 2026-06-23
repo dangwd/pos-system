@@ -13,6 +13,7 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
 import { CheckOutlined, DownOutlined } from '@ant-design/icons'
+import { FlagIcon } from '@/components/shared/FlagIcon'
 
 const LOCALE_CONFIG: Record<AppLocale, { flag: string; label: string; short: string }> = {
   lo: { flag: '🇱🇦', label: 'ພາສາລາວ', short: 'ລາວ' },
@@ -48,7 +49,7 @@ export function LocaleSwitcher() {
           isPending && 'opacity-50 cursor-wait',
         )}
       >
-        <span className="text-base leading-none">{currentCfg.flag}</span>
+        <FlagIcon flag={currentCfg.flag} className="text-base" />
         <DownOutlined className="h-3 w-3 text-muted-foreground" />
       </DropdownMenuTrigger>
 
@@ -65,7 +66,7 @@ export function LocaleSwitcher() {
                 isActive && 'bg-primary/8 text-primary font-medium',
               )}
             >
-              <span className="text-lg leading-none">{cfg.flag}</span>
+              <FlagIcon flag={cfg.flag} className="text-lg" />
               <div className="flex flex-col flex-1 min-w-0">
                 <span className="text-xs font-medium leading-tight">{cfg.short}</span>
                 <span className="text-[10px] text-muted-foreground leading-tight">{cfg.label}</span>

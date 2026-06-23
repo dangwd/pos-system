@@ -39,6 +39,7 @@ const TYPE_COLORS: Record<string, string> = {
   SellGold:         '#22c55e',
   SellSilver:       '#14b8a6',
   BuyGold:          '#3b82f6',
+  BuySilver:        '#64748b',
   ExchangeGold:     '#f59e0b',
   ExchangeCurrency: '#8b5cf6',
   BuyMoreGold:      '#0ea5e9',

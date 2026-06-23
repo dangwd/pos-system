@@ -1,4 +1,4 @@
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+import { useMutation, useQuery, useQueryClient, keepPreviousData } from '@tanstack/react-query'
 import { useMemo } from 'react'
 import { useLocale } from 'next-intl'
 import { useToast } from '@/lib/toast'
@@ -7,6 +7,7 @@ import { priceTableToPriceConfig } from '@/lib/price-table-adapter'
 import { getErrorMessage } from '@/lib/errors'
 import type { ApiError } from '@/lib/api-error'
 import type { AppLocale } from '@/lib/errors'
+import type { PagedResult } from '@/types/common'
 import type {
   PriceConfig,
   PriceTable,
@@ -15,6 +16,12 @@ import type {
   ExchangeRate,
   UpdateExchangeRateDto,
   BulkUpdateExchangeRatesRequest,
+  ExchangeRateSession,
+  ExchangeRatePair,
+  UpdateExchangeRatePairDto,
+  BulkUpdateExchangeRatePairsRequest,
+  ExchangeRatePairSession,
+  ExchangeHistoryQuery,
   StonePriceRule,
   CreateStonePriceRuleDto,
   UpdateStonePriceRuleDto,
@@ -25,7 +32,6 @@ import type {
   CreateGoldPurityDto,
   UpdateGoldPurityDto,
   AppRole,
-  Permission,
   UpdateRolePermissionsDto,
   CreateRoleDto,
   UpdateRoleDto,
@@ -36,8 +42,10 @@ import type {
 
 // ─── Query keys ───────────────────────────────────────────────────────────────
 
-const EXCHANGE_RATES_KEY         = ['config', 'exchange-rates'] as const
-const EXCHANGE_RATE_HISTORY_KEY  = ['config', 'exchange-rates', 'history'] as const
+const EXCHANGE_RATES_KEY              = ['config', 'exchange-rates'] as const
+const EXCHANGE_RATE_HISTORY_KEY       = ['config', 'exchange-rates', 'history'] as const
+const EXCHANGE_RATE_PAIRS_KEY         = ['config', 'exchange-rate-pairs'] as const
+const EXCHANGE_RATE_PAIR_HISTORY_KEY  = ['config', 'exchange-rate-pairs', 'history'] as const
 const STONE_RULES_KEY = ['config', 'stone-price-rules'] as const
 const WEIGHT_UNITS_KEY = ['config', 'weight-units'] as const
 const GOLD_PURITIES_KEY = ['config', 'gold-purities'] as const
@@ -138,7 +146,7 @@ export function useTogglePriceTableActive() {
   })
 }
 
-// ─── Tỷ giá ───────────────────────────────────────────────────────────────────
+// ─── Tỷ giá LAK (exchange_rates) ────────────────────────────────────────────────
 
 export function useExchangeRates() {
   return useQuery({
@@ -154,18 +162,11 @@ export function useUpdateExchangeRate() {
     mutationFn: (dto) => configRepository.updateExchangeRate(dto),
     onSuccess: () => {
       invalidate(EXCHANGE_RATES_KEY)
+      invalidate(EXCHANGE_RATE_HISTORY_KEY)
+      invalidate(EXCHANGE_RATE_PAIRS_KEY)
       toast.success(locale === 'lo' ? 'ອັບເດດອັດຕາສຳເລັດ' : locale === 'vi' ? 'Cập nhật tỷ giá thành công' : 'Exchange rate updated')
     },
     onError: (err) => toast.error(getErrorMessage(err.code, locale)),
-  })
-}
-
-export function useExchangeRateHistory(enabled: boolean) {
-  return useQuery({
-    queryKey: EXCHANGE_RATE_HISTORY_KEY,
-    queryFn: () => configRepository.getExchangeRateHistory(50),
-    staleTime: 30_000,
-    enabled,
   })
 }
 
@@ -176,6 +177,7 @@ export function useBulkUpdateExchangeRates() {
     onSuccess: () => {
       invalidate(EXCHANGE_RATES_KEY)
       invalidate(EXCHANGE_RATE_HISTORY_KEY)
+      invalidate(EXCHANGE_RATE_PAIRS_KEY)
       toast.success(
         locale === 'lo' ? 'ອັບເດດອັດຕາທັງໝົດສຳເລັດ'
           : locale === 'vi' ? 'Cập nhật tỷ giá hàng loạt thành công'
@@ -183,6 +185,70 @@ export function useBulkUpdateExchangeRates() {
       )
     },
     onError: (err) => toast.error(getErrorMessage(err.code, locale)),
+  })
+}
+
+/** Lịch sử tỷ giá LAK theo phiên — phân trang + lọc (page/pageSize/fromDate/toDate/currency). */
+export function useExchangeRateHistory(query: ExchangeHistoryQuery = {}, enabled = true) {
+  return useQuery<PagedResult<ExchangeRateSession>, ApiError>({
+    queryKey: [...EXCHANGE_RATE_HISTORY_KEY, query],
+    queryFn: () => configRepository.getExchangeRateHistory(query),
+    staleTime: 30_000,
+    placeholderData: keepPreviousData,
+    enabled,
+  })
+}
+
+// ─── Rate Graph — cặp tỷ giá (exchange_rate_pairs) ──────────────────────────────
+
+/** Cặp tỷ giá theo tiền gốc `from` (kèm cross-rate isComputed). Bỏ trống `from` = toàn bộ cặp đã lưu. */
+export function useExchangeRatePairs(from?: string, enabled = true) {
+  return useQuery<ExchangeRatePair[], ApiError>({
+    queryKey: [...EXCHANGE_RATE_PAIRS_KEY, from ?? null],
+    queryFn: () => configRepository.getExchangeRatePairs(from),
+    staleTime: 60_000,
+    enabled,
+  })
+}
+
+export function useUpdateExchangeRatePair() {
+  const { locale, toast, invalidate } = useConfigBase()
+  return useMutation<ExchangeRatePair, ApiError, { from: string; to: string; dto: UpdateExchangeRatePairDto }>({
+    mutationFn: ({ from, to, dto }) => configRepository.updateExchangeRatePair(from, to, dto),
+    onSuccess: () => {
+      invalidate(EXCHANGE_RATE_PAIRS_KEY)
+      invalidate(EXCHANGE_RATE_PAIR_HISTORY_KEY)
+      toast.success(locale === 'lo' ? 'ອັບເດດອັດຕາສຳເລັດ' : locale === 'vi' ? 'Cập nhật tỷ giá thành công' : 'Pair rate updated')
+    },
+    onError: (err) => toast.error(getErrorMessage(err.code, locale)),
+  })
+}
+
+export function useBulkUpdateExchangeRatePairs() {
+  const { locale, toast, invalidate } = useConfigBase()
+  return useMutation<ExchangeRatePair[], ApiError, BulkUpdateExchangeRatePairsRequest>({
+    mutationFn: (dto) => configRepository.bulkUpdateExchangeRatePairs(dto),
+    onSuccess: () => {
+      invalidate(EXCHANGE_RATE_PAIRS_KEY)
+      invalidate(EXCHANGE_RATE_PAIR_HISTORY_KEY)
+      toast.success(
+        locale === 'lo' ? 'ອັບເດດອັດຕາທັງໝົດສຳເລັດ'
+          : locale === 'vi' ? 'Cập nhật tỷ giá hàng loạt thành công'
+          : 'Bulk pair update successful',
+      )
+    },
+    onError: (err) => toast.error(getErrorMessage(err.code, locale)),
+  })
+}
+
+/** Lịch sử Rate Graph theo phiên — phân trang + lọc (page/pageSize/fromDate/toDate/currency). */
+export function useExchangeRatePairHistory(query: ExchangeHistoryQuery = {}, enabled = true) {
+  return useQuery<PagedResult<ExchangeRatePairSession>, ApiError>({
+    queryKey: [...EXCHANGE_RATE_PAIR_HISTORY_KEY, query],
+    queryFn: () => configRepository.getExchangeRatePairHistory(query),
+    staleTime: 30_000,
+    placeholderData: keepPreviousData,
+    enabled,
   })
 }
 

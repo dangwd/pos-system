@@ -18,6 +18,7 @@ import { useCashLedgerActivities } from '@/hooks/useCashLedger'
 import { transactionRepository } from '@/lib/repositories/transaction.repository'
 import { useToast } from '@/lib/toast'
 import type { TableColumnsType } from 'antd'
+import { FlagIcon } from '@/components/shared/FlagIcon'
 import type { Transaction } from '@/types/transaction'
 
 const PAGE_SIZE = 20
@@ -226,7 +227,7 @@ export default function CurrencyExchangeReportPage() {
           options={currencies
             .filter(c => c.isActive)
             .sort((a, b) => a.sortOrder - b.sortOrder)
-            .map(c => ({ value: c.code, label: `${c.flag ? c.flag + ' ' : ''}${c.code}` }))}
+            .map(c => ({ value: c.code, label: c.flag ? <><FlagIcon flag={c.flag} style={{ marginRight: 4 }} />{c.code}</> : c.code }))}
           value={currency}
           onChange={v => setCurrency(v ?? null)}
         />

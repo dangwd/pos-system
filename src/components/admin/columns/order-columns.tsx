@@ -12,6 +12,7 @@ const TYPE_STYLE: Record<string, string> = {
   SellGold:        'bg-green-100/80 text-green-700',
   SellSilver:      'bg-teal-100/80 text-teal-700',
   BuyGold:         'bg-blue-100/80 text-blue-700',
+  BuySilver:       'bg-slate-100/80 text-slate-700',
   BuyMoreGold:     'bg-blue-100/80 text-blue-700',
   ExchangeGold:    'bg-amber-100/80 text-amber-700',
   ExchangeFree:    'bg-amber-100/80 text-amber-700',

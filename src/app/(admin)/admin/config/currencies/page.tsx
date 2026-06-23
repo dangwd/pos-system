@@ -26,6 +26,7 @@ import {
 import type { Currency } from '@/types/config'
 import { Button as AntBtn, Popover as AntPopover, Tag, Space } from 'antd'
 import { InputNumber } from '@/components/ui/antd-number-input'
+import { FlagIcon } from '@/components/shared/FlagIcon'
 
 // ─── Shared panel styles (matches branches / users pages) ─────────────────────
 
@@ -240,11 +241,9 @@ export default function CurrenciesPage() {
               : t('noData')}
           </p>
         </div>
-        {false && (
-          <AntBtn type="primary" icon={<PlusOutlined />} onClick={openCreate}>
-            {t('addButton')}
-          </AntBtn>
-        )}
+        <AntBtn type="primary" icon={<PlusOutlined />} onClick={openCreate}>
+          {t('addButton')}
+        </AntBtn>
       </div>
 
       {/* ── Table panel ── */}
@@ -311,7 +310,7 @@ export default function CurrenciesPage() {
                       </span>
                     </td>
                     <td style={TD_STYLE}>
-                      <span style={{ fontSize: 22, lineHeight: 1 }}>{c.flag ?? '—'}</span>
+                      <FlagIcon flag={c.flag} style={{ fontSize: 22, lineHeight: 1 }} />
                     </td>
                     <td style={TD_STYLE}>
                       <span style={{ fontSize: 20, fontWeight: 700, lineHeight: 1 }}>{c.symbol}</span>
@@ -371,18 +370,16 @@ export default function CurrenciesPage() {
                         >
                           <EditOutlined size={13} />
                         </button>
-                        {false && (
-                          <button
-                            type="button"
-                            title={t('delete')}
-                            onClick={() => setDialog({ mode: 'delete', currency: c })}
-                            style={DEL_BTN_STYLE}
-                            onMouseEnter={e => Object.assign(e.currentTarget.style, DEL_BTN_HOVER)}
-                            onMouseLeave={e => Object.assign(e.currentTarget.style, DEL_BTN_STYLE)}
-                          >
-                            <DeleteOutlined size={13} />
-                          </button>
-                        )}
+                        <button
+                          type="button"
+                          title={t('delete')}
+                          onClick={() => setDialog({ mode: 'delete', currency: c })}
+                          style={DEL_BTN_STYLE}
+                          onMouseEnter={e => Object.assign(e.currentTarget.style, DEL_BTN_HOVER)}
+                          onMouseLeave={e => Object.assign(e.currentTarget.style, DEL_BTN_STYLE)}
+                        >
+                          <DeleteOutlined size={13} />
+                        </button>
                       </div>
                     </td>
                   </tr>
@@ -465,7 +462,7 @@ export default function CurrenciesPage() {
                           form.flag === emoji && 'bg-primary/10 ring-1 ring-inset ring-primary/30',
                         )}
                       >
-                        <span className="text-xl leading-none">{emoji}</span>
+                        <FlagIcon flag={emoji} className="text-xl leading-none" />
                         <span className="text-[9px] text-muted-foreground leading-none font-medium truncate w-full text-center px-0.5">{name}</span>
                       </button>
                     ))}
@@ -481,7 +478,7 @@ export default function CurrenciesPage() {
                 >
                   {form.flag ? (
                     <>
-                      <span className="text-xl leading-none">{form.flag}</span>
+                      <FlagIcon flag={form.flag} className="text-xl leading-none" />
                       <span className="text-sm text-muted-foreground flex-1 truncate">
                         {FLAGS.find(f => f.emoji === form.flag)?.name ?? ''}
                       </span>

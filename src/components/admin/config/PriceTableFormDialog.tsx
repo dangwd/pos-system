@@ -5,7 +5,8 @@ import { useForm, Controller } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
 import { useTranslations } from 'next-intl'
-import { Select, InputNumber } from 'antd'
+import { Select } from 'antd'
+import { InputNumber } from '@/components/ui/antd-number-input'
 import {
   Dialog,
   DialogContent,
@@ -18,11 +19,14 @@ import { Label } from '@/components/ui/label'
 import { Button } from '@/components/ui/button'
 import { Spinner } from '@/components/ui/spinner'
 import { SaveOutlined } from '@ant-design/icons'
-import { useCreatePriceTable } from '@/hooks/useConfig'
+import { useCreatePriceTable, useGoldPurities } from '@/hooks/useConfig'
 import type { Branch } from '@/types/branch'
-import type { PriceTable, PriceRow } from '@/types/config'
+import type { PriceTable, PriceRow, GoldPurity } from '@/types/config'
 
 // ─── Default rows ──────────────────────────────────────────────────────────────
+// Fallback dùng khi hàm lượng từ config chưa tải xong / chưa cấu hình.
+// Nguồn chính là /api/config/gold-purities (xem puritiesToRows) để bảng giá luôn
+// khớp với màn "Hàm lượng vàng / bạc".
 
 const DEFAULT_ROWS: PriceRow[] = [
   { karat: '9999', type: 'gold',   unit: 'chi',  gramPerUnit: 3.75, buy: 0, sell: 0 },
@@ -34,6 +38,29 @@ const DEFAULT_ROWS: PriceRow[] = [
   { karat: '925',  type: 'silver', unit: 'gram', gramPerUnit: 1,    buy: 0, sell: 0 },
   { karat: '800',  type: 'silver', unit: 'gram', gramPerUnit: 1,    buy: 0, sell: 0 },
 ]
+
+// Quy ước đơn vị: vàng = chỉ (3.75g), bạc = gram (1g) — snapshot lúc tạo bảng.
+// Sắp xếp: vàng trước, bạc sau; trong mỗi nhóm theo độ tinh khiết giảm dần.
+function puritiesToRows(purities: GoldPurity[]): PriceRow[] {
+  return [...purities]
+    .sort((a, b) => {
+      const sa = (a.category ?? 'Gold') === 'Silver' ? 1 : 0
+      const sb = (b.category ?? 'Gold') === 'Silver' ? 1 : 0
+      if (sa !== sb) return sa - sb
+      return b.hamLuong - a.hamLuong
+    })
+    .map((p) => {
+      const isSilver = (p.category ?? 'Gold') === 'Silver'
+      return {
+        karat: p.ma,
+        type: isSilver ? 'silver' : 'gold',
+        unit: isSilver ? 'gram' : 'chi',
+        gramPerUnit: isSilver ? 1 : 3.75,
+        buy: 0,
+        sell: 0,
+      } as PriceRow
+    })
+}
 
 // ─── Schema ────────────────────────────────────────────────────────────────────
 
@@ -76,6 +103,8 @@ export function PriceTableFormDialog({ open, copySource, branches, onClose }: Pr
   })
   const scope = watch('scope')
 
+  const { data: purities = [] } = useGoldPurities()
+
   const [priceRows, setPriceRows] = useState<PriceRow[]>(() => DEFAULT_ROWS.map((r) => ({ ...r })))
 
   useEffect(() => {
@@ -85,12 +114,13 @@ export function PriceTableFormDialog({ open, copySource, branches, onClose }: Pr
       scope:    copySource?.scope    ?? 'all',
       branches: copySource?.branches ?? [],
     })
-    setPriceRows(
-      copySource?.prices.length
-        ? copySource.prices.map((r) => ({ ...r }))
-        : DEFAULT_ROWS.map((r) => ({ ...r })),
-    )
-  }, [open, copySource]) // eslint-disable-line react-hooks/exhaustive-deps
+    if (copySource?.prices.length) {
+      setPriceRows(copySource.prices.map((r) => ({ ...r })))
+    } else {
+      const rows = puritiesToRows(purities)
+      setPriceRows(rows.length ? rows : DEFAULT_ROWS.map((r) => ({ ...r })))
+    }
+  }, [open, copySource, purities]) // eslint-disable-line react-hooks/exhaustive-deps
 
   const { mutate: create, isPending } = useCreatePriceTable()
 

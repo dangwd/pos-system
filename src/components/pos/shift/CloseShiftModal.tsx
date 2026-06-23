@@ -22,6 +22,7 @@ import {
 import { useEffect, useMemo, useState } from 'react'
 import { Controller, useForm, useWatch } from 'react-hook-form'
 import { z } from 'zod'
+import { FlagIcon } from '@/components/shared/FlagIcon'
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
@@ -399,7 +400,7 @@ export function CloseShiftModal({ open, onClose, shiftId, shiftCode, counterName
                       isActive ? 'bg-card border-primary shadow-sm ring-1 ring-primary/20' : 'bg-card hover:bg-muted/60 border-border')}
                   >
                     <div className="flex items-center gap-1.5 mb-1">
-                      <span className="text-sm leading-none select-none">{tab.flag}</span>
+                      <FlagIcon flag={tab.flag} className="text-sm leading-none select-none" />
                       <span className={cn('font-mono font-bold text-sm', isActive ? 'text-primary' : 'text-foreground')}>{tab.code}</span>
                       {/* TODO: hiển thị badge Khớp/Lệch khi bật lại nghiệp vụ */}
                     </div>
@@ -436,7 +437,7 @@ export function CloseShiftModal({ open, onClose, shiftId, shiftCode, counterName
                             </div>
                           )}
                           <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
-                            <span className="select-none">{activeCurrencyData.flag}</span>
+                            <FlagIcon flag={activeCurrencyData.flag} className="select-none" />
                             <span>{activeCurrencyData.name}</span>
                           </div>
                         </div>

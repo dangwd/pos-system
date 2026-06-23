@@ -504,9 +504,14 @@ export default function CashLedgerPage() {
       },
       {
         title: t("columns.method"),
-        dataIndex: "methodLabel",
+        key: "method",
         width: 160,
-        render: (v: string) => <span style={{ fontSize: 13 }}>{v}</span>,
+        render: (_: unknown, record: ActivityItem) => {
+          const label = record.method
+            ? t(`method.${record.method}` as Parameters<typeof t>[0])
+            : record.methodLabel
+          return <span style={{ fontSize: 13 }}>{label}</span>
+        },
       },
     ],
     [t],

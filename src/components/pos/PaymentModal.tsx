@@ -46,6 +46,10 @@ const TXN_META: Record<string, { label: string; color: string }> = {
     label: "Mua vàng",
     color: "bg-blue-100 text-blue-800 dark:bg-blue-900/40 dark:text-blue-300",
   },
+  BuySilver: {
+    label: "Mua bạc",
+    color: "bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-300",
+  },
   ExchangeGold: {
     label: "Thu đổi vàng cũ",
     color:
@@ -129,7 +133,7 @@ function ItemRow({ item, index, hideFees }: { item: CartItem; index: number; hid
           )}
           {item.perItemWearChi > 0 && (
             <span className="text-[10px] text-orange-500">
-              HAO HỤT: {item.perItemWearChi} Chỉ
+              HAO HỤT: {item.perItemWearChi} {item.wearUnitGram === 1 ? "Gram" : "Chỉ"}
             </span>
           )}
         </div>
@@ -178,7 +182,7 @@ export function PaymentModal({
   const discount = tab?.discountAmount ?? 0;
   const txnMeta = TXN_META[txnType] ?? TXN_META.SellGold;
 
-  const isBuy = txnType === "BuyGold";
+  const isBuy = txnType === "BuyGold" || txnType === "BuySilver";
   const isExchange = txnType === "ExchangeGold";
   const exchangeItems = items.filter((i) => i.itemRole === "ExchangeIn");
   const normalItems = items.filter((i) => i.itemRole === "Normal");
@@ -392,7 +396,7 @@ export function PaymentModal({
                       .filter((i) => i.itemRole === "Normal")
                       .reduce(
                         (s, i) =>
-                          s + Math.round(i.perItemWearChi * 3.75 * i.unitPriceLakPerGram),
+                          s + Math.round(i.perItemWearChi * (i.wearUnitGram || 3.75) * i.unitPriceLakPerGram),
                         0,
                       );
                     return (

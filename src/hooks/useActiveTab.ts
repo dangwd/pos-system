@@ -13,6 +13,7 @@ import {
   calcTotalB,
 } from "@/lib/pricing";
 import { useInvoiceTabStore } from "@/stores/invoice-tab.store";
+import type { FxLine } from "@/types/invoice-tab";
 import { useMemo } from "react";
 
 export function useActiveTab() {
@@ -31,6 +32,8 @@ export function useActiveTab() {
     enterCancelMode,
     exitCancelMode,
     setFxDataInActive,
+    setFxLinesInActive,
+    setFxPaymentMethodInActive,
   } = useInvoiceTabStore();
 
   const activeTab = useMemo(
@@ -66,10 +69,16 @@ export function useActiveTab() {
 
   /** Số tiền thanh toán thực tế (luôn dương) */
   const total = useMemo(() => {
-    // FX: bỏ qua items, lấy thẳng fxLakAmount
-    if (txnType === "ExchangeCurrency") return activeTab?.fxLakAmount ?? 0;
+    if (txnType === "ExchangeCurrency") {
+      const lines = activeTab?.fxLines ?? [];
+      if (lines.length > 0) {
+        // Tổng LAK equivalent = Σ round(fromAmount × fromRateToLak)
+        return lines.reduce((sum, l) => sum + Math.round(l.fromAmount * l.fromRateToLak), 0);
+      }
+      return activeTab?.fxLakAmount ?? 0;
+    }
     return calcTotal(items, discount, txnType);
-  }, [items, discount, txnType, activeTab?.fxLakAmount]);
+  }, [items, discount, txnType, activeTab?.fxLakAmount, activeTab?.fxLines]);
 
   const totalQty = items.reduce((s, i) => s + i.qty, 0);
 
@@ -104,6 +113,14 @@ export function useActiveTab() {
   const clearDiscount = () => {
     if (activeTab)
       updateTab(activeTab.id, { couponCode: null, discountAmount: 0 });
+  };
+
+  const setFxLines = (lines: FxLine[]) => {
+    setFxLinesInActive(lines);
+  };
+
+  const setFxPaymentMethod = (method: 'CASH' | 'BANK') => {
+    setFxPaymentMethodInActive(method);
   };
 
   const setFxData = (
@@ -151,6 +168,8 @@ export function useActiveTab() {
     setNote,
     applyDiscount,
     clearDiscount,
+    setFxLines,
+    setFxPaymentMethod,
     setFxData,
   };
 }

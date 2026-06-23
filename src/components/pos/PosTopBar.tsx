@@ -81,7 +81,7 @@ function ProductSearch({ onSelect }: ProductSearchProps) {
     txnType === "ExchangeGold";
 
   const categoryCode =
-    txnType === "SellSilver"
+    txnType === "SellSilver" || txnType === "BuySilver"
       ? "Silver"
       : txnType === "ExchangeCurrency"
         ? undefined
@@ -229,6 +229,7 @@ const TXN_TYPE_ICONS: Partial<Record<string, React.ElementType>> = {
   SellGold: MoneyCollectOutlined,
   SellSilver: GoldOutlined,
   BuyGold: PlusSquareOutlined,
+  BuySilver: PlusSquareOutlined,
   ExchangeGold: SwapOutlined,
   ExchangeCurrency: BankOutlined,
 };
@@ -337,6 +338,7 @@ const TXN_TYPE_OPTIONS: { type: TransactionType; Icon: React.ElementType }[] = [
   { type: "SellGold", Icon: MoneyCollectOutlined },
   { type: "SellSilver", Icon: GoldOutlined },
   { type: "BuyGold", Icon: PlusSquareOutlined },
+  { type: "BuySilver", Icon: PlusSquareOutlined },
   { type: "ExchangeGold", Icon: SwapOutlined },
   { type: "ExchangeCurrency", Icon: BankOutlined },
 ];

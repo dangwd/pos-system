@@ -93,6 +93,82 @@ export interface BulkUpdateExchangeRatesRequest {
   items: UpdateExchangeRateDto[]
 }
 
+// ─── Lịch sử tỷ giá LAK theo phiên ──────────────────────────────────────────
+
+/** Một loại ngoại tệ trong một phiên cập nhật tỷ giá LAK */
+export interface ExchangeRateSessionItem {
+  currencyCode: string
+  rateToLak: number
+  adjustment: number
+  effectiveRate: number  // = rateToLak + adjustment
+}
+
+/** Một phiên thay đổi tỷ giá LAK (GET /api/config/exchange-rates/history) */
+export interface ExchangeRateSession {
+  sessionId: string | null
+  updatedBy: string
+  updatedAt: string
+  items: ExchangeRateSessionItem[]
+}
+
+// ─── Rate Graph — cặp tỷ giá (exchange_rate_pairs) ──────────────────────────
+
+/**
+ * Một cặp tỷ giá trong Rate Graph: 1 from = rate to.
+ * GET /api/config/exchange-rate-pairs (+ ?from=) | response của PUT & POST /bulk.
+ */
+export interface ExchangeRatePair {
+  from: string
+  to: string
+  rate: number
+  isComputed: boolean        // true = cross-rate tính qua LAK, không lưu trực tiếp
+  updatedBy: string | null   // null khi isComputed
+  updatedAt: string | null   // null khi isComputed
+}
+
+/** PUT /api/config/exchange-rate-pairs/{from}/{to} */
+export interface UpdateExchangeRatePairDto {
+  rate: number
+}
+
+/** Một item trong bulk upsert cặp tỷ giá */
+export interface ExchangeRatePairBulkItem {
+  from: string
+  to: string
+  rate: number
+}
+
+/** POST /api/config/exchange-rate-pairs/bulk */
+export interface BulkUpdateExchangeRatePairsRequest {
+  items: ExchangeRatePairBulkItem[]
+}
+
+// ─── Rate Graph — lịch sử cặp tỷ giá ────────────────────────────────────────
+
+/** Một cặp tỷ giá trong log: 1 from = rate to */
+export interface ExchangeRatePairLogItem {
+  from: string
+  to: string
+  rate: number
+}
+
+/** Một phiên thay đổi cặp tỷ giá (GET /api/config/exchange-rate-pairs/history) */
+export interface ExchangeRatePairSession {
+  sessionId: string | null
+  updatedBy: string
+  updatedAt: string
+  items: ExchangeRatePairLogItem[]
+}
+
+/** Tham số lọc + phân trang dùng chung cho hai endpoint history */
+export interface ExchangeHistoryQuery {
+  page?: number
+  pageSize?: number
+  fromDate?: string  // ISO 8601
+  toDate?: string    // ISO 8601
+  currency?: string  // mã tiền tệ, ví dụ "USD"
+}
+
 // ─── Bảng phí đá đính kèm ────────────────────────────────────────────────────
 
 /** GET /api/config/stone-price-rules */

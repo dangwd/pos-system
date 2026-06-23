@@ -13,7 +13,8 @@
 
 import { create } from 'zustand'
 import { amountInWords, type AmountLocale } from '@/lib/amount-in-words'
-import type { Transaction, TransactionType } from '@/types/transaction'
+import { calcWearValue } from '@/lib/pricing'
+import type { ExchangeLineResponse, Transaction, TransactionType } from '@/types/transaction'
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -39,6 +40,7 @@ export const INVOICE_TITLE: Record<TransactionType, { vi: string; lo: string; en
   SellGold:         { vi: 'HÓA ĐƠN BÁN VÀNG',        lo: 'ໃບບິນຂາຍຄຳ',           en: 'GOLD SALES INVOICE' },
   SellSilver:       { vi: 'HÓA ĐƠN BÁN BẠC',         lo: 'ໃບບິນຂາຍເງິນ',          en: 'SILVER SALES INVOICE' },
   BuyGold:          { vi: 'PHIẾU MUA VÀNG',           lo: 'ໃບຮັບຊື້ຄຳ',            en: 'GOLD PURCHASE RECEIPT' },
+  BuySilver:        { vi: 'PHIẾU MUA BẠC',            lo: 'ໃບຮັບຊື້ເງິນ',          en: 'SILVER PURCHASE RECEIPT' },
   BuyMoreGold:      { vi: 'PHIẾU MUA THÊM VÀNG',      lo: 'ໃບຮັບຊື້ຄຳເພີ່ມ',       en: 'ADDITIONAL GOLD PURCHASE' },
   ExchangeGold:     { vi: 'PHIẾU THU ĐỔI VÀNG',       lo: 'ໃບແລກປ່ຽນຄຳ',           en: 'GOLD EXCHANGE RECEIPT' },
   ExchangeFree:     { vi: 'PHIẾU ĐỔI VÀNG MIỄN PHÍ',  lo: 'ໃບແລກປ່ຽນຄຳຟຣີ',        en: 'FREE GOLD EXCHANGE' },
@@ -86,6 +88,9 @@ export interface PrintInvoice {
   bankAmount: number | null
 
   // ── Ngoại tệ (ExchangeCurrency) ─────────────────────────────────────────────
+  // Mode A — multi-line (ưu tiên khi có)
+  exchangeLines: ExchangeLineResponse[] | null
+  // Mode B — scalar (fallback / backward compat)
   currency: string | null
   exchangeRate: number | null
   foreignAmount: number | null     // Số tiền nguồn khách đưa (snapshot từ DB)
@@ -118,7 +123,7 @@ function parseItemFees(name: string): { cleanName: string; phiKho: number; haoHu
 }
 
 function normalize(tx: Transaction, ctx?: PrintContext): PrintInvoice {
-  const isBuyGold = tx.type === 'BuyGold'
+  const isBuyGold = tx.type === 'BuyGold' || tx.type === 'BuySilver'
   const items: PrintItem[] = tx.items.map((item, idx) => {
     const { cleanName, phiKho, haoHutChi } = parseItemFees(item.productSnapshotName)
     // BuyGold Normal: dùng unitPriceLak (giá mua thực tế nhập tay).
@@ -128,18 +133,23 @@ function normalize(tx: Transaction, ctx?: PrintContext): PrintInvoice {
     const pricePerUnit = isBuyNormal
       ? item.unitPriceLak
       : (item.tableUnitPriceLak || item.unitPriceLak)
-    // gramPerUnit = weightGram (có thể là effectiveGram sau hao mòn nếu backend dùng override)
-    // pricePerGram = pricePerUnit / gramPerUnit (= giá gốc/gram khi BuyGold có hao mòn)
-    const gramPerUnit = item.weightGram > 0 ? item.weightGram : 3.75
-    const pricePerGram = pricePerUnit / gramPerUnit
+    // weightGram = TỔNG gram cả dòng; pricePerUnit = giá/1 đơn vị (mỗi SP).
+    // → giá/gram = pricePerUnit × quantity / tổng gram (nhân SL để khớp khi qty > 1)
+    const lineGram = item.weightGram > 0 ? item.weightGram : 3.75
 
     // Ưu tiên: encoding trong tên → backend field → 0
     const resolvedHaoHutChi = haoHutChi > 0
       ? haoHutChi
       : (item.haoHutGram && item.haoHutGram > 0 ? item.haoHutGram / 3.75 : 0)
-    const wearValue = resolvedHaoHutChi > 0
-      ? Math.round(resolvedHaoHutChi * 3.75 * pricePerGram)
-      : 0
+    // weightGram backend trả về đã trừ hao mòn → khôi phục trọng lượng gốc
+    // (lineGram + wearGram) trong calcWearValue trước khi suy giá/gram.
+    const wearGram = resolvedHaoHutChi * 3.75
+    const wearValue = calcWearValue({
+      unitPriceLak: pricePerUnit,
+      quantity: item.quantity,
+      weightGram: lineGram,
+      wearGram,
+    })
 
     const resolvedDamageFee = phiKho > 0
       ? phiKho
@@ -167,11 +177,12 @@ function normalize(tx: Transaction, ctx?: PrintContext): PrintInvoice {
   const isExchange = EXCHANGE_TYPES.includes(tx.type)
   const printAmount = isExchange ? Math.abs(tx.totalAmount) : tx.totalAmount
 
-  // BuyGold: subtotalAmount của backend là giá mua effective (đã trừ hao mòn).
-  // Phục hồi giá mua gốc = effective + wearValue để PrintInvoiceModal tính math đúng.
+  // BuyGold: giá mua gốc (gross) = SL × giá/đơn vị (unitPriceLak là giá theo
+  // trọng lượng GỐC nên đã là gross, KHÔNG cộng thêm wearValue — cộng vào sẽ
+  // tính trùng phần hao mòn). PrintInvoiceModal trừ hao mòn & phí lỗi từ gross này.
   const normalItems = items.filter(i => i.itemRole === 'Normal')
   const buyGoldOriginalGross = isBuyGold
-    ? normalItems.reduce((s, i) => s + i.quantity * i.unitPriceLak + i.wearValue, 0)
+    ? normalItems.reduce((s, i) => s + i.quantity * i.unitPriceLak, 0)
     : 0
 
   return {
@@ -207,6 +218,7 @@ function normalize(tx: Transaction, ctx?: PrintContext): PrintInvoice {
     cashAmount:    tx.cashAmount,
     bankAmount:    tx.bankAmount,
 
+    exchangeLines:   tx.exchangeLines ?? null,
     currency:        tx.currency,
     exchangeRate:    tx.exchangeRate,
     foreignAmount:   tx.foreignAmount,

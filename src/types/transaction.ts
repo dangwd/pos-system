@@ -16,7 +16,8 @@
 export type TransactionType =
   | "SellGold" // Bán vàng
   | "SellSilver" // Bán bạc
-  | "BuyGold" // Mua vào từ khách
+  | "BuyGold" // Mua vàng từ khách
+  | "BuySilver" // Mua bạc từ khách
   | "ExchangeGold" // Thu đổi vàng cũ
   | "ExchangeCurrency" // Thu đổi ngoại tệ
   | "BuyMoreGold" // Mua thêm / trade-up
@@ -50,13 +51,13 @@ export interface TransactionItem {
   stoneFee: number; // Phí đá
   phiHuHai?: number; // Phí lỗi hỏng / hủy hoại (₭) — undefined khi backend cũ chưa trả
   haoHutGram?: number; // Hao hụt trọng lượng (gram) — undefined khi backend cũ chưa trả
-  // ── FX (ExchangeCurrency) — mỗi item là 1 dòng đổi tiền nguồn → đích ──
-  fxFromCurrency?: string; // Loại tiền khách đưa
-  fxFromAmount?: number; // Số tiền khách đưa (theo fxFromCurrency)
-  fxFromRateToLak?: number; // Tỷ giá tiền đưa → LAK
-  fxToCurrency?: string; // Loại tiền khách nhận
-  fxToRateToLak?: number; // Tỷ giá tiền nhận → LAK
-  fxToAmount?: number; // Số tiền khách nhận (theo fxToCurrency)
+  // FX per-item fields — chỉ có trên ExchangeCurrency items (phiếu mới multi-line)
+  fxFromCurrency?: string | null;
+  fxFromAmount?: number | null;
+  fxFromRateToLak?: number | null;
+  fxToCurrency?: string | null;
+  fxToAmount?: number | null;
+  fxToRateToLak?: number | null;
 }
 
 /** Thông tin khách hàng rút gọn trong transaction */
@@ -96,6 +97,7 @@ export interface Transaction {
   note: string | null;
   transactedAt: string; // ISO 8601
   referenceInvoiceCode: string | null;
+  exchangeLines?: ExchangeLineResponse[] | null; // Mode A — trả về từ backend
   cancelReason: string | null;
   cancelledAt: string | null;
   customer: TransactionCustomer | null;
@@ -122,6 +124,25 @@ export interface CreateTransactionItemDto {
   phiHuHai: number; // Phí hủy hoại (₭) — Tiền côngcho ExchangeIn
 }
 
+/** Một dòng exchangeLines trong Chế độ A multi-line FX (gửi lên) */
+export interface ExchangeLineDto {
+  fromCurrency: string;
+  fromAmount: number;
+  fromRateToLak: number;
+  toCurrency: string;
+  toRateToLak: number;
+}
+
+/** Một dòng exchangeLines trong response (backend trả về — toAmount được tính sẵn) */
+export interface ExchangeLineResponse {
+  fromCurrency: string;
+  fromAmount: number;
+  fromRateToLak: number;
+  toCurrency: string;
+  toRateToLak: number;
+  toAmount?: number; // backend có thể trả về, hoặc frontend tự tính
+}
+
 /** POST /api/transactions — Tạo giao dịch mới */
 export interface CreateTransactionDto {
   type: TransactionType;
@@ -132,11 +153,14 @@ export interface CreateTransactionDto {
   paymentMethod: PaymentMethod;
   cashAmount?: number | null; // Bắt buộc khi COMBINED
   bankAmount?: number | null; // Bắt buộc khi COMBINED
-  currency?: string | null; // loại tiền nguồn; null = LAK
-  exchangeRate?: number | null; // tỷ giá tiền nguồn → LAK; null khi nguồn = LAK
-  foreignAmount?: number | null; // số tiền nguồn khách đưa (ExchangeCurrency)
-  targetCurrency?: string | null; // loại tiền đích; null/"LAK" = trả LAK
-  targetRateToLak?: number | null; // tỷ giá tiền đích → LAK; bắt buộc khi đích ≠ LAK
+  // Chế độ A — Multi-line FX (ưu tiên nếu có)
+  exchangeLines?: ExchangeLineDto[] | null;
+  // Chế độ B — Scalar FX (legacy, bỏ dần)
+  currency?: string | null;
+  exchangeRate?: number | null;
+  foreignAmount?: number | null;
+  targetCurrency?: string | null;
+  targetRateToLak?: number | null;
   note?: string;
   referenceInvoiceCode?: string; // Mã HĐ vàng cũ liên kết (ExchangeGold)
 }

@@ -81,6 +81,7 @@ export function useExchangeInvoiceLookup() {
         itemRole: 'ExchangeIn' as const,
         perItemDamage: 0,
         perItemWearChi: 0,
+        wearUnitGram: 3.75,
         isDamaged: false,
         isReadOnly: true,
       }

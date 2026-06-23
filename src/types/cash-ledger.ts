@@ -9,6 +9,7 @@ export type CashEntryType =
   | 'SellGold'
   | 'SellSilver'
   | 'BuyGold'
+  | 'BuySilver'
   | 'ExchangeGold'
   | 'ExchangeCurrency'
   | 'BuyMoreGold'
@@ -38,13 +39,13 @@ export interface ActivityItem {
   timeLabel: string      // "HH:mm:ss - dd/MM/yyyy"
   createdByName: string
   branchName: string
-  methodLabel: string    // "Tiền mặt" | "Chuyển khoản ngân hàng" | "Tiền mặt & Chuyển khoản"
+  method?: CashMethod    // enum từ backend — dùng để dịch qua i18n
+  methodLabel: string    // fallback khi backend chưa trả method
   direction: CashDirection
   currency: CashCurrency
   originalAmount?: number  // Số tiền gốc theo đồng tiền của phiếu
   amountLak?: number       // Số tiền quy đổi sang LAK
   // Các field bổ sung có sẵn trong list response (chỉ POS entries mới có ref/customer)
-  method?: CashMethod
   cashAmountLak?: number
   bankAmountLak?: number
   description?: string

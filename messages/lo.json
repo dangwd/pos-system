@@ -47,7 +47,8 @@
       "summary": {
         "subtotal": "ລວມສິນຄ້າ ({count} ລາຍການ)",
         "discount": "ສ່ວນຫຼຸດ",
-        "due": "← ລູກຄ້າຕ້ອງຊຳລະ"
+        "due": "← ລູກຄ້າຕ້ອງຊຳລະ",
+        "storeDue": "ຮ້ານຕ້ອງຈ່າຍ"
       },
       "opLabels": {
         "gold": "ຂາຍທອງ",
@@ -55,6 +56,31 @@
         "jewelry": "ເຄື່ອງປະດັບ",
         "watch": "ໂມງ",
         "default": "ຂາຍສິນຄ້າ"
+      },
+      "exchangeGold": {
+        "sectionOldGold": "ທອງເກົ່ານຳສ່ງ",
+        "sectionNewGoods": "ສິນຄ້າໃໝ່ທີ່ຂາຍ",
+        "searchPlaceholder": "ຄົ້ນຫາທອງເກົ່າເພື່ອເພີ່ມດ້ວຍຕົນເອງ...",
+        "emptyOldGold": "ຄົ້ນຫາທອງເກົ່າໃນຊ່ອງດ້ານເທິງ ຫຼື ເຊື່ອມໃບບິນຕົ້ນ",
+        "emptyNewGoods": "ຄົ້ນຫາສິນຄ້າໃໝ່ຈາກແຖບຄົ້ນຫາ (F3)",
+        "totalOldGold": "(B) ລວມທອງເກົ່າທີ່ຫັກ",
+        "totalNewGoods": "(A) ລວມສິນຄ້າໃໝ່ຂາຍ",
+        "netCustomerPays": "ລູກຄ້າຈ່າຍເພີ່ມ",
+        "netStorePays": "ຮ້ານຄືນເງິນລູກຄ້າ",
+        "netBreakEven": "ຄຸ້ມທຶນ",
+        "formulaCustomerPays": "A − B",
+        "formulaStorePays": "B − A",
+        "formulaBreakEven": "A = B",
+        "colPricePerUnit": "ລາຄາ/ຊີ",
+        "colDamage": "ຄ່າເສຍຫາຍ (₭)",
+        "colWear": "ການສຶກຫຼໍ (ຊີ)",
+        "colWearValue": "ມູນຄ່າສຶກ (₭)"
+      },
+      "buyGold": {
+        "colProduct": "ສິນຄ້ານຳເຂົ້າ",
+        "colBuyPrice": "ລາຄາຊື້",
+        "colStorePays": "ຮ້ານຈ່າຍ",
+        "colWearGram": "ການສຶກຫຼໍ (ກຣາມ)"
       }
     },
     "payment": {
@@ -81,7 +107,36 @@
         "currency": "₭ (ກີບ)",
         "checkout": "ຊຳລະເງິນ",
         "processing": "ກຳລັງດຳເນີນການ...",
-        "createCustomer": "ສ້າງລູກຄ້າໃໝ່"
+        "createCustomer": "ສ້າງລູກຄ້າໃໝ່",
+        "lookupNotFoundAlert": "ບໍ່ພົບໃບບິນ",
+        "lookupResultCancelled": "ຍົກເລີກແລ້ວ",
+        "lookupResultCompleted": "ສຳເລັດ",
+        "lookupResultDate": "ວັນທີ GD",
+        "lookupResultCustomer": "ລູກຄ້າ",
+        "lookupResultPhone": "ໂທລະສັບ",
+        "lookupResultTotal": "ລວມເງິນ",
+        "fxCustomerDeposit": "ລູກຄ້ານຳສ່ງ",
+        "fxCrossRate": "ອັດຕາແລກປ່ຽນ",
+        "fxCustomerReceives": "ລູກຄ້າຮັບຈິງ",
+        "fxNote": "ການໂອນແລກປ່ຽນເງິນຕາຈະຖືກບັນທຶກໂດຍອັດຕະໂນມັດໃສ່ Sổ Quỹ.",
+        "exchangeTotalNew": "ລວມສິນຄ້າໃໝ່ (A)",
+        "exchangeTotalOld": "ທອງເກົ່າຫັກ (B)",
+        "buyBuyPrice": "ລາຄາຊື້ເຂົ້າ",
+        "buyDamageFee": "ຄ່າເສຍຫາຍ",
+        "buyWearFee": "ຄ່າສຶກຫຼໍ",
+        "buyStorePays": "ຮ້ານຕ້ອງຈ່າຍ",
+        "exchangeCustomerPays": "ລູກຄ້າຈ່າຍເພີ່ມ",
+        "exchangeStorePays": "ຮ້ານຄືນເງິນ",
+        "exchangeBreakEven": "ຄຸ້ມທຶນ",
+        "combinedTotal": "ລວມ:",
+        "combinedMatch": "✓ ຄົບ",
+        "combinedOver": "ເກີນ +{amount}",
+        "combinedShort": "ຂາດ -{amount}",
+        "cancelSuccess": "ຍົກເລີກໃບບິນສຳເລັດ",
+        "cancelling": "ກຳລັງຍົກເລີກ...",
+        "cancelInvoice": "ຍົກເລີກໃບບິນ",
+        "fxCheckout": "ອອກໃບຮັບ FX",
+        "fxPaymentMethodLabel": "ວິທີຊຳລະ"
       },
       "modal": {
         "title": "ຢືນຢັນການຊຳລະ",
@@ -130,6 +185,7 @@
       "panelNew": "ສິນຄ້າໃໝ່ (A)",
       "panelNewTotal": "ລວມຂາຍ (A)",
       "weightUnit": "ຊີ",
+      "weightUnitGram": "ກຣາມ",
       "summaryExchangeA": "(A) ສິນຄ້າໃໝ່",
       "summaryExchangeB": "(B) ທອງເກົ່າຫັກ",
       "customerPaysExtra": "ລູກຄ້າຈ່າຍເພີ່ມ",
@@ -139,6 +195,9 @@
       "buyWearLabel": "ສຶກຫໍ (−)",
       "buyDamageLabel": "ຄ່າເສຍຫາຍ (−)",
       "shopPaysTotalLabel": "ຮ້ານຈ່າຍ",
+      "fxColFrom": "ເງິນທີ່ໃຫ້",
+      "fxColRate": "ອັດຕາແລກ",
+      "fxColTo": "ເງິນທີ່ໄດ້ຮັບ",
       "fxTotalLak": "ລວມແລກ (LAK)",
       "fxTotal": "ລວມແລກ ({currency})"
     },
@@ -178,6 +237,12 @@
         "abbr": "ຊທ",
         "desc": "ຊື້ທອງຈາກລູກຄ້າ, ຈ່າຍກີບ"
       },
+      "BuySilver": {
+        "label": "ຊື້ເງິນ",
+        "short": "ຊື້ເງິນ",
+        "abbr": "ຊງ",
+        "desc": "ຊື້ເງິນຈາກລູກຄ້າ, ຈ່າຍກີບ"
+      },
       "ExchangeGold": {
         "label": "ແລກປ່ຽນທອງເກົ່າ",
         "short": "ແລກທອງ",
@@ -199,7 +264,10 @@
       "enterAmount": "ໃສ່ຈຳນວນ",
       "editButton": "ແກ້",
       "editRateTooltip": "ກົດເພື່ອແກ້ໄຂ",
-      "loading": "ກຳລັງໂຫລດ..."
+      "loading": "ກຳລັງໂຫລດ...",
+      "addLine": "ເພີ່ມສາຍ",
+      "maxLines": "ສູງສຸດ 3 ສາຍ",
+      "paymentMethod": "ວິທີຊຳລະ"
     },
     "exchangeLookup": {
       "originalInvoiceLabel": "ໃບບິນຕົ້ນ",
@@ -268,6 +336,7 @@
         "SellGold": "ຂາຍທອງ",
         "SellSilver": "ຂາຍເງິນ",
         "BuyGold": "ຊື້ທອງ",
+        "BuySilver": "ຊື້ເງິນ",
         "BuyMoreGold": "ຊື້ເພີ່ມ",
         "ExchangeGold": "ແລກທອງ",
         "ExchangeFree": "ແລກຟຣີ",
@@ -326,7 +395,14 @@
         "fieldCustomerGives": "ເງິນລູກຄ້າໃຫ້",
         "fieldExchangeRate": "ອັດຕາແລກປ່ຽນ",
         "fieldCustomerReceives": "ເງິນຄືນລູກຄ້າ",
-        "weightUnit": "ຈີ"
+        "weightUnit": "ຈີ",
+        "weightUnitGram": "ກຣາມ",
+        "colFxCurrency": "ເງິນຕາຕ່າງປະເທດ",
+        "colFxPair": "ຄູ່ເງິນ",
+        "colFxFrom": "ເງິນທີ່ໃຫ້",
+        "colFxRate": "ອັດຕາແລກ",
+        "colFxTo": "ເງິນທີ່ໄດ້ຮັບ",
+        "colFxLak": "ລວມ"
       }
     },
     "layout": {
@@ -366,6 +442,7 @@
         "orderSellGold": "ຂາຍທອງ",
         "orderSellSilver": "ຂາຍເງິນ",
         "orderBuyGold": "ຊື້ທອງ",
+        "orderBuySilver": "ຊື້ເງິນ",
         "orderBuyMoreGold": "ຊື້ເພີ່ມ",
         "orderExchangeGold": "ປ່ຽນສິນຄ້າ",
         "orderExchangeFree": "ປ່ຽນຟຣີ",
@@ -1151,6 +1228,7 @@
         "SellGold": "ຂາຍທອງ",
         "SellSilver": "ຂາຍເງິນ",
         "BuyGold": "ຊື້ທອງ",
+        "BuySilver": "ຊື້ເງິນ",
         "ExchangeGold": "ແລກທອງ",
         "ExchangeCurrency": "ແລກເງິນ",
         "BuyMoreGold": "ຊື້ເພີ່ມ",
@@ -1390,6 +1468,7 @@
       "prices": {
         "title": "ຕາຕະລາງລາຄາ",
         "subtitle": "ຈັດການຕາຕະລາງລາຄາທອງ/ເງິນຕາມຄວາມບໍລິສຸດ",
+        "searchPlaceholder": "ຄົ້ນຫາຕາຕະລາງລາຄາ...",
         "createButton": "ສ້າງຕາຕະລາງລາຄາ",
         "scopeAll": "ທົ່ວລະບົບ",
         "scopeBranch": "ຕາມສາຂາ",
@@ -1459,6 +1538,55 @@
           "rate": "ອັດຕາຕົ້ນ",
           "adjustment": "ການປັບ",
           "updatedAt": "ອັບເດດ"
+        },
+        "setupButton": "ຕັ້ງຄ່າອັດຕາ",
+        "save": "ບັນທຶກ",
+        "savePairs": "ບັນທຶກ {count} ຄູ່",
+        "computed": "ຄຳນວນຈາກ LAK",
+        "saved": "ບັນທຶກແລ້ວ",
+        "board": {
+          "title": "ອັດຕາປັດຈຸບັນ",
+          "subtitle": "ອັດຕາແລກປ່ຽນຕາມສະກຸນເງິນຕົ້ນ",
+          "empty": "ຍັງບໍ່ມີອັດຕາສຳລັບສະກຸນເງິນຕົ້ນນີ້.",
+          "updateButton": "ອັບເດດອັດຕາ"
+        },
+        "calculator": {
+          "origin": "ຕົ້ນ",
+          "adjustment": "ການປັບ",
+          "inputAmount": "ໃສ່ຈຳນວນ",
+          "result": "ຜົນລັບ",
+          "kipLak": "₭ (ກີບລາວ)"
+        },
+        "setup": {
+          "title": "ຕັ້ງຄ່າອັດຕາ",
+          "hint": "ບັນທຶກອັດຕາຕົວຈິງລະຫວ່າງສອງສະກຸນເງິນ (ບໍ່ຈຳເປັນຜ່ານ LAK). ຄູ່ທີ່ຍັງບໍ່ບັນທຶກຈະຄຳນວນອັດຕະໂນມັດຈາກ LAK.",
+          "baseCurrency": "ສະກຸນເງິນຕົ້ນ",
+          "twoWay": "ອັບເດດທິດກົງກັນຂ້າມອັດຕະໂນມັດ (1/ອັດຕາ)",
+          "noPairs": "ບໍ່ມີຄູ່ອັດຕາສຳລັບສະກຸນເງິນຕົ້ນນີ້.",
+          "divergeTooltip": "ຕ່າງ {pct}% ທຽບກັບ cross-rate ຜ່ານ LAK ({rate})",
+          "twoWayNote": "ຈະບັນທຶກ {count} ຄູ່ໄປ + {count} ຄູ່ກັບ (ທິດກົງກັນຂ້າມ)."
+        },
+        "filter": {
+          "allCurrencies": "ທຸກສະກຸນເງິນ",
+          "fromDate": "ຈາກວັນທີ",
+          "toDate": "ຫາວັນທີ",
+          "clear": "ລ້າງຕົວກອງ"
+        },
+        "history": {
+          "title": "ປະຫວັດການປ່ຽນແປງ",
+          "subtitle": "ຂະຫຍາຍແຕ່ລະຮອບເພື່ອເບິ່ງລາຍລະອຽດ",
+          "empty": "ຍັງບໍ່ມີປະຫວັດການປ່ຽນແປງ",
+          "colTime": "ເວລາ",
+          "colUpdatedCurrencies": "ສະກຸນເງິນທີ່ອັບເດດ",
+          "colUpdatedPairs": "ຄູ່ອັດຕາທີ່ອັບເດດ",
+          "colCount": "ຈຳນວນ",
+          "colCurrency": "ສະກຸນເງິນ",
+          "colBaseRate": "ອັດຕາຕົ້ນ (₭)",
+          "colAdjustment": "ການປັບ",
+          "colEffective": "ມີຜົນ (₭)",
+          "colFrom": "ຈາກ",
+          "colTo": "ເປັນ",
+          "colRate": "ອັດຕາ"
         }
       },
       "stonePrices": {
@@ -1498,6 +1626,7 @@
       },
       "goldPurities": {
         "title": "ຄວາມບໍລິສຸດທອງ / ເງິນ",
+        "subtitle": "{count} ຄວາມບໍລິສຸດທີ່ຕັ້ງຄ່າແລ້ວ",
         "addButton": "ເພີ່ມຄວາມບໍລິສຸດ",
         "editDialogTitle": "ແກ້ໄຂຄວາມບໍລິສຸດ",
         "edit": "ແກ້ໄຂ",

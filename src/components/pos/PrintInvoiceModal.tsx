@@ -87,7 +87,7 @@ function InvoiceTemplate({ inv }: { inv: PrintInvoice }) {
   const title = INVOICE_TITLE[inv.txnType];
   const isFx = inv.txnType === "ExchangeCurrency";
   const isExchange = EXCHANGE_TYPES.includes(inv.txnType);
-  const isBuyGold = inv.txnType === "BuyGold";
+  const isBuyGold = inv.txnType === "BuyGold" || inv.txnType === "BuySilver";
   // totalAmount = A - B (có thể âm với ExchangeGold). totalB = tổng vàng cũ cấn trừ.
   const totalB = inv.exchangeInItems.reduce((s, i) => s + i.lineTotal, 0);
   const totalA = inv.totalAmount + totalB;
@@ -143,59 +143,91 @@ function InvoiceTemplate({ inv }: { inv: PrintInvoice }) {
       )}
 
       {/* ── FX section ────────────────────────────────────── */}
-      {isFx && (
-        <div className="border border-gray-400 rounded p-3 mb-3 text-center space-y-1">
-          <div className="flex justify-center items-center gap-6">
-            {/* Tiền nguồn */}
-            <div>
-              <p className="text-[10px] text-gray-500">
-                Ngoại tệ / ເງິນຕ່າງປະເທດ
-              </p>
-              <p className="font-black text-base tabular-nums">
-                {(inv.foreignAmount ?? 0).toLocaleString("en", { maximumFractionDigits: 4 })}{" "}
-                {inv.currency}
-              </p>
-            </div>
-            <p className="text-xl font-bold">→</p>
-            {/* Tiền đích */}
-            <div>
-              {inv.targetCurrency && inv.targetCurrency !== "LAK" ? (
-                <>
-                  <p className="text-[10px] text-gray-500">
-                    {inv.targetCurrency} / ເງິນ{inv.targetCurrency}
-                  </p>
-                  <p className="font-black text-base tabular-nums">
-                    {(inv.targetAmount ?? 0).toLocaleString("en", { maximumFractionDigits: 4 })}{" "}
-                    {inv.targetCurrency}
-                  </p>
-                </>
+      {isFx && (() => {
+        type FxLine = { fromCurrency: string; fromAmount: number; fromRateToLak: number; toCurrency: string; toRateToLak: number; toAmount?: number };
+
+        function computeToAmt(line: FxLine): number {
+          if (line.toAmount != null) return line.toAmount;
+          const lak = Math.round(line.fromAmount * line.fromRateToLak);
+          return line.toRateToLak > 0 ? Math.round((lak / line.toRateToLak) * 10000) / 10000 : 0;
+        }
+
+        // Mode A từ backend; nếu rỗng thì synthesize từ scalar fields
+        const rawLines: FxLine[] = inv.exchangeLines ?? [];
+        const isFxToNonLak = !!inv.targetCurrency && inv.targetCurrency !== "LAK";
+        const lines: FxLine[] = rawLines.length > 0
+          ? rawLines
+          : inv.foreignAmount != null && inv.currency
+            ? [{
+                fromCurrency: inv.currency,
+                fromAmount: inv.foreignAmount,
+                fromRateToLak: inv.exchangeRate ?? 0,
+                toCurrency: inv.targetCurrency ?? "LAK",
+                toRateToLak: isFxToNonLak ? (inv.targetRateToLak ?? 1) : 1,
+                toAmount: isFxToNonLak ? (inv.targetAmount ?? undefined) : inv.totalAmount,
+              }]
+            : [];
+
+        return (
+          <table className="w-full text-[11px] border-collapse mb-3">
+            <thead>
+              <tr className="bg-gray-100">
+                <th className="border border-gray-400 px-1 py-1 text-center w-6">#</th>
+                <th className="border border-gray-400 px-2 py-1 text-center">
+                  Ngoại tệ nhận / ເງິນຕ່າງປະເທດ
+                </th>
+                <th className="border border-gray-400 px-1 py-1 text-center w-6">→</th>
+                <th className="border border-gray-400 px-2 py-1 text-center">
+                  Tiền nhận ra / ເງິນຮັບ
+                </th>
+                <th className="border border-gray-400 px-2 py-1 text-center">
+                  Tỷ giá / ອັດຕາແລກປ່ຽນ
+                </th>
+              </tr>
+            </thead>
+            <tbody>
+              {lines.length === 0 ? (
+                <tr>
+                  <td colSpan={5} className="border border-gray-400 px-2 py-2 text-center text-gray-400">
+                    {inv.note ?? "—"}
+                  </td>
+                </tr>
               ) : (
-                <>
-                  <p className="text-[10px] text-gray-500">Tiền LAK / ເງິນກີບ</p>
-                  <p className="font-black text-base tabular-nums">
-                    {kip(inv.totalAmount)}
-                  </p>
-                </>
+                lines.map((line, idx) => {
+                  const toAmt = computeToAmt(line);
+                  const isFromLak = line.fromCurrency === "LAK";
+                  const rateDisplayCurr = isFromLak ? line.toCurrency : line.fromCurrency;
+                  const rateDisplayVal = isFromLak ? line.toRateToLak : line.fromRateToLak;
+                  const showBothRates = !isFromLak && line.toCurrency !== "LAK" && line.toRateToLak > 0;
+                  return (
+                    <tr key={idx}>
+                      <td className="border border-gray-400 px-1 py-1.5 text-center">{idx + 1}</td>
+                      <td className="border border-gray-400 px-2 py-1.5 text-center font-semibold tabular-nums">
+                        {line.fromAmount.toLocaleString("en", { maximumFractionDigits: 2 })} {line.fromCurrency}
+                      </td>
+                      <td className="border border-gray-400 px-1 py-1.5 text-center font-bold">→</td>
+                      <td className="border border-gray-400 px-2 py-1.5 text-center font-semibold tabular-nums">
+                        {line.toCurrency === "LAK"
+                          ? kip(Math.round(toAmt))
+                          : `${toAmt.toLocaleString("en", { maximumFractionDigits: 4 })} ${line.toCurrency}`}
+                      </td>
+                      <td className="border border-gray-400 px-2 py-1.5 text-center text-[10px] text-gray-600">
+                        {rateDisplayVal > 0 ? (
+                          <>
+                            1 {rateDisplayCurr} = {rateDisplayVal.toLocaleString("lo-LA")} ₭
+                            {showBothRates && <><br />1 {line.toCurrency} = {line.toRateToLak.toLocaleString("lo-LA")} ₭</>}
+                          </>
+                        ) : "—"}
+                      </td>
+                    </tr>
+                  );
+                })
               )}
-            </div>
-          </div>
-          {/* Tỷ giá — hiển thị tỷ giá nguồn và/hoặc tỷ giá đích */}
-          <div className="text-[10px] text-gray-500 space-y-px">
-            {inv.exchangeRate && inv.currency && inv.currency !== "LAK" && (
-              <p>
-                Tỷ giá: 1 {inv.currency} ={" "}
-                {inv.exchangeRate.toLocaleString("lo-LA")} ₭
-              </p>
-            )}
-            {inv.targetRateToLak && inv.targetCurrency && inv.targetCurrency !== "LAK" && (
-              <p>
-                Tỷ giá: 1 {inv.targetCurrency} ={" "}
-                {inv.targetRateToLak.toLocaleString("lo-LA")} ₭
-              </p>
-            )}
-          </div>
-        </div>
-      )}
+            </tbody>
+          </table>
+        );
+
+      })()}
 
       {/* ── Items table ───────────────────────────────────── */}
       {!isFx && inv.items.length > 0 && (
@@ -325,6 +357,38 @@ function InvoiceTemplate({ inv }: { inv: PrintInvoice }) {
                 <span>TIỆM CHI RA / ຮ້ານຈ່າຍ:</span>
                 <span className="tabular-nums">{kip(inv.totalAmount)}</span>
               </div>
+            </>
+          ) : isFx ? (
+            <>
+              {/* FX: hiển thị số tiền khách nhận theo từng ngoại tệ */}
+              {(() => {
+                const fxL = inv.exchangeLines ?? [];
+                const totals: Record<string, number> = {};
+                if (fxL.length > 0) {
+                  for (const l of fxL) {
+                    const toAmt = l.toAmount != null ? l.toAmount
+                      : l.toRateToLak > 0
+                        ? Math.round((Math.round(l.fromAmount * l.fromRateToLak) / l.toRateToLak) * 10000) / 10000
+                        : 0;
+                    if (toAmt > 0) totals[l.toCurrency] = (totals[l.toCurrency] ?? 0) + toAmt;
+                  }
+                } else if (inv.targetCurrency && inv.targetCurrency !== "LAK" && inv.targetAmount) {
+                  totals[inv.targetCurrency] = inv.targetAmount;
+                }
+                return Object.entries(totals).map(([cur, amt]) => (
+                  <div
+                    key={cur}
+                    className="flex justify-between font-black text-[13px] border-t-2 border-black pt-1"
+                  >
+                    <span>Khách nhận ({cur}) / ລູກຄ້າຮັບ:</span>
+                    <span className="tabular-nums">
+                      {cur === "LAK"
+                        ? kip(Math.round(amt))
+                        : `${amt.toLocaleString("en", { maximumFractionDigits: 4 })} ${cur}`}
+                    </span>
+                  </div>
+                ));
+              })()}
             </>
           ) : (
             <>

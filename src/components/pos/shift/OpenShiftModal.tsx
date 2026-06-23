@@ -25,6 +25,7 @@ import { useEffect, useMemo, useState } from "react";
 import { Controller, useForm } from "react-hook-form";
 import { z } from "zod";
 import { cn } from "@/lib/utils";
+import { FlagIcon } from "@/components/shared/FlagIcon";
 
 const schema = z.object({
   openingCashLak: z.string().min(1, "Vui lòng nhập tiền mặt đầu ca"),
@@ -421,7 +422,7 @@ export function OpenShiftModal() {
                 )}
               >
                 <div className="flex items-center gap-1.5 mb-1">
-                  <span className="text-sm leading-none select-none">{tab.flag}</span>
+                  <FlagIcon flag={tab.flag} className="text-sm leading-none select-none" />
                   <span className={cn("font-mono font-bold text-sm", isActive ? "text-primary" : "text-foreground")}>
                     {tab.code}
                   </span>
@@ -462,7 +463,7 @@ export function OpenShiftModal() {
                     Bảng mệnh giá · {activeCurrencyData.code}
                   </h2>
                   <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
-                    <span className="leading-none select-none">{activeCurrencyData.flag}</span>
+                    <FlagIcon flag={activeCurrencyData.flag} className="leading-none select-none" />
                     <span>{activeCurrencyData.name}</span>
                     {activeCurrencyData.denominations.length > 0 && (
                       <span className="text-muted-foreground/40">
@@ -595,7 +596,7 @@ export function OpenShiftModal() {
                   return (
                     <div key={tab.code} className="flex items-center justify-between">
                       <div className="flex items-center gap-1.5">
-                        <span className="text-sm leading-none select-none">{tab.flag}</span>
+                        <FlagIcon flag={tab.flag} className="text-sm leading-none select-none" />
                         <span className="text-xs font-mono font-semibold text-muted-foreground">{tab.code}</span>
                       </div>
                       <span className={cn(

@@ -47,7 +47,8 @@
       "summary": {
         "subtotal": "Subtotal ({count} items)",
         "discount": "Discount",
-        "due": "← Amount due"
+        "due": "← Amount due",
+        "storeDue": "Store pays"
       },
       "opLabels": {
         "gold": "Sell Gold",
@@ -55,6 +56,31 @@
         "jewelry": "Jewelry",
         "watch": "Watch",
         "default": "Sell Item"
+      },
+      "exchangeGold": {
+        "sectionOldGold": "Old Gold In",
+        "sectionNewGoods": "New Items Out",
+        "searchPlaceholder": "Search old product to add manually...",
+        "emptyOldGold": "Search for old product above or link to original invoice",
+        "emptyNewGoods": "Search for new products via the search bar (F3)",
+        "totalOldGold": "(B) Total old gold deduction",
+        "totalNewGoods": "(A) Total new items",
+        "netCustomerPays": "Customer pays extra",
+        "netStorePays": "Store pays back",
+        "netBreakEven": "Break even",
+        "formulaCustomerPays": "A − B",
+        "formulaStorePays": "B − A",
+        "formulaBreakEven": "A = B",
+        "colPricePerUnit": "Price/Chi",
+        "colDamage": "Damage (₭)",
+        "colWear": "Wear (Chi)",
+        "colWearValue": "Wear value (₭)"
+      },
+      "buyGold": {
+        "colProduct": "Product in",
+        "colBuyPrice": "Buy price",
+        "colStorePays": "Store pays",
+        "colWearGram": "Wear (Gram)"
       }
     },
     "payment": {
@@ -81,7 +107,36 @@
         "currency": "₭ (Kip)",
         "checkout": "Checkout",
         "processing": "Processing...",
-        "createCustomer": "Create new customer"
+        "createCustomer": "Create new customer",
+        "lookupNotFoundAlert": "Invoice not found",
+        "lookupResultCancelled": "Cancelled",
+        "lookupResultCompleted": "Completed",
+        "lookupResultDate": "Date",
+        "lookupResultCustomer": "Customer",
+        "lookupResultPhone": "Phone",
+        "lookupResultTotal": "Total",
+        "fxCustomerDeposit": "Customer deposits",
+        "fxCrossRate": "Exchange rate",
+        "fxCustomerReceives": "Customer receives",
+        "fxNote": "The currency exchange transaction will be automatically recorded in the Cash Ledger.",
+        "exchangeTotalNew": "Total new items (A)",
+        "exchangeTotalOld": "Old gold deduction (B)",
+        "buyBuyPrice": "Buy price",
+        "buyDamageFee": "Damage fee",
+        "buyWearFee": "Wear fee",
+        "buyStorePays": "Store pays",
+        "exchangeCustomerPays": "Customer pays extra",
+        "exchangeStorePays": "Store pays back",
+        "exchangeBreakEven": "Break even",
+        "combinedTotal": "Total:",
+        "combinedMatch": "✓ Match",
+        "combinedOver": "Excess +{amount}",
+        "combinedShort": "Short -{amount}",
+        "cancelSuccess": "Invoice cancelled successfully",
+        "cancelling": "Cancelling...",
+        "cancelInvoice": "CANCEL INVOICE",
+        "fxCheckout": "ISSUE FX RECEIPT",
+        "fxPaymentMethodLabel": "Payment method"
       },
       "modal": {
         "title": "Confirm payment",
@@ -130,6 +185,7 @@
       "panelNew": "New items (A)",
       "panelNewTotal": "Total sold (A)",
       "weightUnit": "Chi",
+      "weightUnitGram": "Gram",
       "summaryExchangeA": "(A) New items",
       "summaryExchangeB": "(B) Old gold offset",
       "customerPaysExtra": "Customer pays",
@@ -139,6 +195,9 @@
       "buyWearLabel": "Wear (−)",
       "buyDamageLabel": "Damage fee (−)",
       "shopPaysTotalLabel": "SHOP PAYS OUT",
+      "fxColFrom": "Amount given",
+      "fxColRate": "Rate",
+      "fxColTo": "Received",
       "fxTotalLak": "TOTAL CONVERTED (LAK)",
       "fxTotal": "TOTAL CONVERTED ({currency})"
     },
@@ -178,6 +237,12 @@
         "abbr": "BG",
         "desc": "Purchase gold from customer, pay Kip"
       },
+      "BuySilver": {
+        "label": "Buy Silver",
+        "short": "Buy Silver",
+        "abbr": "BS",
+        "desc": "Purchase silver from customer, pay Kip"
+      },
       "ExchangeGold": {
         "label": "Exchange Old Gold",
         "short": "Exchange",
@@ -199,7 +264,10 @@
       "enterAmount": "Enter amount",
       "editButton": "Edit",
       "editRateTooltip": "Click to edit rate",
-      "loading": "Loading rates..."
+      "loading": "Loading rates...",
+      "addLine": "Add line",
+      "maxLines": "Max 3 lines",
+      "paymentMethod": "Payment method"
     },
     "exchangeLookup": {
       "originalInvoiceLabel": "Original invoice",
@@ -268,6 +336,7 @@
         "SellGold": "Sell Gold",
         "SellSilver": "Sell Silver",
         "BuyGold": "Buy Gold",
+        "BuySilver": "Buy Silver",
         "BuyMoreGold": "Trade Up",
         "ExchangeGold": "Exchange Gold",
         "ExchangeFree": "Exchange Free",
@@ -326,7 +395,14 @@
         "fieldCustomerGives": "Customer gives",
         "fieldExchangeRate": "Exchange rate",
         "fieldCustomerReceives": "Customer receives",
-        "weightUnit": "Chi"
+        "weightUnit": "Chi",
+        "weightUnitGram": "Gram",
+        "colFxCurrency": "Currency",
+        "colFxPair": "Pair",
+        "colFxFrom": "Amount given",
+        "colFxRate": "Rate",
+        "colFxTo": "Amount received",
+        "colFxLak": "Total"
       }
     },
     "layout": {
@@ -366,6 +442,7 @@
         "orderSellGold": "Sell Gold",
         "orderSellSilver": "Sell Silver",
         "orderBuyGold": "Buy Gold",
+        "orderBuySilver": "Buy Silver",
         "orderBuyMoreGold": "Buy More",
         "orderExchangeGold": "Exchange",
         "orderExchangeFree": "Free Exchange",
@@ -1153,6 +1230,7 @@
         "SellGold": "Sell gold",
         "SellSilver": "Sell silver",
         "BuyGold": "Buy gold",
+        "BuySilver": "Buy silver",
         "ExchangeGold": "Exchange gold",
         "ExchangeCurrency": "Currency exchange",
         "BuyMoreGold": "Trade up",
@@ -1392,6 +1470,7 @@
       "prices": {
         "title": "Price Tables",
         "subtitle": "Manage gold/silver price tables by purity",
+        "searchPlaceholder": "Search price tables...",
         "createButton": "Create price table",
         "scopeAll": "All branches",
         "scopeBranch": "By branch",
@@ -1461,6 +1540,55 @@
           "rate": "Base rate",
           "adjustment": "Adjustment",
           "updatedAt": "Updated"
+        },
+        "setupButton": "Configure rates",
+        "save": "Save",
+        "savePairs": "Save {count} pairs",
+        "computed": "From LAK",
+        "saved": "Saved",
+        "board": {
+          "title": "Current rates",
+          "subtitle": "Conversion rates by base currency",
+          "empty": "No rates for this base currency yet.",
+          "updateButton": "Update rates"
+        },
+        "calculator": {
+          "origin": "Base",
+          "adjustment": "Adjustment",
+          "inputAmount": "Enter amount",
+          "result": "Result",
+          "kipLak": "₭ (Lao Kip)"
+        },
+        "setup": {
+          "title": "Configure rates",
+          "hint": "Save the actual rate between two currencies (not necessarily via LAK). Unsaved pairs are computed automatically from LAK.",
+          "baseCurrency": "Base currency",
+          "twoWay": "Auto-update reverse direction (1/rate)",
+          "noPairs": "No rate pairs for this base currency.",
+          "divergeTooltip": "Off by {pct}% vs cross-rate via LAK ({rate})",
+          "twoWayNote": "Will save {count} forward + {count} reverse pairs (opposite direction)."
+        },
+        "filter": {
+          "allCurrencies": "All currencies",
+          "fromDate": "From date",
+          "toDate": "To date",
+          "clear": "Clear filter"
+        },
+        "history": {
+          "title": "Change history",
+          "subtitle": "Expand each session to see details",
+          "empty": "No change history yet",
+          "colTime": "Time",
+          "colUpdatedCurrencies": "Updated currencies",
+          "colUpdatedPairs": "Updated rate pairs",
+          "colCount": "Count",
+          "colCurrency": "Currency",
+          "colBaseRate": "Base rate (₭)",
+          "colAdjustment": "Adjustment",
+          "colEffective": "Effective (₭)",
+          "colFrom": "From",
+          "colTo": "To",
+          "colRate": "Rate"
         }
       },
       "stonePrices": {
@@ -1500,6 +1628,7 @@
       },
       "goldPurities": {
         "title": "Gold / Silver Purities",
+        "subtitle": "{count} purity levels configured",
         "addButton": "Add purity",
         "editDialogTitle": "Edit purity",
         "edit": "Edit",

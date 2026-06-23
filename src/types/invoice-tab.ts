@@ -39,13 +39,30 @@ export interface InvoiceTab {
   cancelInvoiceCode: string | null;
 
   // ── ExchangeCurrency: dữ liệu ngoại tệ ───────────────────────────────────────
-  fxFromCurrency: string; // mặc định "USD"
-  fxToCurrency: string; // mặc định "LAK"
-  fxFromAmount: number; // số tiền khách đưa
-  fxToAmount: number; // số tiền khách nhận
-  fxLakAmount: number; // giá trị quy LAK (= foreignAmount × exchangeRate, ghi sổ)
-  fxFromRate: number; // tỷ giá tiền nguồn → LAK (effectiveRate); 1 khi nguồn = LAK
-  fxToRate: number; // tỷ giá tiền đích → LAK (effectiveRate); 1 khi đích = LAK
+  /** Mỗi dòng = 1 cặp ngoại tệ (tối đa 20 dòng theo backend) */
+  fxLines: FxLine[];
+  /** Phương thức thanh toán cho FX (chỉ CASH hoặc BANK — không có COMBINED) */
+  fxPaymentMethod: 'CASH' | 'BANK';
+
+  // Scalar fields giữ lại cho backward-compat (migration guard đọc để reset)
+  fxFromCurrency: string;
+  fxToCurrency: string;
+  fxFromAmount: number;
+  fxToAmount: number;
+  fxLakAmount: number;
+  fxFromRate: number;
+  fxToRate: number;
+}
+
+/** Một dòng đổi ngoại tệ — khớp với exchangeLines[] gửi backend */
+export interface FxLine {
+  /** Client-side key (genId) — không gửi lên backend */
+  id: string;
+  fromCurrency: string;      // tiền nguồn (ví dụ "USD")
+  fromAmount: number;        // số tiền khách đưa
+  fromRateToLak: number;     // 1 fromCurrency = X LAK
+  toCurrency: string;        // tiền đích (thường "LAK")
+  toRateToLak: number;       // 1 toCurrency = X LAK (= 1 khi toCurrency = "LAK")
 }
 
 export interface InvoiceTabStore {
@@ -90,7 +107,13 @@ export interface InvoiceTabStore {
 
   getActiveTab: () => InvoiceTab | undefined;
 
-  /** Cập nhật dữ liệu ngoại tệ cho active tab (ExchangeCurrency) */
+  /** Cập nhật toàn bộ danh sách dòng ngoại tệ (ExchangeCurrency) */
+  setFxLinesInActive: (lines: FxLine[]) => void;
+
+  /** Cập nhật phương thức thanh toán FX (CASH hoặc BANK) */
+  setFxPaymentMethodInActive: (method: 'CASH' | 'BANK') => void;
+
+  /** @deprecated Dùng setFxLinesInActive thay thế */
   setFxDataInActive: (
     fromCurrency: string,
     toCurrency: string,

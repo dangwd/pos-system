@@ -105,7 +105,10 @@ export function CustomerEditDialog({ customer, onClose }: Props) {
             <Label htmlFor="ce-name" className="text-sm font-medium">
               {tCreate('name')} <span className="text-destructive ml-0.5">*</span>
             </Label>
-            <Input id="ce-name" className="h-9" status={errors.name ? 'error' : undefined} {...form.register('name')} />
+            <Controller control={form.control} name="name" render={({ field }) => (
+              <Input id="ce-name" className="h-9" status={errors.name ? 'error' : undefined}
+                value={field.value} onChange={field.onChange} onBlur={field.onBlur} name={field.name} />
+            )} />
             <FieldError errors={[errors.name]} />
           </div>
 
@@ -113,7 +116,10 @@ export function CustomerEditDialog({ customer, onClose }: Props) {
             <Label htmlFor="ce-phone" className="text-sm font-medium text-muted-foreground">
               {tCreate('phone')}
             </Label>
-            <Input id="ce-phone" className="h-9" placeholder={tCreate('phonePlaceholder')} {...form.register('phoneNumber')} />
+            <Controller control={form.control} name="phoneNumber" render={({ field }) => (
+              <Input id="ce-phone" className="h-9" placeholder={tCreate('phonePlaceholder')}
+                value={field.value} onChange={field.onChange} onBlur={field.onBlur} name={field.name} />
+            )} />
           </div>
 
           <div className="flex flex-col gap-1.5">
@@ -140,7 +146,11 @@ export function CustomerEditDialog({ customer, onClose }: Props) {
             <Label htmlFor="ce-email" className="text-sm font-medium text-muted-foreground">
               {tCreate('email')}
             </Label>
-            <Input id="ce-email" type="email" className="h-9" placeholder={tCreate('emailPlaceholder')} status={errors.email ? 'error' : undefined} {...form.register('email')} />
+            <Controller control={form.control} name="email" render={({ field }) => (
+              <Input id="ce-email" type="email" className="h-9" placeholder={tCreate('emailPlaceholder')}
+                status={errors.email ? 'error' : undefined}
+                value={field.value} onChange={field.onChange} onBlur={field.onBlur} name={field.name} />
+            )} />
             <FieldError errors={[errors.email]} />
           </div>
 
@@ -148,7 +158,10 @@ export function CustomerEditDialog({ customer, onClose }: Props) {
             <Label htmlFor="ce-address" className="text-sm font-medium text-muted-foreground">
               {tCreate('address')}
             </Label>
-            <Input id="ce-address" className="h-9" {...form.register('address')} />
+            <Controller control={form.control} name="address" render={({ field }) => (
+              <Input id="ce-address" className="h-9"
+                value={field.value} onChange={field.onChange} onBlur={field.onBlur} name={field.name} />
+            )} />
           </div>
 
           <div className="flex flex-col gap-1.5">

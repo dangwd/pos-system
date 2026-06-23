@@ -14,6 +14,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { type PaymentMethodKey } from "@/lib/strategies/payment.strategy";
+import { calcWearValue } from "@/lib/pricing";
 import { usePrintStore } from "@/stores/print.store";
 import { useAuthStore } from "@/stores/auth.store";
 import type { Transaction } from "@/types/transaction";
@@ -62,12 +63,56 @@ export function Receipt({ open, transaction, onClose }: ReceiptProps) {
     : (transaction.paymentMethod ?? "—");
 
   const isCompleted = !isCancelled && transaction.status === "Completed";
-  const isBuy = transaction.type === "BuyGold";
+  const isBuy = transaction.type === "BuyGold" || transaction.type === "BuySilver";
+  const isSilverBuy = transaction.type === "BuySilver";
   const isFx = transaction.type === "ExchangeCurrency";
   const isFxToNonLak = isFx && !!transaction.targetCurrency && transaction.targetCurrency !== "LAK";
   // Dùng foreignAmount từ DB (v2026-06-16+). Fallback sang note parsing cho GD cũ.
   const fxHasDirect = isFx && transaction.foreignAmount != null;
   const fxParsed = isFx && !fxHasDirect ? parseFxNote(transaction.note) : null;
+
+  // Resolved exchange lines — Mode A từ backend, hoặc synthesize từ scalar fields
+  const rawFxLines = isFx ? (transaction.exchangeLines ?? []) : [];
+  const resolvedFxLines = rawFxLines.length > 0
+    ? rawFxLines
+    : isFx && fxHasDirect && transaction.currency
+      ? [{
+          fromCurrency: transaction.currency,
+          fromAmount: transaction.foreignAmount!,
+          fromRateToLak: transaction.exchangeRate ?? 0,
+          toCurrency: transaction.targetCurrency ?? "LAK",
+          toRateToLak: transaction.targetCurrency && transaction.targetCurrency !== "LAK"
+            ? (transaction.targetRateToLak ?? 1)
+            : 1,
+          toAmount: isFxToNonLak
+            ? (transaction.targetAmount ?? undefined)
+            : transaction.totalAmount,
+        }]
+      : isFx && fxParsed
+        ? [{
+            fromCurrency: fxParsed.fromCurr,
+            fromAmount: parseFloat(fxParsed.fromAmt.replace(/,/g, "")),
+            fromRateToLak: 0,
+            toCurrency: fxParsed.toCurr,
+            toRateToLak: 0,
+            toAmount: fxParsed.toCurr === "LAK"
+              ? transaction.totalAmount
+              : parseFloat(fxParsed.toAmt.replace(/,/g, "")),
+          }]
+        : [];
+
+  function fxComputeToAmount(line: { fromAmount: number; fromRateToLak: number; toRateToLak: number; toAmount?: number }) {
+    if (line.toAmount != null) return line.toAmount;
+    const lak = Math.round(line.fromAmount * line.fromRateToLak);
+    return line.toRateToLak > 0 ? Math.round((lak / line.toRateToLak) * 10000) / 10000 : 0;
+  }
+
+  const fxTotalsMap: Record<string, number> = {};
+  for (const line of resolvedFxLines) {
+    const toAmt = fxComputeToAmount(line);
+    if (toAmt > 0) fxTotalsMap[line.toCurrency] = (fxTotalsMap[line.toCurrency] ?? 0) + toAmt;
+  }
+  const fxTotalEntries = Object.entries(fxTotalsMap);
 
   // ExchangeGold / ExchangeFree / BuyMoreGold / ExchangeToMoney: chia 2 panel
   const isExchange = ["ExchangeGold", "ExchangeFree", "BuyMoreGold", "ExchangeToMoney"].includes(transaction.type);
@@ -161,71 +206,71 @@ export function Receipt({ open, transaction, onClose }: ReceiptProps) {
             <Separator />
 
             {isFx ? (
-              <div className="space-y-4">
-                {/* FX: hiển thị chiều đổi */}
-                <div className="rounded-lg border border-primary/20 bg-primary/5 px-4 py-5 text-center space-y-1">
-                  {fxHasDirect ? (
-                    <>
-                      <p className="text-2xl font-black tabular-nums tracking-tight">
-                        {transaction.foreignAmount!.toLocaleString("en", { maximumFractionDigits: 4 })}{" "}
-                        <span className="text-primary">{transaction.currency}</span>
-                      </p>
-                      <p className="text-muted-foreground text-sm">↓</p>
-                      <p className="text-2xl font-black tabular-nums tracking-tight">
-                        {isFxToNonLak && transaction.targetAmount != null
-                          ? `${transaction.targetAmount.toLocaleString("en", { maximumFractionDigits: 4 })} ${transaction.targetCurrency}`
-                          : transaction.totalAmount.toLocaleString("lo-LA") + " ₭"}
-                      </p>
-                    </>
-                  ) : fxParsed ? (
-                    <>
-                      <p className="text-2xl font-black tabular-nums tracking-tight">
-                        {fxParsed.fromAmt}{" "}
-                        <span className="text-primary">{fxParsed.fromCurr}</span>
-                      </p>
-                      <p className="text-muted-foreground text-sm">↓</p>
-                      <p className="text-2xl font-black tabular-nums tracking-tight">
-                        {fxParsed.toCurr === "LAK"
-                          ? transaction.totalAmount.toLocaleString("lo-LA") + " ₭"
-                          : fxParsed.toAmt + " " + fxParsed.toCurr}
-                      </p>
-                    </>
-                  ) : (
-                    <p className="text-sm text-muted-foreground">
-                      {transaction.note}
-                    </p>
-                  )}
-                </div>
-
-                {/* Tỷ giá */}
-                {isFxToNonLak && transaction.targetRateToLak ? (
-                  <p className="text-xs text-center text-muted-foreground">
-                    1{" "}
-                    <span className="font-semibold text-foreground">
-                      {transaction.targetCurrency}
-                    </span>{" "}
-                    ={" "}
-                    <span className="font-semibold text-foreground tabular-nums">
-                      {transaction.targetRateToLak.toLocaleString("lo-LA")}
-                    </span>{" "}
-                    ₭
-                  </p>
-                ) : (
-                  transaction.exchangeRate && transaction.currency && (
-                    <p className="text-xs text-center text-muted-foreground">
-                      1{" "}
-                      <span className="font-semibold text-foreground">
-                        {transaction.currency}
-                      </span>{" "}
-                      ={" "}
-                      <span className="font-semibold text-foreground tabular-nums">
-                        {transaction.exchangeRate.toLocaleString("lo-LA")}
-                      </span>{" "}
-                      ₭
-                    </p>
-                  )
-                )}
-              </div>
+              resolvedFxLines.length > 0 ? (
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead className="w-8 text-center">#</TableHead>
+                      <TableHead>{t("fxColFrom")}</TableHead>
+                      <TableHead className="text-center">{t("fxColRate")}</TableHead>
+                      <TableHead className="text-right">{t("fxColTo")}</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {resolvedFxLines.map((line, idx) => {
+                      const toAmt = fxComputeToAmount(line);
+                      const isFromLak = line.fromCurrency === "LAK";
+                      const rateDisplayCurr = isFromLak ? line.toCurrency : line.fromCurrency;
+                      const rateDisplayVal = isFromLak ? line.toRateToLak : line.fromRateToLak;
+                      const showBothRates = !isFromLak && line.toCurrency !== "LAK" && line.toRateToLak > 0;
+                      return (
+                        <TableRow key={idx}>
+                          <TableCell className="text-center text-xs text-muted-foreground">{idx + 1}</TableCell>
+                          <TableCell>
+                            <span className="font-semibold tabular-nums">
+                              {line.fromAmount.toLocaleString("en", { maximumFractionDigits: 2 })}
+                            </span>{" "}
+                            <span className="font-bold text-primary">{line.fromCurrency}</span>
+                          </TableCell>
+                          <TableCell className="text-center">
+                            {rateDisplayVal > 0 ? (
+                              <span className="text-xs text-muted-foreground">
+                                {"1 "}
+                                <span className="font-semibold text-foreground">{rateDisplayCurr}</span>
+                                {" = "}
+                                <span className="font-semibold text-foreground tabular-nums">
+                                  {rateDisplayVal.toLocaleString("lo-LA")}
+                                </span>
+                                {" ₭"}
+                                {showBothRates && (
+                                  <>
+                                    {" · 1 "}
+                                    <span className="font-semibold text-foreground">{line.toCurrency}</span>
+                                    {" = "}
+                                    <span className="font-semibold text-foreground tabular-nums">
+                                      {line.toRateToLak.toLocaleString("lo-LA")}
+                                    </span>
+                                    {" ₭"}
+                                  </>
+                                )}
+                              </span>
+                            ) : "—"}
+                          </TableCell>
+                          <TableCell className="text-right">
+                            <span className="font-black tabular-nums text-base">
+                              {line.toCurrency === "LAK"
+                                ? Math.round(toAmt).toLocaleString("lo-LA") + " ₭"
+                                : `${toAmt.toLocaleString("en", { maximumFractionDigits: 4 })} ${line.toCurrency}`}
+                            </span>
+                          </TableCell>
+                        </TableRow>
+                      );
+                    })}
+                  </TableBody>
+                </Table>
+              ) : (
+                <p className="text-sm text-muted-foreground text-center">{transaction.note ?? "—"}</p>
+              )
             ) : isExchange ? (
               <div className="space-y-3">
                 {/* PANEL B — Vàng cũ thu vào */}
@@ -399,7 +444,9 @@ export function Receipt({ open, transaction, onClose }: ReceiptProps) {
                       {isBuy && (
                         <TableCell className="text-right text-sm">
                           {(item.haoHutGram ?? 0) > 0
-                            ? `${((item.haoHutGram ?? 0) / 3.75).toLocaleString("lo-LA")} ${t("weightUnit")}`
+                            ? isSilverBuy
+                              ? `${(item.haoHutGram ?? 0).toLocaleString("lo-LA")} ${t("weightUnitGram")}`
+                              : `${((item.haoHutGram ?? 0) / 3.75).toLocaleString("lo-LA")} ${t("weightUnit")}`
                             : "—"}
                         </TableCell>
                       )}
@@ -422,7 +469,9 @@ export function Receipt({ open, transaction, onClose }: ReceiptProps) {
               </Table>
             )}
 
-            <Separator />
+            {(!isFx || resolvedFxLines.length === 0 || fxTotalEntries.length < resolvedFxLines.length) && (
+              <Separator />
+            )}
 
             <div className="space-y-1 text-sm">
               {isExchange ? (
@@ -464,8 +513,14 @@ export function Receipt({ open, transaction, onClose }: ReceiptProps) {
                       // pricePerGram = unitPriceLak / weightGram (vì backend đã điều chỉnh
                       // unitPriceLak = effectiveGram × pricePerGram, weightGram = effectiveGram).
                       const totalWear = transaction.items.reduce((s, i) => {
-                        if (!i.haoHutGram || i.haoHutGram <= 0 || !i.weightGram) return s;
-                        return s + Math.round(i.haoHutGram * (i.unitPriceLak / i.weightGram));
+                        // weightGram backend trả về đã trừ hao mòn → calcWearValue
+                        // khôi phục trọng lượng gốc trước khi suy giá/gram.
+                        return s + calcWearValue({
+                          unitPriceLak: i.unitPriceLak,
+                          quantity: i.quantity,
+                          weightGram: i.weightGram,
+                          wearGram: i.haoHutGram ?? 0,
+                        });
                       }, 0);
 
                       // Phí lỗi/hỏng: dùng phiHuHai nếu có, fallback: unitPriceLak × qty − lineTotal.
@@ -474,14 +529,12 @@ export function Receipt({ open, transaction, onClose }: ReceiptProps) {
                         return s + Math.max(0, i.quantity * i.unitPriceLak - i.lineTotal);
                       }, 0);
 
-                      // Giá mua gốc = effective + hao mòn (phục hồi giá ban đầu nếu biết haoHutGram).
-                      const buyGross = transaction.items.reduce((s, i) => {
-                        const effectiveValue = i.quantity * i.unitPriceLak;
-                        if (i.haoHutGram && i.haoHutGram > 0 && i.weightGram > 0) {
-                          return s + effectiveValue + Math.round(i.haoHutGram * (i.unitPriceLak / i.weightGram));
-                        }
-                        return s + effectiveValue;
-                      }, 0);
+                      // Giá mua gốc (gross) = SL × giá/đơn vị. unitPriceLak là giá theo
+                      // trọng lượng GỐC nên đã là gross — KHÔNG cộng thêm hao mòn (trùng).
+                      const buyGross = transaction.items.reduce(
+                        (s, i) => s + i.quantity * i.unitPriceLak,
+                        0,
+                      );
 
                       return (
                         <>
@@ -531,6 +584,23 @@ export function Receipt({ open, transaction, onClose }: ReceiptProps) {
                     </span>
                   </div>
                 </>
+              ) : resolvedFxLines.length > 0 && fxTotalEntries.length > 0 && fxTotalEntries.length < resolvedFxLines.length ? (
+                <div className="space-y-1.5 pt-1 border-t">
+                  {fxTotalEntries.map(([currency, amount]) => (
+                    <div key={currency} className="flex justify-between font-bold text-base">
+                      <span>
+                        {t("fxTotal", { currency })}
+                      </span>
+                      <span className="text-primary tabular-nums">
+                        {currency === "LAK"
+                          ? formatKip(Math.round(amount))
+                          : `${amount.toLocaleString("en", { maximumFractionDigits: 4 })} ${currency}`}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              ) : resolvedFxLines.length > 0 ? (
+                null
               ) : (
                 <div className="flex justify-between font-bold text-base pt-1">
                   <span>
