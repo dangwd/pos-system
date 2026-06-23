@@ -128,11 +128,14 @@ export function TransactionExpandedRow({ record }: Props) {
   const hasBuyFees = isBuyType && record.items.some(i => (i.phiHuHai ?? 0) > 0 || (i.haoHutGram ?? 0) > 0)
   const totalPhiKho = record.items.reduce((s, i) => s + (i.phiHuHai ?? 0), 0)
   const totalHaoHutValue = record.items.reduce((s, i) => {
-    const haoHutGram = i.haoHutGram ?? 0
-    if (haoHutGram <= 0 || i.weightGram <= 0 || i.quantity <= 0) return s
-    // weightGram = tổng gram cả dòng, unitPriceLak = giá/1 đơn vị → giá/gram = unitPriceLak × SL / tổng gram
-    const pricePerGram = (i.unitPriceLak * i.quantity) / i.weightGram
-    return s + Math.round(haoHutGram * pricePerGram)
+    // weightGram backend trả về đã trừ hao mòn → calcWearValue khôi phục
+    // trọng lượng gốc trước khi suy giá/gram (khớp với cột "Giá trị HM").
+    return s + calcWearValue({
+      unitPriceLak: i.unitPriceLak,
+      quantity: i.quantity,
+      weightGram: i.weightGram,
+      wearGram: i.haoHutGram ?? 0,
+    })
   }, 0)
 
   const productColumns: ColumnsType<TransactionItem> = [
