@@ -4,6 +4,7 @@ import { usePermission } from '@/hooks/usePermission'
 import { ForbiddenPage } from '@/components/shared/ForbiddenPage'
 import { createOrderColumns } from "@/components/admin/columns/order-columns";
 import { TransactionExpandedRow } from "@/components/admin/orders/TransactionExpandedRow";
+import { PrintInvoiceModal } from "@/components/pos/PrintInvoiceModal";
 import { useTransactions } from "@/hooks/useTransactions";
 import type { TransactionStatus, TransactionType, Transaction } from "@/types/transaction";
 import { Table, Select, DatePicker, Input as AntInput, Card } from "antd";
@@ -198,6 +199,8 @@ export function TransactionLogContent({ fixedType }: Props) {
       </Card>
 
       <style>{`.order-row-expanded > td { background: #eff6ff !important; } .ant-table-thead > tr > th { white-space: nowrap; } .exchange-in-row > td { background: #eff6ff !important; }`}</style>
+
+      <PrintInvoiceModal />
     </div>
   );
 }

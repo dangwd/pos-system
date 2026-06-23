@@ -4,12 +4,14 @@ import { useState } from 'react'
 import { useTranslations } from 'next-intl'
 import { Table } from 'antd'
 import type { ColumnsType } from 'antd/es/table/interface'
-import { ExportOutlined } from '@ant-design/icons'
+import { ExportOutlined, PrinterOutlined } from '@ant-design/icons'
 import type { Transaction, TransactionItem, ExchangeLineResponse } from '@/types/transaction'
 import { useCustomer } from '@/hooks/useCustomers'
 import { calcWearValue } from '@/lib/pricing'
+import { Button } from '@/components/ui/button'
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { Spinner } from '@/components/ui/spinner'
+import { usePrintStore } from '@/stores/print.store'
 
 interface Props { record: Transaction }
 
@@ -42,6 +44,30 @@ function Field({ label, value }: { label: string; value?: React.ReactNode }) {
 }
 
 function formatKip(n: number) { return n.toLocaleString('lo-LA') + ' ₭' }
+
+// Nhãn tỷ giá 1 dòng FX, theo ĐÚNG chiều quy đổi (giống màn POS):
+//  • to = LAK            → "1 USD = 889,380 ₭"
+//  • from = LAK          → "1 USD = 889,380 ₭" (hiển thị theo tiền đích)
+//  • ngoại tệ ↔ ngoại tệ → tỷ giá trực tiếp "1 CNY = 400 USD" (= fromRateToLak/toRateToLak)
+function fxRateLabel(
+  fromCurrency?: string | null,
+  fromRateToLak?: number | null,
+  toCurrency?: string | null,
+  toRateToLak?: number | null,
+): string {
+  if (!fromCurrency || !toCurrency) return '—'
+  const fr = fromRateToLak ?? 0
+  const tr = toRateToLak ?? 0
+  if (toCurrency === 'LAK')
+    return fr > 0 ? `1 ${fromCurrency} = ${fr.toLocaleString('lo-LA')} ₭` : '—'
+  if (fromCurrency === 'LAK')
+    return tr > 0 ? `1 ${toCurrency} = ${tr.toLocaleString('lo-LA')} ₭` : '—'
+  // cross: 1 from = (from→LAK)/(to→LAK) to
+  const direct = tr > 0 ? fr / tr : 0
+  return direct > 0
+    ? `1 ${fromCurrency} = ${direct.toLocaleString('lo-LA', { maximumFractionDigits: 4 })} ${toCurrency}`
+    : '—'
+}
 
 function formatDatetime(iso: string) {
   const d = new Date(iso)
@@ -114,6 +140,7 @@ export function TransactionExpandedRow({ record }: Props) {
   const t = useTranslations('admin.orders.expanded')
   const tOrders = useTranslations('admin.orders')
   const [customerDialogId, setCustomerDialogId] = useState<string | null>(null)
+  const openPrint = usePrintStore(s => s.openPrint)
 
   const typeLabel = tOrders(`transactionTypes.${record.type}`)
   const typeBadgeStyle = TYPE_BADGE_STYLE[record.type] ?? { background: '#f3f4f6', color: '#374151' }
@@ -271,7 +298,7 @@ export function TransactionExpandedRow({ record }: Props) {
       title: t('colFxRate'), key: 'fxRate', align: 'right' as const, width: 200,
       render: (_: unknown, row: ExchangeLineResponse) => (
         <span style={{ fontVariantNumeric: 'tabular-nums', fontSize: 12, color: '#6b7280' }}>
-          1 {row.fromCurrency} = {row.fromRateToLak.toLocaleString('lo-LA')} ₭
+          {fxRateLabel(row.fromCurrency, row.fromRateToLak, row.toCurrency, row.toRateToLak)}
         </span>
       ),
     },
@@ -355,61 +382,9 @@ export function TransactionExpandedRow({ record }: Props) {
 
         {/* Cột phải — phân biệt loại GD mua vàng vs bán vàng */}
         <div style={{ flex: 1, minWidth: 260 }}>
-          {record.type === 'ExchangeCurrency' ? (
-            record.exchangeLines?.length ? (
-              // Multi-line FX: mỗi leg là 1 Field row
-              <>
-                {record.exchangeLines.map((l, i) => {
-                  const toAmt = l.toAmount != null
-                    ? l.toAmount
-                    : l.toRateToLak > 0
-                      ? Math.round(l.fromAmount * l.fromRateToLak / l.toRateToLak * 10000) / 10000
-                      : 0
-                  const toFmt = l.toCurrency === 'LAK'
-                    ? formatKip(Math.round(toAmt))
-                    : `${toAmt.toLocaleString('lo-LA', { maximumFractionDigits: 4 })} ${l.toCurrency}`
-                  return (
-                    <Field key={i}
-                      label={`${l.fromCurrency} → ${l.toCurrency}`}
-                      value={
-                        <span>
-                          <span style={{ color: '#6b7280', fontWeight: 400 }}>
-                            {l.fromAmount.toLocaleString('lo-LA')} {l.fromCurrency}
-                          </span>
-                          {' → '}
-                          <b>{toFmt}</b>
-                        </span>
-                      }
-                    />
-                  )
-                })}
-              </>
-            ) : (
-              // Scalar fallback (legacy / single-pair)
-              <>
-                {record.currency && record.exchangeRate && record.exchangeRate > 0 && (
-                  <Field
-                    label={t('fieldCustomerGives')}
-                    value={<b>{Math.round(record.totalAmount / record.exchangeRate).toLocaleString('lo-LA')} {record.currency}</b>}
-                  />
-                )}
-                {record.exchangeRate && record.exchangeRate > 0 && (
-                  <Field
-                    label={t('fieldExchangeRate')}
-                    value={<span style={{ fontVariantNumeric: 'tabular-nums' }}>{record.exchangeRate.toLocaleString('lo-LA')}</span>}
-                  />
-                )}
-                {record.targetCurrency && record.targetAmount != null ? (
-                  <Field
-                    label={t('fieldCustomerReceives')}
-                    value={<b>{record.targetCurrency === 'LAK' ? formatKip(record.targetAmount) : `${record.targetAmount.toLocaleString('lo-LA')} ${record.targetCurrency}`}</b>}
-                  />
-                ) : (
-                  <Field label={t('fieldCustomerReceives')} value={<b>{formatKip(record.totalAmount)}</b>} />
-                )}
-              </>
-            )
-          ) : (
+          {/* FX: bỏ khối tóm tắt scalar bên phải (gây nhập nhằng khi nhiều dòng) —
+              chi tiết từng dòng + tỷ giá đã nằm đầy đủ ở bảng FX bên dưới. */}
+          {record.type !== 'ExchangeCurrency' && (
             <Field label={t('fieldSubtotal')} value={formatKip(record.subtotalAmount)} />
           )}
           {isBuyType ? (
@@ -430,7 +405,9 @@ export function TransactionExpandedRow({ record }: Props) {
               <Field label={t('fieldStoneFee')} value={record.stoneFee > 0 ? formatKip(record.stoneFee) : '0'} />
             </>
           ) : null}
-          <Field label={t('fieldTotal')} value={<b style={{ fontSize: 14 }}>{formatKip(record.totalAmount)}</b>} />
+          {record.type !== 'ExchangeCurrency' && (
+            <Field label={t('fieldTotal')} value={<b style={{ fontSize: 14 }}>{formatKip(record.totalAmount)}</b>} />
+          )}
           {record.type !== 'ExchangeCurrency' && (
             <>
               <Field label={t('fieldCash')}  value={record.cashAmount != null ? formatKip(record.cashAmount) : undefined} />
@@ -469,6 +446,14 @@ export function TransactionExpandedRow({ record }: Props) {
                 render: (v: string) => <span style={{ fontSize: 13 }}>{v}</span>,
               },
               {
+                title: t('colFxRate'), key: 'fxRate', align: 'right' as const, width: 200,
+                render: (_: unknown, row: TransactionItem) => (
+                  <span style={{ fontVariantNumeric: 'tabular-nums', fontSize: 12, color: '#6b7280' }}>
+                    {fxRateLabel(row.fxFromCurrency, row.fxFromRateToLak, row.fxToCurrency, row.fxToRateToLak)}
+                  </span>
+                ),
+              },
+              {
                 title: t('colLineTotal'), dataIndex: 'lineTotal', align: 'right' as const, width: 160,
                 render: (v: number, row: TransactionItem) => {
                   if (row.fxToCurrency && row.fxToAmount != null) {
@@ -499,6 +484,14 @@ export function TransactionExpandedRow({ record }: Props) {
           style={{ marginBottom: 12 }}
         />
       ) : null}
+
+      {/* Action buttons — cuối expanded row, align right */}
+      <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 8, marginTop: 4 }}>
+        <Button size="sm" onClick={() => openPrint(record)}>
+          <PrinterOutlined />
+          {t('btnPrintInvoice')}
+        </Button>
+      </div>
 
       <CustomerDetailDialog
         customerId={customerDialogId}

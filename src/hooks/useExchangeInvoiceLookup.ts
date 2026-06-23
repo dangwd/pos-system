@@ -28,7 +28,8 @@ export function useExchangeInvoiceLookup() {
   const { data: searchResult, isFetching } = useQuery({
     queryKey: ['transactions', 'lookup', debouncedQuery],
     // limit mode → backend trả mảng phẳng Transaction[]
-    queryFn: () => transactionRepository.getList({ invoiceCode: debouncedQuery, type: 'SellGold', limit: 10 }),
+    // status: 'Completed' → loại HĐ đã hủy (Cancelled) ngay từ nguồn — không cho thu đổi
+    queryFn: () => transactionRepository.getList({ invoiceCode: debouncedQuery, type: 'SellGold', status: 'Completed', limit: 10 }),
     enabled: debouncedQuery.length >= 3,
     staleTime: 30_000,
   })
@@ -38,12 +39,16 @@ export function useExchangeInvoiceLookup() {
   const { tab, setLinkedInvoice, clearLinkedInvoice, setCustomer } = useActiveTab()
 
   // limit mode → Transaction[]; paged mode → { data: Transaction[] }
-  const results: Transaction[] = Array.isArray(searchResult)
+  // Lọc thêm ở client phòng backend bỏ qua filter status khi tìm theo invoiceCode chính xác.
+  const results: Transaction[] = (Array.isArray(searchResult)
     ? searchResult
     : ((searchResult as unknown as { data?: Transaction[] })?.data ?? [])
+  ).filter((t) => t.status !== 'Cancelled')
 
   const selectInvoice = async (transaction: Transaction) => {
     if (!priceConfig) return
+    // Guard cuối: không thu đổi HĐ đã hủy (kể cả khi lọt qua lọc trên)
+    if (transaction.status === 'Cancelled') return
     setIsSelecting(true)
     try {
     // Fetch full detail so item.productId (Product entity ID) is available —

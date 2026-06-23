@@ -391,6 +391,7 @@
         "btnExport": "Export",
         "btnPrintGoldCert": "Print gold cert",
         "btnRePrintInvoice": "Reprint invoice",
+        "btnPrintInvoice": "PRINT INVOICE",
         "btnPrintBarcode": "Print barcode",
         "fieldCustomerGives": "Customer gives",
         "fieldExchangeRate": "Exchange rate",
