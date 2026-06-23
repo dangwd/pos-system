@@ -16,11 +16,7 @@ const sepCell = () => ({ style: { borderLeft: SEP } })
 
 const dash = <span className="text-muted-foreground">—</span>
 
-// Cột SL
-const qty = (n: number) => n > 0 ? formatNum(n) : dash
-const qtyEm = (n: number) => n > 0 ? <span style={{ fontWeight: 500 }}>{formatNum(n)}</span> : dash
-const qtyStrong = (n: number) => n > 0 ? <span className="font-semibold">{formatNum(n)}</span> : dash
-// Cột KL (g) — chỉ hiển thị số (đơn vị "g" đã ở header); độ đậm khớp cột SL cùng nhóm
+// Cột Khối lượng (gram) — chỉ hiển thị số (đơn vị đã ở header); độ đậm phân cấp theo mốc
 const fmtW = (g: number) => g.toLocaleString('lo-LA', { maximumFractionDigits: 2 })
 const gram = (g: number) => g > 0 ? fmtW(g) : dash
 const gramEm = (g: number) => g > 0 ? <span style={{ fontWeight: 500 }}>{fmtW(g)}</span> : dash
@@ -110,74 +106,47 @@ export function StockPeriodTable({ items, fromDate, toDate, loading }: {
             : <span className="text-muted-foreground">—</span> },
       ],
     },
-    // Đầu kỳ — SL | KL (g)
+    // Đầu kỳ — khối lượng (gram)
     {
-      title: t('grpOpen'),
+      title: t('grpOpen'), dataIndex: 'openWeight', key: 'openWeight', width: 130, align: 'right',
       onHeaderCell: () => ({ style: { borderLeft: SEP } }),
-      children: [
-        { title: t('colQty'), dataIndex: 'openQty', key: 'openQty', width: 85, align: 'right',
-          onCell: sepCell, onHeaderCell: sepCell, render: qty },
-        { title: t('colWeight'), dataIndex: 'openWeight', key: 'openWeight', width: 95, align: 'right',
-          render: gram },
-      ],
+      onCell: sepCell, render: gram,
     },
-    // Trong kỳ — Nhập (SL | KL) / Xuất (SL | KL)
+    // Trong kỳ — Nhập / Xuất (khối lượng gram)
     {
       title: t('grpChange'),
       onHeaderCell: () => ({ style: { borderLeft: SEP } }),
       children: [
-        {
-          title: t('colReceipt'),
-          onHeaderCell: () => ({ style: { borderLeft: SEP } }),
-          children: [
-            { title: t('colQty'), dataIndex: 'receiptQty', key: 'receiptQty', width: 85, align: 'right',
-              onCell: sepCell, onHeaderCell: sepCell, render: qtyEm },
-            { title: t('colWeight'), dataIndex: 'receiptWeight', key: 'receiptWeight', width: 95, align: 'right',
-              render: gramEm },
-          ],
-        },
-        {
-          title: t('colIssue'),
-          onHeaderCell: () => ({ style: { borderLeft: SEP } }),
-          children: [
-            { title: t('colQty'), dataIndex: 'issueQty', key: 'issueQty', width: 85, align: 'right',
-              onCell: sepCell, onHeaderCell: sepCell, render: qtyEm },
-            { title: t('colWeight'), dataIndex: 'issueWeight', key: 'issueWeight', width: 95, align: 'right',
-              render: gramEm },
-          ],
-        },
+        { title: t('colReceipt'), dataIndex: 'receiptWeight', key: 'receiptWeight', width: 130, align: 'right',
+          onCell: sepCell, onHeaderCell: sepCell, render: gramEm },
+        { title: t('colIssue'), dataIndex: 'issueWeight', key: 'issueWeight', width: 130, align: 'right',
+          onCell: sepCell, onHeaderCell: sepCell, render: gramEm },
       ],
     },
-    // Cuối kỳ — SL | KL (g)
+    // Cuối kỳ — khối lượng (gram)
     {
-      title: t('grpClose'),
+      title: t('grpClose'), dataIndex: 'closeWeight', key: 'closeWeight', width: 130, align: 'right',
       onHeaderCell: () => ({ style: { borderLeft: SEP } }),
-      children: [
-        { title: t('colQty'), dataIndex: 'closeQty', key: 'closeQty', width: 85, align: 'right',
-          onCell: sepCell, onHeaderCell: sepCell, render: qtyStrong },
-        { title: t('colWeight'), dataIndex: 'closeWeight', key: 'closeWeight', width: 95, align: 'right',
-          render: gramStrong },
-      ],
+      onCell: sepCell, render: gramStrong,
     },
   ]
 
   const totals = items.reduce(
     (a, it) => ({
-      openQty: a.openQty + it.openQty,
       openWeight: a.openWeight + it.openWeight,
-      receiptQty: a.receiptQty + it.receiptQty,
       receiptWeight: a.receiptWeight + it.receiptWeight,
-      issueQty: a.issueQty + it.issueQty,
       issueWeight: a.issueWeight + it.issueWeight,
-      closeQty: a.closeQty + it.closeQty,
       closeWeight: a.closeWeight + it.closeWeight,
     }),
-    { openQty: 0, openWeight: 0, receiptQty: 0, receiptWeight: 0, issueQty: 0, issueWeight: 0, closeQty: 0, closeWeight: 0 },
+    { openWeight: 0, receiptWeight: 0, issueWeight: 0, closeWeight: 0 },
   )
 
   return (
     <>
-    <style>{`.stock-period-table .ant-table-thead > tr > th { text-align: center !important; }`}</style>
+    <style>{`
+      .stock-period-table .ant-table-thead > tr > th { text-align: center !important; }
+      .stock-period-table .ant-table-summary > tr > td { background: var(--muted) !important; }
+    `}</style>
     <Table<StockPeriodItem>
       className="stock-period-table"
       rowKey={rowKey}
@@ -187,7 +156,7 @@ export function StockPeriodTable({ items, fromDate, toDate, loading }: {
       size="small"
       bordered
       sticky
-      scroll={{ x: 1510, y: 460 }}
+      scroll={{ x: 1310, y: 460 }}
       pagination={false}
       locale={{ emptyText: t('empty') }}
       rowClassName="cursor-pointer"
@@ -204,14 +173,10 @@ export function StockPeriodTable({ items, fromDate, toDate, loading }: {
             <Table.Summary.Cell index={0} colSpan={7}>
               {t('totalRow', { count: items.length })}
             </Table.Summary.Cell>
-            <Table.Summary.Cell index={1} align="right">{formatNum(totals.openQty)}</Table.Summary.Cell>
-            <Table.Summary.Cell index={2} align="right">{gram(totals.openWeight)}</Table.Summary.Cell>
-            <Table.Summary.Cell index={3} align="right">{formatNum(totals.receiptQty)}</Table.Summary.Cell>
-            <Table.Summary.Cell index={4} align="right">{gram(totals.receiptWeight)}</Table.Summary.Cell>
-            <Table.Summary.Cell index={5} align="right">{formatNum(totals.issueQty)}</Table.Summary.Cell>
-            <Table.Summary.Cell index={6} align="right">{gram(totals.issueWeight)}</Table.Summary.Cell>
-            <Table.Summary.Cell index={7} align="right">{formatNum(totals.closeQty)}</Table.Summary.Cell>
-            <Table.Summary.Cell index={8} align="right">{gram(totals.closeWeight)}</Table.Summary.Cell>
+            <Table.Summary.Cell index={1} align="right">{gram(totals.openWeight)}</Table.Summary.Cell>
+            <Table.Summary.Cell index={2} align="right">{gram(totals.receiptWeight)}</Table.Summary.Cell>
+            <Table.Summary.Cell index={3} align="right">{gram(totals.issueWeight)}</Table.Summary.Cell>
+            <Table.Summary.Cell index={4} align="right">{gram(totals.closeWeight)}</Table.Summary.Cell>
           </Table.Summary.Row>
         </Table.Summary>
       )}
