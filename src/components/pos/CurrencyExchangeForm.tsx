@@ -81,15 +81,10 @@ function FxLineRow({
   const [rateInput, setRateInput] = useState("");
 
   // Tỷ giá lấy từ Rate Graph (cặp tỷ giá) — không còn dùng exchange_rates cũ.
-  // `from → LAK` và `to → LAK` đủ để quy đổi qua LAK (đúng contract backend).
-  const { data: fromPairs } = useExchangeRatePairs(
-    line.fromCurrency,
-    line.fromCurrency !== "LAK",
-  );
-  const { data: toPairs } = useExchangeRatePairs(
-    line.toCurrency,
-    line.toCurrency !== "LAK",
-  );
+  // BẬT cả khi đầu tiền = LAK để đọc cặp trực tiếp từ base LAK (vd 1 LAK = 20 YEN),
+  // nếu không sẽ thiếu tỷ giá cho chiều LAK → ngoại tệ.
+  const { data: fromPairs } = useExchangeRatePairs(line.fromCurrency, true);
+  const { data: toPairs } = useExchangeRatePairs(line.toCurrency, true);
   // Suy ra X→LAK từ một danh sách cặp tỷ giá (gốc `base`):
   //   X→LAK = (base→LAK) / (base→X)
   // Dùng khi backend không trả trực tiếp cặp X→LAK cho tiền X (vd chỉ cấu hình
@@ -107,27 +102,27 @@ function FxLineRow({
     return undefined;
   };
 
-  // Cặp TRỰC TIẾP from→to đã cấu hình ở Rate Graph (vd CNY→USD = 400). Đây là
-  // NGUỒN SỰ THẬT — "thiết lập sao thì hiển thị/đổi y vậy", KHÔNG quy đổi qua LAK.
-  // (Chỉ áp dụng cho cặp ngoại tệ ↔ ngoại tệ; cặp có LAK ở một đầu vốn đã là tỷ giá LAK.)
+  // Cặp TRỰC TIẾP 1 from = pairRate to đã cấu hình ở Rate Graph (vd CNY→USD = 400,
+  // hay LAK→YEN = 20). NGUỒN SỰ THẬT cho MỌI chiều — "thiết lập sao thì hiển thị/đổi y vậy".
   const directPairRate =
-    line.fromCurrency !== "LAK" && line.toCurrency !== "LAK"
-      ? fromPairs?.find((p) => p.to === line.toCurrency)?.rate
-      : undefined;
+    line.fromCurrency === line.toCurrency
+      ? 1
+      : fromPairs?.find((p) => p.to === line.toCurrency)?.rate;
   const hasDirectPair = !!directPairRate && directPairRate > 0;
 
+  // from→LAK (=1 nếu from là LAK)
   const cfgFromRate =
     line.fromCurrency === "LAK"
       ? 1
       : (fromPairs?.find((p) => p.to === "LAK")?.rate ??
          deriveToLak(toPairs, line.fromCurrency) ??
          0);
-  // to→LAK dùng cho pivot gửi backend. Khi có cặp trực tiếp, ÉP to→LAK = (from→LAK)/pairRate
-  // ⇒ pivot tái tạo ĐÚNG tỷ giá trực tiếp (hiển thị + toAmount + dữ liệu backend đồng nhất).
+  // to→LAK dùng cho pivot gửi backend: to=LAK→1; có cặp trực tiếp→ (from→LAK)/pairRate
+  // (pivot tái tạo ĐÚNG tỷ giá trực tiếp); else fallback to→LAK.
   const cfgToRate =
     line.toCurrency === "LAK"
       ? 1
-      : directPairRate && directPairRate > 0 && cfgFromRate > 0
+      : hasDirectPair && directPairRate && directPairRate > 0 && cfgFromRate > 0
         ? cfgFromRate / directPairRate
         : (toPairs?.find((p) => p.to === "LAK")?.rate ??
            deriveToLak(fromPairs, line.toCurrency) ??
@@ -164,33 +159,20 @@ function FxLineRow({
         : toAmount.toLocaleString("en", { maximumFractionDigits: 4 })
       : null;
 
-  // Hiển thị/sửa tỷ giá theo ĐÚNG chiều quy đổi của dòng:
-  //  • ngoại tệ ↔ ngoại tệ (USD→THB): dùng tỷ giá trực tiếp "1 from = R to" (vd 1 USD = 33.94 ฿)
-  //  • có LAK ở một đầu: giữ "1 ngoại tệ = X ₭"
-  const isFromLak = line.fromCurrency === "LAK";
-  const isToLak = line.toCurrency === "LAK";
-  const isCross = !isFromLak && !isToLak; // ngoại tệ ↔ ngoại tệ
-
-  // Tỷ giá trực tiếp 1 from = R to, suy từ hai tỷ giá quy LAK: R = (from→LAK)/(to→LAK)
+  // Hiển thị THỐNG NHẤT mọi chiều: "1 {from} = {R} {to}" với R = cặp trực tiếp
+  // (nguồn sự thật từ Rate Graph), fallback suy từ tỷ giá dòng nếu cặp chưa tải.
+  //   USD→LAK: "1 USD = 889,380 ₭" · LAK→YEN: "1 LAK = 20 YEN" · CNY→USD: "1 CNY = 400 USD"
   const directRate =
     line.toRateToLak > 0 ? line.fromRateToLak / line.toRateToLak : 0;
 
-  // Currency + giá trị dùng cho NHÃN hiển thị và Ô SỬA
-  const rateUnitCurrency = isCross
-    ? line.fromCurrency
-    : isFromLak
-      ? line.toCurrency
-      : line.fromCurrency;
-  const rateUnitSuffix = isCross ? toSym : "₭";
-  // Cross: ưu tiên hiện ĐÚNG số cấu hình ở Rate Graph (directPairRate, vd 400),
-  // fallback về tỷ giá suy ngược từ dòng nếu cặp chưa tải xong.
-  const rateUnitValue = isCross
-    ? (directPairRate && directPairRate > 0 ? directPairRate : directRate)
-    : isFromLak
-      ? line.toRateToLak
-      : line.fromRateToLak;
-  // Cross-rate có phần thập phân (33.94); chiều qua LAK là số nguyên Kip
-  const rateMaxFractionDigits = isCross ? 4 : 0;
+  const rateUnitCurrency = line.fromCurrency;
+  const rateUnitSuffix = toSym;
+  const rateUnitValue =
+    hasDirectPair && directPairRate && directPairRate > 0 ? directPairRate : directRate;
+  // to = LAK → Kip nguyên; còn lại cho phép thập phân (tỷ giá nhỏ như 0.00005882).
+  const rateMaxFractionDigits = line.toCurrency === "LAK" ? 0 : 8;
+  // Ô sửa: LAK đích → số nguyên; ngoại tệ đích → để tự do thập phân (không padding).
+  const rateEditPrecision = line.toCurrency === "LAK" ? 0 : undefined;
 
   // Tách phần "1 CNY =" (mờ, nhỏ) và phần giá trị "2.8 ฿" (đậm, rõ) để dễ đọc.
   const rateValueText =
@@ -243,20 +225,10 @@ function FxLineRow({
   const saveRate = () => {
     const val = parseFloat(rateInput);
     if (!val || val <= 0) { setEditingRate(false); return; }
-    if (isCross) {
-      // val = "1 from = val to" → lưu thẳng cặp trực tiếp from→to vào Rate Graph.
-      // KHÔNG set toRateToLak cục bộ: Rate Graph là nguồn sự thật, sau khi lưu sẽ
-      // refetch và effect tự đồng bộ to→LAK = (from→LAK)/val (tránh nhấp nháy revert).
-      onSaveRateToApi(line.fromCurrency, line.toCurrency, val);
-    } else if (isFromLak) {
-      // Lưu cặp "to → LAK"
-      onChange({ toRateToLak: val });
-      onSaveRateToApi(line.toCurrency, "LAK", val);
-    } else {
-      // Lưu cặp "from → LAK"
-      onChange({ fromRateToLak: val });
-      onSaveRateToApi(line.fromCurrency, "LAK", val);
-    }
+    // val = "1 from = val to" → lưu THẲNG cặp trực tiếp from→to vào Rate Graph (mọi chiều).
+    // KHÔNG set rate cục bộ: Rate Graph là nguồn sự thật, sau khi lưu sẽ refetch và
+    // effect tự đồng bộ from→LAK / to→LAK (tránh nhấp nháy revert).
+    onSaveRateToApi(line.fromCurrency, line.toCurrency, val);
     setEditingRate(false);
   };
 
@@ -293,7 +265,7 @@ function FxLineRow({
               1 {rateUnitCurrency} =
             </span>
             <InputNumber
-              precision={rateMaxFractionDigits}
+              precision={rateEditPrecision}
               min={0}
               value={rateInput ? Number(rateInput) : null}
               onChange={(v) => setRateInput(String(v ?? ""))}
