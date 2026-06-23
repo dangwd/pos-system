@@ -212,11 +212,11 @@ function InvoiceTemplate({ inv }: { inv: PrintInvoice }) {
                           : `${toAmt.toLocaleString("en", { maximumFractionDigits: 4 })} ${line.toCurrency}`}
                       </td>
                       <td className="border border-gray-400 px-2 py-1.5 text-center text-[10px] text-gray-600">
-                        {rateDisplayVal > 0 ? (
-                          <>
-                            1 {rateDisplayCurr} = {rateDisplayVal.toLocaleString("lo-LA")} ₭
-                            {showBothRates && <><br />1 {line.toCurrency} = {line.toRateToLak.toLocaleString("lo-LA")} ₭</>}
-                          </>
+                        {showBothRates ? (
+                          // Cross ngoại tệ: tỷ giá trực tiếp lúc GD, không quy đổi qua kip
+                          <>1 {line.fromCurrency} = {(line.fromRateToLak / line.toRateToLak).toLocaleString("lo-LA", { maximumFractionDigits: 4 })} {line.toCurrency}</>
+                        ) : rateDisplayVal > 0 ? (
+                          <>1 {rateDisplayCurr} = {rateDisplayVal.toLocaleString("lo-LA")} ₭</>
                         ) : "—"}
                       </td>
                     </tr>

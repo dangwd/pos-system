@@ -233,7 +233,18 @@ export function Receipt({ open, transaction, onClose }: ReceiptProps) {
                             <span className="font-bold text-primary">{line.fromCurrency}</span>
                           </TableCell>
                           <TableCell className="text-center">
-                            {rateDisplayVal > 0 ? (
+                            {showBothRates ? (
+                              // Cross ngoại tệ: tỷ giá trực tiếp lúc GD, không quy đổi qua kip
+                              <span className="text-xs text-muted-foreground">
+                                {"1 "}
+                                <span className="font-semibold text-foreground">{line.fromCurrency}</span>
+                                {" = "}
+                                <span className="font-semibold text-foreground tabular-nums">
+                                  {(line.fromRateToLak / line.toRateToLak).toLocaleString("lo-LA", { maximumFractionDigits: 4 })}
+                                </span>{" "}
+                                <span className="font-semibold text-foreground">{line.toCurrency}</span>
+                              </span>
+                            ) : rateDisplayVal > 0 ? (
                               <span className="text-xs text-muted-foreground">
                                 {"1 "}
                                 <span className="font-semibold text-foreground">{rateDisplayCurr}</span>
@@ -242,17 +253,6 @@ export function Receipt({ open, transaction, onClose }: ReceiptProps) {
                                   {rateDisplayVal.toLocaleString("lo-LA")}
                                 </span>
                                 {" ₭"}
-                                {showBothRates && (
-                                  <>
-                                    {" · 1 "}
-                                    <span className="font-semibold text-foreground">{line.toCurrency}</span>
-                                    {" = "}
-                                    <span className="font-semibold text-foreground tabular-nums">
-                                      {line.toRateToLak.toLocaleString("lo-LA")}
-                                    </span>
-                                    {" ₭"}
-                                  </>
-                                )}
                               </span>
                             ) : "—"}
                           </TableCell>

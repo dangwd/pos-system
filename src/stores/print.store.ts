@@ -122,6 +122,31 @@ function parseItemFees(name: string): { cleanName: string; phiKho: number; haoHu
   }
 }
 
+/**
+ * Dựng lại exchangeLines (Mode A) từ FX fields per-item.
+ *
+ * Backend chỉ trả fx* trên từng `items[]`, KHÔNG trả `exchangeLines` tổng hợp.
+ * Luồng POS vá tay exchangeLines sau checkout (useCheckout), nhưng record load
+ * từ trang Nhật ký hóa đơn không có → in lại bị fallback sang scalar (sai khi
+ * GD nhiều dòng / nhiều tiền đích). Khớp pattern CurrencyExchangeDetail.buildLines
+ * và TransactionExpandedRow để in lại giống hệt màn POS.
+ */
+function fxLinesFromItems(items: Transaction['items']): ExchangeLineResponse[] {
+  return items
+    .filter(i => i.fxFromCurrency || i.fxToCurrency)
+    .map(i => {
+      const toCurrency = i.fxToCurrency ?? 'LAK'
+      return {
+        fromCurrency: i.fxFromCurrency ?? 'LAK',
+        fromAmount: i.fxFromAmount ?? 0,
+        fromRateToLak: i.fxFromRateToLak ?? 0,
+        toCurrency,
+        toRateToLak: i.fxToRateToLak ?? (toCurrency === 'LAK' ? 1 : 0),
+        toAmount: i.fxToAmount ?? undefined,
+      }
+    })
+}
+
 function normalize(tx: Transaction, ctx?: PrintContext): PrintInvoice {
   const isBuyGold = tx.type === 'BuyGold' || tx.type === 'BuySilver'
   const items: PrintItem[] = tx.items.map((item, idx) => {
@@ -185,6 +210,14 @@ function normalize(tx: Transaction, ctx?: PrintContext): PrintInvoice {
     ? normalItems.reduce((s, i) => s + i.quantity * i.unitPriceLak, 0)
     : 0
 
+  // FX: ưu tiên exchangeLines từ backend; nếu rỗng, dựng lại từ fx* per-item
+  // (record load từ Nhật ký hóa đơn không có exchangeLines → tránh fallback scalar sai).
+  const fxLines = tx.exchangeLines?.length
+    ? tx.exchangeLines
+    : tx.type === 'ExchangeCurrency'
+      ? fxLinesFromItems(tx.items)
+      : []
+
   return {
     invoiceCode: tx.invoiceCode,
     txnType: tx.type,
@@ -218,7 +251,7 @@ function normalize(tx: Transaction, ctx?: PrintContext): PrintInvoice {
     cashAmount:    tx.cashAmount,
     bankAmount:    tx.bankAmount,
 
-    exchangeLines:   tx.exchangeLines ?? null,
+    exchangeLines:   fxLines.length ? fxLines : null,
     currency:        tx.currency,
     exchangeRate:    tx.exchangeRate,
     foreignAmount:   tx.foreignAmount,
