@@ -1264,6 +1264,7 @@
         "cardClose": "Closing stock",
         "unitQty": "Qty",
         "changeSub": "in {receipt} · out {issue} qty",
+        "changeSubWeight": "in {receipt} · out {issue}",
         "deltaVsOpen": "vs opening",
         "trendTitle": "Inventory trend over time",
         "trendSubtitle": "End-of-day quantity · Gold = orange, Silver = blue",

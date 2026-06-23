@@ -115,7 +115,8 @@ export interface InventoryReportParams {
 
 export interface StockPeriodSummary {
   openQty: number;    openWeight: number;
-  receiptQty: number; issueQty: number;
+  receiptQty: number; receiptWeight: number;   // KL nhập trong kỳ (g)
+  issueQty: number;   issueWeight: number;     // KL xuất trong kỳ (g)
   midQty: number;     midWeight: number;
   closeQty: number;   closeWeight: number;
 }
@@ -126,7 +127,8 @@ export interface StockPeriodItem {
   category: string;   karat: string;       unit: string;
   branchId: string;   branchName: string;  source: string;
   openQty: number;    openWeight: number;
-  receiptQty: number; issueQty: number;
+  receiptQty: number; receiptWeight: number;   // KL nhập trong kỳ (g)
+  issueQty: number;   issueWeight: number;     // KL xuất trong kỳ (g)
   midQty: number;     midWeight: number;
   closeQty: number;   closeWeight: number;
 }

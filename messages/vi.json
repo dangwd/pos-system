@@ -1262,6 +1262,7 @@
         "cardClose": "Tồn cuối kỳ",
         "unitQty": "SL",
         "changeSub": "nhập {receipt} · xuất {issue} SL",
+        "changeSubWeight": "nhập {receipt} · xuất {issue}",
         "deltaVsOpen": "so đầu kỳ",
         "trendTitle": "Biến động tồn kho theo thời gian",
         "trendSubtitle": "SL tồn cuối ngày · Vàng = cam, Bạc = xanh",

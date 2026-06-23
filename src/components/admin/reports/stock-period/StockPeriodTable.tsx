@@ -6,7 +6,7 @@ import { Table, Spin } from 'antd'
 import type { TableColumnsType } from 'antd'
 import dayjs from 'dayjs'
 import { Badge } from '@/components/ui/badge'
-import { formatNum } from '@/components/admin/reports/report-ui'
+import { formatNum, formatGram } from '@/components/admin/reports/report-ui'
 import { useStockMovements } from '@/hooks/useReports'
 import { DocumentDialog, type DocRef } from './DocumentDialog'
 import type { StockPeriodItem, StockMovementLine } from '@/types/report'
@@ -15,12 +15,17 @@ const SEP = '1.5px solid var(--border)'
 const sepCell = () => ({ style: { borderLeft: SEP } })
 
 const qty = (n: number) => n > 0 ? formatNum(n) : <span className="text-muted-foreground">—</span>
-const recv = (n: number) => n > 0
-  ? <span style={{ fontWeight: 500 }}>{formatNum(n)}</span>
-  : <span className="text-muted-foreground">—</span>
-const issue = (n: number) => n > 0
-  ? <span style={{ fontWeight: 500 }}>{formatNum(n)}</span>
-  : <span className="text-muted-foreground">—</span>
+
+// SL (đậm) + KL (g) sub-text — dùng cho cột Nhập / Xuất
+const qtyWithGram = (n: number, gram: number) =>
+  n > 0 || gram > 0
+    ? (
+      <div className="leading-tight">
+        <span style={{ fontWeight: 500 }}>{formatNum(n)}</span>
+        {gram > 0 && <div className="text-[10px] text-muted-foreground">{formatGram(gram)}</div>}
+      </div>
+    )
+    : <span className="text-muted-foreground">—</span>
 
 // ─── Chi tiết phát sinh nhập/xuất của 1 dòng (lazy fetch khi mở rộng) ─────────
 
@@ -117,9 +122,11 @@ export function StockPeriodTable({ items, fromDate, toDate, loading }: {
       title: t('grpChange'),
       onHeaderCell: () => ({ style: { borderLeft: SEP } }),
       children: [
-        { title: t('colReceipt'), dataIndex: 'receiptQty', key: 'receiptQty', width: 95, align: 'right',
-          onCell: sepCell, onHeaderCell: sepCell, render: recv },
-        { title: t('colIssue'), dataIndex: 'issueQty', key: 'issueQty', width: 95, align: 'right', render: issue },
+        { title: t('colReceipt'), dataIndex: 'receiptQty', key: 'receiptQty', width: 110, align: 'right',
+          onCell: sepCell, onHeaderCell: sepCell,
+          render: (_: number, r) => qtyWithGram(r.receiptQty, r.receiptWeight) },
+        { title: t('colIssue'), dataIndex: 'issueQty', key: 'issueQty', width: 110, align: 'right',
+          render: (_: number, r) => qtyWithGram(r.issueQty, r.issueWeight) },
       ],
     },
     // Cuối kỳ — 1 cột SL (đậm)
@@ -137,10 +144,12 @@ export function StockPeriodTable({ items, fromDate, toDate, loading }: {
     (a, it) => ({
       openQty: a.openQty + it.openQty,
       receiptQty: a.receiptQty + it.receiptQty,
+      receiptWeight: a.receiptWeight + it.receiptWeight,
       issueQty: a.issueQty + it.issueQty,
+      issueWeight: a.issueWeight + it.issueWeight,
       closeQty: a.closeQty + it.closeQty,
     }),
-    { openQty: 0, receiptQty: 0, issueQty: 0, closeQty: 0 },
+    { openQty: 0, receiptQty: 0, receiptWeight: 0, issueQty: 0, issueWeight: 0, closeQty: 0 },
   )
 
   return (
@@ -155,7 +164,7 @@ export function StockPeriodTable({ items, fromDate, toDate, loading }: {
       size="small"
       bordered
       sticky
-      scroll={{ x: 1100, y: 460 }}
+      scroll={{ x: 1230, y: 460 }}
       pagination={false}
       locale={{ emptyText: t('empty') }}
       rowClassName="cursor-pointer"
@@ -174,10 +183,10 @@ export function StockPeriodTable({ items, fromDate, toDate, loading }: {
             </Table.Summary.Cell>
             <Table.Summary.Cell index={7} align="right">{formatNum(totals.openQty)}</Table.Summary.Cell>
             <Table.Summary.Cell index={8} align="right">
-              {formatNum(totals.receiptQty)}
+              {qtyWithGram(totals.receiptQty, totals.receiptWeight)}
             </Table.Summary.Cell>
             <Table.Summary.Cell index={9} align="right">
-              {formatNum(totals.issueQty)}
+              {qtyWithGram(totals.issueQty, totals.issueWeight)}
             </Table.Summary.Cell>
             <Table.Summary.Cell index={10} align="right">{formatNum(totals.closeQty)}</Table.Summary.Cell>
           </Table.Summary.Row>

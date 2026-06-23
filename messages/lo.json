@@ -1262,6 +1262,7 @@
         "cardClose": "ທ້າຍໄລຍະ",
         "unitQty": "ຈຳ",
         "changeSub": "ນຳເຂົ້າ {receipt} · ນຳອອກ {issue} ຈຳ",
+        "changeSubWeight": "ນຳເຂົ້າ {receipt} · ນຳອອກ {issue}",
         "deltaVsOpen": "ທຽບຕົ້ນໄລຍະ",
         "trendTitle": "ການເໜັງຕີງສິນຄ້າຄົງເຫຼືອຕາມເວລາ",
         "trendSubtitle": "ຈຳນວນຄົງເຫຼືອທ້າຍວັນ · ຄຳ = ສີສົ້ມ, ເງິນ = ສີຟ້າ",

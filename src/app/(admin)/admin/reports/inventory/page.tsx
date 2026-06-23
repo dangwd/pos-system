@@ -172,7 +172,7 @@ export default function StockPeriodReportPage() {
             <StatCard
               icon={<SwapOutlined />} iconColor="#444441"
               label={t('cardChange')} value={`${formatNum(s!.receiptQty)} / ${formatNum(s!.issueQty)}`}
-              sub={t('changeSub', { receipt: formatNum(s!.receiptQty), issue: formatNum(s!.issueQty) })}
+              sub={t('changeSubWeight', { receipt: formatGram(s!.receiptWeight), issue: formatGram(s!.issueWeight) })}
             />
             <StatCard
               icon={<CheckCircleOutlined />} iconColor="#3B6D11"
