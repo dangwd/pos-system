@@ -27,8 +27,9 @@ export function useAddToCart(priceConfig: PriceConfig | undefined) {
     const fallback = priceConfig.items.find(p => p.purityCode === product.purity)
     const matched = priceItem ?? fallback
 
-    // BuyGold → buyPrice; ExchangeGold/SellGold → sellPrice
-    const isBuyMode = (tab?.txnType ?? 'SellGold') === 'BuyGold'
+    // BuyGold/BuySilver → buyPrice; ExchangeGold/SellGold → sellPrice
+    const txnType = tab?.txnType ?? 'SellGold'
+    const isBuyMode = txnType === 'BuyGold' || txnType === 'BuySilver'
     const unitPrice = matched ? (isBuyMode ? matched.buyPrice : matched.sellPrice) : 0
     const unitPriceLakPerGram = matched ? unitPrice / matched.gramPerUnit : 0
 
@@ -59,6 +60,7 @@ export function useAddToCart(priceConfig: PriceConfig | undefined) {
       itemRole: role,
       perItemDamage: 0,
       perItemWearChi: 0,
+      wearUnitGram: txnType === 'BuySilver' ? 1 : 3.75,
       isDamaged: false,
       isReadOnly: false,
     })

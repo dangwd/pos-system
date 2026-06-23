@@ -1,6 +1,6 @@
 import api from '@/lib/axios'
 import { handleAxiosError } from '@/lib/api-error'
-import { normalizePaged, type RawPagedResult } from '@/types/common'
+import { normalizePaged, type RawPagedResult, type PagedResult } from '@/types/common'
 import type {
   PriceTable,
   CreatePriceTableDto,
@@ -8,6 +8,12 @@ import type {
   ExchangeRate,
   UpdateExchangeRateDto,
   BulkUpdateExchangeRatesRequest,
+  ExchangeRateSession,
+  ExchangeRatePair,
+  UpdateExchangeRatePairDto,
+  BulkUpdateExchangeRatePairsRequest,
+  ExchangeRatePairSession,
+  ExchangeHistoryQuery,
   StonePriceRule,
   CreateStonePriceRuleDto,
   UpdateStonePriceRuleDto,
@@ -26,6 +32,19 @@ import type {
   CreateCurrencyDto,
   UpdateCurrencyDto,
 } from '@/types/config'
+
+/** Shape thô của endpoint history: dùng key `items` (FE PagedResult dùng `data`). */
+type RawSessionPage<T> = { total: number; page: number; pageSize: number; items: T[] }
+
+/** Map response history (key `items`) → PagedResult phẳng của FE (key `data`). */
+function toSessionPage<T>(raw: RawSessionPage<T> | undefined, query: ExchangeHistoryQuery): PagedResult<T> {
+  return {
+    data: raw?.items ?? [],
+    total: raw?.total ?? 0,
+    page: raw?.page ?? query.page ?? 1,
+    pageSize: raw?.pageSize ?? query.pageSize ?? 20,
+  }
+}
 
 export class ConfigRepository {
 
@@ -63,8 +82,9 @@ export class ConfigRepository {
     } catch (err) { throw handleAxiosError(err) }
   }
 
-  // ─── Tỷ giá ngoại tệ ───────────────────────────────────────────────────────
+  // ─── Tỷ giá LAK (exchange_rates) ────────────────────────────────────────────
 
+  /** GET /api/config/exchange-rates — tỷ giá hiện hành mỗi loại ngoại tệ */
   async getExchangeRates(): Promise<ExchangeRate[]> {
     try {
       const { data } = await api.get<ExchangeRate[] | RawPagedResult<ExchangeRate>>('/api/config/exchange-rates')
@@ -73,6 +93,7 @@ export class ConfigRepository {
     } catch (err) { throw handleAxiosError(err) }
   }
 
+  /** POST /api/config/exchange-rates — cập nhật 1 loại (tạo bản ghi mới, sessionId riêng) */
   async updateExchangeRate(dto: UpdateExchangeRateDto): Promise<ExchangeRate> {
     try {
       const { data } = await api.post<ExchangeRate>('/api/config/exchange-rates', dto)
@@ -80,21 +101,64 @@ export class ConfigRepository {
     } catch (err) { throw handleAxiosError(err) }
   }
 
-  async getExchangeRateHistory(limit = 50): Promise<ExchangeRate[]> {
-    try {
-      const { data } = await api.get<ExchangeRate[] | RawPagedResult<ExchangeRate>>(
-        '/api/config/exchange-rates/history',
-        { params: { limit } },
-      )
-      if (Array.isArray(data)) return data
-      return normalizePaged(data).data
-    } catch (err) { throw handleAxiosError(err) }
-  }
-
+  /** POST /api/config/exchange-rates/bulk — cập nhật nhiều loại, chung 1 sessionId */
   async bulkUpdateExchangeRates(dto: BulkUpdateExchangeRatesRequest): Promise<ExchangeRate[]> {
     try {
       const { data } = await api.post<ExchangeRate[]>('/api/config/exchange-rates/bulk', dto)
+      return data ?? []
+    } catch (err) { throw handleAxiosError(err) }
+  }
+
+  /** GET /api/config/exchange-rates/history — lịch sử tỷ giá LAK theo phiên (phân trang + lọc) */
+  async getExchangeRateHistory(query: ExchangeHistoryQuery = {}): Promise<PagedResult<ExchangeRateSession>> {
+    try {
+      const { data } = await api.get<RawSessionPage<ExchangeRateSession>>(
+        '/api/config/exchange-rates/history',
+        { params: { page: 1, pageSize: 20, ...query } },
+      )
+      return toSessionPage(data, query)
+    } catch (err) { throw handleAxiosError(err) }
+  }
+
+  // ─── Rate Graph — cặp tỷ giá (exchange_rate_pairs) ──────────────────────────
+
+  /** GET /api/config/exchange-rate-pairs[?from=] — cặp tỷ giá; truyền `from` để có cross-rate qua LAK */
+  async getExchangeRatePairs(from?: string): Promise<ExchangeRatePair[]> {
+    try {
+      const { data } = await api.get<ExchangeRatePair[]>('/api/config/exchange-rate-pairs', {
+        params: from ? { from } : undefined,
+      })
+      return data ?? []
+    } catch (err) { throw handleAxiosError(err) }
+  }
+
+  /** PUT /api/config/exchange-rate-pairs/{from}/{to} — upsert 1 cặp */
+  async updateExchangeRatePair(from: string, to: string, dto: UpdateExchangeRatePairDto): Promise<ExchangeRatePair> {
+    try {
+      const { data } = await api.put<ExchangeRatePair>(
+        `/api/config/exchange-rate-pairs/${encodeURIComponent(from)}/${encodeURIComponent(to)}`,
+        dto,
+      )
       return data
+    } catch (err) { throw handleAxiosError(err) }
+  }
+
+  /** POST /api/config/exchange-rate-pairs/bulk — upsert nhiều cặp, chung 1 sessionId */
+  async bulkUpdateExchangeRatePairs(dto: BulkUpdateExchangeRatePairsRequest): Promise<ExchangeRatePair[]> {
+    try {
+      const { data } = await api.post<ExchangeRatePair[]>('/api/config/exchange-rate-pairs/bulk', dto)
+      return data ?? []
+    } catch (err) { throw handleAxiosError(err) }
+  }
+
+  /** GET /api/config/exchange-rate-pairs/history — lịch sử Rate Graph theo phiên (phân trang + lọc) */
+  async getExchangeRatePairHistory(query: ExchangeHistoryQuery = {}): Promise<PagedResult<ExchangeRatePairSession>> {
+    try {
+      const { data } = await api.get<RawSessionPage<ExchangeRatePairSession>>(
+        '/api/config/exchange-rate-pairs/history',
+        { params: { page: 1, pageSize: 20, ...query } },
+      )
+      return toSessionPage(data, query)
     } catch (err) { throw handleAxiosError(err) }
   }
 

@@ -108,6 +108,10 @@ export default function AdminLayout({
               },
               { href: "/admin/orders/BuyGold", label: t("nav.orderBuyGold") },
               {
+                href: "/admin/orders/BuySilver",
+                label: t("nav.orderBuySilver"),
+              },
+              {
                 href: "/admin/orders/ExchangeGold",
                 label: t("nav.orderExchangeGold"),
               },

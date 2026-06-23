@@ -87,7 +87,7 @@ function InvoiceTemplate({ inv }: { inv: PrintInvoice }) {
   const title = INVOICE_TITLE[inv.txnType];
   const isFx = inv.txnType === "ExchangeCurrency";
   const isExchange = EXCHANGE_TYPES.includes(inv.txnType);
-  const isBuyGold = inv.txnType === "BuyGold";
+  const isBuyGold = inv.txnType === "BuyGold" || inv.txnType === "BuySilver";
   // totalAmount = A - B (có thể âm với ExchangeGold). totalB = tổng vàng cũ cấn trừ.
   const totalB = inv.exchangeInItems.reduce((s, i) => s + i.lineTotal, 0);
   const totalA = inv.totalAmount + totalB;

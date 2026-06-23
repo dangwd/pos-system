@@ -16,7 +16,8 @@
 export type TransactionType =
   | "SellGold" // Bán vàng
   | "SellSilver" // Bán bạc
-  | "BuyGold" // Mua vào từ khách
+  | "BuyGold" // Mua vàng từ khách
+  | "BuySilver" // Mua bạc từ khách
   | "ExchangeGold" // Thu đổi vàng cũ
   | "ExchangeCurrency" // Thu đổi ngoại tệ
   | "BuyMoreGold" // Mua thêm / trade-up

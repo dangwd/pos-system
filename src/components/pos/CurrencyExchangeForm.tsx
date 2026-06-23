@@ -2,10 +2,13 @@
 
 import { useTranslations } from "next-intl";
 import { useActiveTab } from "@/hooks/useActiveTab";
-import { useExchangeRates, useUpdateExchangeRate } from "@/hooks/useConfig";
+import {
+  useCurrencies,
+  useExchangeRatePairs,
+  useUpdateExchangeRatePair,
+} from "@/hooks/useConfig";
 import { cn } from "@/lib/utils";
 import { genId } from "@/lib/utils";
-import type { ExchangeRate } from "@/types/config";
 import type { FxLine } from "@/types/invoice-tab";
 import { Select } from "antd";
 import { InputNumber } from "@/components/ui/antd-number-input";
@@ -17,7 +20,7 @@ import {
   CloseOutlined,
   ArrowRightOutlined,
 } from "@ant-design/icons";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 
 const CURRENCY_LABELS: Record<string, string> = {
   LAK: "LAK (₭ Kip)",
@@ -36,11 +39,6 @@ const CURRENCY_SYMBOL: Record<string, string> = {
   EUR: "€", JPY: "¥", KRW: "₩", SGD: "$", VND: "đ",
 };
 
-function getRateLak(currency: string, rates: ExchangeRate[]): number {
-  if (currency === "LAK") return 1;
-  return rates.find((r) => r.currencyCode === currency)?.effectiveRate ?? 0;
-}
-
 function calcLine(line: FxLine) {
   const lakEquivalent = Math.round(line.fromAmount * line.fromRateToLak);
   const toAmount =
@@ -50,12 +48,13 @@ function calcLine(line: FxLine) {
   return { lakEquivalent, toAmount };
 }
 
-function makeDefaultLine(rates: ExchangeRate[]): FxLine {
+function makeDefaultLine(currencies: string[]): FxLine {
+  const from = currencies.find((c) => c !== "LAK") ?? "USD";
   return {
     id: genId(),
-    fromCurrency: "USD",
+    fromCurrency: from,
     fromAmount: 0,
-    fromRateToLak: getRateLak("USD", rates),
+    fromRateToLak: 0, // điền tự động từ Rate Graph khi cặp tải xong
     toCurrency: "LAK",
     toRateToLak: 1,
   };
@@ -66,21 +65,95 @@ function makeDefaultLine(rates: ExchangeRate[]): FxLine {
 interface FxLineRowProps {
   line: FxLine;
   currencies: string[];
-  rates: ExchangeRate[];
   isSavingRate: boolean;
   isOnly: boolean;
   onChange: (patch: Partial<Omit<FxLine, "id">>) => void;
   onRemove: () => void;
-  onSaveRateToApi: (currencyCode: string, rateToLak: number) => void;
+  onSaveRateToApi: (from: string, to: string, rate: number) => void;
 }
 
 function FxLineRow({
-  line, currencies, rates, isSavingRate, isOnly,
+  line, currencies, isSavingRate, isOnly,
   onChange, onRemove, onSaveRateToApi,
 }: FxLineRowProps) {
   const t = useTranslations("pos.currencyExchange");
   const [editingRate, setEditingRate] = useState(false);
   const [rateInput, setRateInput] = useState("");
+
+  // Tỷ giá lấy từ Rate Graph (cặp tỷ giá) — không còn dùng exchange_rates cũ.
+  // `from → LAK` và `to → LAK` đủ để quy đổi qua LAK (đúng contract backend).
+  const { data: fromPairs } = useExchangeRatePairs(
+    line.fromCurrency,
+    line.fromCurrency !== "LAK",
+  );
+  const { data: toPairs } = useExchangeRatePairs(
+    line.toCurrency,
+    line.toCurrency !== "LAK",
+  );
+  // Suy ra X→LAK từ một danh sách cặp tỷ giá (gốc `base`):
+  //   X→LAK = (base→LAK) / (base→X)
+  // Dùng khi backend không trả trực tiếp cặp X→LAK cho tiền X (vd chỉ cấu hình
+  // tỷ giá theo tiền gốc USD ⇒ query from=THB có thể thiếu THB→LAK, nhưng cặp
+  // của USD vẫn có USD→LAK và USD→THB để suy ra).
+  const deriveToLak = (
+    pairs: typeof fromPairs,
+    target: string,
+  ): number | undefined => {
+    if (target === "LAK") return 1;
+    const baseToLak = pairs?.find((p) => p.to === "LAK")?.rate;
+    const baseToTarget = pairs?.find((p) => p.to === target)?.rate;
+    if (baseToLak && baseToLak > 0 && baseToTarget && baseToTarget > 0)
+      return Math.round((baseToLak / baseToTarget) * 10000) / 10000;
+    return undefined;
+  };
+
+  // Cặp TRỰC TIẾP from→to đã cấu hình ở Rate Graph (vd CNY→USD = 400). Đây là
+  // NGUỒN SỰ THẬT — "thiết lập sao thì hiển thị/đổi y vậy", KHÔNG quy đổi qua LAK.
+  // (Chỉ áp dụng cho cặp ngoại tệ ↔ ngoại tệ; cặp có LAK ở một đầu vốn đã là tỷ giá LAK.)
+  const directPairRate =
+    line.fromCurrency !== "LAK" && line.toCurrency !== "LAK"
+      ? fromPairs?.find((p) => p.to === line.toCurrency)?.rate
+      : undefined;
+  const hasDirectPair = !!directPairRate && directPairRate > 0;
+
+  const cfgFromRate =
+    line.fromCurrency === "LAK"
+      ? 1
+      : (fromPairs?.find((p) => p.to === "LAK")?.rate ??
+         deriveToLak(toPairs, line.fromCurrency) ??
+         0);
+  // to→LAK dùng cho pivot gửi backend. Khi có cặp trực tiếp, ÉP to→LAK = (from→LAK)/pairRate
+  // ⇒ pivot tái tạo ĐÚNG tỷ giá trực tiếp (hiển thị + toAmount + dữ liệu backend đồng nhất).
+  const cfgToRate =
+    line.toCurrency === "LAK"
+      ? 1
+      : directPairRate && directPairRate > 0 && cfgFromRate > 0
+        ? cfgFromRate / directPairRate
+        : (toPairs?.find((p) => p.to === "LAK")?.rate ??
+           deriveToLak(fromPairs, line.toCurrency) ??
+           0);
+
+  // Tự điền tỷ giá cấu hình khi dòng chưa có tỷ giá (=0). Khi user đã sửa
+  // (giá ≠ 0) thì không ghi đè.
+  // Gộp cả 2 chiều (from/to) vào MỘT effect + MỘT lần onChange. Nếu tách 2 effect,
+  // khi cả 2 cùng fire trong một commit (2 cặp tỷ giá đã cache) chúng dùng chung
+  // snapshot `lines` cũ và ghi đè lẫn nhau → một bên tỷ giá bị kẹt ở 0.
+  // Guard dùng `!val` (falsy) thay vì `=== 0`: dòng cũ persist từ localStorage có
+  // thể rehydrate ra `undefined`/`NaN` (JSON bỏ field undefined) — khi đó `=== 0`
+  // sai → effect không bao giờ tự điền → tỷ giá kẹt "—". `!val` tự chữa mọi case.
+  // Khi có cặp trực tiếp (cross), cấu hình Rate Graph là nguồn sự thật ⇒ ép đồng bộ
+  // cả 2 tỷ giá kể cả khi dòng đã có giá trị cũ (sai/persist) — không chỉ điền khi trống.
+  const drifted = (cur: number, cfg: number) =>
+    Math.abs((cur || 0) - cfg) > Math.abs(cfg) * 1e-6 + 1e-9;
+  useEffect(() => {
+    const patch: Partial<Omit<FxLine, "id">> = {};
+    if (cfgFromRate > 0 && (!line.fromRateToLak || (hasDirectPair && drifted(line.fromRateToLak, cfgFromRate))))
+      patch.fromRateToLak = cfgFromRate;
+    if (cfgToRate > 0 && (!line.toRateToLak || (hasDirectPair && drifted(line.toRateToLak, cfgToRate))))
+      patch.toRateToLak = cfgToRate;
+    if (Object.keys(patch).length > 0) onChange(patch);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [cfgFromRate, cfgToRate, hasDirectPair, line.fromRateToLak, line.toRateToLak]);
 
   const { toAmount } = calcLine(line);
   const toSym = CURRENCY_SYMBOL[line.toCurrency] ?? line.toCurrency;
@@ -91,62 +164,98 @@ function FxLineRow({
         : toAmount.toLocaleString("en", { maximumFractionDigits: 4 })
       : null;
 
-  // Tỷ giá luôn hiển thị theo chiều "1 ngoại tệ = X ₭"
-  // Nếu from=LAK thì hiển thị toCurrency's rate
+  // Hiển thị/sửa tỷ giá theo ĐÚNG chiều quy đổi của dòng:
+  //  • ngoại tệ ↔ ngoại tệ (USD→THB): dùng tỷ giá trực tiếp "1 from = R to" (vd 1 USD = 33.94 ฿)
+  //  • có LAK ở một đầu: giữ "1 ngoại tệ = X ₭"
   const isFromLak = line.fromCurrency === "LAK";
-  const rateDisplayCurrency = isFromLak ? line.toCurrency : line.fromCurrency;
-  const rateDisplayValue = isFromLak ? line.toRateToLak : line.fromRateToLak;
+  const isToLak = line.toCurrency === "LAK";
+  const isCross = !isFromLak && !isToLak; // ngoại tệ ↔ ngoại tệ
 
-  const rateLabel =
-    rateDisplayValue > 0
-      ? `1 ${rateDisplayCurrency} = ${rateDisplayValue.toLocaleString("en")} ₭`
-      : "—";
+  // Tỷ giá trực tiếp 1 from = R to, suy từ hai tỷ giá quy LAK: R = (from→LAK)/(to→LAK)
+  const directRate =
+    line.toRateToLak > 0 ? line.fromRateToLak / line.toRateToLak : 0;
+
+  // Currency + giá trị dùng cho NHÃN hiển thị và Ô SỬA
+  const rateUnitCurrency = isCross
+    ? line.fromCurrency
+    : isFromLak
+      ? line.toCurrency
+      : line.fromCurrency;
+  const rateUnitSuffix = isCross ? toSym : "₭";
+  // Cross: ưu tiên hiện ĐÚNG số cấu hình ở Rate Graph (directPairRate, vd 400),
+  // fallback về tỷ giá suy ngược từ dòng nếu cặp chưa tải xong.
+  const rateUnitValue = isCross
+    ? (directPairRate && directPairRate > 0 ? directPairRate : directRate)
+    : isFromLak
+      ? line.toRateToLak
+      : line.fromRateToLak;
+  // Cross-rate có phần thập phân (33.94); chiều qua LAK là số nguyên Kip
+  const rateMaxFractionDigits = isCross ? 4 : 0;
+
+  // Tách phần "1 CNY =" (mờ, nhỏ) và phần giá trị "2.8 ฿" (đậm, rõ) để dễ đọc.
+  const rateValueText =
+    rateUnitValue > 0
+      ? rateUnitValue.toLocaleString("en", {
+          maximumFractionDigits: rateMaxFractionDigits,
+        })
+      : null;
 
   const currencyOpts = (exclude: string) =>
     currencies.filter((c) => c !== exclude).map((c) => ({ value: c, label: CURRENCY_LABELS[c] ?? c }));
 
   const handleFromCurrencyChange = (curr: string) => {
-    const toC =
-      curr === line.toCurrency
-        ? curr === "LAK" ? (currencies.find((c) => c !== "LAK") ?? "USD") : "LAK"
-        : line.toCurrency;
+    // Collision: tiền "from" mới trùng tiền "to" → phải đổi luôn tiền "to".
+    const collision = curr === line.toCurrency;
+    const toC = collision
+      ? curr === "LAK" ? (currencies.find((c) => c !== "LAK") ?? "USD") : "LAK"
+      : line.toCurrency;
+    // reset tỷ giá "from" về 0 → effect tự điền theo cặp tỷ giá của tiền mới.
+    // Chỉ reset tỷ giá "to" khi tiền "to" thực sự đổi (collision); nếu không đổi
+    // thì GIỮ NGUYÊN tỷ giá "to" (kể cả khi user đã sửa tay).
     onChange({
       fromCurrency: curr,
-      fromRateToLak: getRateLak(curr, rates),
+      fromRateToLak: curr === "LAK" ? 1 : 0,
       toCurrency: toC,
-      toRateToLak: getRateLak(toC, rates),
+      ...(collision ? { toRateToLak: toC === "LAK" ? 1 : 0 } : {}),
     });
     setEditingRate(false);
   };
 
   const handleToCurrencyChange = (curr: string) => {
-    const fromC =
-      curr === line.fromCurrency
-        ? curr === "LAK" ? (currencies.find((c) => c !== "LAK") ?? "USD") : "LAK"
-        : line.fromCurrency;
+    const collision = curr === line.fromCurrency;
+    const fromC = collision
+      ? curr === "LAK" ? (currencies.find((c) => c !== "LAK") ?? "USD") : "LAK"
+      : line.fromCurrency;
     onChange({
       toCurrency: curr,
-      toRateToLak: getRateLak(curr, rates),
+      toRateToLak: curr === "LAK" ? 1 : 0,
       fromCurrency: fromC,
-      fromRateToLak: getRateLak(fromC, rates),
+      ...(collision ? { fromRateToLak: fromC === "LAK" ? 1 : 0 } : {}),
     });
     setEditingRate(false);
   };
 
   const openEditRate = () => {
-    setRateInput(rateDisplayValue > 0 ? String(rateDisplayValue) : "");
+    setRateInput(rateUnitValue > 0 ? String(rateUnitValue) : "");
     setEditingRate(true);
   };
 
   const saveRate = () => {
     const val = parseFloat(rateInput);
     if (!val || val <= 0) { setEditingRate(false); return; }
-    if (isFromLak) {
+    if (isCross) {
+      // val = "1 from = val to" → lưu thẳng cặp trực tiếp from→to vào Rate Graph.
+      // KHÔNG set toRateToLak cục bộ: Rate Graph là nguồn sự thật, sau khi lưu sẽ
+      // refetch và effect tự đồng bộ to→LAK = (from→LAK)/val (tránh nhấp nháy revert).
+      onSaveRateToApi(line.fromCurrency, line.toCurrency, val);
+    } else if (isFromLak) {
+      // Lưu cặp "to → LAK"
       onChange({ toRateToLak: val });
-      onSaveRateToApi(line.toCurrency, val);
+      onSaveRateToApi(line.toCurrency, "LAK", val);
     } else {
+      // Lưu cặp "from → LAK"
       onChange({ fromRateToLak: val });
-      onSaveRateToApi(line.fromCurrency, val);
+      onSaveRateToApi(line.fromCurrency, "LAK", val);
     }
     setEditingRate(false);
   };
@@ -181,10 +290,10 @@ function FxLineRow({
         {editingRate ? (
           <div className="flex items-center gap-1 w-full min-w-0">
             <span className="text-[10px] text-muted-foreground shrink-0 whitespace-nowrap">
-              1 {rateDisplayCurrency} =
+              1 {rateUnitCurrency} =
             </span>
             <InputNumber
-              precision={0}
+              precision={rateMaxFractionDigits}
               min={0}
               value={rateInput ? Number(rateInput) : null}
               onChange={(v) => setRateInput(String(v ?? ""))}
@@ -196,6 +305,9 @@ function FxLineRow({
               style={{ flex: 1, minWidth: 60 }}
               autoFocus
             />
+            <span className="text-[10px] text-muted-foreground shrink-0">
+              {rateUnitSuffix}
+            </span>
             <button onClick={saveRate} disabled={isSavingRate || !rateInput}
               className="h-5 w-5 shrink-0 flex items-center justify-center rounded bg-primary text-primary-foreground disabled:opacity-40 transition-colors">
               <CheckOutlined style={{ fontSize: 10 }} />
@@ -211,9 +323,21 @@ function FxLineRow({
             title={t("editRateTooltip")}
             className="w-full flex items-center justify-between gap-1.5 group min-w-0"
           >
-            <span className="text-[11px] font-bold font-mono tabular-nums text-foreground group-hover:text-primary transition-colors truncate">
-              {rateLabel}
-            </span>
+            {rateValueText ? (
+              <span className="flex items-baseline gap-1 min-w-0 truncate">
+                <span className="text-[10px] font-medium text-muted-foreground shrink-0">
+                  1 {rateUnitCurrency} =
+                </span>
+                <span className="text-sm font-bold tabular-nums text-foreground group-hover:text-primary transition-colors">
+                  {rateValueText}
+                </span>
+                <span className="text-[11px] font-semibold text-muted-foreground shrink-0">
+                  {rateUnitSuffix}
+                </span>
+              </span>
+            ) : (
+              <span className="text-sm font-bold text-muted-foreground/40">—</span>
+            )}
             <EditOutlined
               style={{ fontSize: 10 }}
               className="shrink-0 text-muted-foreground/50 group-hover:text-primary transition-colors"
@@ -269,23 +393,31 @@ function FxLineRow({
 export function CurrencyExchangeForm() {
   const t = useTranslations("pos.currencyExchange");
   const { tab, setFxLines } = useActiveTab();
-  const { data: rates = [], isLoading } = useExchangeRates();
-  const { mutate: updateRate, isPending: isSavingRate } = useUpdateExchangeRate();
+  const { data: currencyList = [], isLoading } = useCurrencies();
+  const { mutate: updatePair, isPending: isSavingRate } =
+    useUpdateExchangeRatePair();
 
-  const currencies = ["LAK", ...rates.map((r) => r.currencyCode)];
+  const currencies = useMemo(() => {
+    const active = currencyList
+      .filter((c) => c.isActive)
+      .sort((a, b) => a.sortOrder - b.sortOrder)
+      .map((c) => c.code);
+    return [...new Set(["LAK", ...active])];
+  }, [currencyList]);
+
   const lines = tab?.fxLines ?? [];
   useEffect(() => {
-    if (!isLoading && rates.length > 0 && lines.length === 0) {
-      setFxLines([makeDefaultLine(rates)]);
+    if (!isLoading && currencies.length > 1 && lines.length === 0) {
+      setFxLines([makeDefaultLine(currencies)]);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [tab?.id, isLoading, lines.length]);
+  }, [tab?.id, isLoading, currencies.length, lines.length]);
 
   const updateLine = (id: string, patch: Partial<Omit<FxLine, "id">>) =>
     setFxLines(lines.map((l) => (l.id === id ? { ...l, ...patch } : l)));
 
   const addLine = () => {
-    setFxLines([...lines, makeDefaultLine(rates)]);
+    setFxLines([...lines, makeDefaultLine(currencies)]);
   };
 
   const removeLine = (id: string) => {
@@ -339,13 +471,12 @@ export function CurrencyExchangeForm() {
             key={line.id}
             line={line}
             currencies={currencies}
-            rates={rates}
             isSavingRate={isSavingRate}
             isOnly={lines.length === 1}
             onChange={(patch) => updateLine(line.id, patch)}
             onRemove={() => removeLine(line.id)}
-            onSaveRateToApi={(currencyCode, rateToLak) =>
-              updateRate({ currencyCode, rateToLak, adjustment: 0 })
+            onSaveRateToApi={(from, to, rate) =>
+              updatePair({ from, to, dto: { rate } })
             }
           />
         ))}

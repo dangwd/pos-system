@@ -14,6 +14,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { type PaymentMethodKey } from "@/lib/strategies/payment.strategy";
+import { calcWearValue } from "@/lib/pricing";
 import { usePrintStore } from "@/stores/print.store";
 import { useAuthStore } from "@/stores/auth.store";
 import type { Transaction } from "@/types/transaction";
@@ -62,7 +63,8 @@ export function Receipt({ open, transaction, onClose }: ReceiptProps) {
     : (transaction.paymentMethod ?? "—");
 
   const isCompleted = !isCancelled && transaction.status === "Completed";
-  const isBuy = transaction.type === "BuyGold";
+  const isBuy = transaction.type === "BuyGold" || transaction.type === "BuySilver";
+  const isSilverBuy = transaction.type === "BuySilver";
   const isFx = transaction.type === "ExchangeCurrency";
   const isFxToNonLak = isFx && !!transaction.targetCurrency && transaction.targetCurrency !== "LAK";
   // Dùng foreignAmount từ DB (v2026-06-16+). Fallback sang note parsing cho GD cũ.
@@ -442,7 +444,9 @@ export function Receipt({ open, transaction, onClose }: ReceiptProps) {
                       {isBuy && (
                         <TableCell className="text-right text-sm">
                           {(item.haoHutGram ?? 0) > 0
-                            ? `${((item.haoHutGram ?? 0) / 3.75).toLocaleString("lo-LA")} ${t("weightUnit")}`
+                            ? isSilverBuy
+                              ? `${(item.haoHutGram ?? 0).toLocaleString("lo-LA")} ${t("weightUnitGram")}`
+                              : `${((item.haoHutGram ?? 0) / 3.75).toLocaleString("lo-LA")} ${t("weightUnit")}`
                             : "—"}
                         </TableCell>
                       )}
@@ -509,8 +513,14 @@ export function Receipt({ open, transaction, onClose }: ReceiptProps) {
                       // pricePerGram = unitPriceLak / weightGram (vì backend đã điều chỉnh
                       // unitPriceLak = effectiveGram × pricePerGram, weightGram = effectiveGram).
                       const totalWear = transaction.items.reduce((s, i) => {
-                        if (!i.haoHutGram || i.haoHutGram <= 0 || !i.weightGram) return s;
-                        return s + Math.round(i.haoHutGram * (i.unitPriceLak / i.weightGram));
+                        // weightGram backend trả về đã trừ hao mòn → calcWearValue
+                        // khôi phục trọng lượng gốc trước khi suy giá/gram.
+                        return s + calcWearValue({
+                          unitPriceLak: i.unitPriceLak,
+                          quantity: i.quantity,
+                          weightGram: i.weightGram,
+                          wearGram: i.haoHutGram ?? 0,
+                        });
                       }, 0);
 
                       // Phí lỗi/hỏng: dùng phiHuHai nếu có, fallback: unitPriceLak × qty − lineTotal.
@@ -519,14 +529,12 @@ export function Receipt({ open, transaction, onClose }: ReceiptProps) {
                         return s + Math.max(0, i.quantity * i.unitPriceLak - i.lineTotal);
                       }, 0);
 
-                      // Giá mua gốc = effective + hao mòn (phục hồi giá ban đầu nếu biết haoHutGram).
-                      const buyGross = transaction.items.reduce((s, i) => {
-                        const effectiveValue = i.quantity * i.unitPriceLak;
-                        if (i.haoHutGram && i.haoHutGram > 0 && i.weightGram > 0) {
-                          return s + effectiveValue + Math.round(i.haoHutGram * (i.unitPriceLak / i.weightGram));
-                        }
-                        return s + effectiveValue;
-                      }, 0);
+                      // Giá mua gốc (gross) = SL × giá/đơn vị. unitPriceLak là giá theo
+                      // trọng lượng GỐC nên đã là gross — KHÔNG cộng thêm hao mòn (trùng).
+                      const buyGross = transaction.items.reduce(
+                        (s, i) => s + i.quantity * i.unitPriceLak,
+                        0,
+                      );
 
                       return (
                         <>

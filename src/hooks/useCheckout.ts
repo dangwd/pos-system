@@ -124,11 +124,13 @@ export function useCheckout(strategy: PaymentStrategy) {
               const isExchangeIn = item.itemRole === "ExchangeIn";
               const hasLaoSut = item.perItemWearChi > 0;
 
-              // Trọng lượng thực = tổng - hao hụt HAO HỤT (ExchangeIn & BuyGold)
+              // Trọng lượng thực = tổng - hao hụt HAO HỤT (ExchangeIn & BuyGold/BuySilver)
+              // Vàng nhập hao mòn theo Chỉ (×3.75g), bạc theo Gram (×1g)
+              const wearUnitGram = item.wearUnitGram || 3.75;
               const totalGram =
                 item.weightGramOverride ?? item.qty * item.weightGram;
               const effectiveWeightGram = hasLaoSut
-                ? totalGram - item.perItemWearChi * 3.75
+                ? totalGram - item.perItemWearChi * wearUnitGram
                 : totalGram;
 
               // Backend tự tính storedUnitPriceLak = (sentUnitPriceLak / gramPerUnit) × weightGramOverride
@@ -145,7 +147,7 @@ export function useCheckout(strategy: PaymentStrategy) {
                 itemRole: item.itemRole,
                 laborFee: isExchangeIn ? 0 : item.laborFee,
                 stoneFee: isExchangeIn ? 0 : item.stoneFee,
-                haoHutGram: item.perItemWearChi * 3.75,
+                haoHutGram: item.perItemWearChi * wearUnitGram,
                 phiHuHai: item.perItemDamage,
               };
             }),

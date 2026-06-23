@@ -127,6 +127,11 @@ const TXN_META: Record<
     cls: "text-blue-700 dark:text-blue-400",
     bg: "bg-blue-100/70 dark:bg-blue-950/40",
   },
+  BuySilver: {
+    Icon: PlusSquareOutlined,
+    cls: "text-slate-700 dark:text-slate-300",
+    bg: "bg-slate-100/70 dark:bg-slate-800/50",
+  },
   BuyMoreGold: {
     Icon: PlusSquareOutlined,
     cls: "text-blue-700 dark:text-blue-400",
@@ -597,7 +602,8 @@ function BuyGoldRow({
           min={0}
           max={parseFloat(
             (
-              (item.weightGramOverride ?? item.qty * item.weightGram) / 3.75
+              (item.weightGramOverride ?? item.qty * item.weightGram) /
+              (item.wearUnitGram || 3.75)
             ).toFixed(3),
           )}
           precision={3}
@@ -619,7 +625,9 @@ function BuyGoldRow({
         <span className="text-[10px] tabular-nums text-orange-600 dark:text-orange-400">
           {item.perItemWearChi > 0
             ? Math.round(
-                item.perItemWearChi * 3.75 * item.unitPriceLakPerGram,
+                item.perItemWearChi *
+                  (item.wearUnitGram || 3.75) *
+                  item.unitPriceLakPerGram,
               ).toLocaleString("lo-LA") + " ₭"
             : "—"}
         </span>
@@ -651,6 +659,7 @@ function BuyGoldTable({
   onUpdate,
   priceConfig,
   weightUnits,
+  isSilver,
 }: {
   items: CartItem[];
   onQtyChange: (id: string, qty: number) => void;
@@ -658,6 +667,7 @@ function BuyGoldTable({
   onUpdate: (id: string, patch: Partial<CartItem>) => void;
   priceConfig: PriceConfig | undefined;
   weightUnits: WeightUnit[];
+  isSilver?: boolean;
 }) {
   const t = useTranslations("pos.transactionTable");
   return (
@@ -683,7 +693,7 @@ function BuyGoldTable({
             {t("exchangeGold.colDamage")}
           </th>
           <th className="px-2 py-2 text-left text-[10px] font-semibold text-orange-600 uppercase tracking-wide whitespace-nowrap">
-            {t("exchangeGold.colWear")}
+            {isSilver ? t("buyGold.colWearGram") : t("exchangeGold.colWear")}
           </th>
           <th className="px-2 py-2 text-right text-[10px] font-semibold text-orange-600 uppercase tracking-wide whitespace-nowrap">
             {t("exchangeGold.colWearValue")}
@@ -893,7 +903,8 @@ function ExchangeInRow({
           min={0}
           max={parseFloat(
             (
-              (item.weightGramOverride ?? item.qty * item.weightGram) / 3.75
+              (item.weightGramOverride ?? item.qty * item.weightGram) /
+              (item.wearUnitGram || 3.75)
             ).toFixed(3),
           )}
           precision={3}
@@ -914,7 +925,9 @@ function ExchangeInRow({
         <span className="text-[10px] tabular-nums text-orange-600 dark:text-orange-400">
           {item.perItemWearChi > 0
             ? Math.round(
-                item.perItemWearChi * 3.75 * item.unitPriceLakPerGram,
+                item.perItemWearChi *
+                  (item.wearUnitGram || 3.75) *
+                  item.unitPriceLakPerGram,
               ).toLocaleString("lo-LA") + " ₭"
             : "—"}
         </span>
@@ -1136,7 +1149,7 @@ function SummaryBar({
   itemCount: number;
 }) {
   const t = useTranslations("pos.transactionTable");
-  const isBuy = txnType === "BuyGold";
+  const isBuy = txnType === "BuyGold" || txnType === "BuySilver";
   return (
     <div className="flex items-stretch border-t bg-card shrink-0">
       <div className="flex-1 px-3 py-2.5 border-r">
@@ -1212,7 +1225,7 @@ export function TransactionTable() {
   const discount = tab?.discountAmount ?? 0;
   const isExchange = txnType === "ExchangeGold";
   const isFx = txnType === "ExchangeCurrency";
-  const isBuy = txnType === "BuyGold";
+  const isBuy = txnType === "BuyGold" || txnType === "BuySilver";
 
   return (
     <div className="flex flex-col h-full overflow-hidden">
@@ -1265,6 +1278,7 @@ export function TransactionTable() {
             onUpdate={updateCartItem}
             priceConfig={priceConfig}
             weightUnits={weightUnits}
+            isSilver={txnType === "BuySilver"}
           />
         ) : (
           <SellTable

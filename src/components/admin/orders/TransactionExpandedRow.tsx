@@ -7,6 +7,7 @@ import type { ColumnsType } from 'antd/es/table/interface'
 import { ExportOutlined } from '@ant-design/icons'
 import type { Transaction, TransactionItem, ExchangeLineResponse } from '@/types/transaction'
 import { useCustomer } from '@/hooks/useCustomers'
+import { calcWearValue } from '@/lib/pricing'
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { Spinner } from '@/components/ui/spinner'
 
@@ -16,6 +17,7 @@ const TYPE_BADGE_STYLE: Record<string, React.CSSProperties> = {
   SellGold:        { background: '#dcfce7', color: '#15803d' },
   SellSilver:      { background: '#ccfbf1', color: '#0f766e' },
   BuyGold:         { background: '#dbeafe', color: '#1d4ed8' },
+  BuySilver:       { background: '#f1f5f9', color: '#334155' },
   BuyMoreGold:     { background: '#dbeafe', color: '#1d4ed8' },
   ExchangeGold:    { background: '#fef3c7', color: '#b45309' },
   ExchangeFree:    { background: '#fef3c7', color: '#b45309' },
@@ -104,7 +106,7 @@ const BADGE_BASE: React.CSSProperties = {
 }
 
 // Loại GD có thành phần "mua vàng cũ" — hiển thị phí lỗi hỏng & hao mòn
-const BUY_TYPES = new Set(['BuyGold', 'BuyMoreGold', 'ExchangeGold', 'ExchangeFree', 'ExchangeToMoney'])
+const BUY_TYPES = new Set(['BuyGold', 'BuySilver', 'BuyMoreGold', 'ExchangeGold', 'ExchangeFree', 'ExchangeToMoney'])
 // Loại đổi hàng — có cả ExchangeIn (mua) và Normal (bán) nên cần cả hai bộ cột
 const EXCHANGE_TYPES = new Set(['ExchangeGold', 'ExchangeFree', 'BuyMoreGold', 'ExchangeToMoney'])
 
@@ -121,16 +123,16 @@ export function TransactionExpandedRow({ record }: Props) {
   const isBuyType = BUY_TYPES.has(record.type)
   const isExchangeType = EXCHANGE_TYPES.has(record.type)
   const isFxType = record.type === 'ExchangeCurrency'
+  const isSilverBuy = record.type === 'BuySilver'
 
   const hasBuyFees = isBuyType && record.items.some(i => (i.phiHuHai ?? 0) > 0 || (i.haoHutGram ?? 0) > 0)
   const totalPhiKho = record.items.reduce((s, i) => s + (i.phiHuHai ?? 0), 0)
   const totalHaoHutValue = record.items.reduce((s, i) => {
     const haoHutGram = i.haoHutGram ?? 0
-    if (haoHutGram <= 0) return s
-    const pricePerUnit = i.tableUnitPriceLak || i.unitPriceLak
-    // gramPerUnit = full grams per unit (trước hao mòn) = (effectiveGram + haoHutGram) / qty
-    const gramPerUnit = i.quantity > 0 ? (i.weightGram + haoHutGram) / i.quantity : 3.75
-    return s + Math.round(haoHutGram * pricePerUnit / gramPerUnit)
+    if (haoHutGram <= 0 || i.weightGram <= 0 || i.quantity <= 0) return s
+    // weightGram = tổng gram cả dòng, unitPriceLak = giá/1 đơn vị → giá/gram = unitPriceLak × SL / tổng gram
+    const pricePerGram = (i.unitPriceLak * i.quantity) / i.weightGram
+    return s + Math.round(haoHutGram * pricePerGram)
   }, 0)
 
   const productColumns: ColumnsType<TransactionItem> = [
@@ -187,10 +189,12 @@ export function TransactionExpandedRow({ record }: Props) {
         width: 100, align: 'right' as const,
         render: (_: unknown, row: TransactionItem) => {
           if (isExchangeType && row.itemRole !== 'ExchangeIn') return <span style={{ color: '#d1d5db' }}>—</span>
-          const haoHutChi = (row.haoHutGram ?? 0) / 3.75
-          return haoHutChi > 0
-            ? <span>{haoHutChi.toLocaleString('lo-LA')} {t('weightUnit')}</span>
-            : <span style={{ color: '#d1d5db' }}>—</span>
+          const haoHutGram = row.haoHutGram ?? 0
+          if (haoHutGram <= 0) return <span style={{ color: '#d1d5db' }}>—</span>
+          // Bạc hiển thị hao mòn theo Gram, vàng theo Chỉ (÷3.75)
+          return isSilverBuy
+            ? <span>{haoHutGram.toLocaleString('lo-LA')} {t('weightUnitGram')}</span>
+            : <span>{(haoHutGram / 3.75).toLocaleString('lo-LA')} {t('weightUnit')}</span>
         },
       },
       {
@@ -199,10 +203,15 @@ export function TransactionExpandedRow({ record }: Props) {
         render: (_: unknown, row: TransactionItem) => {
           if (isExchangeType && row.itemRole !== 'ExchangeIn') return <span style={{ color: '#d1d5db' }}>—</span>
           const haoHutGram = row.haoHutGram ?? 0
-          if (haoHutGram <= 0) return <span style={{ color: '#d1d5db' }}>—</span>
-          const pricePerUnit = row.tableUnitPriceLak || row.unitPriceLak
-          const gramPerUnit = row.quantity > 0 ? (row.weightGram + haoHutGram) / row.quantity : 3.75
-          const val = Math.round(haoHutGram * pricePerUnit / gramPerUnit)
+          if (haoHutGram <= 0 || row.weightGram <= 0 || row.quantity <= 0) return <span style={{ color: '#d1d5db' }}>—</span>
+          // weightGram backend trả về đã trừ hao mòn → calcWearValue khôi phục
+          // trọng lượng gốc trước khi suy giá/gram (tránh thổi phồng giá trị hao mòn).
+          const val = calcWearValue({
+            unitPriceLak: row.unitPriceLak,
+            quantity: row.quantity,
+            weightGram: row.weightGram,
+            wearGram: haoHutGram,
+          })
           return formatKip(val)
         },
       },
