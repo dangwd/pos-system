@@ -8,6 +8,35 @@ function formatKip(n: number) {
   return n.toLocaleString('lo-LA') + ' ₭'
 }
 
+// GD đổi ngoại tệ có thể có nhiều tiền đích (vd vừa LAK vừa USD) → cộng tổng
+// tiền trả khách theo TỪNG loại tiền, không gộp về một con số LAK gây sai lệch.
+function fxTargetTotals(record: Transaction): Record<string, number> {
+  const acc: Record<string, number> = {}
+  const add = (cur?: string | null, amt?: number | null) => {
+    if (!cur || amt == null || amt <= 0) return
+    acc[cur] = (acc[cur] ?? 0) + amt
+  }
+  if (record.exchangeLines?.length) {
+    for (const l of record.exchangeLines) {
+      const toAmt = l.toAmount != null
+        ? l.toAmount
+        : l.toRateToLak > 0
+          ? Math.round((l.fromAmount * l.fromRateToLak / l.toRateToLak) * 10000) / 10000
+          : 0
+      add(l.toCurrency, toAmt)
+    }
+  } else {
+    for (const it of record.items) add(it.fxToCurrency, it.fxToAmount)
+  }
+  return acc
+}
+
+function formatFxTarget(cur: string, amt: number): string {
+  return cur === 'LAK'
+    ? formatKip(Math.round(amt))
+    : `${amt.toLocaleString('lo-LA', { maximumFractionDigits: 4 })} ${cur}`
+}
+
 const TYPE_STYLE: Record<string, string> = {
   SellGold:        'bg-green-100/80 text-green-700',
   SellSilver:      'bg-teal-100/80 text-teal-700',
@@ -106,9 +135,23 @@ export function createOrderColumns(labels: OrderColumnLabels): TableColumnsType<
       align: 'right' as const,
       sorter: true,
       onHeaderCell: noWrapHeader,
-      render: (value: number) => (
-        <span style={{ fontWeight: 600, fontFamily: 'monospace' }}>{formatKip(value)}</span>
-      ),
+      render: (value: number, record: Transaction) => {
+        if (record.type === 'ExchangeCurrency') {
+          const totals = Object.entries(fxTargetTotals(record))
+          if (totals.length > 0) {
+            return (
+              <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', lineHeight: 1.35 }}>
+                {totals.map(([cur, amt]) => (
+                  <span key={cur} style={{ fontWeight: 600, fontFamily: 'monospace' }}>
+                    {formatFxTarget(cur, amt)}
+                  </span>
+                ))}
+              </div>
+            )
+          }
+        }
+        return <span style={{ fontWeight: 600, fontFamily: 'monospace' }}>{formatKip(value)}</span>
+      },
     },
     {
       title: labels.colStatus,

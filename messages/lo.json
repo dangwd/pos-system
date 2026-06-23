@@ -391,6 +391,7 @@
         "btnExport": "ສົ່ງອອກ",
         "btnPrintGoldCert": "ພິມໃບຮັບປະກັນ",
         "btnRePrintInvoice": "ພິມໃໝ່",
+        "btnPrintInvoice": "ພິມໃບບິນ",
         "btnPrintBarcode": "ພິມ Barcode",
         "fieldCustomerGives": "ເງິນລູກຄ້າໃຫ້",
         "fieldExchangeRate": "ອັດຕາແລກປ່ຽນ",
