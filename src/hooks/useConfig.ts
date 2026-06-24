@@ -38,6 +38,9 @@ import type {
   Currency,
   CreateCurrencyDto,
   UpdateCurrencyDto,
+  SystemConfig,
+  UpdateExchangeFreeSettingsDto,
+  UpdateBuyBackOriginalPriceSettingsDto,
 } from '@/types/config'
 
 // ─── Query keys ───────────────────────────────────────────────────────────────
@@ -475,6 +478,47 @@ export function useDeleteRole() {
     onSuccess: () => {
       invalidate(ROLES_KEY)
       toast.success(locale === 'lo' ? 'ລຶບບົດບາດສຳເລັດ' : locale === 'vi' ? 'Xóa vai trò thành công' : 'Role deleted')
+    },
+    onError: (err) => toast.error(getErrorMessage(err.code, locale)),
+  })
+}
+
+// ─── Cấu hình hệ thống (SystemConfig) ────────────────────────────────────────
+
+const SYSTEM_CONFIG_KEY = ['config', 'system'] as const
+
+export function useSystemConfig() {
+  return useQuery<SystemConfig, ApiError>({
+    queryKey: SYSTEM_CONFIG_KEY,
+    queryFn: () => configRepository.getSystemConfig(),
+    staleTime: 300_000, // 5 phút — cache trong session (docs §5); invalidate khi PUT
+  })
+}
+
+const savedMsg = (locale: AppLocale) =>
+  locale === 'lo' ? 'ບັນທຶກການຕັ້ງຄ່າສຳເລັດ'
+    : locale === 'vi' ? 'Lưu cấu hình thành công'
+    : 'Configuration saved'
+
+export function useUpdateExchangeFree() {
+  const { locale, toast, invalidate } = useConfigBase()
+  return useMutation<SystemConfig, ApiError, UpdateExchangeFreeSettingsDto>({
+    mutationFn: (dto) => configRepository.updateExchangeFreeSettings(dto),
+    onSuccess: () => {
+      invalidate(SYSTEM_CONFIG_KEY)
+      toast.success(savedMsg(locale))
+    },
+    onError: (err) => toast.error(getErrorMessage(err.code, locale)),
+  })
+}
+
+export function useUpdateBuyBackOriginalPrice() {
+  const { locale, toast, invalidate } = useConfigBase()
+  return useMutation<SystemConfig, ApiError, UpdateBuyBackOriginalPriceSettingsDto>({
+    mutationFn: (dto) => configRepository.updateBuyBackOriginalPriceSettings(dto),
+    onSuccess: () => {
+      invalidate(SYSTEM_CONFIG_KEY)
+      toast.success(savedMsg(locale))
     },
     onError: (err) => toast.error(getErrorMessage(err.code, locale)),
   })

@@ -102,6 +102,11 @@ export interface Transaction {
   cancelledAt: string | null;
   customer: TransactionCustomer | null;
   items: TransactionItem[];
+  // Buyback (docs "Kiểm tra HĐ còn hạn" §2.1) — BE nhúng PHẲNG vào list + detail.
+  // FE đọc trực tiếp, không cần gọi GET /api/config/system.
+  daysSincePurchase?: number;             // số ngày kể từ transactedAt (BE tính, UTC, floor)
+  buyBackOriginalPriceEnabled?: boolean;  // snapshot cài đặt tại thời điểm gọi API
+  buyBackOriginalPriceMaxDays?: number;   // 0 = không giới hạn
 }
 
 // ─── DTOs (gửi lên API) ───────────────────────────────────────────────────────

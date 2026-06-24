@@ -31,6 +31,9 @@ import type {
   Currency,
   CreateCurrencyDto,
   UpdateCurrencyDto,
+  SystemConfig,
+  UpdateExchangeFreeSettingsDto,
+  UpdateBuyBackOriginalPriceSettingsDto,
 } from '@/types/config'
 
 /** Shape thô của endpoint history: dùng key `items` (FE PagedResult dùng `data`). */
@@ -323,6 +326,29 @@ export class ConfigRepository {
   async deleteCurrency(id: string): Promise<void> {
     try {
       await api.delete(`/api/currencies/${id}`)
+    } catch (err) { throw handleAxiosError(err) }
+  }
+
+  // ─── Cấu hình hệ thống (SystemConfig) ──────────────────────────────────────
+
+  async getSystemConfig(): Promise<SystemConfig> {
+    try {
+      const { data } = await api.get<SystemConfig>('/api/config/system')
+      return data
+    } catch (err) { throw handleAxiosError(err) }
+  }
+
+  async updateExchangeFreeSettings(dto: UpdateExchangeFreeSettingsDto): Promise<SystemConfig> {
+    try {
+      const { data } = await api.put<SystemConfig>('/api/config/system/exchange-free', dto)
+      return data
+    } catch (err) { throw handleAxiosError(err) }
+  }
+
+  async updateBuyBackOriginalPriceSettings(dto: UpdateBuyBackOriginalPriceSettingsDto): Promise<SystemConfig> {
+    try {
+      const { data } = await api.put<SystemConfig>('/api/config/system/buy-back-original-price', dto)
+      return data
     } catch (err) { throw handleAxiosError(err) }
   }
 }

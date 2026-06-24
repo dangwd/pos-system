@@ -10,6 +10,8 @@
 import { useState, useEffect } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import { transactionRepository } from '@/lib/repositories/transaction.repository'
+import { productRepository } from '@/lib/repositories/product.repository'
+import { getBuyBackStatus } from '@/lib/buy-back'
 import { useActivePriceConfig } from './useConfig'
 import { useActiveTab } from './useActiveTab'
 import type { CartItem } from '@/types/cart'
@@ -51,28 +53,67 @@ export function useExchangeInvoiceLookup() {
     if (transaction.status === 'Cancelled') return
     setIsSelecting(true)
     try {
-    // Fetch full detail so item.productId (Product entity ID) is available —
-    // the list endpoint does not include productId on items.
+    // Fetch full detail: item.productId + 3 field buyback (phẳng trên transaction,
+    // theo docs "Kiểm tra HĐ còn hạn" §2.1 — KHÔNG cần gọi GET /api/config/system).
     const detail = await transactionRepository.getById(transaction.id)
 
-    const exchangeItems: CartItem[] = detail.items.map(item => {
-      // Khớp PriceItem theo weightUnitId → đúng gramPerUnit (Chỉ/Bath/Lượng)
-      // ExchangeGold: vàng cũ tính theo giá BÁN RA hiện tại (per CLAUDE.md)
-      const priceItem = priceConfig.items.find(p => p.weightUnitId === item.weightUnitId)
+    // Item HĐ KHÔNG có tuổi vàng (purity) → fetch product theo productId để khớp
+    // đúng dòng bảng giá. Song song, lỗi/không tìm thấy → '' (fallback khớp theo đơn vị).
+    const purities = await Promise.all(
+      detail.items.map(it =>
+        it.productId
+          ? productRepository.getById(it.productId).then(p => p.purity ?? '').catch(() => '')
+          : Promise.resolve(''),
+      ),
+    )
+
+    // Trạng thái buyback tính 1 lần cho cả phiếu (mọi item cùng transactedAt).
+    const maxDays = detail.buyBackOriginalPriceMaxDays ?? 0
+    const status = getBuyBackStatus({
+      daysSincePurchase: detail.daysSincePurchase ?? 0,
+      buyBackOriginalPriceEnabled: detail.buyBackOriginalPriceEnabled ?? false,
+      buyBackOriginalPriceMaxDays: maxDays,
+    })
+    // Tắt tính năng → không gắn buyBack (không hiện badge).
+    const buyBack = status.reason === 'feature_disabled'
+      ? undefined
+      : {
+          withinWindow: status.canApplyOriginalPrice,
+          reason: status.reason,
+          daysRemaining: status.daysRemaining,
+          maxDays,
+        }
+
+    const exchangeItems: CartItem[] = detail.items.map((item, idx) => {
+      const purity = purities[idx]
+      // Khớp giá hiện hành theo TUỔI VÀNG + đơn vị (giống useAddToCart). Fallback dần:
+      // purity+unit → purity → unit → item đầu, để không lấy nhầm dòng tuổi vàng.
+      const priceItem =
+        priceConfig.items.find(p => p.purityCode === purity && p.weightUnitId === item.weightUnitId)
+        ?? priceConfig.items.find(p => p.purityCode === purity)
+        ?? priceConfig.items.find(p => p.weightUnitId === item.weightUnitId)
         ?? priceConfig.items[0]
       const perUnitGram = item.quantity > 0 ? item.weightGram / item.quantity : (priceItem?.gramPerUnit ?? 3.75)
       const gramPerUnit = priceItem?.gramPerUnit ?? perUnitGram
-      // Ưu tiên giá BÁN RA hiện tại từ bảng giá; fallback về giá gốc hóa đơn khi bảng giá chưa cấu hình
-      // Guard cả trường hợp priceItem tồn tại nhưng sellPrice = 0 (bảng giá chưa nhập giá)
-      const unitPriceLakPerGram = (priceItem && priceItem.sellPrice > 0)
-        ? priceItem.sellPrice / gramPerUnit
-        : perUnitGram > 0 ? item.unitPriceLak / perUnitGram : 0
+
+      // Giá GỐC HĐ (₭/gram) — giá khách đã trả lúc mua (snapshot trên item).
+      const originalPerGram = perUnitGram > 0 ? item.unitPriceLak / perUnitGram : 0
+      // Giá MUA VÀO hiện hành (₭/gram) từ bảng giá active — đúng tuổi vàng đã khớp.
+      // Thu vào (tiệm mua lại vàng cũ) → dùng buyPrice, KHÔNG phải sellPrice.
+      const currentBuyPerGram = (priceItem && priceItem.buyPrice > 0)
+        ? priceItem.buyPrice / gramPerUnit
+        : 0
+      // Còn hạn → giá gốc HĐ; hết hạn/tắt → giá mua vào hiện hành (giá thời điểm theo bảng giá).
+      // Fallback: bảng giá trống/không có dòng tuổi này → giá gốc HĐ (nhân viên sửa tay được).
+      const unitPriceLakPerGram = status.canApplyOriginalPrice
+        ? originalPerGram
+        : currentBuyPerGram > 0 ? currentBuyPerGram : originalPerGram
 
       return {
         // ExchangeIn: backend nhận Product entity ID từ phiếu gốc
         productId: item.productId ?? item.id,
         name: item.productSnapshotName,
-        purity: '',
+        purity,
         weightGram: item.weightGram / item.quantity,
         productType: 'NguyenKhoi' as const,
         categoryName: 'Vàng cũ',
@@ -89,10 +130,11 @@ export function useExchangeInvoiceLookup() {
         wearUnitGram: 3.75,
         isDamaged: false,
         isReadOnly: true,
+        ...(buyBack ? { buyBack } : {}),
       }
     })
 
-    setLinkedInvoice(detail.invoiceCode, exchangeItems)
+    setLinkedInvoice(detail.invoiceCode, exchangeItems, detail.transactedAt)
 
     // Tự động điền khách hàng từ hóa đơn gốc
     if (detail.customer) {

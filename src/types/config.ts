@@ -318,3 +318,30 @@ export interface UpdateRoleDto {
   name: string
   description: string
 }
+
+// ─── Cấu hình hệ thống (SystemConfig) ────────────────────────────────────────
+
+/**
+ * GET /api/config/system — tham số nghiệp vụ chỉnh tại runtime (append-only).
+ * `updatedAt`/`updatedBy` = null khi DB chưa có bản ghi (trả mặc định tích hợp).
+ */
+export interface SystemConfig {
+  exchangeFreeEnabled: boolean
+  exchangeFreeMaxDays: number
+  buyBackOriginalPriceEnabled: boolean
+  buyBackOriginalPriceMaxDays: number  // 0 = không giới hạn
+  updatedAt: string | null
+  updatedBy: string | null
+}
+
+/** PUT /api/config/system/exchange-free */
+export interface UpdateExchangeFreeSettingsDto {
+  isEnabled: boolean
+  maxDays: number   // phải > 0
+}
+
+/** PUT /api/config/system/buy-back-original-price */
+export interface UpdateBuyBackOriginalPriceSettingsDto {
+  isEnabled: boolean
+  maxDays: number   // >= 0 (0 = không giới hạn)
+}
