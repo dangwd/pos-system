@@ -79,6 +79,53 @@ function InvoiceRow({
   );
 }
 
+// Dòng hàng cho hóa đơn ĐỔI HÀNG — bộ cột đầy đủ khớp với bảng Nhật ký giao dịch:
+// Lỗi/hỏng · Hao mòn · Giá trị HM (chỉ dòng vàng cũ) | Tiền công · Tiền đá (chỉ hàng mới).
+function ExchangeInvoiceRow({ item, amber = false }: { item: PrintItem; amber?: boolean }) {
+  const isIn = item.itemRole === "ExchangeIn";
+  const dash = <span className="text-gray-300">—</span>;
+  return (
+    <tr className={amber ? "bg-amber-50" : undefined}>
+      <td className="border border-gray-400 px-1 py-[2px] text-center">{item.stt}</td>
+      <td className="border border-gray-400 px-2 py-[2px]">{item.productName}</td>
+      <td className="border border-gray-400 px-1 py-[2px] text-center">{item.quantity}</td>
+      <td className="border border-gray-400 px-1 py-[2px] text-center">
+        {item.unitName || "—"}
+      </td>
+      <td className="border border-gray-400 px-2 py-[2px] text-right tabular-nums">
+        {item.unitPriceLak > 0 ? item.unitPriceLak.toLocaleString("lo-LA") : dash}
+      </td>
+      {/* Lỗi/hỏng — chỉ vàng cũ thu vào */}
+      <td className="border border-gray-400 px-2 py-[2px] text-right tabular-nums">
+        {isIn && item.damageFee > 0 ? item.damageFee.toLocaleString("lo-LA") : dash}
+      </td>
+      {/* Hao mòn (Chỉ) — chỉ vàng cũ thu vào */}
+      <td className="border border-gray-400 px-1 py-[2px] text-right tabular-nums">
+        {isIn && item.wearChi > 0 ? `${item.wearChi.toLocaleString("lo-LA")} Chỉ` : dash}
+      </td>
+      {/* Giá trị HM — chỉ vàng cũ thu vào */}
+      <td className="border border-gray-400 px-2 py-[2px] text-right tabular-nums">
+        {isIn && item.wearValue > 0 ? item.wearValue.toLocaleString("lo-LA") : dash}
+      </td>
+      {/* Tiền công — chỉ hàng bán ra mới */}
+      <td className="border border-gray-400 px-2 py-[2px] text-right tabular-nums">
+        {!isIn && item.laborFee > 0 ? item.laborFee.toLocaleString("lo-LA") : dash}
+      </td>
+      {/* Tiền đá — chỉ hàng bán ra mới */}
+      <td className="border border-gray-400 px-2 py-[2px] text-right tabular-nums">
+        {!isIn && item.stoneFee > 0 ? item.stoneFee.toLocaleString("lo-LA") : dash}
+      </td>
+      <td
+        className={`border border-gray-400 px-2 py-[2px] text-right font-semibold tabular-nums ${amber ? "text-amber-700" : ""}`}
+      >
+        {amber
+          ? `(${item.lineTotal.toLocaleString("lo-LA")})`
+          : item.lineTotal.toLocaleString("lo-LA")}
+      </td>
+    </tr>
+  );
+}
+
 // ─── Print template ──────────────────────────────────────────────────────────
 
 const EXCHANGE_TYPES = ["ExchangeGold", "ExchangeFree", "BuyMoreGold", "ExchangeToMoney"];
@@ -229,8 +276,52 @@ function InvoiceTemplate({ inv }: { inv: PrintInvoice }) {
 
       })()}
 
-      {/* ── Items table ───────────────────────────────────── */}
-      {!isFx && inv.items.length > 0 && (
+      {/* ── Items table — ĐỔI HÀNG: bộ cột đầy đủ khớp bảng Nhật ký ───── */}
+      {!isFx && isExchange && inv.items.length > 0 && (
+        <table className="w-full text-[11px] border-collapse mb-3">
+          <thead>
+            <tr className="bg-gray-100">
+              <th className="border border-gray-400 px-1 py-1 text-center w-6">STT</th>
+              <th className="border border-gray-400 px-2 py-1 text-left">
+                Tên hàng / ຊື່ສິນຄ້າ
+              </th>
+              <th className="border border-gray-400 px-1 py-1 text-center w-6">SL</th>
+              <th className="border border-gray-400 px-1 py-1 text-center w-10">ĐVT</th>
+              <th className="border border-gray-400 px-2 py-1 text-right w-20">Đơn giá ₭</th>
+              <th className="border border-gray-400 px-2 py-1 text-right w-16">Lỗi/hỏng ₭</th>
+              <th className="border border-gray-400 px-1 py-1 text-right w-14">Hao mòn</th>
+              <th className="border border-gray-400 px-2 py-1 text-right w-20">Giá trị HM ₭</th>
+              <th className="border border-gray-400 px-2 py-1 text-right w-16">T. công ₭</th>
+              <th className="border border-gray-400 px-2 py-1 text-right w-14">Đá ₭</th>
+              <th className="border border-gray-400 px-2 py-1 text-right w-20">Thành tiền ₭</th>
+            </tr>
+          </thead>
+          <tbody>
+            {inv.normalItems.map((item) => (
+              <ExchangeInvoiceRow key={item.stt} item={item} />
+            ))}
+
+            {inv.exchangeInItems.length > 0 && (
+              <>
+                <tr>
+                  <td
+                    colSpan={11}
+                    className="border border-gray-400 px-2 py-1 text-center font-semibold bg-amber-50 text-[10px] tracking-wide"
+                  >
+                    ─── Vàng cũ thu vào / ຄຳເກົ່ານຳເຂົ້າ ───
+                  </td>
+                </tr>
+                {inv.exchangeInItems.map((item) => (
+                  <ExchangeInvoiceRow key={`ex-${item.stt}`} item={item} amber />
+                ))}
+              </>
+            )}
+          </tbody>
+        </table>
+      )}
+
+      {/* ── Items table — BÁN / MUA (không đổi hàng) ────────────────── */}
+      {!isFx && !isExchange && inv.items.length > 0 && (
         <table className="w-full text-[11px] border-collapse mb-3">
           <thead>
             <tr className="bg-gray-100">
@@ -264,22 +355,6 @@ function InvoiceTemplate({ inv }: { inv: PrintInvoice }) {
             {inv.normalItems.map((item) => (
               <InvoiceRow key={item.stt} item={item} isBuyType={isBuyGold} />
             ))}
-
-            {inv.exchangeInItems.length > 0 && (
-              <>
-                <tr>
-                  <td
-                    colSpan={8}
-                    className="border border-gray-400 px-2 py-1 text-center font-semibold bg-amber-50 text-[10px] tracking-wide"
-                  >
-                    ─── Vàng cũ thu vào / ຄຳເກົ່ານຳເຂົ້າ ───
-                  </td>
-                </tr>
-                {inv.exchangeInItems.map((item) => (
-                  <InvoiceRow key={`ex-${item.stt}`} item={item} amber isBuyType />
-                ))}
-              </>
-            )}
           </tbody>
         </table>
       )}

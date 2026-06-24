@@ -27,9 +27,10 @@ export function useAddToCart(priceConfig: PriceConfig | undefined) {
     const fallback = priceConfig.items.find(p => p.purityCode === product.purity)
     const matched = priceItem ?? fallback
 
-    // BuyGold/BuySilver → buyPrice; ExchangeGold/SellGold → sellPrice
+    // Vàng cũ đổi vào (ExchangeIn) → luôn định giá theo giá MUA VÀO (cửa hàng thu mua).
+    // BuyGold/BuySilver → buyPrice; còn lại (hàng mới bán ra) → sellPrice.
     const txnType = tab?.txnType ?? 'SellGold'
-    const isBuyMode = txnType === 'BuyGold' || txnType === 'BuySilver'
+    const isBuyMode = role === 'ExchangeIn' || txnType === 'BuyGold' || txnType === 'BuySilver'
     const unitPrice = matched ? (isBuyMode ? matched.buyPrice : matched.sellPrice) : 0
     const unitPriceLakPerGram = matched ? unitPrice / matched.gramPerUnit : 0
 
