@@ -11,7 +11,7 @@ import {
 import { usePermission } from '@/hooks/usePermission'
 import { ForbiddenPage } from '@/components/shared/ForbiddenPage'
 import { TablePageSkeleton } from '@/components/shared/PageSkeleton'
-import { EmptyHint, formatNum, formatGram } from '@/components/admin/reports/report-ui'
+import { EmptyHint, formatGram } from '@/components/admin/reports/report-ui'
 import { StatCard } from '@/components/admin/shared/StatCard'
 import { StockPeriodTable } from '@/components/admin/reports/stock-period/StockPeriodTable'
 import { StockTrendChart } from '@/components/admin/reports/stock-period/StockTrendChart'
@@ -166,18 +166,15 @@ export default function StockPeriodReportPage() {
           <div className="grid gap-2.5 grid-cols-1 sm:grid-cols-3">
             <StatCard
               icon={<CalendarOutlined />} iconColor="#185FA5"
-              label={t('cardOpen')} value={`${formatNum(s!.openQty)} ${t('unitQty')}`}
-              sub={`${formatGram(s!.openWeight)}`}
+              label={t('cardOpen')} value={formatGram(s!.openWeight)}
             />
             <StatCard
               icon={<SwapOutlined />} iconColor="#444441"
-              label={t('cardChange')} value={`${formatNum(s!.receiptQty)} / ${formatNum(s!.issueQty)}`}
-              sub={t('changeSubWeight', { receipt: formatGram(s!.receiptWeight), issue: formatGram(s!.issueWeight) })}
+              label={t('cardChange')} value={`${formatGram(s!.receiptWeight)} / ${formatGram(s!.issueWeight)}`}
             />
             <StatCard
               icon={<CheckCircleOutlined />} iconColor="#3B6D11"
-              label={t('cardClose')} value={`${formatNum(s!.closeQty)} ${t('unitQty')}`}
-              sub={`${formatGram(s!.closeWeight)}`}
+              label={t('cardClose')} value={formatGram(s!.closeWeight)}
               highlight
             />
           </div>

@@ -10,7 +10,7 @@ export function formatKip(n: number | null | undefined) {
 }
 
 export function formatGram(n: number | null | undefined) {
-  return (n ?? 0).toLocaleString('lo-LA', { maximumFractionDigits: 2 }) + ' g'
+  return (n ?? 0).toLocaleString('lo-LA', { maximumFractionDigits: 2 }) + ' gram'
 }
 
 export function formatNum(n: number | null | undefined) {
