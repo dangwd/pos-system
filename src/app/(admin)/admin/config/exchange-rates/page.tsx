@@ -21,6 +21,7 @@ import type {
   Currency,
   ExchangeHistoryQuery,
   ExchangeRate,
+  ExchangeRatePair,
   ExchangeRatePairSession,
   ExchangeRateSession,
 } from "@/types/config";
@@ -78,6 +79,53 @@ function formatPairRate(rate: number): string {
 
 function formatLak(n: number) {
   return n.toLocaleString("lo-LA", { maximumFractionDigits: 2 });
+}
+
+// Dựng danh sách cặp ĐẦY ĐỦ cho tiền gốc `base`: gộp pairs từ API với mọi tiền
+// đang hoạt động (+ LAK). Tiền mới thêm chưa có tỷ giá sang LAK → API trả rỗng;
+// vẫn cần liệt kê đủ target để hiển thị & cho phép thiết lập (rate 0 / cross-rate
+// qua LAK nếu đủ dữ liệu, đánh dấu isComputed).
+function buildFullPairs(
+  base: string,
+  apiPairs: ExchangeRatePair[],
+  currencies: Currency[],
+  rates: ExchangeRate[],
+): ExchangeRatePair[] {
+  const lakMap = Object.fromEntries(
+    rates.map((r) => [r.currencyCode, r.effectiveRate]),
+  );
+  const lakOf = (code: string) => (code === "LAK" ? 1 : (lakMap[code] ?? 0));
+  const byTo = new Map(apiPairs.map((p) => [p.to, p]));
+  const targets = [
+    "LAK",
+    ...currencies
+      .filter((c) => c.isActive)
+      .sort((a, b) => a.sortOrder - b.sortOrder)
+      .map((c) => c.code),
+    ...apiPairs.map((p) => p.to),
+  ];
+  const seen = new Set<string>();
+  const result: ExchangeRatePair[] = [];
+  for (const to of targets) {
+    if (to === base || seen.has(to)) continue;
+    seen.add(to);
+    const existing = byTo.get(to);
+    if (existing) {
+      result.push(existing);
+      continue;
+    }
+    const f = lakOf(base);
+    const tk = lakOf(to);
+    result.push({
+      from: base,
+      to,
+      rate: f > 0 && tk > 0 ? f / tk : 0,
+      isComputed: true,
+      updatedBy: null,
+      updatedAt: null,
+    });
+  }
+  return result;
 }
 
 // ─── Kiểm tra tỷ giá (calculator) ────────────────────────────────────────────
@@ -401,7 +449,11 @@ function PairConfigDialog({
   );
   const [twoWay, setTwoWay] = useState(true);
   const pairsQuery = useExchangeRatePairs(base, open);
-  const pairs = pairsQuery.data;
+  // Gộp với mọi tiền tệ để tiền mới (API trả rỗng) vẫn có đủ hàng để nhập tỷ giá.
+  const pairs = useMemo(
+    () => buildFullPairs(base, pairsQuery.data ?? [], currencies, rates),
+    [base, pairsQuery.data, currencies, rates],
+  );
 
   // draft chỉ giữ giá trị người dùng đã sửa (override); chưa sửa thì hiển thị theo pair.rate.
   // Đổi tiền gốc → reset override (xử lý ngay trong onChange, không cần effect).
@@ -1015,6 +1067,11 @@ function CurrentRatesBoard({
     isFetching,
     refetch,
   } = useExchangeRatePairs(base);
+  // Gộp với mọi tiền tệ để tiền mới (chưa có cặp từ API) vẫn liệt kê đủ target.
+  const fullPairs = useMemo(
+    () => buildFullPairs(base, pairs, currencies, rates),
+    [base, pairs, currencies, rates],
+  );
   const baseMeta = metaOf(base, currencies);
 
   return (
@@ -1066,13 +1123,13 @@ function CurrentRatesBoard({
           <div className="flex justify-center py-10">
             <Spinner />
           </div>
-        ) : pairs.length === 0 ? (
+        ) : fullPairs.length === 0 ? (
           <p className="text-sm text-muted-foreground text-center py-10">
             {t("board.empty")}
           </p>
         ) : (
           <div className="space-y-2">
-            {pairs.map((p) => {
+            {fullPairs.map((p) => {
               const m = metaOf(p.to, currencies);
               return (
                 <div
