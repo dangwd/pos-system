@@ -3,7 +3,6 @@
 import { useTranslations } from 'next-intl'
 import { Table } from 'antd'
 import type { TableColumnsType } from 'antd'
-import { formatNum } from '@/components/admin/reports/report-ui'
 import type { Transaction } from '@/types/transaction'
 
 interface ExchangeLine {
@@ -89,22 +88,6 @@ export function CurrencyExchangeDetail({ tx }: { tx: Transaction }) {
       render: (_, r) => (
         <span className="tabular-nums font-medium">{fmtAmt(r.toAmount)} {r.toCurrency}</span>
       ),
-    },
-    {
-      title: t('lineRateTo'),
-      dataIndex: 'toRate',
-      key: 'toRate',
-      align: 'right',
-      width: 110,
-      render: (v: number) => <span className="tabular-nums text-muted-foreground">{fmtAmt(v)}</span>,
-    },
-    {
-      title: t('lineAmountLak'),
-      dataIndex: 'amountLak',
-      key: 'amountLak',
-      align: 'right',
-      width: 160,
-      render: (v: number) => <span className="tabular-nums">{formatNum(v)} ₭</span>,
     },
   ]
 

@@ -48,9 +48,18 @@ export interface CartItem {
    * Ngữ cảnh buyback cho ExchangeIn lấy từ HĐ gốc (undefined nếu thêm thủ công
    * hoặc tính năng giá gốc HĐ đang tắt). Dùng để hiển thị badge Trong/Quá hạn:
    *  - `withinWindow = true`  → `unitPriceLakPerGram` đang là GIÁ GỐC HĐ
-   *  - `withinWindow = false` → đang là GIÁ BÁN RA hiện hành
+   *  - `withinWindow = false` → đang là GIÁ MUA VÀO hiện hành
    */
   buyBack?: CartItemBuyBack;
+  /** Giá gốc HĐ / đơn vị (chỉ ExchangeIn từ HĐ). Lưu để recompute khi đổi cấu hình. */
+  originalUnitPriceLak?: number;
+  /** Số ngày từ HĐ gốc (BE tính). Lưu để recompute quyết định còn/hết hạn. */
+  daysSincePurchase?: number;
+  /**
+   * Chữ ký cấu hình (`enabled|maxDays|priceTableId`) lúc tính giá này. Khi cấu
+   * hình đổi → chữ ký lệch → recompute; bằng nhau → giữ (kể cả đã sửa tay).
+   */
+  buyBackSig?: string;
 }
 
 /**

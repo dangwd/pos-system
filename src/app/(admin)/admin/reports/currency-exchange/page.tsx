@@ -157,14 +157,6 @@ export default function CurrencyExchangeReportPage() {
         : <span className="text-muted-foreground">—</span>,
     },
     {
-      title: t('colTotalLak'),
-      dataIndex: 'totalAmount',
-      key: 'totalAmount',
-      align: 'right',
-      width: 160,
-      render: (v: number) => <span className="tabular-nums font-medium">{formatNum(v)} ₭</span>,
-    },
-    {
       title: t('colCounter'),
       dataIndex: 'counterName',
       key: 'counterName',

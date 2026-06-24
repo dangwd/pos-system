@@ -11,7 +11,7 @@ import { useState, useEffect } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import { transactionRepository } from '@/lib/repositories/transaction.repository'
 import { productRepository } from '@/lib/repositories/product.repository'
-import { getBuyBackStatus } from '@/lib/buy-back'
+import { getBuyBackStatus, resolveExchangeInPricePerGram } from '@/lib/buy-back'
 import { useActivePriceConfig } from './useConfig'
 import { useActiveTab } from './useActiveTab'
 import type { CartItem } from '@/types/cart'
@@ -36,9 +36,15 @@ export function useExchangeInvoiceLookup() {
     staleTime: 30_000,
   })
 
-  const { priceConfig } = useActivePriceConfig()
+  const { priceConfig, priceTableId } = useActivePriceConfig()
 
-  const { tab, setLinkedInvoice, clearLinkedInvoice, setCustomer } = useActiveTab()
+  const { tab, setLinkedInvoice, clearLinkedInvoice, setCustomer, clearCustomer } = useActiveTab()
+
+  // Bỏ liên kết HĐ gốc → clear luôn khách đã auto-điền từ HĐ đó (bug: khách còn sót).
+  const clearLinked = () => {
+    clearLinkedInvoice()
+    clearCustomer()
+  }
 
   // limit mode → Transaction[]; paged mode → { data: Transaction[] }
   // Lọc thêm ở client phòng backend bỏ qua filter status khi tìm theo invoiceCode chính xác.
@@ -69,6 +75,8 @@ export function useExchangeInvoiceLookup() {
 
     // Trạng thái buyback tính 1 lần cho cả phiếu (mọi item cùng transactedAt).
     const maxDays = detail.buyBackOriginalPriceMaxDays ?? 0
+    // Chữ ký cấu hình lúc tính — để useSyncBuybackPrices biết khi nào cần recompute.
+    const buyBackSig = `${detail.buyBackOriginalPriceEnabled ?? false}|${maxDays}|${priceTableId ?? ''}`
     const status = getBuyBackStatus({
       daysSincePurchase: detail.daysSincePurchase ?? 0,
       buyBackOriginalPriceEnabled: detail.buyBackOriginalPriceEnabled ?? false,
@@ -86,28 +94,19 @@ export function useExchangeInvoiceLookup() {
 
     const exchangeItems: CartItem[] = detail.items.map((item, idx) => {
       const purity = purities[idx]
-      // Khớp giá hiện hành theo TUỔI VÀNG + đơn vị (giống useAddToCart). Fallback dần:
-      // purity+unit → purity → unit → item đầu, để không lấy nhầm dòng tuổi vàng.
-      const priceItem =
-        priceConfig.items.find(p => p.purityCode === purity && p.weightUnitId === item.weightUnitId)
-        ?? priceConfig.items.find(p => p.purityCode === purity)
-        ?? priceConfig.items.find(p => p.weightUnitId === item.weightUnitId)
-        ?? priceConfig.items[0]
-      const perUnitGram = item.quantity > 0 ? item.weightGram / item.quantity : (priceItem?.gramPerUnit ?? 3.75)
-      const gramPerUnit = priceItem?.gramPerUnit ?? perUnitGram
-
-      // Giá GỐC HĐ (₭/gram) — giá khách đã trả lúc mua (snapshot trên item).
-      const originalPerGram = perUnitGram > 0 ? item.unitPriceLak / perUnitGram : 0
-      // Giá MUA VÀO hiện hành (₭/gram) từ bảng giá active — đúng tuổi vàng đã khớp.
-      // Thu vào (tiệm mua lại vàng cũ) → dùng buyPrice, KHÔNG phải sellPrice.
-      const currentBuyPerGram = (priceItem && priceItem.buyPrice > 0)
-        ? priceItem.buyPrice / gramPerUnit
-        : 0
-      // Còn hạn → giá gốc HĐ; hết hạn/tắt → giá mua vào hiện hành (giá thời điểm theo bảng giá).
-      // Fallback: bảng giá trống/không có dòng tuổi này → giá gốc HĐ (nhân viên sửa tay được).
-      const unitPriceLakPerGram = status.canApplyOriginalPrice
-        ? originalPerGram
-        : currentBuyPerGram > 0 ? currentBuyPerGram : originalPerGram
+      const perUnitGram = item.quantity > 0 ? item.weightGram / item.quantity : 3.75
+      // Giá vàng cũ thu vào — helper chung (khớp tuổi vàng + buyPrice + còn/hết hạn).
+      // Dùng lại y hệt khi recompute lúc đổi cấu hình (useSyncBuybackPrices).
+      const unitPriceLakPerGram = resolveExchangeInPricePerGram({
+        priceItems: priceConfig.items,
+        purity,
+        weightUnitId: item.weightUnitId ?? null,
+        originalUnitPriceLak: item.unitPriceLak,
+        perUnitGram,
+        enabled: detail.buyBackOriginalPriceEnabled ?? false,
+        maxDays,
+        daysSincePurchase: detail.daysSincePurchase ?? 0,
+      })
 
       return {
         // ExchangeIn: backend nhận Product entity ID từ phiếu gốc
@@ -130,6 +129,10 @@ export function useExchangeInvoiceLookup() {
         wearUnitGram: 3.75,
         isDamaged: false,
         isReadOnly: true,
+        // Lưu input thô + chữ ký để recompute giá khi đổi cấu hình/bảng giá (tab persist localStorage).
+        originalUnitPriceLak: item.unitPriceLak,
+        daysSincePurchase: detail.daysSincePurchase ?? 0,
+        buyBackSig,
         ...(buyBack ? { buyBack } : {}),
       }
     })
@@ -154,6 +157,6 @@ export function useExchangeInvoiceLookup() {
     isFetching: isFetching || isSelecting,
     linkedCode: tab?.linkedInvoiceCode ?? null,
     selectInvoice,
-    clearLinkedInvoice,
+    clearLinkedInvoice: clearLinked,
   }
 }
