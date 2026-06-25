@@ -249,11 +249,23 @@ export interface CurrencyExchangeBalanceRow {
   closingBalance: number
 }
 
+/** Một vế đổi của phiếu — phiếu đổi nhiều loại tiền có nhiều leg. */
+export interface CurrencyExchangeLeg {
+  fromCurrency: string
+  fromAmount: number
+  fromRateToLak: number   // tỷ giá nguồn → LAK (snapshot lúc GD)
+  toCurrency: string
+  toRateToLak: number     // tỷ giá đích → LAK
+  toAmount: number
+  lakEquivalent: number   // = fromAmount × fromRateToLak
+}
+
 export interface CurrencyExchangeTx {
   id: string
   invoiceCode: string
   transactedAt: string
   customerName: string | null
+  // 4 field "vô hướng" = vế đầu tiên (giữ tương thích cũ)
   sourceCurrency: string
   sourceAmount: number
   targetCurrency: string
@@ -265,6 +277,8 @@ export interface CurrencyExchangeTx {
   branchId: string
   cashierName: string
   status: string
+  // Đủ tất cả các vế đổi của phiếu — dùng cho cột "Ghi chú" + chi tiết.
+  legs: CurrencyExchangeLeg[]
 }
 
 export interface CurrencyExchangeReport {

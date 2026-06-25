@@ -1,8 +1,10 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
 import { useTranslations } from 'next-intl'
-import { Select, DatePicker, Input, Button } from 'antd'
+import { Select, DatePicker, Button } from 'antd'
+
+const { RangePicker } = DatePicker
 import { DownloadOutlined } from '@ant-design/icons'
 import dayjs from 'dayjs'
 import { usePermission } from '@/hooks/usePermission'
@@ -13,15 +15,17 @@ import { Panel, EmptyHint, StatCard, formatNum } from '@/components/admin/report
 import { CurrencyExchangeDetail } from '@/components/admin/reports/currency-exchange/CurrencyExchangeDetail'
 import { useBranches } from '@/hooks/useBranches'
 import { useCurrencies } from '@/hooks/useConfig'
-import { useTransactions } from '@/hooks/useTransactions'
-import { useCashLedgerActivities } from '@/hooks/useCashLedger'
+import { useCurrencyExchangeReport } from '@/hooks/useReports'
 import { transactionRepository } from '@/lib/repositories/transaction.repository'
 import { useToast } from '@/lib/toast'
 import type { TableColumnsType } from 'antd'
 import { FlagIcon } from '@/components/shared/FlagIcon'
-import type { Transaction } from '@/types/transaction'
+import type { CurrencyExchangeTx } from '@/types/report'
 
 const PAGE_SIZE = 20
+
+// Số tiền ngoại tệ có thể lẻ tới 4 chữ số (vd 872.7273 USD)
+const fmtAmt = (n: number) => n.toLocaleString('lo-LA', { maximumFractionDigits: 4 })
 
 function todayIso() {
   return dayjs().format('YYYY-MM-DD')
@@ -39,56 +43,41 @@ export default function CurrencyExchangeReportPage() {
   const [from, setFrom] = useState(yesterdayIso())
   const [to, setTo] = useState(todayIso())
   const [currency, setCurrency] = useState<string | null>('LAK')
-  const [searchInput, setSearchInput] = useState('')
-  const [q, setQ] = useState('')
   const [page, setPage] = useState(1)
   const [exporting, setExporting] = useState(false)
-
-  // Debounce search 300ms
-  useEffect(() => {
-    const timer = setTimeout(() => setQ(searchInput.trim()), 300)
-    return () => clearTimeout(timer)
-  }, [searchInput])
 
   const { data: branches = [] } = useBranches()
   const { data: currencies = [] } = useCurrencies()
 
   // Reset trang khi filter đổi
-  const [prevFilters, setPrevFilters] = useState({ from, to, branchId, currency, q })
-  const curFilters = { from, to, branchId, currency, q }
+  const [prevFilters, setPrevFilters] = useState({ from, to, branchId, currency })
+  const curFilters = { from, to, branchId, currency }
   if (JSON.stringify(curFilters) !== JSON.stringify(prevFilters)) {
     setPrevFilters(curFilters)
     setPage(1)
   }
 
-  // ── Danh sách giao dịch ngoại tệ — GET /api/transactions?type=ExchangeCurrency ──
-  const txParams = {
-    type: 'ExchangeCurrency' as const,
-    branchId: branchId ?? undefined,
+  // ── Báo cáo đổi ngoại tệ — GET /api/reports/currency-exchange (1 call) ──────────
+  // `currency` chỉ lọc danh sách phiếu; balanceSummary luôn trả mọi loại tiền.
+  const reportParams = {
     from: from + 'T00:00:00Z',
     to: to + 'T23:59:59Z',
-    q: q || undefined,
-  }
-  const { data: txPage, isLoading, isFetching } = useTransactions({
-    ...txParams,
+    branchId: branchId ?? undefined,
+    currency: currency ?? undefined,
     page,
     pageSize: PAGE_SIZE,
-  })
-
-  // ── Tồn quỹ ngoại tệ — GET /api/cash-ledger/activities (chỉ lấy tổng hợp) ───────
-  const { data: cash } = useCashLedgerActivities({
-    branchId: branchId ?? undefined,
-    fromDate: from,
-    toDate: to,
-    currency: currency ?? undefined,
-    page: 1,
-    pageSize: 1,
-  })
+  }
+  const { data: report, isLoading, isFetching } = useCurrencyExchangeReport(reportParams)
 
   async function handleExport() {
     setExporting(true)
     try {
-      await transactionRepository.exportList(txParams)
+      await transactionRepository.exportList({
+        type: 'ExchangeCurrency',
+        branchId: branchId ?? undefined,
+        from: from + 'T00:00:00Z',
+        to: to + 'T23:59:59Z',
+      })
     } catch {
       toast.error(t('exportError'))
     } finally {
@@ -98,18 +87,23 @@ export default function CurrencyExchangeReportPage() {
 
   if (!hasPermission('REPORT_DASHBOARD')) return <ForbiddenPage />
 
-  const hasNative = !!(currency && currency !== 'LAK')
+  // Loại tiền đang xem cho 4 card (mặc định LAK). balanceSummary không bị param `currency` cắt.
+  const selectedCurrency = currency ?? 'LAK'
+  const hasNative = selectedCurrency !== 'LAK'
+  const summary = report?.balanceSummary.find(c => c.currencyCode === selectedCurrency)
 
-  // Đổ số theo loại tiền đang chọn: LAK/Mọi loại → quy đổi LAK, ngoại tệ → tiền gốc
-  const opening = hasNative ? (cash?.openingBalanceOriginal ?? 0) : (cash?.openingBalanceLak ?? 0)
-  const totalIn = hasNative ? (cash?.totalInOriginal ?? 0) : (cash?.totalInLak ?? 0)
-  const totalOut = hasNative ? (cash?.totalOutOriginal ?? 0) : (cash?.totalOutLak ?? 0)
-  const closing = opening + totalIn - totalOut
+  const opening = summary?.openingBalance ?? 0
+  const totalIn = summary?.totalIn ?? 0
+  const totalOut = summary?.totalOut ?? 0
+  const closing = summary?.closingBalance ?? 0
 
-  const unit = hasNative ? (currency as string) : '₭'
+  const unit = hasNative ? selectedCurrency : '₭'
   const money = (n: number) => `${formatNum(n)} ${unit}`
 
-  const columns: TableColumnsType<Transaction> = [
+  const rows = report?.transactions.data ?? []
+  const totalTx = report?.transactions.pagination.totalItems ?? 0
+
+  const columns: TableColumnsType<CurrencyExchangeTx> = [
     {
       title: t('colInvoice'),
       dataIndex: 'invoiceCode',
@@ -122,47 +116,39 @@ export default function CurrencyExchangeReportPage() {
       dataIndex: 'transactedAt',
       key: 'transactedAt',
       width: 150,
-      render: (v: string) => {
-        const d = dayjs(v)
-        return <span className="font-mono text-xs">{d.format('HH:mm:ss - DD/MM/YYYY')}</span>
-      },
+      render: (v: string) => (
+        <span className="font-mono text-xs">{dayjs(v).format('HH:mm:ss - DD/MM/YYYY')}</span>
+      ),
     },
     {
       title: t('colCustomer'),
-      key: 'customer',
-      render: (_, r) => r.customer?.name ?? <span className="text-muted-foreground">—</span>,
-    },
-    {
-      title: t('detailPhone'),
-      key: 'phone',
-      width: 130,
-      render: (_, r) => r.customer?.phoneNumber
-        ? <span className="tabular-nums text-xs">{r.customer.phoneNumber}</span>
-        : <span className="text-muted-foreground">—</span>,
-    },
-    {
-      title: t('detailPayment'),
-      dataIndex: 'paymentMethod',
-      key: 'paymentMethod',
-      width: 130,
-      render: (v: Transaction['paymentMethod']) => <span className="text-xs">{t(`method${v}`)}</span>,
+      dataIndex: 'customerName',
+      key: 'customerName',
+      render: (v: string | null) => v ?? <span className="text-muted-foreground">—</span>,
     },
     {
       title: t('detailNote'),
-      dataIndex: 'note',
       key: 'note',
-      width: 240,
-      render: (v: string | null) => v
-        ? <span className="text-xs text-muted-foreground">{v}</span>
-        : <span className="text-muted-foreground">—</span>,
+      width: 280,
+      render: (_, r) =>
+        r.legs.length > 0 ? (
+          <span className="text-xs text-muted-foreground">
+            {r.legs.map(l => `${fmtAmt(l.fromAmount)} ${l.fromCurrency} → ${l.toCurrency}`).join(', ')}
+          </span>
+        ) : (
+          <span className="text-muted-foreground">—</span>
+        ),
     },
     {
       title: t('colTotalLak'),
-      dataIndex: 'totalAmount',
-      key: 'totalAmount',
+      key: 'totalLak',
       align: 'right',
       width: 160,
-      render: (v: number) => <span className="tabular-nums font-medium">{formatNum(v)} ₭</span>,
+      render: (_, r) => (
+        <span className="tabular-nums font-medium">
+          {formatNum(r.legs.reduce((s, l) => s + l.lakEquivalent, 0))} ₭
+        </span>
+      ),
     },
     {
       title: t('colCounter'),
@@ -199,17 +185,12 @@ export default function CurrencyExchangeReportPage() {
 
       {/* Filters */}
       <div className="flex flex-wrap items-center gap-2">
-        <DatePicker
-          value={from ? dayjs(from) : null}
-          onChange={d => setFrom(d ? d.format('YYYY-MM-DD') : yesterdayIso())}
-          format="DD/MM/YYYY"
-          allowClear={false}
-          className="h-8"
-        />
-        <span className="text-muted-foreground">–</span>
-        <DatePicker
-          value={to ? dayjs(to) : null}
-          onChange={d => setTo(d ? d.format('YYYY-MM-DD') : todayIso())}
+        <RangePicker
+          value={[from ? dayjs(from) : null, to ? dayjs(to) : null]}
+          onChange={(dates) => {
+            setFrom(dates?.[0] ? dates[0].format('YYYY-MM-DD') : yesterdayIso())
+            setTo(dates?.[1] ? dates[1].format('YYYY-MM-DD') : todayIso())
+          }}
           format="DD/MM/YYYY"
           allowClear={false}
           className="h-8"
@@ -231,49 +212,37 @@ export default function CurrencyExchangeReportPage() {
           value={currency}
           onChange={v => setCurrency(v ?? null)}
         />
-        <Input
-          allowClear placeholder={t('searchPlaceholder')} style={{ width: 220 }}
-          value={searchInput} onChange={e => setSearchInput(e.target.value)}
-        />
       </div>
 
       {isLoading ? (
         <TablePageSkeleton cols={6} rows={6} />
       ) : (
         <div className="space-y-5">
-          {/* Tồn quỹ — đổ số theo loại tiền đang chọn */}
-          <Panel title={hasNative ? t('summaryOriginal', { currency: currency ?? '' }) : t('summaryLak')}>
+          {/* Tồn quỹ — đổ số theo loại tiền đang chọn (đơn vị nguyên bản) */}
+          <Panel title={hasNative ? t('summaryOriginal', { currency: selectedCurrency }) : t('summaryLak')}>
             <div className="grid gap-2.5 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">
-              <StatCard
-                label={t('cardOpening')}
-                value={branchId ? money(opening) : '—'}
-                sub={branchId ? undefined : t('openingNeedsBranch')}
-              />
+              <StatCard label={t('cardOpening')} value={money(opening)} />
               <StatCard label={t('cardIn')} value={money(totalIn)} />
               <StatCard label={t('cardOut')} value={money(totalOut)} />
-              <StatCard
-                label={t('cardClosing')}
-                value={branchId ? money(closing) : '—'}
-                sub={branchId ? undefined : t('openingNeedsBranch')}
-              />
+              <StatCard label={t('cardClosing')} value={money(closing)} />
             </div>
           </Panel>
 
           {/* Danh sách giao dịch ngoại tệ */}
-          <Panel title={`${t('txTitle')} (${txPage?.total ?? 0})`}>
-            {(txPage?.data.length ?? 0) === 0 ? (
+          <Panel title={`${t('txTitle')} (${totalTx})`}>
+            {rows.length === 0 ? (
               <EmptyHint>{t('empty')}</EmptyHint>
             ) : (
               <DataTable
                 columns={columns}
-                data={txPage?.data ?? []}
+                data={rows}
                 rowKey="id"
                 hideSearch
                 maxHeight={false}
                 loading={isFetching}
                 renderSubRow={(row) => <CurrencyExchangeDetail tx={row} />}
                 serverPagination={{
-                  total: txPage?.total ?? 0,
+                  total: totalTx,
                   page,
                   pageSize: PAGE_SIZE,
                   onPageChange: setPage,
