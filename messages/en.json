@@ -74,7 +74,12 @@
         "colPricePerUnit": "Price/Chi",
         "colDamage": "Damage (₭)",
         "colWear": "Wear (Chi)",
-        "colWearValue": "Wear value (₭)"
+        "colWearValue": "Wear value (₭)",
+        "buyBackWithinDays": "{days} days left",
+        "buyBackNoLimit": "No limit",
+        "buyBackExpired": "Expired",
+        "buyBackWithinTip": "Uses original invoice price",
+        "buyBackExpiredTip": "Uses current sell price · {maxDays}-day window expired"
       },
       "buyGold": {
         "colProduct": "Product in",
@@ -96,6 +101,8 @@
         "customerSearch": "Search customer...",
         "customerNotFound": "No customer found",
         "customerRequired": "Please select a customer to proceed",
+        "exchangeFreeExpired": "Original invoice is past the free-exchange window",
+        "exchangeFreeDisabled": "Free exchange is currently disabled",
         "subtotalLabel": "Subtotal (A)",
         "laborFeeLabel": "Labor Fee",
         "stoneFeeLabel": "Stone Fee",
@@ -274,7 +281,10 @@
       "clearLink": "Remove link",
       "searchPlaceholder": "Enter old gold invoice code...",
       "notFound": "Not found \"{query}\"",
-      "linkRequired": "Please link the original gold invoice"
+      "linkRequired": "Please link the original gold invoice",
+      "efWithin": "Free exchange · {days} days left",
+      "efExpired": "Free-exchange expired",
+      "efDisabled": "Free exchange disabled"
     }
   },
   "product": {
@@ -450,6 +460,7 @@
         "orderExchangeToMoney": "Exchange to Cash",
         "orderExchangeCurrency": "Currency Exchange",
         "currencies": "Currencies",
+        "systemConfig": "System Config",
         "auditLogs": "Login History"
       },
       "collapse": "Collapse sidebar",
@@ -1467,6 +1478,27 @@
       }
     },
     "config": {
+      "systemConfig": {
+        "pageTitle": "System Configuration",
+        "pageSubtitle": "Set business parameters applied at transaction time.",
+        "activate": "Enabled",
+        "sectionTime": "Application period",
+        "daysSuffix": "days from the time the customer bought the product.",
+        "cancel": "Cancel",
+        "save": "Save configuration",
+        "buyBack": {
+          "title": "Buy-back at original invoice price",
+          "subtitle": "Set the number of days the original invoice price applies when buying back.",
+          "label": "The buy-back price uses the original invoice price for transactions within:",
+          "note": "Note: After this period, the system automatically applies the listed price at transaction time."
+        },
+        "exchangeFree": {
+          "title": "Free exchange",
+          "subtitle": "Set how long the original invoice is accepted for free exchange.",
+          "label": "Allow free exchange for transactions within:",
+          "note": "Beyond this period, exchange transactions are charged per current policy."
+        }
+      },
       "prices": {
         "title": "Price Tables",
         "subtitle": "Manage gold/silver price tables by purity",

@@ -74,7 +74,12 @@
         "colPricePerUnit": "Giá/chỉ",
         "colDamage": "Lỗi/Hỏng (₭)",
         "colWear": "Hao mòn (Chỉ)",
-        "colWearValue": "Giá trị HM (₭)"
+        "colWearValue": "Giá trị HM (₭)",
+        "buyBackWithinDays": "Còn {days} ngày",
+        "buyBackNoLimit": "Không giới hạn",
+        "buyBackExpired": "Hết hạn",
+        "buyBackWithinTip": "Áp giá gốc hóa đơn",
+        "buyBackExpiredTip": "Áp giá bán ra hiện hành · quá hạn {maxDays} ngày"
       },
       "buyGold": {
         "colProduct": "Sản phẩm mua vào",
@@ -96,6 +101,8 @@
         "customerSearch": "Tìm khách hàng...",
         "customerNotFound": "Không tìm thấy khách hàng",
         "customerRequired": "Vui lòng chọn khách hàng để lập đơn",
+        "exchangeFreeExpired": "Hóa đơn gốc đã hết hạn đổi miễn phí",
+        "exchangeFreeDisabled": "Nghiệp vụ đổi miễn phí đang tắt",
         "subtotalLabel": "Tổng hàng (A)",
         "laborFeeLabel": "Tiền công",
         "stoneFeeLabel": "Tiền đá",
@@ -274,7 +281,10 @@
       "clearLink": "Xóa liên kết",
       "searchPlaceholder": "Nhập mã HĐ bán vàng cũ...",
       "notFound": "Không tìm thấy \"{query}\"",
-      "linkRequired": "Vui lòng liên kết hóa đơn vàng gốc"
+      "linkRequired": "Vui lòng liên kết hóa đơn vàng gốc",
+      "efWithin": "Đổi miễn phí · còn {days} ngày",
+      "efExpired": "Hết hạn đổi miễn phí",
+      "efDisabled": "Đổi miễn phí đang tắt"
     }
   },
   "product": {
@@ -450,6 +460,7 @@
         "orderExchangeToMoney": "Đổi Thành Tiền",
         "orderExchangeCurrency": "Thu Đổi Ngoại Tệ",
         "currencies": "Loại tiền tệ",
+        "systemConfig": "Cấu hình hệ thống",
         "auditLogs": "Lịch sử đăng nhập"
       },
       "collapse": "Thu gọn sidebar",
@@ -1465,6 +1476,27 @@
       }
     },
     "config": {
+      "systemConfig": {
+        "pageTitle": "Cấu hình hệ thống",
+        "pageSubtitle": "Thiết lập các tham số nghiệp vụ áp dụng tại thời điểm giao dịch.",
+        "activate": "Kích hoạt",
+        "sectionTime": "Thời gian áp dụng",
+        "daysSuffix": "ngày kể từ thời điểm khách hàng mua sản phẩm.",
+        "cancel": "Hủy",
+        "save": "Lưu cấu hình",
+        "buyBack": {
+          "title": "Mua lại theo giá gốc hóa đơn",
+          "subtitle": "Thiết lập số ngày áp dụng đơn giá gốc từ hóa đơn mua vào.",
+          "label": "Đơn giá mua lại được áp dụng bằng giá gốc trên hóa đơn cho các giao dịch trong vòng:",
+          "note": "Lưu ý: Sau thời gian này, hệ thống sẽ tự động áp dụng giá niêm yết tại thời điểm thực hiện giao dịch."
+        },
+        "exchangeFree": {
+          "title": "Đổi miễn phí",
+          "subtitle": "Thiết lập thời hạn chấp nhận hóa đơn gốc cho nghiệp vụ đổi miễn phí.",
+          "label": "Cho phép đổi miễn phí cho các giao dịch trong vòng:",
+          "note": "Quá thời hạn này, giao dịch đổi sẽ được tính phí theo quy định hiện hành."
+        }
+      },
       "prices": {
         "title": "Bảng giá",
         "subtitle": "Quản lý bảng giá vàng/bạc theo hàm lượng",

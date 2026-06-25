@@ -2,8 +2,10 @@
 
 import { useTranslations } from 'next-intl'
 import { useExchangeInvoiceLookup } from '@/hooks/useExchangeInvoiceLookup'
+import { useExchangeFreeStatus } from '@/hooks/useExchangeFreeStatus'
 import { Input } from '@/components/ui/input'
 import { Spinner } from '@/components/ui/spinner'
+import { Badge } from '@/components/ui/badge'
 import { cn } from '@/lib/utils'
 import { ExclamationCircleOutlined, LinkOutlined, SearchOutlined, CloseOutlined } from '@ant-design/icons'
 import type { Transaction } from '@/types/transaction'
@@ -20,6 +22,8 @@ export function ExchangeInvoiceLookup({ showError = false }: ExchangeInvoiceLook
     linkedCode,
     selectInvoice, clearLinkedInvoice,
   } = useExchangeInvoiceLookup()
+  // Trạng thái hạn Đổi Miễn Phí của HĐ gốc (null nếu không phải luồng ExchangeFree)
+  const efStatus = useExchangeFreeStatus()
 
   return (
     <div className="px-4 py-3 shrink-0">
@@ -46,6 +50,23 @@ export function ExchangeInvoiceLookup({ showError = false }: ExchangeInvoiceLook
           <span className="flex-1 text-xs font-mono font-semibold text-amber-700 dark:text-amber-400 truncate">
             {linkedCode}
           </span>
+          {efStatus && (
+            <Badge
+              variant="outline"
+              className={cn(
+                'h-5 px-2 text-[10px] font-semibold shrink-0',
+                efStatus.canExchangeFree
+                  ? 'bg-green-100 text-green-700 border-green-200 dark:bg-green-900/30 dark:text-green-400'
+                  : 'bg-destructive/10 text-destructive border-destructive/20',
+              )}
+            >
+              {efStatus.reason === 'within_limit'
+                ? t('efWithin', { days: efStatus.daysRemaining ?? 0 })
+                : efStatus.reason === 'expired'
+                  ? t('efExpired')
+                  : t('efDisabled')}
+            </Badge>
+          )}
         </div>
       ) : (
         <>

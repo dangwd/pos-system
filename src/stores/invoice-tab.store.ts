@@ -35,6 +35,7 @@ function makeNewTab(type: TransactionType = "SellGold"): InvoiceTab {
     discountAmount: 0,
     note: "",
     linkedInvoiceCode: null,
+    linkedInvoiceTransactedAt: null,
     linkedInvoiceItemKeys: [],
     cancelTransactionId: null,
     cancelInvoiceCode: null,
@@ -235,7 +236,7 @@ export const useInvoiceTabStore = create<InvoiceTabStore>()(
         });
       },
 
-      setLinkedInvoice(code: string, newItems: CartItem[]) {
+      setLinkedInvoice(code: string, newItems: CartItem[], transactedAt?: string | null) {
         const { tabs } = get();
         const activeId = resolveActiveId(tabs, get().activeTabId);
         if (!activeId) return;
@@ -249,6 +250,7 @@ export const useInvoiceTabStore = create<InvoiceTabStore>()(
               ...t,
               items: [...newItems, ...remaining],
               linkedInvoiceCode: code,
+              linkedInvoiceTransactedAt: transactedAt ?? null,
               linkedInvoiceItemKeys: newItems.map((i) => i.productId),
             };
           }),
@@ -266,6 +268,7 @@ export const useInvoiceTabStore = create<InvoiceTabStore>()(
               ...t,
               items: t.items.filter((i) => !t.linkedInvoiceItemKeys.includes(i.productId)),
               linkedInvoiceCode: null,
+              linkedInvoiceTransactedAt: null,
               linkedInvoiceItemKeys: [],
             };
           }),
@@ -378,6 +381,7 @@ export const useInvoiceTabStore = create<InvoiceTabStore>()(
           ...t,
           txnType: t.txnType ?? "SellGold",
           linkedInvoiceCode: t.linkedInvoiceCode ?? null,
+          linkedInvoiceTransactedAt: t.linkedInvoiceTransactedAt ?? null,
           linkedInvoiceItemKeys: t.linkedInvoiceItemKeys ?? [],
           fxLines: t.fxLines ?? [],
           fxPaymentMethod: t.fxPaymentMethod ?? 'CASH',

@@ -231,6 +231,21 @@ const ERROR_MESSAGES: Record<string, ErrorMap> = {
     vi: "Hóa đơn gốc quá 30 ngày, không còn hiệu lực đổi miễn phí",
     en: "Reference invoice is over 30 days old, free exchange no longer valid",
   },
+  EXCHANGE_FREE_DISABLED: {
+    lo: "ການແລກປ່ຽນຟຣີຖືກປິດຢູ່",
+    vi: "Nghiệp vụ đổi miễn phí đang bị tắt",
+    en: "Free exchange is currently disabled",
+  },
+  CONFIG_EXCHANGE_FREE_MAX_DAYS_INVALID: {
+    lo: "ຈຳນວນວັນສູງສຸດຂອງການແລກປ່ຽນຟຣີຕ້ອງ > 0",
+    vi: "Số ngày tối đa cho đổi miễn phí phải lớn hơn 0",
+    en: "Free exchange max days must be greater than 0",
+  },
+  CONFIG_BUY_BACK_MAX_DAYS_INVALID: {
+    lo: "ຈຳນວນວັນສູງສຸດຂອງການຮັບຊື້ຄືນຕ້ອງ ≥ 0",
+    vi: "Số ngày tối đa cho mua lại theo giá gốc phải lớn hơn hoặc bằng 0",
+    en: "Buy-back max days must be greater than or equal to 0",
+  },
 
   // ── PRODUCT ───────────────────────────────────────────────────────────────
   PRODUCT_NOT_FOUND: {

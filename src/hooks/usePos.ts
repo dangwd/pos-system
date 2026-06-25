@@ -21,6 +21,7 @@ import { useAddToCart } from './useAddToCart'
 import { useCheckout } from './useCheckout'
 import { useCoupon } from './useCoupon'
 import { useActivePriceConfig } from './useConfig'
+import { useSyncBuybackPrices } from './useSyncBuybackPrices'
 import { useInvoiceTabStore } from '@/stores/invoice-tab.store'
 import { CashStrategy, BankTransferStrategy, CombinedStrategy } from '@/lib/strategies'
 
@@ -52,6 +53,10 @@ export function usePos() {
   } = useActiveTab()
 
   const { addToCartAs } = useAddToCart(priceConfig)
+
+  // Tính lại giá vàng cũ (ExchangeIn từ HĐ) khi bật/tắt buyback hoặc đổi bảng giá —
+  // vì tab lưu localStorage nên giá đã tính bị đóng băng (bug).
+  useSyncBuybackPrices()
 
   const { updateTab } = useInvoiceTabStore()
   const { applyAmount: applyDiscount, clear: clearDiscount } = useCoupon()

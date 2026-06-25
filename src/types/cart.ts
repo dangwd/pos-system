@@ -44,6 +44,34 @@ export interface CartItem {
   isDamaged: boolean;
   /** true = item từ HĐ cũ liên kết, không cho chỉnh sửa SL/giá */
   isReadOnly: boolean;
+  /**
+   * Ngữ cảnh buyback cho ExchangeIn lấy từ HĐ gốc (undefined nếu thêm thủ công
+   * hoặc tính năng giá gốc HĐ đang tắt). Dùng để hiển thị badge Trong/Quá hạn:
+   *  - `withinWindow = true`  → `unitPriceLakPerGram` đang là GIÁ GỐC HĐ
+   *  - `withinWindow = false` → đang là GIÁ MUA VÀO hiện hành
+   */
+  buyBack?: CartItemBuyBack;
+  /** Giá gốc HĐ / đơn vị (chỉ ExchangeIn từ HĐ). Lưu để recompute khi đổi cấu hình. */
+  originalUnitPriceLak?: number;
+  /** Số ngày từ HĐ gốc (BE tính). Lưu để recompute quyết định còn/hết hạn. */
+  daysSincePurchase?: number;
+  /**
+   * Chữ ký cấu hình (`enabled|maxDays|priceTableId`) lúc tính giá này. Khi cấu
+   * hình đổi → chữ ký lệch → recompute; bằng nhau → giữ (kể cả đã sửa tay).
+   */
+  buyBackSig?: string;
+}
+
+/**
+ * Trạng thái thời hạn áp giá gốc hóa đơn của một item vàng cũ.
+ * Map từ `getBuyBackStatus` (lib/buy-back.ts) — bỏ qua reason 'feature_disabled'
+ * (khi đó không gắn buyBack → không hiện badge).
+ */
+export interface CartItemBuyBack {
+  withinWindow: boolean; // canApplyOriginalPrice — true = đang áp GIÁ GỐC HĐ
+  reason: 'no_limit' | 'within_limit' | 'expired';
+  daysRemaining: number | null; // còn N ngày (null khi không giới hạn / hết hạn)
+  maxDays: number; // hạn áp giá gốc (0 = không giới hạn)
 }
 
 /**

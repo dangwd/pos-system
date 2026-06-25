@@ -811,7 +811,9 @@ function ExchangeInRow({
   priceConfig: PriceConfig | undefined;
   weightUnits: WeightUnit[];
 }) {
+  const t = useTranslations("pos.transactionTable");
   const rowTotal = lineTotal(item);
+  const buyBack = item.buyBack;
   return (
     <tr
       className={cn(
@@ -827,6 +829,28 @@ function ExchangeInRow({
         <p className="text-[10px] text-muted-foreground font-mono mt-0.5">
           {item.purity}
         </p>
+        {buyBack && (
+          <Badge
+            variant="outline"
+            title={
+              buyBack.withinWindow
+                ? t("exchangeGold.buyBackWithinTip")
+                : t("exchangeGold.buyBackExpiredTip", { maxDays: buyBack.maxDays })
+            }
+            className={cn(
+              "mt-1 h-4 px-1.5 text-[9px] font-semibold",
+              buyBack.withinWindow
+                ? "bg-green-100 text-green-700 border-green-200 dark:bg-green-900/30 dark:text-green-400"
+                : "bg-muted text-muted-foreground border-border",
+            )}
+          >
+            {buyBack.reason === "within_limit"
+              ? t("exchangeGold.buyBackWithinDays", { days: buyBack.daysRemaining ?? 0 })
+              : buyBack.reason === "no_limit"
+                ? t("exchangeGold.buyBackNoLimit")
+                : t("exchangeGold.buyBackExpired")}
+          </Badge>
+        )}
       </td>
       <td className="px-3 py-2">
         {item.isReadOnly ? (
@@ -855,30 +879,20 @@ function ExchangeInRow({
         />
       </td>
       <td className="px-3 py-2 w-36">
-        {item.isReadOnly ? (
-          <span className="text-xs tabular-nums text-muted-foreground whitespace-nowrap">
-            {Math.round(
-              item.unitPriceLakPerGram * item.weightGram,
-            ).toLocaleString("lo-LA")}{" "}
-            ₭
-          </span>
-        ) : (
-          <InputNumber
-            key={item.weightUnitId ?? "default"}
-            value={
-              Math.round(item.unitPriceLakPerGram * item.weightGram) || null
-            }
-            onChange={(v) => {
-              const newPrice = v ?? 0;
-              onUpdate(item.productId, {
-                unitPriceLakPerGram:
-                  item.weightGram > 0 ? newPrice / item.weightGram : 0,
-              });
-            }}
-            size="small"
-            style={{ width: 128 }}
-          />
-        )}
+        {/* Giá/chỉ luôn cho sửa — kể cả item lấy từ HĐ (isReadOnly) */}
+        <InputNumber
+          key={`${item.productId}-${item.weightUnitId ?? "default"}`}
+          value={Math.round(item.unitPriceLakPerGram * item.weightGram) || null}
+          onChange={(v) => {
+            const newPrice = v ?? 0;
+            onUpdate(item.productId, {
+              unitPriceLakPerGram:
+                item.weightGram > 0 ? newPrice / item.weightGram : 0,
+            });
+          }}
+          size="small"
+          style={{ width: 128 }}
+        />
       </td>
 
       {/* Lỗi/Hỏng — luôn nhập được (đánh giá tại thời điểm nhận hàng, không phụ thuộc isReadOnly) */}

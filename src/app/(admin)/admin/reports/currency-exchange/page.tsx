@@ -3,8 +3,6 @@
 import { useState } from 'react'
 import { useTranslations } from 'next-intl'
 import { Select, DatePicker, Button } from 'antd'
-
-const { RangePicker } = DatePicker
 import { DownloadOutlined } from '@ant-design/icons'
 import dayjs from 'dayjs'
 import { usePermission } from '@/hooks/usePermission'
@@ -21,6 +19,8 @@ import { useToast } from '@/lib/toast'
 import type { TableColumnsType } from 'antd'
 import { FlagIcon } from '@/components/shared/FlagIcon'
 import type { CurrencyExchangeTx } from '@/types/report'
+
+const { RangePicker } = DatePicker
 
 const PAGE_SIZE = 20
 

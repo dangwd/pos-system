@@ -19,6 +19,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/lib/toast";
 import { useActiveTab } from "@/hooks/useActiveTab";
+import { useExchangeFreeStatus } from "@/hooks/useExchangeFreeStatus";
 import { useAuthStore } from "@/stores/auth.store";
 import { useCustomers } from "@/hooks/useCustomers";
 import { useTransactionLookup, useCancelTransaction } from "@/hooks/useTransactions";
@@ -774,6 +775,8 @@ export function PaymentPanel({
   const { tab, total, exitCancelMode } = useActiveTab();
   const toast = useToast();
   const { mutate: cancelTxn, isPending: isCancelling } = useCancelTransaction();
+  // Hạn Đổi Miễn Phí của HĐ gốc (§3) — null nếu không phải luồng ExchangeFree
+  const efStatus = useExchangeFreeStatus();
 
   const [cashInput, setCashInput] = useState("");
   const [bankInput, setBankInput] = useState("");
@@ -866,8 +869,22 @@ export function PaymentPanel({
     return false;
   };
 
+  // §3.4 — chặn submit ExchangeFree khi HĐ gốc hết hạn / tính năng tắt.
+  // BE vẫn re-validate (EXCHANGE_FREE_*), đây là check fail-fast phía FE.
+  const requireExchangeFreeValid = () => {
+    if (tab?.txnType !== "ExchangeFree") return true;
+    if (efStatus && !efStatus.canExchangeFree) {
+      toast.error(
+        t(efStatus.reason === "feature_disabled" ? "exchangeFreeDisabled" : "exchangeFreeExpired"),
+      );
+      return false;
+    }
+    return true;
+  };
+
   const handleCheckout = () => {
     if (!requireLinkedInvoice()) return;
+    if (!requireExchangeFreeValid()) return;
     if (!requireCustomer()) return;
     isCombined
       ? onCheckout({ cashAmount: cashAmt, bankAmount: bankAmt })
@@ -876,6 +893,7 @@ export function PaymentPanel({
 
   const handleDirectCheckout = () => {
     if (!requireLinkedInvoice()) return;
+    if (!requireExchangeFreeValid()) return;
     if (!requireCustomer()) return;
     onDirectCheckout();
   };

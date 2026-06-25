@@ -53,10 +53,22 @@ export class TransactionRepository {
     }
   }
 
-  /** Chi tiết giao dịch */
+  /**
+   * Chi tiết giao dịch. Theo docs "Kiểm tra HĐ còn hạn" §2.1, 3 field buyback
+   * (daysSincePurchase, buyBackOriginalPrice*) nằm PHẲNG trên transaction.
+   * Giữ nhánh unwrap phòng BE trả wrapper `{ transaction, ...3 field }` (gộp về phẳng).
+   */
   async getById(id: string): Promise<Transaction> {
     try {
-      const { data } = await api.get<Transaction>(`${this.base}/${id}`)
+      const { data } = await api.get<Transaction & { transaction?: Transaction }>(`${this.base}/${id}`)
+      if (data.transaction) {
+        return {
+          ...data.transaction,
+          daysSincePurchase: data.daysSincePurchase,
+          buyBackOriginalPriceEnabled: data.buyBackOriginalPriceEnabled,
+          buyBackOriginalPriceMaxDays: data.buyBackOriginalPriceMaxDays,
+        }
+      }
       return data
     } catch (err) {
       throw handleAxiosError(err)

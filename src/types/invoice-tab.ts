@@ -29,6 +29,8 @@ export interface InvoiceTab {
   // ── ExchangeGold: hóa đơn liên kết ──────────────────────────────────────────
   /** Mã HĐ bán vàng cũ đã liên kết (ExchangeGold) */
   linkedInvoiceCode: string | null;
+  /** transactedAt (ISO) của HĐ gốc đã liên kết — để check hạn ExchangeFree (§3) */
+  linkedInvoiceTransactedAt: string | null;
   /** productId của các CartItem ExchangeIn được load từ HĐ liên kết */
   linkedInvoiceItemKeys: string[];
 
@@ -89,7 +91,7 @@ export interface InvoiceTabStore {
   updateCartItemInActive: (productId: string, patch: Partial<CartItem>, itemRole?: 'Normal' | 'ExchangeIn') => void;
 
   /** Load items từ HĐ cũ vào active tab dưới dạng ExchangeIn */
-  setLinkedInvoice: (code: string, items: CartItem[]) => void;
+  setLinkedInvoice: (code: string, items: CartItem[], transactedAt?: string | null) => void;
   /** Xóa HĐ liên kết và các ExchangeIn items tương ứng */
   clearLinkedInvoice: () => void;
 
