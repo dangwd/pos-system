@@ -1729,6 +1729,10 @@
       "saveButton": "Save",
       "cancel": "Cancel",
       "saveSuccess": "Permissions updated",
+      "permissionsSelected": "{selected} / {total} permissions selected",
+      "selectAll": "Select all",
+      "deselectAll": "Deselect all",
+      "permissionsSectionTitle": "Functional Permissions",
       "columns": {
         "code": "Code",
         "name": "Role Name",
@@ -1744,7 +1748,8 @@
         "CONFIG": "Configuration",
         "PRODUCT": "Product Catalog",
         "BRANCH": "Branches",
-        "USER": "Users"
+        "USER": "Users",
+        "AUDIT": "Audit Log"
       },
       "permNames": {
         "TRANSACTION_CREATE": "Create Transactions",
@@ -1763,7 +1768,10 @@
         "CONFIG_GOLD_PURITY": "Configure Gold Purity",
         "PRODUCT_MANAGE": "Manage Products & Categories",
         "BRANCH_MANAGE": "Manage Branches",
-        "USER_MANAGE": "Manage Users & Permissions"
+        "USER_MANAGE": "Manage Users & Permissions",
+        "AUDIT_LOG_VIEW": "View login history",
+        "CONFIG_SYSTEM": "Configure system parameters",
+        "CONFIG_PRICE_TABLE": "Manage price tables by scope"
       },
       "sectionSystem": "System Roles",
       "sectionCustom": "Custom Roles",

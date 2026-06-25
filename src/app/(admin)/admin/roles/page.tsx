@@ -111,14 +111,14 @@ function PermissionsDialog({
       >
         <div className="flex items-center gap-2 px-6 pt-3 pb-1 shrink-0">
           <span className="text-xs text-muted-foreground">
-            {selected.size} / {allPermissions.length} quyền được chọn
+            {t('permissionsSelected', { selected: selected.size, total: allPermissions.length })}
           </span>
           {selected.size < allPermissions.length && (
             <button
               onClick={() => setSelected(new Set(allPermissions.map((p) => p.id)))}
               className="text-xs text-muted-foreground hover:text-primary underline underline-offset-2 transition-colors"
             >
-              Chọn tất cả
+              {t('selectAll')}
             </button>
           )}
           {selected.size > 0 && (
@@ -126,13 +126,13 @@ function PermissionsDialog({
               onClick={() => setSelected(new Set())}
               className="text-xs text-muted-foreground hover:text-destructive underline underline-offset-2 transition-colors"
             >
-              Bỏ chọn tất cả
+              {t('deselectAll')}
             </button>
           )}
         </div>
 
         <div className="flex-1 overflow-y-auto px-6 py-5">
-          <p className="text-sm font-semibold mb-4">Phân quyền chức năng</p>
+          <p className="text-sm font-semibold mb-4">{t('permissionsSectionTitle')}</p>
           {allPermissions.length === 0 ? (
             <p className="text-sm text-muted-foreground text-center py-8">—</p>
           ) : (
@@ -442,24 +442,27 @@ export default function RolesPage() {
             <Button size="small" onClick={() => setPermEditTarget(row)}>
               {t('editButton')}
             </Button>
-            {!row.isSystem && (
-              <DropdownMenu>
-                <DropdownMenuTrigger className="inline-flex h-7 w-7 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-accent hover:text-accent-foreground focus-visible:outline-none">
-                  <MoreOutlined className="h-3.5 w-3.5" />
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="end" className="min-w-44">
-                  <DropdownMenuItem onClick={() => setInfoEditTarget(row)}>
-                    <EditOutlined className="h-3.5 w-3.5" />
-                    {t('editInfoButton')}
-                  </DropdownMenuItem>
-                  <DropdownMenuSeparator />
-                  <DropdownMenuItem variant="destructive" onClick={() => setDeleteTarget(row)}>
-                    <DeleteOutlined className="h-3.5 w-3.5" />
-                    {t('deleteButton')}
-                  </DropdownMenuItem>
-                </DropdownMenuContent>
-              </DropdownMenu>
-            )}
+            <DropdownMenu>
+              <DropdownMenuTrigger className="inline-flex h-7 w-7 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-accent hover:text-accent-foreground focus-visible:outline-none">
+                <MoreOutlined className="h-3.5 w-3.5" />
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="min-w-44">
+                <DropdownMenuItem onClick={() => setInfoEditTarget(row)}>
+                  <EditOutlined className="h-3.5 w-3.5" />
+                  {t('editInfoButton')}
+                </DropdownMenuItem>
+                {/* Role hệ thống không được xóa (backend chặn + rule nghiệp vụ) */}
+                {!row.isSystem && (
+                  <>
+                    <DropdownMenuSeparator />
+                    <DropdownMenuItem variant="destructive" onClick={() => setDeleteTarget(row)}>
+                      <DeleteOutlined className="h-3.5 w-3.5" />
+                      {t('deleteButton')}
+                    </DropdownMenuItem>
+                  </>
+                )}
+              </DropdownMenuContent>
+            </DropdownMenu>
           </div>
         )
       },

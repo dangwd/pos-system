@@ -1727,6 +1727,10 @@
       "saveButton": "ບັນທຶກ",
       "cancel": "ຍົກເລີກ",
       "saveSuccess": "ອັບເດດສິດສຳເລັດ",
+      "permissionsSelected": "ເລືອກ {selected} / {total} ສິດ",
+      "selectAll": "ເລືອກທັງໝົດ",
+      "deselectAll": "ຍົກເລີກທັງໝົດ",
+      "permissionsSectionTitle": "ການແບ່ງສິດຕາມໜ້າທີ່",
       "columns": {
         "code": "ລະຫັດ",
         "name": "ຊື່ຕຳແໜ່ງ",
@@ -1742,7 +1746,8 @@
         "CONFIG": "ການຕັ້ງຄ່າ",
         "PRODUCT": "ສິນຄ້າ",
         "BRANCH": "ສາຂາ",
-        "USER": "ຜູ້ໃຊ້"
+        "USER": "ຜູ້ໃຊ້",
+        "AUDIT": "ການກວດສອບ"
       },
       "permNames": {
         "TRANSACTION_CREATE": "ສ້າງທຸລະກຳ",
@@ -1761,7 +1766,10 @@
         "CONFIG_GOLD_PURITY": "ຕັ້ງຄ່າຄວາມບໍລິສຸດ",
         "PRODUCT_MANAGE": "ຈັດການສິນຄ້າ & ໝວດໝູ່",
         "BRANCH_MANAGE": "ຈັດການສາຂາ",
-        "USER_MANAGE": "ຈັດການຜູ້ໃຊ້ & ສິດ"
+        "USER_MANAGE": "ຈັດການຜູ້ໃຊ້ & ສິດ",
+        "AUDIT_LOG_VIEW": "ເບິ່ງປະຫວັດການເຂົ້າສູ່ລະບົບ",
+        "CONFIG_SYSTEM": "ຕັ້ງຄ່າພາລາມິເຕີລະບົບ",
+        "CONFIG_PRICE_TABLE": "ຈັດການຕາຕະລາງລາຄາຕາມຂອບເຂດ"
       },
       "sectionSystem": "ຕຳແໜ່ງລະບົບ",
       "sectionCustom": "ຕຳແໜ່ງກຳນົດເອງ",

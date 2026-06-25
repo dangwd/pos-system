@@ -1727,6 +1727,10 @@
       "saveButton": "Lưu",
       "cancel": "Hủy",
       "saveSuccess": "Cập nhật quyền thành công",
+      "permissionsSelected": "{selected} / {total} quyền được chọn",
+      "selectAll": "Chọn tất cả",
+      "deselectAll": "Bỏ chọn tất cả",
+      "permissionsSectionTitle": "Phân quyền chức năng",
       "columns": {
         "code": "Mã",
         "name": "Tên vai trò",
@@ -1742,7 +1746,8 @@
         "CONFIG": "Cấu hình",
         "PRODUCT": "Danh mục sản phẩm",
         "BRANCH": "Chi nhánh",
-        "USER": "Người dùng"
+        "USER": "Người dùng",
+        "AUDIT": "Kiểm toán & Nhật ký"
       },
       "permNames": {
         "TRANSACTION_CREATE": "Lập đơn giao dịch",
@@ -1761,7 +1766,10 @@
         "CONFIG_GOLD_PURITY": "Cấu hình tuổi vàng",
         "PRODUCT_MANAGE": "Quản lý sản phẩm & danh mục",
         "BRANCH_MANAGE": "Quản lý chi nhánh",
-        "USER_MANAGE": "Quản lý người dùng & phân quyền"
+        "USER_MANAGE": "Quản lý người dùng & phân quyền",
+        "AUDIT_LOG_VIEW": "Xem lịch sử đăng nhập",
+        "CONFIG_SYSTEM": "Cấu hình tham số hệ thống",
+        "CONFIG_PRICE_TABLE": "Quản lý bảng giá theo phạm vi"
       },
       "sectionSystem": "Vai trò hệ thống",
       "sectionCustom": "Vai trò tùy chỉnh",
